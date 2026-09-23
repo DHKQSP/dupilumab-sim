@@ -1,6 +1,6 @@
 ---
-title: "듀필루맙 바이오시밀러 Phase 1 PK: AUC0-last 1차 평가변수 타당성 시뮬레이션"
-subtitle: "규제 제출용 보조 분석 — 결과 보고서 (골격)"
+title: "듀필루맙 바이오시밀러 Phase 1 PK 시뮬레이션: Day 36–50 채혈 밀도와 AUC0-last 공동 1차 평가변수 근거"
+subtitle: "규제 제출용 보조 분석"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output:
   html_document:
@@ -12,39 +12,74 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 source(file.path("..", "R", "00_setup.R")); source_project()
-p <- load_params("dev")
-res_dir <- proj_path("results", "dev")
-rd <- function(f) { fp <- file.path(res_dir, f); if (file.exists(fp)) data.table::fread(fp) else NULL }
+p <- load_params("k2016")
+gate <- read_cfg("gate_decision.yaml")
+REPORT_STEP2 <- gate$step1_gate %in% c("passed", "accepted_by_reviewer")
+rd <- function(...) { fp <- proj_path("results", ...); if (file.exists(fp)) data.table::fread(fp) else NULL }
+kt <- function(x, cap = NULL, digits = 3) if (!is.null(x)) knitr::kable(x, caption = cap, digits = digits)
 ```
 
 # 목적
-SPEC.md §0 참조. AUC0-last를 1차 평가변수로 둘 때 AUC0-inf 대비 판정 일치율, GMR 차이, 검정력을 시뮬레이션으로 평가한다.
+- **1차**: Syneos 기본 채혈 일정(B0)에서 Day 36–50(투여 후 35–49일) 채혈 포인트 추가의 가치를 정량 판단.
+- **2차**: AUC0-last + Cmax 공동 1차 평가변수 근거 — 커버리지(Pillar 1), 판정 일치(Pillar 2), 결합력 차이 비가시성(Pillar 3).
 
 # 모델과 출처
-SPEC.md §3. 대표값 출처: Kovalenko 2016 (CPT:PSP 5:617–624). IIV·잔차: FDA BLA 761055 Table 4.6.6–4.6.7 (**미입수**).
+기본 모델은 Kovalenko 2016(CPT:PSP 5:617–624) Table 2 "BLQ data included" 열: 2구획, 1차 흡수, 선형 + Michaelis–Menten 병렬 소실, `V2 = 2.74·(WT/75)^0.705`. 구조 민감도는 Kovalenko 2020 Model 1(transit 3개). 상세와 모든 값의 출처는 SPEC.md §3.
 
 ```{r params}
-knitr::kable(p$status, caption = "파라미터 출처 상태 (dev 모드: DEV-가정 값은 결과 보고에 사용 금지)")
+kt(data.table::data.table(parameter = names(p$theta), value = unname(p$theta)), "고정효과 (Kovalenko 2016 Table 2)", 4)
+kt(data.table::data.table(parameter = names(p$omega2), omega2 = unname(p$omega2), CV_pct = round(omega_to_cv(unname(p$omega)), 1)), "개체간 변동 ω² (분산)")
 ```
 
 # 가정과 한계
-- **Km 고정(0.01 mg/L)**: 정량한계(0.078 mg/L) 부근에서 MM 소실이 급격히 빨라져 말단 농도가 결정적으로 "절벽"처럼 떨어진다. Km에 불확실성·개체간 변동이 없으면 말단 산포와 λz 산포가 **과소평가**될 수 있다. 민감도 시나리오 K1(Km 상향), K2(Km IIV)로 영향을 평가한다.
-- ka는 문헌 미보고로 관측 Cmax·tmax에 보정한다(현재 목표값 미입수).
-- 체중 공변량 지수·기준 체중, 포함기준, 채혈창은 확인 필요(SPEC §8).
-- NCA·BE 규칙은 BEmaster를 따르며 본 저장소에서 재구현하지 않는다.
+- **Km 고정(0.01 mg/L)**: LLOQ(0.078 mg/L) 부근에서 MM 소실이 급격해져 말단 농도가 "절벽"처럼 떨어진다. Km에 불확실성·개체간 변동이 없으므로 말단 산포와 λz 산포가 과소평가될 수 있다. Km ×0.5–×10 시나리오로 민감도를 평가한다. Km은 MM 근사 상수로 결합력과 정확히 같지 않다.
+- **Cmax**: 이 모델은 관측보다 Cmax를 10–26% 높게 예측한다(단계 1 gate에서 제외). Cmax 절대값 해석에 주의.
+- **200 mg·≈80 kg 노출 과소예측**: 단계 1 진단 참조. 300 mg 표적 설계에는 직접 해당하지 않지만 모델의 저농도 비선형성이 관측보다 강할 가능성을 시사한다.
+- FDA BLA 761055 Table 4.6.6–4.6.7 대신 Kovalenko 2016 IIV·잔차를 사용(이미지라 추출 불가).
+- 확정 전 가정(Day 1 투여 후 시각, 체중 분포, 층화 경계, 채혈 허용창 등)은 SPEC.md §8.
+- NCA·BE는 R 직접 구현(BEmaster는 평행군·λz 선택 규칙 미지원, DECISIONS D-010).
 
-# 단계 1 검증 결과
+# 단계 1 검증
 ```{r step1}
-s1 <- rd("step1_status.csv"); if (!is.null(s1)) knitr::kable(s1)
-g <- rd("step1_typical_grid.csv")
-if (!is.null(g)) knitr::kable(g[, .(dose, ka, tlast_typical, target_tlast, tlast_match, ratio_true_pct = round(ratio_true_pct, 2), target_ratio_pct)], caption = "대표 개체: ka 격자별 tlast와 모델 기반 참값 AUC 비율(진단)")
+kt(rd("step1", "step1_status.csv"), "단계 1 상태")
+kt(rd("step1", "step1a_cohort_tlast.csv")[, .(dose_mg, weight_mean, obs_median, sim_median_of_cohort_medians, p05, p95, pct_cohorts_at_obs, pass)], "Clot 2021: 8명 코호트 2,000회의 중앙값 tlast (투여 후 일)")
+kt(rd("step1", "step1b_quant_gate.csv")[, .(id, dose_mg, wt_mean, AUClast_obs_mean, AUClast_sim_mean, AUClast_ratio, AUClast_sim_logcv, Cmax_ratio, pass_mean, pass_cv)], "정량 gate")
+kt(rd("step1", "step1e_auclast_cv_by_weight_range.csv"), "체중 범위별 AUClast log-CV (B0, 300 mg; 표본 수 논의용)")
+kt(rd("step1", "diag_dose_normalized.csv"), "진단: 용량 정규화 노출")
+kt(rd("step1", "diag_gate_alt_models.csv")[, .(variant, id, AUClast_ratio, AUClast_sim_logcv, pass_mean)], "진단: 사전 명시 대안 모델")
+```
+gate 판정: **`r gate$step1_gate`** (`config/gate_decision.yaml`).
+
+# 교차검증(독립 구현 대비)
+```{r xv}
+kt(rd("crossval", "crossval_individual_B0.csv"), "개인 수준 (B0, 60–90 kg, 20,000명)")
+kt(rd("crossval", "crossval_trial_compare.csv"), "시험 수준 (이전 일정, 50–115 kg, 500회)")
 ```
 
-# 결과 (단계 2–4)
-BEmaster·FDA 표 입수 후 채움: 개인 수준(외삽 비율 분포, λz 산출 불가 비율), 시험 수준(판정 일치율, log GMR 차이, 공동 1차 조합별 검정력), 채혈 일정 비교.
+# 결과: 채혈 밀도 (1차 목적)
+```{r sched, eval=REPORT_STEP2}
+ind <- rd("individual", "individual_base.csv")
+kt(ind[, .(schedule, n_points, tlast_median, quant_at_last_pct, lambda_ok_pct, adj_r2_ge080_pct, reliable_pct, extrap_median, extrap_p95, extrap_gt20_pct, extrap_true_median, extrap_true_p95, err_tlast_sd, err_inf_sd)], "개인 수준 (20,000명)")
+kt(rd("trials", "schedule_decision_base.csv"), "판정 규칙 (B0 대비)")
+kt(rd("trials", "schedules_per_endpoint_base.csv")[endpoint %in% c("AUClast", "Cmax", "AUCinf_reliable")], "시험 수준 (500회, 117명/arm)")
+```
+```{r sched_blocked, eval=!REPORT_STEP2, results="asis"}
+cat("> 단계 1 gate 판정 대기 중이므로 단계 2 이후 결과를 표시하지 않는다(SPEC §1).\n")
+```
+
+# 결과: 제품 차이 시나리오 (2차 목적)
+```{r prod, eval=REPORT_STEP2}
+pe <- rd("trials", "products_per_endpoint.csv")
+kt(data.table::dcast(pe, scenario ~ endpoint, value.var = "pass_rate"), "통과율 (%)", 1)
+kt(data.table::dcast(pe, scenario ~ endpoint, value.var = "GMR_mean"), "GMR 평균", 4)
+kt(rd("trials", "products_concordance.csv"), "AUClast–AUCinf 판정 일치")
+```
+```{r prod_blocked, eval=!REPORT_STEP2, results="asis"}
+cat("> 단계 1 gate 판정 대기 중.\n")
+```
 
 # 재현 방법
-README.md 참조. 실행 로그(`logs/`)에 마스터 시드, 시드 파생 규칙 버전, config SHA-256, 세션 정보를 남긴다.
+README.md. `scripts/run_all.sh`가 전체 순서를 실행한다. 실행 로그(`logs/`)에 시드 파생 규칙, config SHA-256, 세션 정보를 남긴다.
 
 ```{r session}
 sessionInfo()

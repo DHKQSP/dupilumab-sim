@@ -1,61 +1,36 @@
-# mc.R — 2층 몬테카를로 (SPEC §5.2). 바깥층: 파라미터 불확실성, 안쪽층: 시험 반복.
-# 시드: master → (scenario, outer i) → (scenario, outer i, inner j)  (R/seeds.R)
-
-# 바깥층 theta 추출: 로그 척도 정규. covariance 있으면 사용, 없으면 RSE 대각.
-draw_outer_theta <- function(p, seed) {
-  th <- p$theta
-  nm <- names(p$rse_pct)
-  with_seed(seed, {
-    if (!is.null(p$covariance)) {
-      stopifnot(all(rownames(p$covariance) %in% names(th)))
-      nm <- rownames(p$covariance)
-      z <- MASS::mvrnorm(1, mu = log(th[nm]), Sigma = p$covariance)
-      th[nm] <- exp(z)
-    } else {
-      rse <- p$rse_pct[nm] / 100; rse[is.na(rse)] <- 0
-      sdlog <- sqrt(log(1 + rse^2))
-      th[nm] <- th[nm] * exp(rnorm(length(nm), 0, sdlog))
-    }
-  })
-  # F는 (0,1) 범위 유지: logit 척도로 재투영하지 않고 상한 절단(문서화)
-  th["F"] <- min(th[["F"]], 0.999)
-  th
+# mc.R — 시험 반복 루프 (단일층 MC, 시험당 n_trials; D-012). 병렬은 fork(parallel::mclapply).
+run_trials <- function(n_trials, p, design, scenarios, combos, master_seed, wt_spec, jitter = TRUE, methods = "pooled_t",
+                       model_id = NULL, cores = 1L, progress_every = 50) {
+  invisible(get_model(if (is.null(model_id)) p$model_id else model_id))   # fork 전에 컴파일(자식 프로세스 간 경합 방지)
+  one <- function(j) {
+    r <- run_trial(j, p, design, scenarios, combos, master_seed, wt_spec, jitter = jitter, methods = methods, model_id = model_id)
+    if (progress_every > 0 && j %% progress_every == 0) cat(sprintf("  trial %d/%d %s\n", j, n_trials, format(Sys.time(), "%H:%M:%S")))
+    r
+  }
+  res <- if (cores > 1) parallel::mclapply(seq_len(n_trials), one, mc.cores = cores, mc.preschedule = TRUE) else lapply(seq_len(n_trials), one)
+  bad <- vapply(res, function(x) inherits(x, "try-error") || is.null(x$be), logical(1))
+  if (any(bad)) stop("실패한 시험 반복: ", paste(which(bad), collapse = ","))
+  list(be = rbindlist(lapply(res, `[[`, "be")), ind = rbindlist(lapply(res, `[[`, "ind")))
 }
 
-run_mc <- function(scenario, p_base, design, n_outer, n_inner, master_seed,
-                   schedule_name = NULL, n_per_arm = NULL, endpoints = c("AUClast", "AUCinf", "Cmax"),
-                   nca_fn = run_nca_bemaster, be_fn = run_be_bemaster, do_be = TRUE,
-                   progress = TRUE, parallel = FALSE) {
-  pp <- apply_scenario(p_base, scenario)
-  one_outer <- function(i) {
-    seed_i <- derive_seed(master_seed, scenario$code, "outer", i)
-    th_i <- draw_outer_theta(p_base, seed_i)
-    pR <- pp$R; pT <- pp$T
-    # 시나리오 승수를 유지한 채 바깥층 theta 반영
-    mult <- pp$T$theta / pp$R$theta
-    pR$theta <- th_i; pT$theta <- th_i * mult
-    res <- lapply(seq_len(n_inner), function(j) {
-      seed_ij <- derive_seed(master_seed, scenario$code, "outer", i, "inner", j)
-      tr <- run_trial(pR, pT, design, seed = seed_ij, schedule_name = schedule_name, n_per_arm = n_per_arm,
-                      nca_fn = nca_fn, be_fn = be_fn, endpoints = endpoints, do_be = do_be)
-      list(outer = i, inner = j, seed = seed_ij, theta = th_i,
-           subjects = tr$subjects[, `:=`(outer = i, inner = j)],
-           nca = if (!is.null(tr$nca)) tr$nca[, `:=`(outer = i, inner = j)] else NULL,
-           be  = if (!is.null(tr$be))  tr$be[,  `:=`(outer = i, inner = j)] else NULL)
-    })
-    if (progress) cat(sprintf("  [%s] outer %d/%d done\n", scenario$code, i, n_outer))
-    res
-  }
-  outer_res <- if (parallel && requireNamespace("future.apply", quietly = TRUE)) {
-    future.apply::future_lapply(seq_len(n_outer), one_outer, future.seed = NULL)
-  } else lapply(seq_len(n_outer), one_outer)
-  flat <- unlist(outer_res, recursive = FALSE)
-  list(
-    scenario = scenario$code, label = scenario$label, master_seed = master_seed,
-    n_outer = n_outer, n_inner = n_inner,
-    theta_outer = rbindlist(lapply(outer_res, function(o) as.data.table(as.list(o[[1]]$theta))[, outer := o[[1]]$outer])),
-    subjects = rbindlist(lapply(flat, `[[`, "subjects")),
-    nca = rbindlist(lapply(flat, `[[`, "nca")),
-    be = rbindlist(lapply(flat, `[[`, "be"))
-  )
+# 개인 수준 대규모 모집단(지시서 §5): n명, 합집합 격자 1회 풀이 → 일정별 NCA
+run_individual_population <- function(n, p, design, schedules, master_seed, wt_spec, jitter = TRUE, sex_ratio_male = NULL,
+                                      model_id = NULL, dose_mg = NULL, multipliers = list(), tag = "pop") {
+  if (is.null(sex_ratio_male)) sex_ratio_male <- design$weight$sex_ratio_male$value
+  if (is.null(model_id)) model_id <- p$model_id
+  if (is.null(dose_mg)) dose_mg <- design$dose_mg
+  grid <- union_grid(design, schedules)
+  subj <- with_seed(derive_seed(master_seed, tag, "subj"), make_subjects(n, p, wt_spec, sex_ratio_male, p$ada$fraction))
+  obs <- with_seed(derive_seed(master_seed, tag, "jitter"), make_obs_times(subj$id, grid, design, jitter = jitter))
+  eps <- with_seed(derive_seed(master_seed, tag, "eps"), draw_eps(subj$id, sort(unique(c(0, grid))), p$sigma))
+  ip <- individual_params(apply_multipliers(p, multipliers), subj)
+  sim <- simulate_observations(ip, obs, dose_mg, p$lloq, eps, model_id = model_id)
+  nca_by_sched <- lapply(schedules, function(sh) {
+    ob <- subset_schedule(sim$obs, get_schedule(design, sh))
+    nca <- attach_truth(run_nca(ob), ob, sim$truth)
+    nca <- merge(nca, subj[, .(id, WT, sex, ada)], by = "id")
+    nca[, schedule := sh][]
+  })
+  names(nca_by_sched) <- schedules
+  list(subj = subj, obs = sim$obs, truth = sim$truth, nca = rbindlist(nca_by_sched))
 }

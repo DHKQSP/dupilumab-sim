@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
-# ka 보정 (SPEC §3.4). 목표값(관측 Cmax·tmax, 300 mg)이 config/calibration_targets.yaml 에 있으면 최적화,
-# 없으면 ka 격자 민감도만 산출한다. 결과: results/calibration/
+# [보관용 — 실행 금지] 지시서 2026-09-23 §1: ka는 Kovalenko 2016 Table 2 값(0.254/day)과 IIV를 그대로 쓰며 보정하지 않는다.
+# 이 스크립트는 이전 세션의 보정 하네스를 기록 목적으로만 남긴 것이다. config/calibration_targets.yaml 은 삭제되었으므로 실행하면 중단된다.
+stop("보관용 스크립트: 실행 금지 (지시서 2026-09-23 §1, DECISIONS D-015)")
 source("R/00_setup.R"); source_project()
 args <- commandArgs(trailingOnly = TRUE)
 run_mode <- if (length(args) >= 1) args[1] else "dev"

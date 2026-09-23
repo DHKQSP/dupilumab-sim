@@ -1,0 +1,11 @@
+scenario,metric,sim,ref
+S00,pass_AUClast,81.6,99
+S00,pass_AUCinf_reliable,83.4,98.2
+S00,width_AUClast_pp,25.2269369588152,17.6
+F090,pass_AUClast,15.8,22
+F090,pass_AUCinf_reliable,20.6,30.6
+VM125,pass_AUClast,23.2,32
+VM125,pass_AUCinf_reliable,41.2,56.4
+VM125,gmr_AUCinf_true,0.869197287418483,0.863
+VM125,gmr_AUClast,0.862837305534799,0.856
+VM125,gmr_AUCinf_reliable,0.893932574875285,0.885

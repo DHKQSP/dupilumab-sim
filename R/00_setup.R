@@ -27,9 +27,9 @@ PROJ_ROOT <- local({
 proj_path <- function(...) file.path(PROJ_ROOT, ...)
 
 source_project <- function() {
-  files <- c("seeds.R", "params.R", "model.R", "population.R", "sampling.R",
-             "simulate.R", "truth.R", "nca_bemaster.R", "be_bemaster.R",
-             "trial.R", "mc.R", "scenarios.R", "summarize.R", "logging.R")
+  files <- c("seeds.R", "params.R", "model.R", "truth.R", "population.R", "sampling.R",
+             "nca.R", "be_stats.R", "simulate.R", "scenarios.R", "summarize.R",
+             "trial.R", "mc.R", "step1.R", "logging.R")
   for (f in files) {
     p <- proj_path("R", f)
     if (file.exists(p)) sys.source(p, envir = globalenv())

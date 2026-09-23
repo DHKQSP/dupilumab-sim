@@ -1,12 +1,26 @@
-# 시나리오(단계 3). 시험약(T) arm에만 적용되는 곱셈 계수. R arm은 항상 1.
-# 방향: 기본은 노출 감소 방향. ke 증가 = 선형 소실 10% 증가(노출 감소). 반대 방향은 sign을 바꿔 별도 실행 가능.
+# 제품 차이 시나리오(지시서 §6). 시험군(T) 고정효과에 곱하는 배율. 대조군은 시나리오 간 공통 난수(D-013).
 scenarios:
-  S0:  {label: "차이 없음",            T_multipliers: {}}
-  S1a: {label: "생체이용률 -5%",        T_multipliers: {F: 0.95}}
-  S1b: {label: "생체이용률 -10%",       T_multipliers: {F: 0.90}}
-  S2:  {label: "선형 소실 +10%",        T_multipliers: {ke: 1.10}}
-  S3:  {label: "Vmax +10%",             T_multipliers: {Vmax: 1.10}}
-  S4:  {label: "Km x2",                 T_multipliers: {Km: 2.0}}
-sensitivity:
-  K1: {label: "Km 상향(양 arm)",          both_arms: {Km: null}, status: pending, source: "SPEC Q8 — 상향 Km 값 필요"}
-  K2: {label: "Km 개체간 변동(양 arm)",   both_arms_iiv: {Km_omega: null}, status: pending, source: "SPEC Q8 — Km IIV CV 필요"}
+  S00:   {label: "동일 제품",     T_multipliers: {}}
+  F090:  {label: "F ×0.90",      T_multipliers: {F: 0.90}}
+  F085:  {label: "F ×0.85",      T_multipliers: {F: 0.85}}
+  F110:  {label: "F ×1.10",      T_multipliers: {F: 1.10}}
+  KE110: {label: "ke ×1.10",     T_multipliers: {ke: 1.10}}
+  KE120: {label: "ke ×1.20",     T_multipliers: {ke: 1.20}}
+  VM080: {label: "Vmax ×0.80",   T_multipliers: {Vmax: 0.80}}
+  VM125: {label: "Vmax ×1.25",   T_multipliers: {Vmax: 1.25}}
+  VM150: {label: "Vmax ×1.50",   T_multipliers: {Vmax: 1.50}}
+  KM05:  {label: "Km ×0.5 (0.005 mg/L)", T_multipliers: {Km: 0.5}}
+  KM2:   {label: "Km ×2 (0.02 mg/L)",    T_multipliers: {Km: 2}}
+  KM5:   {label: "Km ×5 (0.05 mg/L)",    T_multipliers: {Km: 5}}
+  KM10:  {label: "Km ×10 (0.1 mg/L)",    T_multipliers: {Km: 10}}
+  KA075: {label: "ka ×0.75",     T_multipliers: {ka: 0.75}}
+schedule_analysis_scenarios: [S00, F090, VM125]
+km_caveat: "Kovalenko 2016에서 Km < 0.01은 목적함수가 둔감했으므로 아래쪽은 동등하게 그럴듯하고, 0.1 mg/L은 정량한계보다 높은 극단값. Km은 Michaelis-Menten 근사 상수로 결합력과 정확히 같지 않음."
+# 모델·변동 민감도 변형(지시서 §2). 개인 수준 지표 전 일정 + 시험 수준(B0, S00·F090) 실행.
+sensitivity_variants:
+  base:       {label: "기본(Kovalenko 2016)"}
+  struct2020: {label: "구조: Kovalenko 2020 Model 1 (transit)", model: k2020_model1}
+  iiv150:     {label: "변동: ω² ×1.5", omega2_multiplier: 1.5}
+  resid12:    {label: "잔차: 비례 12%", sigma_prop: 0.12}
+  weight_alt: {label: "체중: 평균 72, SD 10, 절단 50–90", weight: sensitivity}
+  ada10:      {label: "ADA 유사 소집단 10%, 14일 이후 ke ×2", ada: true}

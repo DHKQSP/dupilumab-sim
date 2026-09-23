@@ -1,4 +1,0 @@
-dose,t_cross_lloq_day,target_tlast,target_window,in_window,shortfall_day
-300,37.5416666666667,42,"[42, 49)",FALSE,4.45833333333334
-200,28.5416666666667,28,"[28, 35)",TRUE,0
-600,56.125,56,"[56, 63)",TRUE,0

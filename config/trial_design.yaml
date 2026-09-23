@@ -1,47 +1,74 @@
-# 가상 시험 설계(단계 2). 값 대부분이 [DEV-가정]이며 사용자 확인 필요 (SPEC Q6).
+# 가상 시험 설계 — 지시서 2026-09-23 §4, §5. "확정 전 가정"으로 표시된 항목은 SPEC §8에 나열.
 study_type: parallel_two_arm_single_dose
 arms: [R, T]
 dose_mg: 300
 route: SC
-lloq_mg_L: {value: 0.078, status: dev_assumption, source: "Clot 2021 정량한계와 동일하다고 가정 — 실제 시험 분석법 LLOQ로 교체"}
-n_per_arm: {value: 60, status: dev_assumption, source: "가정 — 실제 설계 n으로 교체"}
+population: {healthy: true, bmi_range: [18, 32], note: "BMI는 모델링하지 않음"}
+n_per_arm: 117            # 평가 가능 대상자. 무작위배정 130명, 탈락은 모델링하지 않음
+n_randomized_per_arm: 130
+lloq_mg_L: 0.078
 
-# 채혈 일정(투여 후 일). 이름별 스케줄. 0 = 투여 전.
+weight:
+  inclusion_kg: [60, 90]
+  base:        {mean: 75, sd: 9,  trunc: [60, 90], status: assumption, note: "확정 전 가정(지시서 §4 기본 분포)"}
+  sensitivity: {mean: 72, sd: 10, trunc: [50, 90], female_min: 50, status: assumption, note: "확정 전 가정(지시서 §4 민감도)"}
+  sex_ratio_male: {value: 0.5, status: assumption, note: "확정 전 가정"}
+stratification:
+  weight_breaks: [60, 75, 90]     # 2층: [60,75], (75,90]  — 확정 전 가정
+  labels: ["60-75", ">75-90"]
+  allocation: "층 내 1:1"
+
+# 채혈 일정(투여 후 경과일). Day 0 = 투여 전 기저치(AUC 미포함, BLQ 처리). Day 1 투여 후 시각은 미정 → 0.25일 자리표시자.
+predose_time: 0
+day1_postdose_time: {value: 0.25, status: assumption, note: "확정 전 가정: Day 1 투여 후 채혈 시각 미정"}
 schedules:
-  d57_base:   {days: [0, 1, 2, 3, 4, 5, 7, 10, 14, 21, 28, 35, 42, 49, 56], status: dev_assumption, note: "Day 57 종료 기본"}
-  d85_ext:    {days: [0, 1, 2, 3, 4, 5, 7, 10, 14, 21, 28, 35, 42, 49, 56, 63, 70, 77, 84], status: dev_assumption, note: "Day 85 종료"}
-  d57_dense:  {days: [0, 1, 2, 3, 4, 5, 7, 10, 14, 21, 28, 35, 42, 45, 49, 52, 56], status: dev_assumption, note: "Day 42-57 구간 밀도 증가"}
-  d57_sparse: {days: [0, 1, 2, 3, 4, 5, 7, 10, 14, 21, 28, 35, 42, 56], status: dev_assumption, note: "Day 42-57 구간 밀도 감소"}
-default_schedule: d57_base
+  B0:     {days: [0.25, 1, 3, 5, 7, 10, 14, 21, 28, 35, 42, 49, 56], note: "Syneos 기본: Day 1,2,4,6,8,11,15,22,29,36,43,50,57"}
+  Bminus: {days: [0.25, 1, 3, 5, 7, 10, 14, 21, 28, 35, 42, 56],     note: "B0에서 49 제거(기존 포인트 한계 가치)"}
+  D1:     {days: [0.25, 1, 3, 5, 7, 10, 14, 21, 28, 35, 38, 42, 45, 49, 56],         note: "B0 + 38, 45 (Day 39, 46)"}
+  D2:     {days: [0.25, 1, 3, 5, 7, 10, 14, 21, 28, 35, 38, 42, 45, 49, 52, 56],     note: "B0 + 38, 45, 52 (Day 39, 46, 53)"}
+  D3:     {days: [0.25, 1, 3, 5, 7, 10, 14, 21, 28, 31, 35, 38, 42, 45, 49, 52, 56], note: "B0 + 31, 38, 45, 52 (Day 29부터 주 2회)"}
+  D4:     {days: [0.25, 1, 3, 5, 7, 10, 14, 21, 28, 35, 39, 42, 46, 49, 56],         note: "B0 + 39, 46 (Day 40, 47; D1 위치 민감도)"}
+  XV_prev: {days: [1, 2, 3, 4, 5, 7, 10, 14, 21, 28, 35, 42, 49, 56], note: "교차검증 전용: 이전 세션 일정(지시서 §8 시험 수준 기준값)"}
+  XV_prev_dens: {days: [1, 2, 3, 4, 5, 7, 10, 14, 21, 28, 35, 42, 45, 49, 52, 56], note: "교차검증 전용: XV_prev + 45, 52 (Day 46, 53; 지시서 §5 예상 방향)"}
+  XV_B0_dens:   {days: [0.25, 1, 3, 5, 7, 10, 14, 21, 28, 35, 42, 45, 49, 52, 56], note: "교차검증 전용: B0 + 45, 52 (Day 46, 53)"}
+default_schedule: B0
+schedule_analysis: [B0, Bminus, D1, D2, D3, D4]
+other_schedules_out_of_scope:
+  TARC_days: [0, 6, 15, 22, 29, 43, 57]
+  ADA_days: [0, 15, 29, 57]
+  nAb: "ADA 양성에서 같은 시점"
 
-# 채혈 허용창(±, 일). 계획시각별로 적용. 실제 시각 = 계획 + U(-w, +w).  [DEV-가정]
+# 채혈 허용창(±일). 확정 전 가정. 교차검증(§8)은 편차 없이 실행.
 sampling_window_days:
   rule:
-    - {max_day: 0,   window: 0}        # 투여 전: 편차 없음
-    - {max_day: 5,   window: 0.0833}   # ±2 h
+    - {max_day: 0,   window: 0}
+    - {max_day: 1,   window: 0.0833}   # ±2 h
     - {max_day: 14,  window: 0.25}     # ±6 h
     - {max_day: 999, window: 1.0}      # ±1 일
-  status: dev_assumption
+  status: assumption
 
-# 가상 피험자 [DEV-가정] — 체중 분포·포함기준·성별 비 출처 필요
-population:
-  sex_ratio_male: {value: 0.5, status: dev_assumption}
-  weight_kg:
-    inclusion: {min: 50, max: 100, status: dev_assumption, source: "가정 — 프로토콜 포함기준으로 교체"}
-    male:   {mean: 72, sd: 10, status: dev_assumption, source: "가정 — 출처 필요"}
-    female: {mean: 58, sd: 8,  status: dev_assumption, source: "가정 — 출처 필요"}
-    distribution: truncated_normal
-  weight_strata_kg: {breaks: [0, 65, 80, 999], labels: ["<65", "65-80", ">=80"], status: dev_assumption, note: "분산분석 체중 층"}
-
-# 몬테카를로 규모
 mc:
-  dev:   {n_outer: 20, n_inner: 50}
-  final: {n_outer: null, n_inner: null}   # 별도 지시
+  n_trials: 500
+  n_individual: 20000
+  n_trials_sensitivity: 500
 
-# 판정
-be_limits: {lower: 0.80, upper: 1.25}
-ci_level: 0.90
-primary_endpoint_sets:
-  - {name: "AUClast+Cmax",        endpoints: [AUClast, Cmax]}
-  - {name: "AUCinf+Cmax",         endpoints: [AUCinf, Cmax]}
-  - {name: "AUClast+AUCinf+Cmax", endpoints: [AUClast, AUCinf, Cmax]}
+be:
+  limits: [0.80, 1.25]
+  ci_level: 0.90
+  method: pooled_t                 # log 변환, 두 표본 pooled t (df n1+n2−2)
+  sensitivity_method: ancova_weight
+  endpoints: [Cmax, AUClast, AUCinf_reliable, AUCinf_all, AUCinf_true]
+  primary_set: [AUClast, Cmax]
+
+decision_rule:
+  # 추가 채혈 권고 조건(B0 대비): (a) AUClast CI 폭 상대 감소, (b) AUCinf 신뢰 기준 충족률 +5%p 이상, (c) 외삽 20% 초과 비율의 유의한 감소
+  ci_width_relative_decrease_min: 0.05   # 확정 전 가정: (a)의 "상대 감소" 임계 5%
+  reliability_gain_pp_min: 5
+  extrap_gt20_test_alpha: 0.05
+  cost_per_added_point: {subjects: 260, visits: 1}
+
+ada_sensitivity:
+  enabled: true
+  fraction: 0.10
+  onset_day: 14
+  ke_multiplier: 2.0

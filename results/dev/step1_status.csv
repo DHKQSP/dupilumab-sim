@@ -1,8 +1,0 @@
-check,status
-(a) 대표 개체 tlast = 목표 중앙값 (현재 ka),FAIL: 300 mg tlast 35 (목표 42); 300 mg tlast 35 (목표 42)
-"(a') ka 격자별 tlast 진단(단정 없음, D-008)",기록: 격자 중 전 용량 일치 ka = {0.1}
-"(b) 참값 AUC 비율 진단(NCA 목표와 비교 불가, D-007)","기록: 참값 비율 200 mg 99.95, 200 mg 99.95, 300 mg 99.63, 300 mg 99.63, 600 mg 100.00, 600 mg 100.00%"
-(c) NCA 기반 AUClast/AUCinf (BEmaster),BLOCKED: BEmaster 미입수 (Q1)
-(d) IIV 반영 tlast 분포 (FDA 표),BLOCKED: FDA 표 미입수 (Q2)
-Li 2020 CV 35–51% (FDA 표+BEmaster),"BLOCKED: Q1, Q2"
-Cohen 2022 log SD 0.49 (FDA 표+BEmaster),"BLOCKED: Q1, Q2"

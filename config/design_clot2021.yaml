@@ -1,18 +1,39 @@
-# 단계 1 검증 설계 — 출처: Clot 2021, Int Immunopharmacol (study PKM14160)  [서지·표·쪽수 PENDING, SPEC Q7]
-# 투여 Day 1, 채혈 Day 2·4·8·11·15·22·29·36·43·50·57 → 투여 후 경과일로 변환 (DECISIONS D-003)
+# 단계 1 검증: Clot 2021 재현 + 정량 gate (지시서 2026-09-23 §1)
+# 출처: Clot PA, et al. Int Immunopharmacol. 2021;99:107985 (open access). Table 1 인구학, Table 3 PK, Table 5 인종별 비교, §2.4 채혈·정량한계.
 study: PKM14160_Clot2021
-route: SC
-n_per_arm: 8
-dose_mg_default: 300
+sample_days_post_dose: [1, 3, 7, 10, 14, 21, 28, 35, 42, 49, 56]   # Day 2,4,8,11,15,22,29,36,43,50,57 (투여 Day 1)
 lloq_mg_L: 0.078
-sample_days_post_dose: [1, 3, 7, 10, 14, 21, 28, 35, 42, 49, 56]
-targets:
-  - {dose_mg: 300, auc_ratio_pct: 98.0, tlast_median_day: 42, tlast_range_day: [28, 49], source: "Clot 2021 (PENDING 표·쪽수)"}
-  - {dose_mg: 200, auc_ratio_pct: 94.6, tlast_median_day: 28, tlast_range_day: null, source: "Clot 2021 (PENDING 표·쪽수)"}
-  - {dose_mg: 600, auc_ratio_pct: 98.1, tlast_median_day: 56, tlast_range_day: null, source: "Clot 2021 (PENDING 표·쪽수)"}
-tolerances:
-  auc_ratio_abs_pct: 1.5     # NCA 기반 비율의 허용 절대오차(%p) — DEV-가정, 확인 필요
-  tlast_median_exact: true   # 주간 채혈이므로 중앙값은 정확히 일치해야 함
+n_per_cohort: 8
+cohort_sim:
+  n_cohorts: 2000
+  sex_ratio_male: {value: 0.5, status: assumption, note: "확정 전 가정: Clot Table 1 성비 미전달"}
+  weight_bounds_kg: {male: [50, 100], female: [40, 90]}
+  pass_rule: "관측 코호트 중앙값 tlast가 모의 코호트 중앙값 분포의 5–95 백분위 안 (채혈 간격 7일 → 한 칸 차이는 실패 아님)"
+groups:
+  - {dose_mg: 200, weight_mean: 62.2, weight_sd: 9.0, tlast_median_obs: 28, tlast_range_obs: null, source: "Clot 2021 Table 1, Table 3"}
+  - {dose_mg: 300, weight_mean: 59.9, weight_sd: 8.9, tlast_median_obs: 42, tlast_range_obs: [28, 49], source: "Clot 2021 Table 1, Table 3"}
+  - {dose_mg: 600, weight_mean: 58.3, weight_sd: 6.5, tlast_median_obs: 56, tlast_range_obs: null, source: "Clot 2021 Table 1, Table 3"}
+# 정량 gate: 체중 매칭 후 모의 AUClast 산술평균이 관측 ±15% 이내, log-scale CV 35–51%. Cmax는 gate 제외(모델이 10–20% 높게 나옴, 한계로 기재).
+gate:
+  auclast_mean_tol_pct: 15
+  log_cv_range_pct: [35, 51]
+  n_sim_per_dataset: 20000
+datasets:
+  - {id: clot300_nonasian_pooled, dose_mg: 300, n: 40, weight_mean: 78, weight_sd: {value: 10, status: assumption, note: "확정 전 가정: Table 5 SD 미전달"}, schedule: clot, cmax_mean: 32.0, cmax_sd: 10.5, auclast_mean: 544, auclast_sd: 218, source: "Clot 2021 Table 5 (비아시아인 pooled)"}
+  - {id: clot300_japanese_TDU12265, dose_mg: 300, n: 6, weight_mean: 64, weight_sd: {value: 8, status: assumption, note: "확정 전 가정"}, schedule: clot, cmax_mean: 38.3, cmax_sd: 15.3, auclast_mean: 700, auclast_sd: 234, source: "Clot 2021 Table 5 (일본인, TDU12265)"}
+  - {id: clot300_chinese, dose_mg: 300, n: 8, weight_mean: 59.9, weight_sd: 8.9, schedule: clot, cmax_mean: 37.2, cmax_sd: 14.5, cmax_geo: 34.0, auclast_mean: 792, auclast_sd: 326, auclast_geo: 710, aucinf_mean: 807, aucinf_sd: 325, aucinf_geo: 726, tmax_median: 7.0, tmax_range: [3, 10], tlast_median: 42, tlast_range: [28, 49], source: "Clot 2021 Table 3"}
+  - {id: clot600_chinese, dose_mg: 600, n: 8, weight_mean: 58.3, weight_sd: 6.5, schedule: clot, cmax_mean: 77.3, cmax_sd: 19.0, auclast_mean: 2110, auclast_sd: 487, source: "Clot 2021 Table 3"}
+  - {id: clot600_japanese, dose_mg: 600, n: null, weight_mean: 64, weight_sd: {value: 8, status: assumption, note: "확정 전 가정"}, schedule: clot, cmax_mean: 70.1, cmax_sd: 24.1, auclast_mean: 1780, auclast_sd: 699, source: "Clot 2021 Table 5 (일본인)"}
+  - {id: pkm14271_200_nonasian, dose_mg: 200, n: 19, weight_mean: 80, weight_sd: {value: 10, status: assumption, note: "확정 전 가정"}, schedule: clot, cmax_mean: 23.2, cmax_sd: 7.8, auclast_mean: 339, auclast_sd: 128, source: "Clot 2021 Table 5 (PKM14271 비아시아인)"}
+  - {id: cohen2022_200_armA, dose_mg: 200, n: 64, weight_mean: 80.6, weight_sd: {value: 8, status: assumption, note: "확정 전 가정: 70–100 kg 기준"}, weight_bounds: [70, 100], schedule: cohen_d42, cmax_mean: 21.7, cmax_sd: 6.83, auclast_mean: 311, auclast_sd: 118, source: "Cohen 2022 Table 2 p.678"}
+  - {id: cohen2022_200_armB, dose_mg: 200, n: 64, weight_mean: 80.6, weight_sd: {value: 8, status: assumption, note: "확정 전 가정"}, weight_bounds: [70, 100], schedule: cohen_d42, cmax_mean: 20.3, cmax_sd: 7.22, auclast_mean: 284, auclast_sd: 121, gmr_auclast: 1.11, gmr_ci: [0.96, 1.28], source: "Cohen 2022 Table 2 p.678"}
+dataset_schedules:
+  clot: [1, 3, 7, 10, 14, 21, 28, 35, 42, 49, 56]
+  cohen_d42: {days: [1, 3, 7, 10, 14, 21, 28, 35, 42], status: assumption, note: "확정 전 가정: Cohen 2022 p.677 채혈은 Day 43까지; 세부 시점 미전달 → Clot 시점을 42일까지 사용"}
+weight_slope_check:
+  expected_auclast_decrease_per_5kg: 50   # mg·day/L, Clot Discussion·Li 2020 Figure 2 (p.751)
+  weight_range_kg: [50, 115]
+  dose_mg: 300
 variability_checks:
-  li2020:   {dose_mg: 300, metric: AUClast, cv_pct_range: [35, 51], source: "Li 2020 Table 3 (서지·쪽수 PENDING)"}
-  cohen2022: {dose_mg: 200, metric: AUClast, log_sd: 0.49, tolerance_abs: 0.10, source: "Cohen 2022 (서지·표·쪽수 PENDING)"}
+  li2020:    {dose_mg: 300, metric: AUClast, cv_pct_range: [35, 51], source: "Li 2020 Table 3 p.750"}
+  cohen2022: {dose_mg: 200, metric: AUClast, log_sd: 0.49, source: "Cohen 2022 Table 2 p.678 (log SD)"}

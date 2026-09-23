@@ -1,0 +1,30 @@
+# 비구획분석 규칙(지시서 2026-09-23 §3, D-010). R/nca.R 이 이 파일을 읽는다.
+standard:
+  auc_method: linear_up_log_down
+  blq:
+    pre_tmax: zero          # tmax 이전 BLQ는 0
+    intermediate: missing   # tmax–tlast 사이 BLQ는 결측(인접점 연결)
+    post_tlast: exclude     # tlast 이후 BLQ 제외
+  predose_anchor: true      # (0, 0) 포함(투여 전 기저치는 BLQ → tmax 이전 규칙으로 0)
+  lambda_z:
+    min_points: 3
+    after_tmax_only: true
+    exclude_cmax: true
+    candidate_windows: "마지막 k점, k = 3..n"
+    selection: max_adj_r2
+    tie_tolerance: 0.0001
+    tie_rule: more_points
+    require_positive: true
+  aucinf: "AUClast + Clast_obs / lambda_z"
+  extrapolation_pct: "(AUCinf - AUClast) / AUCinf * 100"
+  reliability: {adj_r2_min: 0.80, extrap_max_pct: 20}
+  analysis_sets: [all_computable, reliable]
+bemaster_compat:
+  # 교차검증 전용(Cmax, AUCt). BEmaster Analysis v2.4.2(브라우저 JS) 검토 결과를 흉내 낸다. BE 판정에는 쓰지 않는다.
+  auc_method: linear
+  blq: zero
+  auc_to: last_positive
+  lambda_z: last3_fixed_ols
+truth:
+  actual_extrapolation_pct: "1 - AUC(0-tlast,true)/AUC(0-inf,true)"
+  coverage: "AUC(0-tlast,true)/AUC(0-inf,true)"

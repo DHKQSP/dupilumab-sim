@@ -1,37 +1,17 @@
-# scenarios.R — 시나리오 정의 로드 (SPEC §5.5)
+# scenarios.R — 제품 차이 시나리오와 민감도 변형 (config/scenarios.yaml)
 load_scenarios <- function() {
   s <- read_cfg("scenarios.yaml")
-  main <- lapply(names(s$scenarios), function(k) {
-    x <- s$scenarios[[k]]
-    list(code = k, label = x$label, T_multipliers = if (length(x$T_multipliers)) x$T_multipliers else list(),
-         both_arms = list(), both_arms_iiv = list(), status = "confirmed")
-  })
-  names(main) <- names(s$scenarios)
-  sens <- lapply(names(s$sensitivity), function(k) {
-    x <- s$sensitivity[[k]]
-    list(code = k, label = x$label, T_multipliers = list(),
-         both_arms = if (length(x$both_arms)) x$both_arms else list(),
-         both_arms_iiv = if (length(x$both_arms_iiv)) x$both_arms_iiv else list(),
-         status = if (!is.null(x$status)) x$status else "confirmed")
-  })
-  names(sens) <- names(s$sensitivity)
-  list(main = main, sensitivity = sens)
+  sc <- lapply(names(s$scenarios), function(k) { x <- s$scenarios[[k]]; list(code = k, label = x$label, T_multipliers = if (length(x$T_multipliers)) x$T_multipliers else list()) })
+  names(sc) <- names(s$scenarios)
+  list(scenarios = sc, schedule_analysis = s$schedule_analysis_scenarios, variants = s$sensitivity_variants, km_caveat = s$km_caveat)
 }
 
-# 시나리오를 파라미터 객체 쌍(R, T)에 적용
-apply_scenario <- function(p, scen) {
-  pR <- p; pT <- p
-  for (nm in names(scen$both_arms)) {
-    v <- scen$both_arms[[nm]]
-    if (is.null(v)) stop("시나리오 ", scen$code, ": ", nm, " 값이 PENDING 입니다 (SPEC Q8)")
-    pR$theta[nm] <- v; pT$theta[nm] <- v
-  }
-  for (nm in names(scen$both_arms_iiv)) {
-    v <- scen$both_arms_iiv[[nm]]
-    if (is.null(v)) stop("시나리오 ", scen$code, ": ", nm, " 값이 PENDING 입니다 (SPEC Q8)")
-    par <- sub("_omega$", "", nm)
-    pR$omega[par] <- v; pT$omega[par] <- v
-  }
-  for (nm in names(scen$T_multipliers)) pT$theta[nm] <- pT$theta[nm] * scen$T_multipliers[[nm]]
-  list(R = pR, T = pT)
+# 변형 이름 → (params, wt_spec, model_id)
+resolve_variant <- function(variant_name, design, sc = load_scenarios()) {
+  v <- sc$variants[[variant_name]]; if (is.null(v)) stop("알 수 없는 변형: ", variant_name)
+  model <- if (!is.null(v$model) && v$model == "k2020_model1") "k2020" else "k2016"
+  p <- load_params(model, variant = variant_name)
+  p <- apply_variant(p, v, design)
+  wt <- weight_spec_from_design(design, if (!is.null(v$weight)) v$weight else "base")
+  list(p = p, wt_spec = wt, model_id = p$model_id, label = v$label)
 }

@@ -1,0 +1,32 @@
+# 교차검증 기준값 — 검토자 독립 구현(Python, 적응 스텝 RK4), 지시서 2026-09-23 §8. 크게 다르면 원인 규명 후 보고.
+individual_B0_wt60_90_300mg_n20000:
+  AUClast_geo: 546
+  AUClast_logcv_pct: 40.4
+  Cmax_logcv_pct: 34.4
+  tlast_median_postdose_day: 35        # "Day 36" = 투여 후 35일
+  tlast_p05_postdose_day: 21           # Day 22
+  tlast_p95_postdose_day: 49           # Day 50
+  quant_at_day56_pct: 3.6              # Day 57 정량 가능
+  lambda_ok_pct: 98.7
+  reliable_pct: 86.4
+  n_lambda_median: 3
+  extrap_median_pct: 2.7
+  extrap_p95_pct: 11.9
+  extrap_gt20_pct: 1.0
+  extrap_true_median_pct: 0.65
+  extrap_true_p95_pct: 3.3
+  coverage_lt80_pct: 0
+weight_range_effect:
+  logcv_wt50_115_pct: 43
+  logcv_wt60_90_pct: 40
+trial_XVprev_wt50_115_n117_500trials:
+  # 이전 세션 일정(XV_prev), 체중 50–115, 500회, 117명/arm
+  S00:   {pass_AUClast_pct: 99.0, pass_AUCinf_reliable_pct: 98.2, ci_width_AUClast_pp: 17.6}
+  F090:  {pass_AUClast_pct: 22.0, pass_AUCinf_reliable_pct: 30.6}
+  VM125: {pass_AUClast_pct: 32.0, pass_AUCinf_reliable_pct: 56.4, gmr_AUCinf_true: 0.863, gmr_AUClast: 0.856, gmr_AUCinf_reliable: 0.885}
+  KM10:  {note: "전 지표 S00 대비 ±1.1% 이내"}
+expected_direction_density:
+  # 체중 50–115, Day 46·53 추가 시(독립 구현)
+  extrap_median_pct: {before: 2.9, after: 2.3}
+  extrap_true_median_pct: {before: 0.69, after: 0.46}
+  reliable_pct: {before: 87.8, after: 87.9}

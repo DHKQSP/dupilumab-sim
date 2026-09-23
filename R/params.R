@@ -1,109 +1,80 @@
-# params.R — config 읽기, 출처 상태 검사, dev/final 모드 (DECISIONS D-005)
-#
-# load_params(run_mode) 는 다음을 반환한다.
-#   $theta      : 명명 수치 벡터 (Vc, ke, k12, k21, F, Vmax, Km, ka)
-#   $cov        : list(theta_WT, WT_ref)
-#   $omega      : 명명 수치 벡터(로그/logit 척도 SD): Vc, ke, k12, k21, F, Vmax, ka, Km
-#   $sigma      : c(prop, add)
-#   $rse_pct    : 명명 수치 벡터 (바깥층용) 또는 NULL
-#   $covariance : 로그 척도 분산-공분산 행렬 또는 NULL
-#   $status     : data.table(item, status, source) — 각 값의 출처 상태
-#   $run_mode   : "dev" | "final"
+# params.R — config 읽기와 파라미터 객체 (지시서 2026-09-23 §2)
+# load_params(model, variant) 반환:
+#   $theta   : 명명 벡터 (Vc, ke, k12, k21, ka, Vmax, Km, F [, MTT, n_transit])
+#   $cov     : list(theta_WT, WT_ref)
+#   $omega   : 명명 벡터, 로그 척도 SD (= sqrt(ω²))
+#   $omega2  : 명명 벡터, 분산(원자료)
+#   $sigma   : c(prop, add)
+#   $lloq    : 정량한계
+#   $model_id: "k2016_2cmt_linMM_ka" | "k2020_model1_transit"
+#   $ada     : list(fraction, onset_day, ke_multiplier) — ADA 유사 소집단(기본 fraction 0)
+#   $status  : data.table(item, status, source)
 
 read_cfg <- function(name) yaml::read_yaml(proj_path("config", name), fileEncoding = "UTF-8", readLines.warn = FALSE)
 
-.val_or_pending <- function(entry, item, dev_entry = NULL, status_tbl, field = "value") {
-  v <- entry[[field]]
-  st <- if (!is.null(entry$status)) entry$status else if (is.null(v)) "pending" else "confirmed"
-  src <- if (!is.null(entry$source)) entry$source else NA_character_
-  if (is.null(v) || (length(v) == 1 && is.na(v))) {
-    if (!is.null(dev_entry) && !is.null(dev_entry[[field]])) {
-      v <- dev_entry[[field]]; st <- "dev_assumption"
-      src <- paste0("[DEV-가정] ", if (!is.null(dev_entry$note)) dev_entry$note else "")
-    } else {
-      v <- NA_real_; st <- "pending"
-    }
-  }
-  status_tbl[[length(status_tbl) + 1]] <- data.table(item = item, status = st, value = as.numeric(v), source = src)
-  list(value = as.numeric(v), status = status_tbl)
-}
+.num <- function(x) if (is.list(x) && !is.null(x$value)) as.numeric(x$value) else as.numeric(x)
 
-load_params <- function(run_mode = c("dev", "final"), scenario_multipliers = NULL,
-                        theta_override = NULL) {
-  run_mode <- match.arg(run_mode)
-  typ <- read_cfg("params_typical.yaml")
+load_params <- function(model = c("k2016", "k2020"), variant = "base") {
+  model <- match.arg(model)
+  typ <- if (model == "k2016") read_cfg("params_typical.yaml") else read_cfg("params_k2020_model1.yaml")
   var <- read_cfg("params_variability.yaml")
-  dev <- if (run_mode == "dev") read_cfg("dev_assumptions.yaml") else list()
-  status_tbl <- list()
-
-  # --- theta ---
-  th_names <- c("Vc", "ke", "k12", "k21", "F", "Vmax", "Km", "ka")
+  st <- list()
+  th_names <- c("Vc", "ke", "k12", "k21", "ka", "Vmax", "Km", "F", if (model == "k2020") c("MTT", "n_transit"))
   theta <- setNames(numeric(length(th_names)), th_names)
   for (nm in th_names) {
-    r <- .val_or_pending(typ$theta[[nm]], paste0("theta.", nm), dev$theta[[nm]], status_tbl)
-    theta[nm] <- r$value; status_tbl <- r$status
+    e <- typ$theta[[nm]]; theta[nm] <- .num(e)
+    st[[length(st) + 1]] <- data.table(item = paste0("theta.", nm), status = e$status, source = e$source)
   }
-  # --- covariate ---
-  cov <- list()
-  for (nm in c("theta_WT", "WT_ref")) {
-    r <- .val_or_pending(typ$covariates$WT_on_Vc[[nm]], paste0("cov.", nm), dev$covariates$WT_on_Vc[[nm]], status_tbl)
-    cov[[nm]] <- r$value; status_tbl <- r$status
-  }
-  # --- omega ---
-  om_names <- c("Vc", "ke", "k12", "k21", "F", "Vmax", "ka", "Km")
-  omega <- setNames(numeric(length(om_names)), om_names)
+  cov <- list(theta_WT = .num(typ$covariates$WT_on_Vc$theta_WT), WT_ref = .num(typ$covariates$WT_on_Vc$WT_ref))
+  st[[length(st) + 1]] <- data.table(item = "cov.theta_WT", status = typ$covariates$WT_on_Vc$theta_WT$status, source = typ$covariates$WT_on_Vc$theta_WT$source)
+  st[[length(st) + 1]] <- data.table(item = "cov.WT_ref", status = typ$covariates$WT_on_Vc$WT_ref$status, source = typ$covariates$WT_on_Vc$WT_ref$source)
+  om_names <- c("Vc", "ke", "k12", "k21", "ka", "Vmax", "Km", "F")
+  omega2 <- setNames(numeric(length(om_names)), om_names)
   for (nm in om_names) {
-    r <- .val_or_pending(var$iiv[[nm]], paste0("omega.", nm), dev$iiv[[nm]], status_tbl, field = "omega")
-    omega[nm] <- r$value; status_tbl <- r$status
+    e <- var$iiv_omega2[[nm]]; omega2[nm] <- as.numeric(e$omega2)
+    st[[length(st) + 1]] <- data.table(item = paste0("omega2.", nm), status = e$status, source = e$source)
   }
-  # --- sigma ---
-  sig <- c(prop = NA_real_, add = NA_real_)
-  r <- .val_or_pending(var$residual$sigma_prop, "sigma.prop", dev$residual$sigma_prop, status_tbl); sig["prop"] <- r$value; status_tbl <- r$status
-  r <- .val_or_pending(var$residual$sigma_add,  "sigma.add",  dev$residual$sigma_add,  status_tbl); sig["add"]  <- r$value; status_tbl <- r$status
-  # --- uncertainty ---
-  covariance <- var$uncertainty$covariance
-  if (!is.null(covariance)) covariance <- as.matrix(do.call(rbind, covariance))
-  rse_names <- c("Vc", "ke", "k12", "k21", "F", "Vmax", "ka")
-  rse <- setNames(numeric(length(rse_names)), rse_names)
-  for (nm in rse_names) {
-    dv <- if (!is.null(dev$uncertainty$rse_pct[[nm]])) list(value = dev$uncertainty$rse_pct[[nm]], note = "자리표시자 RSE") else NULL
-    r <- .val_or_pending(var$uncertainty$rse_pct[[nm]], paste0("rse.", nm), dv, status_tbl)
-    rse[nm] <- r$value; status_tbl <- r$status
-  }
-  status <- rbindlist(status_tbl)
-
-  # --- 시나리오 승수(시험약 arm) / 직접 override ---
-  if (!is.null(scenario_multipliers)) for (nm in names(scenario_multipliers)) {
-    stopifnot(nm %in% names(theta)); theta[nm] <- theta[nm] * scenario_multipliers[[nm]]
-  }
-  if (!is.null(theta_override)) for (nm in names(theta_override)) {
-    stopifnot(nm %in% names(theta)); theta[nm] <- theta_override[[nm]]
-  }
-
-  out <- list(theta = theta, cov = cov, omega = omega, sigma = sig, rse_pct = rse,
-              covariance = covariance, status = status, run_mode = run_mode,
-              units = typ$units, model_id = typ$model_id)
-  class(out) <- c("dupi_params", "list")
-  out
+  sigma <- c(prop = as.numeric(var$residual$sigma_prop$value), add = as.numeric(var$residual$sigma_add$value))
+  st[[length(st) + 1]] <- data.table(item = "sigma.prop", status = var$residual$sigma_prop$status, source = var$residual$sigma_prop$source)
+  st[[length(st) + 1]] <- data.table(item = "sigma.add", status = var$residual$sigma_add$status, source = var$residual$sigma_add$source)
+  lloq <- if (!is.null(typ$lloq_mg_L)) .num(typ$lloq_mg_L) else 0.078
+  p <- list(theta = theta, cov = cov, omega2 = omega2, omega = sqrt(omega2), sigma = sigma, lloq = lloq,
+            model_id = typ$model_id, model = model, variant = variant,
+            ada = list(fraction = 0, onset_day = 14, ke_multiplier = 1),
+            status = rbindlist(st))
+  class(p) <- c("dupi_params", "list")
+  p
 }
 
-# final 모드 게이트: PENDING/DEV 값이 남아 있으면 중단. 필요한 항목만 검사(need)
-assert_final_ready <- function(p, need = c("theta", "cov", "omega", "sigma", "rse")) {
-  bad <- p$status[status %in% c("pending", "dev_assumption") &
-                  sub("\\..*$", "", item) %in% need]
-  if (nrow(bad) > 0) {
-    stop("run_mode = 'final' 인데 출처 미확정 값이 있습니다:\n",
-         paste(sprintf("  %-14s %-15s %s", bad$item, bad$status, bad$source), collapse = "\n"))
-  }
+# 시나리오 배율(시험군) 적용 — 고정효과에 곱한다
+apply_multipliers <- function(p, mult) {
+  if (length(mult) == 0) return(p)
+  for (nm in names(mult)) { stopifnot(nm %in% names(p$theta)); p$theta[nm] <- p$theta[nm] * as.numeric(mult[[nm]]) }
+  p
+}
+
+# 민감도 변형(지시서 §2, config/scenarios.yaml sensitivity_variants)
+apply_variant <- function(p, variant_spec, design = NULL) {
+  if (!is.null(variant_spec$omega2_multiplier)) { p$omega2 <- p$omega2 * variant_spec$omega2_multiplier; p$omega <- sqrt(p$omega2) }
+  if (!is.null(variant_spec$sigma_prop)) p$sigma["prop"] <- variant_spec$sigma_prop
+  if (isTRUE(variant_spec$ada) && !is.null(design)) p$ada <- list(fraction = design$ada_sensitivity$fraction, onset_day = design$ada_sensitivity$onset_day, ke_multiplier = design$ada_sensitivity$ke_multiplier)
+  p
+}
+
+# 확정 여부 검사: 모델 파라미터에 pending이 남아 있으면 중단
+assert_params_confirmed <- function(p) {
+  bad <- p$status[!status %in% c("confirmed", "assumption")]
+  if (nrow(bad)) stop("출처 미확정 파라미터:\n", paste(sprintf("  %s (%s)", bad$item, bad$status), collapse = "\n"))
   invisible(TRUE)
 }
 
 print.dupi_params <- function(x, ...) {
-  cat("dupilumab params [", x$run_mode, "]\n", sep = "")
-  print(x$status)
+  cat("dupilumab params [", x$model_id, " / variant=", x$variant, "]\n", sep = "")
+  print(round(x$theta, 4)); cat("omega2:\n"); print(x$omega2); cat("sigma:\n"); print(x$sigma)
   invisible(x)
 }
 
-# %CV → 로그 척도 SD
 cv_to_omega <- function(cv_pct) sqrt(log(1 + (cv_pct / 100)^2))
 omega_to_cv <- function(omega) 100 * sqrt(exp(omega^2) - 1)
+log_cv_pct <- function(x) { x <- x[is.finite(x) & x > 0]; 100 * sqrt(exp(sd(log(x))^2) - 1) }
+geo_mean <- function(x) { x <- x[is.finite(x) & x > 0]; exp(mean(log(x))) }

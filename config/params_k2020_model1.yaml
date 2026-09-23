@@ -1,0 +1,19 @@
+# 구조 민감도 모델 — 출처: Kovalenko P, et al. Clin Pharmacol Drug Dev. 2020;9(6):756-767, Table 1, Model 1.
+# 2구획 + 선형/MM 병렬 소실 + transit 흡수(3개, MTT) + ka. IIV는 미공개(shrinkage만 보고)이므로 2016 IIV 차용(지시서 §2, D-011).
+model_id: k2020_model1_transit
+theta:
+  Vc:   {value: 2.48,   unit: L,        status: confirmed, source: "Kovalenko 2020 Table 1 Model 1 (Vc)"}
+  ke:   {value: 0.0534, unit: 1/day,    status: confirmed, source: "Kovalenko 2020 Table 1 Model 1"}
+  k12:  {value: 0.213,  unit: 1/day,    status: confirmed, source: "Kovalenko 2020 Table 1 Model 1 (kcp)"}
+  k21:  {value: 0.310,  unit: 1/day,    status: confirmed, source: "Kovalenko 2020 Table 1 Model 1 (kpc)"}
+  ka:   {value: 0.256,  unit: 1/day,    status: confirmed, source: "Kovalenko 2020 Table 1 Model 1"}
+  MTT:  {value: 0.105,  unit: day,      status: confirmed, source: "Kovalenko 2020 Table 1 Model 1", note: "transit 3개, ktr = (n+1)/MTT"}
+  n_transit: {value: 3, status: confirmed, source: "Kovalenko 2020 Table 1 Model 1"}
+  Vmax: {value: 1.07,   unit: mg/L/day, status: confirmed, source: "Kovalenko 2020 Table 1 Model 1"}
+  Km:   {value: 0.01,   unit: mg/L,     status: confirmed, source: "Kovalenko 2020 Table 1 Model 1 (고정)", fixed: true}
+  F:    {value: 0.643,  unit: fraction, status: confirmed, source: "Kovalenko 2020 Table 1 Model 1"}
+covariates:
+  WT_on_Vc:
+    theta_WT: {value: 0.711, status: confirmed, source: "Kovalenko 2020 Table 1 Model 1"}
+    WT_ref:   {value: 75, unit: kg, status: assumption, source: "확정 전 가정: 2016과 같은 기준 체중 75 kg으로 둠(지시서에 미기재)"}
+iiv_source: "config/params_variability.yaml (Kovalenko 2016 값 차용)"

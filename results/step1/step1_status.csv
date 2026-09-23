@@ -1,0 +1,7 @@
+check,status
+(a) 코호트 중앙값 tlast 5–95%,PASS
+(b) AUClast 평균 ±15%,FAIL: pkm14271_200_nonasian 0.82; cohen2022_200_armA 0.84
+(b) AUClast log-CV 35–51%,PASS
+(c) 체중 기울기 부호·크기,PASS
+(d) Cohen 2022 log SD ±0.10,PASS
+"Cmax (gate 제외, 한계)","모의/관측 비 1.11, 1.08, 1.16, 1.22, 1.26, 0.92, 0.95, 1.01"

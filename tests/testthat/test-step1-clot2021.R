@@ -1,84 +1,54 @@
-# 단계 1: Clot 2021 설계 재현 (SPEC §4.2–4.3, DECISIONS D-003)
+# 단계 1: Clot 2021 재현과 정량 gate (지시서 2026-09-23 §1, D-014)
 skip_if_no_rxode2()
-p  <- load_params("dev")
+p  <- load_params("k2016")
 dz <- read_cfg("design_clot2021.yaml")
 days <- as.numeric(dz$sample_days_post_dose)
-lloq <- dz$lloq_mg_L
-targets <- rbindlist(lapply(dz$targets, function(x) data.table(dose = x$dose_mg, ratio = x$auc_ratio_pct, tlast = x$tlast_median_day)))
+n_coh <- dz$cohort_sim$n_cohorts; n_per <- dz$n_per_cohort
+sr <- dz$cohort_sim$sex_ratio_male$value
+bm <- as.numeric(dz$cohort_sim$weight_bounds_kg$male); bf <- as.numeric(dz$cohort_sim$weight_bounds_kg$female)
 
-typical_profile <- function(dose, ka_val = NULL) {
-  ip <- typical_subject(p); if (!is.null(ka_val)) ip[, ka := ka_val]   # data.table 스코프: 인자명을 열이름과 다르게
-  tr <- true_auc(ip, dose, t_grid = days)
-  prof <- tr$profile[time > 0]
-  tl <- true_auc_to_tlast(prof, lloq)
-  list(prof = prof, tlast = tl$tlast_true, AUClast = tl$AUClast_true, AUCinf = tr$inf$AUCinf_true,
-       ratio = tl$AUClast_true / tr$inf$AUCinf_true)
-}
-
-test_that("(a) 대표 개체의 마지막 정량 시점이 각 용량의 목표 중앙값과 일치 (현재 ka 기준)", {
-  for (k in seq_len(nrow(targets))) {
-    r <- typical_profile(targets$dose[k])
-    expect_equal(r$tlast, targets$tlast[k], info = sprintf("dose=%d mg, ka=%.3g: tlast=%s (목표 %s)", targets$dose[k], p$theta[["ka"]], r$tlast, targets$tlast[k]))
-  }
-})
-
-test_that("(a') 진단: ka 격자별 tlast 표를 기록한다(ka 보정 전 민감도, 단정 없음 — DECISIONS D-008)", {
-  grid <- as.numeric(read_cfg("calibration_targets.yaml")$ka_grid_1_day)
-  tab <- rbindlist(lapply(seq_len(nrow(targets)), function(k) rbindlist(lapply(grid, function(ka) {
-    r <- typical_profile(targets$dose[k], ka_val = ka)
-    data.table(dose = targets$dose[k], ka = ka, tlast = r$tlast, target = targets$tlast[k], match = isTRUE(all.equal(r$tlast, targets$tlast[k])))
-  }))))
-  message("\nka 격자별 대표 개체 tlast:\n", paste(capture.output(print(dcast(tab, ka ~ dose, value.var = "tlast"))), collapse = "\n"))
-  expect_true(nrow(tab) == length(grid) * nrow(targets))
-})
-
-test_that("(b) 모델 기반 참값 AUC(0-tlast)/AUC(0-inf) 진단 — 정상 범위 확인과 기록만 (NCA 목표와 직접 비교 불가, DECISIONS D-007)", {
-  tab <- rbindlist(lapply(seq_len(nrow(targets)), function(k) {
-    r <- typical_profile(targets$dose[k])
-    data.table(dose = targets$dose[k], ratio_true_pct = 100 * r$ratio, nca_target_pct = targets$ratio[k], tlast = r$tlast)
+test_that("(a) 용량군별 실제 체중으로 8명 코호트 2,000회: 관측 중앙값 tlast가 모의 코호트 중앙값의 5–95 백분위 안", {
+  res <- rbindlist(lapply(dz$groups, function(g) {
+    sim <- simulate_dataset(p, g$dose_mg, g$weight_mean, g$weight_sd, days, n_coh * n_per, paste0("clot_cohort_", g$dose_mg), sr, bm, bf)
+    cm <- cohort_median_tlast(sim$nca, n_per)
+    data.table(dose_mg = g$dose_mg, obs_median = g$tlast_median_obs,
+               sim_median_of_medians = median(cm$tlast_median), p05 = q05(cm$tlast_median), p95 = q95(cm$tlast_median),
+               subj_tlast_median = median(sim$nca$tlast_planned, na.rm = TRUE), subj_p05 = q05(sim$nca$tlast_planned), subj_p95 = q95(sim$nca$tlast_planned))
   }))
-  message("\n모델 기반 참값 비율(대표 개체; NCA 기반 목표는 참고용):\n", paste(capture.output(print(tab)), collapse = "\n"))
-  expect_true(all(tab$ratio_true_pct > 90 & tab$ratio_true_pct <= 100))
+  message("\n코호트 중앙값 tlast 분포:\n", paste(capture.output(print(res)), collapse = "\n"))
+  for (k in seq_len(nrow(res))) expect_true(res$obs_median[k] >= res$p05[k] & res$obs_median[k] <= res$p95[k],
+                                            info = sprintf("%d mg: 관측 %g, 모의 5–95%% [%g, %g]", res$dose_mg[k], res$obs_median[k], res$p05[k], res$p95[k]))
 })
 
-test_that("(c) NCA 기반 AUClast/AUCinf 비 — BEmaster 필요", {
-  skip_if_no_bemaster()
-  skip_if_variability_pending(p)
-  skip_if_ka_pending(p)
-  design <- read_cfg("trial_design.yaml")
-  res <- lapply(1:200, function(r) {
-    s <- with_seed(derive_seed(1, "clot", r), make_subjects(dz$n_per_arm, p, design))
-    obs <- make_obs_times(s$ipar$id, days, design, jitter = FALSE)
-    sim <- simulate_observations(s$ipar, obs, 300, p$sigma, lloq)
-    nca <- run_nca_bemaster(sim, 300, lloq)
-    mean(nca$AUClast / nca$AUCinf)
-  })
-  expect_equal(100 * median(unlist(res)), targets[dose == 300, ratio], tolerance = dz$tolerances$auc_ratio_abs_pct / 100)
+test_that("(b) 정량 gate: 체중 매칭 후 모의 AUClast 평균이 관측 ±15% 이내, log-scale CV 35–51% (Cmax는 gate 제외)", {
+  tol <- dz$gate$auclast_mean_tol_pct; cvr <- as.numeric(dz$gate$log_cv_range_pct); nsim <- dz$gate$n_sim_per_dataset
+  tab <- rbindlist(lapply(dz$datasets, function(ds) {
+    sched <- dz$dataset_schedules[[ds$schedule]]; sched <- as.numeric(if (is.list(sched)) sched$days else sched)
+    b <- ds_weight_bounds(ds)
+    sim <- simulate_dataset(p, ds$dose_mg, ds$weight_mean, ds_weight_sd(ds), sched, nsim, paste0("gate_", ds$id), sr, b$male, b$female)
+    gate_row(ds, sim$nca, tol, cvr)
+  }))
+  message("\n정량 gate:\n", paste(capture.output(print(tab[, .(id, wt_mean, AUClast_obs_mean, AUClast_sim_mean = round(AUClast_sim_mean, 1), AUClast_ratio = round(AUClast_ratio, 3), AUClast_sim_logcv = round(AUClast_sim_logcv, 1), Cmax_ratio = round(Cmax_ratio, 3), pass_mean, pass_cv)])), collapse = "\n"))
+  expect_true(all(tab$pass_mean), info = paste("평균 ±15% 실패:", paste(tab[pass_mean == FALSE, sprintf("%s (%.3f)", id, AUClast_ratio)], collapse = "; ")))
+  expect_true(all(tab$pass_cv), info = paste("CV 35–51% 실패:", paste(tab[pass_cv == FALSE, sprintf("%s (%.1f%%)", id, AUClast_sim_logcv)], collapse = "; ")))
 })
 
-test_that("(d) IIV 반영 tlast 분포(n=8 반복): 중앙값·범위 — FDA 표 필요", {
-  skip_if_variability_pending(p)
-  skip_if_ka_pending(p)
-  design <- read_cfg("trial_design.yaml")
-  med <- range_lo <- range_hi <- numeric(0)
-  for (r in 1:200) {
-    s <- with_seed(derive_seed(2, "clot", r), make_subjects(dz$n_per_arm, p, design))
-    obs <- make_obs_times(s$ipar$id, days, design, jitter = FALSE)
-    sim <- with_seed(derive_seed(3, "clot", r), simulate_observations(s$ipar, obs, 300, p$sigma, lloq))
-    tl <- observed_tlast(sim)$tlast_planned
-    med <- c(med, median(tl)); range_lo <- c(range_lo, min(tl)); range_hi <- c(range_hi, max(tl))
-  }
-  expect_equal(median(med), targets[dose == 300, tlast])
-  rg <- dz$targets[[1]]$tlast_range_day
-  expect_lte(median(range_lo), rg[1]); expect_gte(median(range_hi), rg[2])
+test_that("(c) 체중 기울기: 체중 5 kg 증가당 AUClast 약 50 mg·day/L 감소 (부호·크기 확인, 허용 ±50%는 확정 전 가정)", {
+  wr <- as.numeric(dz$weight_slope_check$weight_range_kg)
+  sim <- simulate_dataset(p, dz$weight_slope_check$dose_mg, mean(wr), 1e3, days, 20000, "wt_slope", sr, wr, wr)   # 큰 SD + 절단 = 거의 균등
+  fit <- lm(AUClast ~ WT, data = sim$nca)
+  slope5 <- unname(coef(fit)[2]) * 5
+  message(sprintf("\n체중 기울기: %.1f mg·day/L per 5 kg (기대 약 -%g)", slope5, dz$weight_slope_check$expected_auclast_decrease_per_5kg))
+  expect_lt(slope5, 0)
+  expect_true(abs(slope5) >= 0.5 * dz$weight_slope_check$expected_auclast_decrease_per_5kg & abs(slope5) <= 1.5 * dz$weight_slope_check$expected_auclast_decrease_per_5kg)
 })
 
-test_that("변동성: 300 mg AUClast CV가 Li 2020 범위(35–51%) 안 — FDA 표·BEmaster 필요", {
-  skip_if_no_bemaster(); skip_if_variability_pending(p); skip_if_ka_pending(p)
-  succeed("구현 예정: BEmaster NCA로 AUClast CV 산출 후 범위 비교")
-})
-
-test_that("변동성: 200 mg AUClast log SD ≈ 0.49 (Cohen 2022) — FDA 표·BEmaster 필요", {
-  skip_if_no_bemaster(); skip_if_variability_pending(p); skip_if_ka_pending(p)
-  succeed("구현 예정: BEmaster NCA로 log(AUClast) SD 산출 후 비교")
+test_that("(d) Cohen 2022: 200 mg, 70–100 kg, Day 43까지 채혈에서 log(AUClast) SD ≈ 0.49 (허용 ±0.10은 확정 전 가정)", {
+  ds <- dz$datasets[[which(vapply(dz$datasets, function(d) d$id == "cohen2022_200_armA", logical(1)))]]
+  sched <- as.numeric(dz$dataset_schedules$cohen_d42$days)
+  b <- ds_weight_bounds(ds)
+  sim <- simulate_dataset(p, 200, ds$weight_mean, ds_weight_sd(ds), sched, 20000, "cohen_sd", sr, b$male, b$female)
+  sdlog <- sd(log(sim$nca$AUClast), na.rm = TRUE)
+  message(sprintf("\nCohen 2022 비교: 모의 log(AUClast) SD = %.3f (관측 %.2f)", sdlog, dz$variability_checks$cohen2022$log_sd))
+  expect_equal(sdlog, dz$variability_checks$cohen2022$log_sd, tolerance = 0.10 / dz$variability_checks$cohen2022$log_sd)
 })

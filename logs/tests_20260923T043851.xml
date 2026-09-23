@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="be-stats" timestamp="2026-09-23T04:38:52Z" hostname="vm" tests="8" skipped="0" failures="0" errors="0" time="0.407">
+    <testcase time="0.0960000000000001" classname="be_stats" name="pooled_t_90_CI_t.test_var.equal_TRUE_80_125_"/>
+    <testcase time="0.114" classname="be_stats" name="pooled_t_90_CI_t.test_var.equal_TRUE_80_125_"/>
+    <testcase time="0.0110000000000001" classname="be_stats" name="pooled_t_90_CI_t.test_var.equal_TRUE_80_125_"/>
+    <testcase time="0.00199999999999978" classname="be_stats" name="pooled_t_90_CI_t.test_var.equal_TRUE_80_125_"/>
+    <testcase time="0.103000000000001" classname="be_stats" name="ANCOVA_CI_lm_confint_"/>
+    <testcase time="0.0669999999999993" classname="be_stats" name="be_analyze_"/>
+    <testcase time="0.00900000000000034" classname="be_stats" name="be_analyze_"/>
+    <testcase time="0.00499999999999989" classname="be_stats" name="be_analyze_"/>
+  </testsuite>
+  <testsuite name="model-structure" timestamp="2026-09-23T04:38:53Z" hostname="vm" tests="12" skipped="0" failures="0" errors="0" time="6.587">
+    <testcase time="5.171" classname="model_structure" name="Vmax_0_2_"/>
+    <testcase time="0.0389999999999997" classname="model_structure" name="_F_MM_0_auc_"/>
+    <testcase time="0.0180000000000007" classname="model_structure" name="_F_MM_0_auc_"/>
+    <testcase time="0.0190000000000001" classname="model_structure" name="_F_MM_0_auc_"/>
+    <testcase time="0.020999999999999" classname="model_structure" name="_F_MM_0_auc_"/>
+    <testcase time="0.0449999999999999" classname="model_structure" name="MM_AUCinf_"/>
+    <testcase time="0.0490000000000013" classname="model_structure" name="MM_AUCinf_"/>
+    <testcase time="0.0389999999999997" classname="model_structure" name="ADA_onset_ke_"/>
+    <testcase time="0.00699999999999967" classname="model_structure" name="ADA_onset_ke_"/>
+    <testcase time="1.099" classname="model_structure" name="Kovalenko_2020_transit_MTT_2016_"/>
+    <testcase time="0.0220000000000002" classname="model_structure" name="Kovalenko_2020_transit_MTT_2016_"/>
+    <testcase time="0.0579999999999998" classname="model_structure" name="Kovalenko_2020_transit_MTT_2016_"/>
+  </testsuite>
+  <testsuite name="nca" timestamp="2026-09-23T04:38:59Z" hostname="vm" tests="35" skipped="0" failures="0" errors="0" time="0.624">
+    <testcase time="0.243" classname="nca" name="AUClast_linear_up_log_down_0_0_"/>
+    <testcase time="0.00399999999999956" classname="nca" name="AUClast_linear_up_log_down_0_0_"/>
+    <testcase time="0.00300000000000011" classname="nca" name="AUClast_linear_up_log_down_0_0_"/>
+    <testcase time="0.00300000000000011" classname="nca" name="AUClast_linear_up_log_down_0_0_"/>
+    <testcase time="0.00199999999999889" classname="nca" name="AUClast_linear_up_log_down_0_0_"/>
+    <testcase time="0.00200000000000067" classname="nca" name="AUClast_linear_up_log_down_0_0_"/>
+    <testcase time="0.0389999999999997" classname="nca" name="_z_k_adjusted_R_AUCinf_"/>
+    <testcase time="0.00300000000000011" classname="nca" name="_z_k_adjusted_R_AUCinf_"/>
+    <testcase time="0.00300000000000011" classname="nca" name="_z_k_adjusted_R_AUCinf_"/>
+    <testcase time="0.00399999999999956" classname="nca" name="_z_k_adjusted_R_AUCinf_"/>
+    <testcase time="0.00200000000000067" classname="nca" name="_z_k_adjusted_R_AUCinf_"/>
+    <testcase time="0.00300000000000011" classname="nca" name="_z_k_adjusted_R_AUCinf_"/>
+    <testcase time="0.00600000000000023" classname="nca" name="_z_k_adjusted_R_AUCinf_"/>
+    <testcase time="0.00399999999999956" classname="nca" name="_z_k_adjusted_R_AUCinf_"/>
+    <testcase time="0.0389999999999997" classname="nca" name="_z_Cmax_"/>
+    <testcase time="0.00300000000000011" classname="nca" name="_z_Cmax_"/>
+    <testcase time="0.0350000000000001" classname="nca" name="BLQ_tmax_0_tlast_"/>
+    <testcase time="0.00300000000000011" classname="nca" name="BLQ_tmax_0_tlast_"/>
+    <testcase time="0.00200000000000067" classname="nca" name="BLQ_tmax_0_tlast_"/>
+    <testcase time="0.0439999999999987" classname="nca" name="_z_tmax_3_0"/>
+    <testcase time="0.00600000000000023" classname="nca" name="_z_tmax_3_0"/>
+    <testcase time="0.00600000000000023" classname="nca" name="_z_tmax_3_0"/>
+    <testcase time="0.032" classname="nca" name="_z_tmax_3_0"/>
+    <testcase time="0.0359999999999996" classname="nca" name="_NA_"/>
+    <testcase time="0.00500000000000078" classname="nca" name="_NA_"/>
+    <testcase time="0.00799999999999912" classname="nca" name="_NA_"/>
+    <testcase time="0.00600000000000023" classname="nca" name="_NA_"/>
+    <testcase time="0.00600000000000023" classname="nca" name="_NA_"/>
+    <testcase time="0.032" classname="nca" name="BEmaster_BLQ_0_3_z"/>
+    <testcase time="0.00399999999999956" classname="nca" name="BEmaster_BLQ_0_3_z"/>
+    <testcase time="0.00600000000000023" classname="nca" name="BEmaster_BLQ_0_3_z"/>
+    <testcase time="0.0220000000000002" classname="nca" name="_"/>
+    <testcase time="0.00300000000000011" classname="nca" name="_"/>
+    <testcase time="0.00200000000000067" classname="nca" name="_"/>
+    <testcase time="0.00299999999999834" classname="nca" name="_"/>
+  </testsuite>
+  <testsuite name="params" timestamp="2026-09-23T04:39:00Z" hostname="vm" tests="23" skipped="0" failures="0" errors="0" time="0.138">
+    <testcase time="0.016" classname="params" name="_Kovalenko_2016_Table_2_confirmed"/>
+    <testcase time="0.0120000000000005" classname="params" name="_Kovalenko_2016_Table_2_confirmed"/>
+    <testcase time="0.00300000000000011" classname="params" name="_Kovalenko_2016_Table_2_confirmed"/>
+    <testcase time="0.00300000000000011" classname="params" name="_Kovalenko_2016_Table_2_confirmed"/>
+    <testcase time="0.00200000000000067" classname="params" name="_Kovalenko_2016_Table_2_confirmed"/>
+    <testcase time="0.00300000000000011" classname="params" name="_Kovalenko_2016_Table_2_confirmed"/>
+    <testcase time="0.00300000000000011" classname="params" name="_Kovalenko_2016_Table_2_confirmed"/>
+    <testcase time="0.00199999999999889" classname="params" name="_Kovalenko_2016_Table_2_confirmed"/>
+    <testcase time="0.00600000000000023" classname="params" name="_Kovalenko_2016_Table_2_confirmed"/>
+    <testcase time="0.00399999999999956" classname="params" name="_Kovalenko_2016_Table_2_confirmed"/>
+    <testcase time="0.0109999999999992" classname="params" name="Kovalenko_2020_Model_1_IIV_"/>
+    <testcase time="0.00300000000000011" classname="params" name="Kovalenko_2020_Model_1_IIV_"/>
+    <testcase time="0.00200000000000067" classname="params" name="Kovalenko_2020_Model_1_IIV_"/>
+    <testcase time="0.0179999999999989" classname="params" name="_"/>
+    <testcase time="0.00300000000000011" classname="params" name="_"/>
+    <testcase time="0.00300000000000011" classname="params" name="_"/>
+    <testcase time="0.0129999999999999" classname="params" name="_"/>
+    <testcase time="0.00300000000000011" classname="params" name="_"/>
+    <testcase time="0.00300000000000011" classname="params" name="_"/>
+    <testcase time="0.00300000000000011" classname="params" name="_"/>
+    <testcase time="0.00200000000000067" classname="params" name="_"/>
+    <testcase time="0.00699999999999967" classname="params" name="CV_omega_log_CV"/>
+    <testcase time="0.0129999999999999" classname="params" name="CV_omega_log_CV"/>
+  </testsuite>
+  <testsuite name="population" timestamp="2026-09-23T04:39:00Z" hostname="vm" tests="15" skipped="0" failures="0" errors="0" time="0.199">
+    <testcase time="0.0620000000000012" classname="population" name="_"/>
+    <testcase time="0.00199999999999889" classname="population" name="_"/>
+    <testcase time="0.0129999999999999" classname="population" name="_"/>
+    <testcase time="0.0129999999999999" classname="population" name="_"/>
+    <testcase time="0.011000000000001" classname="population" name="eta_SD_omega_IIV_0"/>
+    <testcase time="0.00300000000000011" classname="population" name="eta_SD_omega_IIV_0"/>
+    <testcase time="0.016" classname="population" name="eta_SD_omega_IIV_0"/>
+    <testcase time="0.00899999999999856" classname="population" name="_0.705_F_0.607_ADA_"/>
+    <testcase time="0.00300000000000011" classname="population" name="_0.705_F_0.607_ADA_"/>
+    <testcase time="0.00500000000000078" classname="population" name="_0.705_F_0.607_ADA_"/>
+    <testcase time="0.0449999999999999" classname="population" name="_arm_n_1_1_1_"/>
+    <testcase time="0.00300000000000011" classname="population" name="_arm_n_1_1_1_"/>
+    <testcase time="0.00399999999999956" classname="population" name="_arm_n_1_1_1_"/>
+    <testcase time="0.00400000000000134" classname="population" name="_arm_n_1_1_1_"/>
+    <testcase time="0.00600000000000023" classname="population" name="_arm_n_1_1_1_"/>
+  </testsuite>
+  <testsuite name="sampling" timestamp="2026-09-23T04:39:00Z" hostname="vm" tests="100" skipped="0" failures="0" errors="0" time="0.542">
+    <testcase time="0.0129999999999999" classname="sampling" name="_5_"/>
+    <testcase time="0.00799999999999912" classname="sampling" name="_5_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_5_"/>
+    <testcase time="0.00200000000000067" classname="sampling" name="_5_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_5_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_5_"/>
+    <testcase time="0.00499999999999901" classname="sampling" name="_5_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_5_"/>
+    <testcase time="0.0340000000000007" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999889" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999901" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.0150000000000006" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999889" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00200000000000067" classname="sampling" name="_0_"/>
+    <testcase time="0.00599999999999845" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00500000000000078" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00599999999999845" classname="sampling" name="_0_"/>
+    <testcase time="0.00500000000000078" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999901" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00200000000000067" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999901" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999889" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00200000000000067" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00299999999999834" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00500000000000078" classname="sampling" name="_0_"/>
+    <testcase time="0.0119999999999987" classname="sampling" name="_0_"/>
+    <testcase time="0.00700000000000145" classname="sampling" name="_0_"/>
+    <testcase time="0.00599999999999845" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00700000000000145" classname="sampling" name="_0_"/>
+    <testcase time="0.00599999999999845" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00200000000000067" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00599999999999845" classname="sampling" name="_0_"/>
+    <testcase time="0.00200000000000067" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00699999999999967" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999901" classname="sampling" name="_0_"/>
+    <testcase time="0.00599999999999845" classname="sampling" name="_0_"/>
+    <testcase time="0.00200000000000067" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00500000000000078" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00299999999999834" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00699999999999967" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999901" classname="sampling" name="_0_"/>
+    <testcase time="0.0150000000000006" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00699999999999967" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+  </testsuite>
+  <testsuite name="seeds" timestamp="2026-09-23T04:39:01Z" hostname="vm" tests="5" skipped="0" failures="0" errors="0" time="0.037">
+    <testcase time="0.0180000000000007" classname="seeds" name="_"/>
+    <testcase time="0.00499999999999901" classname="seeds" name="_"/>
+    <testcase time="0.00500000000000078" classname="seeds" name="_"/>
+    <testcase time="0.00699999999999967" classname="seeds" name="with_seed_RNG_"/>
+    <testcase time="0.00200000000000067" classname="seeds" name="with_seed_RNG_"/>
+  </testsuite>
+  <testsuite name="simulate" timestamp="2026-09-23T04:39:01Z" hostname="vm" tests="10" skipped="0" failures="0" errors="1" time="0.339">
+    <testcase time="0.0890000000000004" classname="simulate" name="_BLQ_"/>
+    <testcase time="0.00999999999999979" classname="simulate" name="_BLQ_"/>
+    <testcase time="0.00999999999999979" classname="simulate" name="_BLQ_"/>
+    <testcase time="0.00799999999999912" classname="simulate" name="_BLQ_"/>
+    <testcase time="0.00600000000000023" classname="simulate" name="_BLQ_"/>
+    <testcase time="0.011000000000001" classname="simulate" name="_BLQ_"/>
+    <testcase time="0.144" classname="simulate" name="_"/>
+    <testcase time="0.0429999999999993" classname="simulate" name="_"/>
+    <testcase time="0.00600000000000023" classname="simulate" name="_"/>
+    <testcase time="0.0120000000000005" classname="simulate" name="_eta_arm_n">
+      <error type="error" message="Error in `run_trial(1L, p, design, scen, combos, master_seed = 7L, wt_spec = weight_spec_from_design(design,  ('test-simulate.R:27:3')">Error in `run_trial(1L, p, design, scen, combos, master_seed = 7L, wt_spec = weight_spec_from_design(design, 
+    "base"), n_per_arm = NULL, keep_nca = TRUE)`: unused argument (n_per_arm = NULL)</error>
+    </testcase>
+  </testsuite>
+  <testsuite name="step1-clot2021" timestamp="2026-09-23T04:39:01Z" hostname="vm" tests="8" skipped="0" failures="1" errors="0" time="192.173">
+    <testcase time="40.464" classname="step1_clot2021" name="_a_8_2_000_tlast_5_95_"/>
+    <testcase time="0.00499999999999545" classname="step1_clot2021" name="_a_8_2_000_tlast_5_95_"/>
+    <testcase time="0.00600000000000023" classname="step1_clot2021" name="_a_8_2_000_tlast_5_95_"/>
+    <testcase time="122.774" classname="step1_clot2021" name="_b_gate_AUClast_15_log_scale_CV_35_51_Cmax_gate_">
+      <failure type="failure" message="all(tab$pass_mean) is not TRUE ('test-step1-clot2021.R:32:3')">all(tab$pass_mean) is not TRUE
+
+`actual`:   FALSE
+`expected`: TRUE 
+평균 ±15% 실패: pkm14271_200_nonasian (0.820); cohen2022_200_armA (0.837)</failure>
+    </testcase>
+    <testcase time="0.0180000000000007" classname="step1_clot2021" name="_b_gate_AUClast_15_log_scale_CV_35_51_Cmax_gate_"/>
+    <testcase time="15.405" classname="step1_clot2021" name="_c_5_kg_AUClast_50_mg_day_L_50_"/>
+    <testcase time="0.00499999999999545" classname="step1_clot2021" name="_c_5_kg_AUClast_50_mg_day_L_50_"/>
+    <testcase time="13.496" classname="step1_clot2021" name="_d_Cohen_2022_200_mg_70_100_kg_Day_43_log_AUClast_SD_0.49_0.10_"/>
+  </testsuite>
+</testsuites>

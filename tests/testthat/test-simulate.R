@@ -1,46 +1,41 @@
 skip_if_no_rxode2()
-p <- load_params("dev")
-design <- read_cfg("trial_design.yaml")
+p <- load_params("k2016"); design <- read_cfg("trial_design.yaml"); sc <- load_scenarios()
 
-test_that("잔차 오차와 BLQ 검열이 규칙대로 적용된다", {
+test_that("잔차·BLQ 규칙과 시드 재현", {
   ip <- typical_subject(p)
-  obs <- data.table(id = 1L, planned = c(0, 1, 7, 28, 56, 120), time = c(0, 1, 7, 28, 56, 120))
-  sig <- c(prop = 0, add = 0)
-  sim <- simulate_observations(ip, obs, 300, sig, lloq = 0.078)
-  expect_equal(sim$y_raw, sim$C)                       # 오차 0이면 관측 = 진농도
-  expect_true(sim[time == 0, blq])                      # 투여 전 BLQ
-  expect_true(sim[time == 120, blq])                    # 120일: 소실 완료
-  expect_true(all(is.na(sim[blq == TRUE, conc])))
-  sig2 <- c(prop = 0.2, add = 0.05)
-  s1 <- with_seed(5, simulate_observations(ip, obs, 300, sig2, 0.078))
-  s2 <- with_seed(5, simulate_observations(ip, obs, 300, sig2, 0.078))
-  expect_identical(s1$y_raw, s2$y_raw)                  # 시드 재현
-  expect_false(isTRUE(all.equal(s1$y_raw[2:4], s1$C[2:4])))
+  planned <- c(0, 0.25, 1, 7, 28, 56, 120)
+  obs <- CJ(id = 1L, planned = planned)[, time := planned]
+  eps0 <- draw_eps(1L, planned, c(prop = 0, add = 0))
+  s <- simulate_observations(ip, obs, 300, p$lloq, eps0)
+  expect_equal(s$obs$y_raw, s$obs$C); expect_true(s$obs[planned == 0, blq]); expect_true(s$obs[planned == 120, blq])
+  expect_true(all(is.na(s$obs[blq == TRUE, conc]))); expect_true(s$truth$AUCinf_true > 0)
+  e1 <- with_seed(9, draw_eps(1L, planned, p$sigma)); e2 <- with_seed(9, draw_eps(1L, planned, p$sigma)); expect_identical(e1, e2)
 })
 
-test_that("run_trial은 BEmaster 없이 NCA 경계까지 동작한다(nca_fn=NULL)", {
-  tr <- run_trial(p, p, design, seed = 11, n_per_arm = 4, nca_fn = NULL, be_fn = NULL, keep_profiles = TRUE)
-  expect_equal(nrow(tr$subjects), 8)
-  expect_true(all(tr$subjects$ratio_true > 0 & tr$subjects$ratio_true <= 1))
-  expect_true(all(c("R", "T") %in% tr$subjects$arm))
-  expect_null(tr$nca); expect_null(tr$be)
-  expect_true(all(tr$sim[time == 0, blq]))
-  # 같은 시드면 같은 결과
-  tr2 <- run_trial(p, p, design, seed = 11, n_per_arm = 4, nca_fn = NULL, be_fn = NULL)
-  expect_equal(tr$subjects$AUCinf_true, tr2$subjects$AUCinf_true)
+test_that("일정 부분집합과 참값 부착", {
+  ip <- typical_subject(p); grid <- union_grid(design, design$schedule_analysis)
+  obs <- CJ(id = 1L, planned = grid)[, time := planned]; eps <- draw_eps(1L, grid, c(prop = 0, add = 0))
+  s <- simulate_observations(ip, obs, 300, p$lloq, eps)
+  ob <- subset_schedule(s$obs, get_schedule(design, "B0")); expect_equal(nrow(ob), 14)
+  nca <- attach_truth(run_nca(ob), ob, s$truth)
+  expect_equal(nca$AUClast_true, ob[time == nca$tlast, auc]); expect_true(nca$coverage_true <= 1)
 })
 
-test_that("시나리오 적용: T arm만 바뀐다", {
-  sc <- load_scenarios()
-  pp <- apply_scenario(p, sc$main$S1b)
-  expect_equal(pp$R$theta[["F"]], p$theta[["F"]])
-  expect_equal(pp$T$theta[["F"]], p$theta[["F"]] * 0.9)
-  expect_error(apply_scenario(p, sc$sensitivity$K1), "PENDING")
-})
-
-test_that("바깥층 theta 추출은 시드에 결정적이고 RSE 0이면 대표값 그대로", {
-  th1 <- draw_outer_theta(p, 7); th2 <- draw_outer_theta(p, 7)
-  expect_identical(th1, th2)
-  p0 <- p; p0$rse_pct[] <- 0
-  expect_equal(draw_outer_theta(p0, 7), p$theta)
+test_that("시험 엔진: 대조군은 시나리오 간 동일(공통 난수), 시험군은 같은 eta로 배율만 다름, 각 arm 정확히 n", {
+  scen <- sc$scenarios[c("S00", "F090")]
+  combos <- CJ(scenario = c("S00", "F090"), schedule = c("B0", "D1"))
+  r <- run_trial(1L, p, design, scen, combos, master_seed = 7L, wt_spec = weight_spec_from_design(design, "base"), n_per_arm = NULL, keep_nca = TRUE)
+  expect_equal(sort(unique(r$be$endpoint)), sort(names(BE_ENDPOINTS)))
+  expect_equal(nrow(r$be), nrow(combos) * length(BE_ENDPOINTS))
+  n1 <- r$nca[scenario == "S00" & schedule == "B0"]; n2 <- r$nca[scenario == "F090" & schedule == "B0"]
+  expect_equal(n1[arm == "R", AUClast], n2[arm == "R", AUClast])                      # 대조군 동일
+  expect_equal(sum(n1$arm == "R"), design$n_per_arm); expect_equal(sum(n1$arm == "T"), design$n_per_arm)
+  ratio <- n2[arm == "T", AUClast] / n1[arm == "T", AUClast]
+  ratio_true <- n2[arm == "T", AUCinf_true] / n1[arm == "T", AUCinf_true]
+  # F×0.9: MM 포화 소실 때문에 AUC는 10%보다 더 줄어든다(대표 개체 참값 0.846). AUClast는 같은 개체의 참값 비를 따라야 한다.
+  expect_lt(median(ratio_true), 0.9)
+  expect_equal(median(ratio), median(ratio_true), tolerance = 0.03)
+  expect_true(cor(log(n1[arm == "T", AUClast]), log(n2[arm == "T", AUClast])) > 0.99)   # 같은 eta·잔차
+  r2 <- run_trial(1L, p, design, scen, combos, master_seed = 7L, wt_spec = weight_spec_from_design(design, "base"))
+  expect_equal(r$be$GMR, r2$be$GMR)                                                    # 재현성
 })

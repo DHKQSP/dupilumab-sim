@@ -1,0 +1,9 @@
+# 단계 1 gate 판정 기록. 보고서(report/report.Rmd)는 step1_gate 가 passed 또는 accepted_by_reviewer 일 때만 단계 2 이후 결과를 렌더링한다.
+# 값: pending_reviewer | passed | accepted_by_reviewer | failed
+step1_gate: pending_reviewer
+date: 2026-09-23
+note: >
+  자동 판정: 정량 gate(AUClast 평균 ±15%)에서 200 mg ≈80 kg 데이터셋 2개(PKM14271 0.82, Cohen 2022 arm A 0.84) 미달.
+  300·600 mg 데이터셋 5개, 코호트 tlast, log-CV, 체중 기울기, Cohen log SD는 통과. 진단: results/step1/diag_*.csv, DECISIONS D-018.
+  검토자가 판정을 기록할 때까지 단계 2 이후 결과는 보고하지 않는다(계산 결과는 results/ 에 보관).
+reviewer: null
