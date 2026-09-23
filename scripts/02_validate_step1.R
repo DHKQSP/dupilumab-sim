@@ -11,13 +11,13 @@ logfile <- start_run_log("validate_step1", master_seed = NA, run_mode = run_mode
 
 targets <- rbindlist(lapply(dz$targets, function(x) data.table(dose = x$dose_mg, target_ratio_pct = x$auc_ratio_pct, target_tlast = x$tlast_median_day)))
 grid <- c(p$theta[["ka"]], as.numeric(ct$ka_grid_1_day))
-tab <- rbindlist(lapply(targets$dose, function(d) rbindlist(lapply(grid, function(ka) {
-  ip <- typical_subject(p); ip[, ka := ka]
+tab <- rbindlist(lapply(targets$dose, function(d) rbindlist(lapply(grid, function(ka_val) {
+  ip <- typical_subject(p); ip[, ka := ka_val]   # data.table 스코프: 인자명을 열이름과 다르게
   tr <- true_auc(ip, d, t_grid = c(days, seq(0, 84, by = 0.25)))
   prof <- tr$profile
   sched <- prof[time %in% days & time > 0]
   tl <- true_auc_to_tlast(sched, lloq)
-  data.table(dose = d, ka = ka, is_config_ka = ka == p$theta[["ka"]],
+  data.table(dose = d, ka = ka_val, is_config_ka = ka_val == p$theta[["ka"]],
              Cmax_true = max(prof$C), tmax_true = prof$time[which.max(prof$C)],
              tlast_typical = tl$tlast_true, Clast_true = sched[time == tl$tlast_true, C],
              C_next_sched = { nx <- sched[time > tl$tlast_true][1]; if (nrow(nx)) nx$C else NA_real_ },

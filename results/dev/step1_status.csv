@@ -1,0 +1,8 @@
+check,status
+(a) 대표 개체 tlast = 목표 중앙값,FAIL
+(a') ka 격자 전체에서 tlast 유지,FAIL
+(b) 참값 비율 진단(±3%p),CHECK(진단)
+(c) NCA 기반 AUClast/AUCinf (BEmaster),BLOCKED: BEmaster 미입수 (Q1)
+(d) IIV 반영 tlast 분포 (FDA 표),BLOCKED: FDA 표 미입수 (Q2)
+Li 2020 CV 35–51% (FDA 표+BEmaster),"BLOCKED: Q1, Q2"
+Cohen 2022 log SD 0.49 (FDA 표+BEmaster),"BLOCKED: Q1, Q2"

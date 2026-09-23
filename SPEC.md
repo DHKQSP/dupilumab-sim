@@ -33,6 +33,7 @@
 | renv | 1.2.4 | 잠금 파일 `renv.lock` |
 | testthat | 3.2.1 | 자동 테스트 |
 | BEmaster | **[PENDING]** 버전·입수 경로 미확정 | GitHub `DHKQSP/BE-Master`는 빈 저장소(커밋 없음). §6 참조 |
+| 저장소 | `main` 브랜치 없음(빈 저장소로 생성됨) | PR을 열려면 기본 브랜치가 필요 — 사용자 조치 필요(Q10) |
 
 재현 방법은 `README.md` §재현 참조.
 
@@ -106,8 +107,8 @@ FDA Clinical Pharmacology Review, BLA 761055, Table 4.6.6–4.6.7 값을 사용�
 | 600 mg | ≈ 98.1% | 56 |
 
 - 시점 해석: 목표 "42일/28일/56일"은 투여 후 경과일로 해석(= 스터디 Day 43/29/57). 채혈표에 56일이 없으므로 다른 해석은 불가. **사용자 확인 요청.**
-- (a) **대표 개체 tlast 검사**: IIV 없이 대표값으로 각 용량의 tlast가 목표 중앙값과 같은지. — 지금 실행 가능(ka 격자 민감도 포함).
-- (b) **모델 기반 AUC 비율 진단**: ODE 진적분으로 AUC(0–tlast)/AUC(0–∞). NCA가 아니라 모델 자체 진단이며 NCA 검증을 대체하지 않는다. — 지금 실행 가능.
+- (a) **대표 개체 tlast 검사**: IIV 없이 대표값으로 각 용량의 tlast가 목표 중앙값과 같은지. — 지금 실행 가능. (a')는 ka 격자별 진단 표(단정 없음, D-008).
+- (b) **모델 기반 AUC 비율 진단**: ODE 진적분으로 AUC(0–tlast)/AUC(0–∞). 정상 범위(90–100%) 확인과 기록만 하며 NCA 기반 목표와 직접 비교하지 않는다(D-007).
 - (c) **NCA 기반 AUClast/AUCinf**: BEmaster로 산출. — BEmaster 입수 후.
 - (d) **tlast 분포(중앙값·범위)**: IIV 반영, n=8 반복 추출. — FDA 표 입수 후.
 
@@ -115,6 +116,19 @@ FDA Clinical Pharmacology Review, BLA 761055, Table 4.6.6–4.6.7 값을 사용�
 - Li 2020 Table 3의 300 mg AUClast CV 범위 35–51% 안에 모의 CV가 드는지. — FDA 표 입수 후.
 - Cohen 2022의 200 mg AUClast log 척도 SD ≈ 0.49와 비교. — FDA 표 입수 후.
 - 각 문헌의 서지 정보·쪽수 `[PENDING]`(사용자 제공).
+
+### 4.4 단계 1 현재 상태 (2026-09-23, dev 모드·자리표시자 ka 0.25, 기준 체중 75 kg)
+
+| 검사 | 상태 | 요약 |
+|---|---|---|
+| 구조 테스트 7건 | PASS | 해석해 일치, 질량 보존, MM 0차 극한, 다개체 일관성 |
+| (a) 대표 개체 tlast | **FAIL(300 mg)** | 200 mg 28일 ✓, 600 mg 56일 ✓, 300 mg 35일(목표 42). 연속시간 LLOQ 교차 37.5일로 목표 창 [42,49)에 4.5일 미달. 200 mg(28.5일)·600 mg(56.1일)도 각 창의 하한 직상 |
+| (a') ka 격자 진단 | 기록 | ka 0.15–0.6에서 300 mg은 항상 35일. ka ≥ 0.3이면 600 mg(49일), ka ≥ 0.4이면 200 mg(21일)도 이탈 → ka 보정 목표(Q3) 필요 |
+| (b) 참값 AUC 비율 | 기록 | 99.6–100%(NCA 목표와 비교 불가, D-007) |
+| (c) NCA 비율 | BLOCKED | BEmaster(Q1) |
+| (d) IIV tlast 분포, Li 2020 CV, Cohen 2022 SD | BLOCKED | FDA 표(Q2) + BEmaster(Q1) |
+
+원인 후보와 조치는 DECISIONS D-009. 파라미터 조정은 하지 않았다. 단일 가정 변화로 세 용량을 동시에 맞추는 조건: F ×1.2, Vmax ×0.8, ke ×0.7, 또는 체중 60 kg(θ_WT=1 가정). 결과 표: `results/dev/step1_typical_grid.csv`, `step1_lloq_crossing.csv`, `step1_sensitivity_scan.csv`.
 
 ## 5. 단계 2–3: 가상 시험 루프와 시나리오
 
@@ -177,3 +191,5 @@ AUClast, AUCinf, Cmax, 외삽 비율(%AUCextrap), λz 산출 가능 여부, λz,
 | Q7 | 문헌 서지 | Clot 2021, Li 2020, Cohen 2022의 정확한 서지·표·쪽수 | 보고서 |
 | Q8 | Km 민감도 값 | K1 상향 Km 값, K2 Km IIV CV | 3 |
 | Q9 | Kovalenko 2016 표 번호·쪽수 | 대표값 표의 표 번호·쪽수 | 보고서 |
+| Q10 | 저장소 기본 브랜치 | `main`이 없어 PR 생성 불가. `main`을 만들거나(빈 커밋 허용 여부) 기본 브랜치를 지정 | PR |
+| Q11 | Clot 2021 집단 정보 | 8명의 체중(평균·범위), 성별, 인종 — (a) 미달 원인 판별용 | 1 |

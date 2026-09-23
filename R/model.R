@@ -75,6 +75,7 @@ solve_model <- function(ipar, obs, dose_mg, atol = 1e-10, rtol = 1e-8, maxsteps 
   sol <- rxode2::rxSolve(mod, params = params, events = as.data.frame(ev),
                          atol = atol, rtol = rtol, maxsteps = maxsteps,
                          returnType = "data.table", cores = 1L, addDosing = FALSE)
+  if (!"id" %in% names(sol)) sol[, id := ids[1]]          # 개체 1명이면 rxode2가 id 열을 생략한다
   out <- sol[, .(id = as.integer(as.character(id)), time, C, auc, depot, central, periph)]
   out
 }

@@ -16,14 +16,14 @@ lloq <- dz$lloq_mg_L
 days <- as.numeric(dz$sample_days_post_dose)
 dense <- seq(0, 84, by = 1 / 24)
 
-sim_metrics <- function(ka) {
-  ip <- typical_subject(p, WT = WT); ip[, ka := ka]
+sim_metrics <- function(ka_val) {
+  ip <- typical_subject(p, WT = WT); ip[, ka := ka_val]   # data.table 스코프: 인자명을 열이름과 다르게
   tr <- true_auc(ip, dose, t_grid = sort(unique(c(dense, days))))
   prof <- tr$profile
   i <- which.max(prof$C)
   sched <- prof[time %in% days & time > 0]
   tl <- true_auc_to_tlast(sched, lloq)
-  data.table(ka = ka, Cmax = prof$C[i], tmax = prof$time[i],
+  data.table(ka = ka_val, Cmax = prof$C[i], tmax = prof$time[i],
              tlast_sched = tl$tlast_true, AUClast_true = tl$AUClast_true, AUCinf_true = tr$inf$AUCinf_true,
              ratio_true_pct = 100 * tl$AUClast_true / tr$inf$AUCinf_true)
 }

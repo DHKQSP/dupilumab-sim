@@ -19,8 +19,6 @@ rxode2_cache/
 results/final/
 results/**/*.rds
 !results/dev/*.csv
-logs/*.log
-!logs/.gitkeep
 report/*.html
 report/*_files/
 report/*_cache/

@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="adapters" timestamp="2026-09-23T02:23:23Z" hostname="vm" tests="4" skipped="0" failures="0" errors="0" time="0.202">
+    <testcase time="0.0940000000000003" classname="adapters" name="BEmaster_"/>
+    <testcase time="0.0439999999999996" classname="adapters" name="BEmaster_"/>
+    <testcase time="0.0590000000000002" classname="adapters" name="_"/>
+    <testcase time="0.00499999999999989" classname="adapters" name="_"/>
+  </testsuite>
+  <testsuite name="model-structure" timestamp="2026-09-23T02:23:23Z" hostname="vm" tests="8" skipped="0" failures="0" errors="0" time="2.959">
+    <testcase time="2.762" classname="model_structure" name="Vmax_0_2_"/>
+    <testcase time="0.0310000000000006" classname="model_structure" name="_F_Dose_"/>
+    <testcase time="0.0189999999999992" classname="model_structure" name="F_depot_"/>
+    <testcase time="0.0180000000000007" classname="model_structure" name="Km_C_MM_0_Vmax_Vc_mg_day_"/>
+    <testcase time="0.0429999999999993" classname="model_structure" name="auc_"/>
+    <testcase time="0.0410000000000004" classname="model_structure" name="MM_AUCinf_"/>
+    <testcase time="0.0369999999999999" classname="model_structure" name="_"/>
+    <testcase time="0.00800000000000001" classname="model_structure" name="_"/>
+  </testsuite>
+  <testsuite name="params" timestamp="2026-09-23T02:23:26Z" hostname="vm" tests="13" skipped="0" failures="0" errors="0" time="0.113">
+    <testcase time="0.0310000000000006" classname="params" name="dev_PENDING_DEV_"/>
+    <testcase time="0.00199999999999978" classname="params" name="dev_PENDING_DEV_"/>
+    <testcase time="0.00399999999999956" classname="params" name="dev_PENDING_DEV_"/>
+    <testcase time="0.00400000000000045" classname="params" name="dev_PENDING_DEV_"/>
+    <testcase time="0.00499999999999989" classname="params" name="dev_PENDING_DEV_"/>
+    <testcase time="0.0119999999999996" classname="params" name="final_DECISIONS_D_005_"/>
+    <testcase time="0.00700000000000056" classname="params" name="final_DECISIONS_D_005_"/>
+    <testcase time="0.00999999999999979" classname="params" name="final_DECISIONS_D_005_"/>
+    <testcase time="0.0149999999999997" classname="params" name="_"/>
+    <testcase time="0.00200000000000067" classname="params" name="_"/>
+    <testcase time="0.00199999999999978" classname="params" name="_"/>
+    <testcase time="0.00600000000000023" classname="params" name="CV_omega_"/>
+    <testcase time="0.0129999999999999" classname="params" name="CV_omega_"/>
+  </testsuite>
+  <testsuite name="population" timestamp="2026-09-23T02:23:26Z" hostname="vm" tests="11" skipped="0" failures="0" errors="0" time="0.088">
+    <testcase time="0.0369999999999999" classname="population" name="_"/>
+    <testcase time="0.00199999999999978" classname="population" name="_"/>
+    <testcase time="0.00600000000000023" classname="population" name="_"/>
+    <testcase time="0.0119999999999996" classname="population" name="eta_SD_omega_omega_0_0_"/>
+    <testcase time="0.00199999999999978" classname="population" name="eta_SD_omega_omega_0_0_"/>
+    <testcase time="0.00500000000000078" classname="population" name="eta_SD_omega_omega_0_0_"/>
+    <testcase time="0.0119999999999996" classname="population" name="_F_0_1_"/>
+    <testcase time="0.00300000000000011" classname="population" name="_F_0_1_"/>
+    <testcase time="0.00199999999999978" classname="population" name="_F_0_1_"/>
+    <testcase time="0.00199999999999978" classname="population" name="_F_0_1_"/>
+    <testcase time="0.00500000000000078" classname="population" name="_"/>
+  </testsuite>
+  <testsuite name="sampling" timestamp="2026-09-23T02:23:26Z" hostname="vm" tests="154" skipped="0" failures="0" errors="0" time="0.653">
+    <testcase time="0.0289999999999999" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.000999999999999446" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00200000000000067" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00500000000000078" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00100000000000033" classname="sampling" name="_0_"/>
+    <testcase time="0.00299999999999923" classname="sampling" name="_0_"/>
+    <testcase time="0.0140000000000002" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00500000000000078" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00200000000000067" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00200000000000067" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00200000000000067" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00699999999999967" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.0140000000000002" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00500000000000078" classname="sampling" name="_0_"/>
+    <testcase time="0.00599999999999934" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00500000000000078" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00200000000000067" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00500000000000078" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00200000000000067" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00200000000000067" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00699999999999967" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.0129999999999999" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00200000000000067" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00599999999999934" classname="sampling" name="_0_"/>
+    <testcase time="0.00200000000000067" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00600000000000023" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00500000000000078" classname="sampling" name="_0_"/>
+    <testcase time="0.00199999999999978" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00499999999999989" classname="sampling" name="_0_"/>
+    <testcase time="0.00400000000000045" classname="sampling" name="_0_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_0_"/>
+    <testcase time="0.00399999999999956" classname="sampling" name="_0_"/>
+    <testcase time="0.00999999999999979" classname="sampling" name="_"/>
+    <testcase time="0.00200000000000067" classname="sampling" name="_"/>
+    <testcase time="0.00300000000000011" classname="sampling" name="_"/>
+    <testcase time="0.024" classname="sampling" name="_"/>
+  </testsuite>
+  <testsuite name="seeds" timestamp="2026-09-23T02:23:27Z" hostname="vm" tests="5" skipped="0" failures="0" errors="0" time="0.039">
+    <testcase time="0.0209999999999999" classname="seeds" name="_"/>
+    <testcase time="0.00599999999999934" classname="seeds" name="_"/>
+    <testcase time="0.00400000000000045" classname="seeds" name="_"/>
+    <testcase time="0.00600000000000023" classname="seeds" name="with_seed_RNG_"/>
+    <testcase time="0.00199999999999978" classname="seeds" name="with_seed_RNG_"/>
+  </testsuite>
+  <testsuite name="simulate" timestamp="2026-09-23T02:23:27Z" hostname="vm" tests="18" skipped="0" failures="0" errors="0" time="0.417">
+    <testcase time="0.0499999999999998" classname="simulate" name="_BLQ_"/>
+    <testcase time="0.00499999999999989" classname="simulate" name="_BLQ_"/>
+    <testcase time="0.00499999999999989" classname="simulate" name="_BLQ_"/>
+    <testcase time="0.00499999999999989" classname="simulate" name="_BLQ_"/>
+    <testcase time="0.0310000000000006" classname="simulate" name="_BLQ_"/>
+    <testcase time="0.00499999999999989" classname="simulate" name="_BLQ_"/>
+    <testcase time="0.144" classname="simulate" name="run_trial_BEmaster_NCA_nca_fn_NULL_"/>
+    <testcase time="0.00399999999999956" classname="simulate" name="run_trial_BEmaster_NCA_nca_fn_NULL_"/>
+    <testcase time="0.00499999999999989" classname="simulate" name="run_trial_BEmaster_NCA_nca_fn_NULL_"/>
+    <testcase time="0.00400000000000045" classname="simulate" name="run_trial_BEmaster_NCA_nca_fn_NULL_"/>
+    <testcase time="0.00399999999999956" classname="simulate" name="run_trial_BEmaster_NCA_nca_fn_NULL_"/>
+    <testcase time="0.00500000000000078" classname="simulate" name="run_trial_BEmaster_NCA_nca_fn_NULL_"/>
+    <testcase time="0.0869999999999997" classname="simulate" name="run_trial_BEmaster_NCA_nca_fn_NULL_"/>
+    <testcase time="0.0329999999999995" classname="simulate" name="_T_arm_"/>
+    <testcase time="0.00200000000000067" classname="simulate" name="_T_arm_"/>
+    <testcase time="0.00599999999999934" classname="simulate" name="_T_arm_"/>
+    <testcase time="0.0200000000000005" classname="simulate" name="_theta_RSE_0_"/>
+    <testcase time="0.00199999999999978" classname="simulate" name="_theta_RSE_0_"/>
+  </testsuite>
+  <testsuite name="step1-clot2021" timestamp="2026-09-23T02:23:27Z" hostname="vm" tests="9" skipped="4" failures="1" errors="0" time="0.783">
+    <testcase time="0.0380000000000003" classname="step1_clot2021" name="_a_ka_">
+      <failure type="failure" message="r$tlast not equal to targets$tlast[k]. ('test-step1-clot2021.R:21:5')">r$tlast not equal to targets$tlast[k].
+1/1 mismatches
+[1] 35 - 42 == -7
+dose=300 mg, ka=0.25: tlast=35 (목표 42)</failure>
+    </testcase>
+    <testcase time="0.0489999999999995" classname="step1_clot2021" name="_a_ka_"/>
+    <testcase time="0.032" classname="step1_clot2021" name="_a_ka_"/>
+    <testcase time="0.523" classname="step1_clot2021" name="_a_ka_tlast_ka_DECISIONS_D_008_"/>
+    <testcase time="0.0640000000000001" classname="step1_clot2021" name="_b_AUC_0_tlast_AUC_0_inf_NCA_DECISIONS_D_007_"/>
+    <testcase time="0.00600000000000023" classname="step1_clot2021" name="_c_NCA_AUClast_AUCinf_BEmaster_">
+      <skipped message="Reason: BEmaster 미입수 (SPEC Q1) — NCA/BE 기반 검증은 보류 ('test-step1-clot2021.R:45:3')"/>
+    </testcase>
+    <testcase time="0.0259999999999998" classname="step1_clot2021" name="_d_IIV_tlast_n_8_FDA_">
+      <skipped message="Reason: IIV/잔차 값이 출처 미확정 (SPEC Q2) — 변동성 검증 보류 ('test-step1-clot2021.R:60:3')"/>
+    </testcase>
+    <testcase time="0.0289999999999999" classname="step1_clot2021" name="_300_mg_AUClast_CV_Li_2020_35_51_FDA_BEmaster_">
+      <skipped message="Reason: BEmaster 미입수 (SPEC Q1) — NCA/BE 기반 검증은 보류 ('test-step1-clot2021.R:77:3')"/>
+    </testcase>
+    <testcase time="0.016" classname="step1_clot2021" name="_200_mg_AUClast_log_SD_0.49_Cohen_2022_FDA_BEmaster_">
+      <skipped message="Reason: BEmaster 미입수 (SPEC Q1) — NCA/BE 기반 검증은 보류 ('test-step1-clot2021.R:82:3')"/>
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,102 @@
+tests run at 2026-09-23 02:19:49 (UTC)
+rxode2: 5.1.7
+                   file
+        test-adapters.R
+        test-adapters.R
+ test-model-structure.R
+ test-model-structure.R
+ test-model-structure.R
+ test-model-structure.R
+ test-model-structure.R
+ test-model-structure.R
+ test-model-structure.R
+          test-params.R
+          test-params.R
+          test-params.R
+          test-params.R
+      test-population.R
+      test-population.R
+      test-population.R
+      test-population.R
+        test-sampling.R
+        test-sampling.R
+           test-seeds.R
+           test-seeds.R
+        test-simulate.R
+        test-simulate.R
+        test-simulate.R
+        test-simulate.R
+  test-step1-clot2021.R
+  test-step1-clot2021.R
+  test-step1-clot2021.R
+  test-step1-clot2021.R
+  test-step1-clot2021.R
+  test-step1-clot2021.R
+  test-step1-clot2021.R
+                                                                                                 test
+                                 BEmaster 부재 시 어댑터는 명확한 오류를 내고 자체 계산을 하지 않는다
+                                                                         반환 열 계약이 정의되어 있다
+                                                               Vmax=0이면 해석적 선형 2구획 해와 일치
+                                                              소실이 없으면 총량 = F*Dose (질량 보존)
+                                                                          F는 depot 초기량에 반영된다
+                                                 Km << C 에서 MM 항은 0차 소실(Vmax*Vc mg/day)로 수렴
+                                       auc 상태는 농도 적분과 일치(선형 케이스, 사다리꼴 근사와 비교)
+                                     MM 소실로 용량 비례성이 깨진다: 용량당 AUCinf가 용량과 함께 증가
+                                                          여러 개체를 한 번에 풀어도 개별 풀이와 같다
+                                          dev 모드는 PENDING 값을 DEV-가정으로 채우고 상태를 표시한다
+                                      final 모드는 출처 미확정 값이 있으면 중단한다 (DECISIONS D-005)
+                                                           시나리오 승수는 지정 파라미터에만 곱해진다
+                                                                                    CV <-> omega 변환
+                                                       체중은 포함기준 안에 있고 성별 혼합이 반영된다
+                                                   eta의 표본 SD는 omega와 일치하고 omega=0이면 0이다
+                                                   개체 파라미터: F는 (0,1), 체중 공변량은 지수식대로
+                                                                                         체중 층 분류
+                                                   채혈 편차는 허용창 안이고 시점 0은 고정, 순서 유지
+                                                                                일정 이름별 채혈 일수
+                                                               시드 파생은 결정적이고 인자에 민감하다
+                                                                 with_seed는 바깥 RNG 상태를 복원한다
+                                                             잔차 오차와 BLQ 검열이 규칙대로 적용된다
+                                         run_trial은 BEmaster 없이 NCA 경계까지 동작한다(nca_fn=NULL)
+                                                                        시나리오 적용: T arm만 바뀐다
+                                        바깥층 theta 추출은 시드에 결정적이고 RSE 0이면 대표값 그대로
+                       (a) 대표 개체의 마지막 정량 시점이 각 용량의 목표 중앙값과 일치 (현재 ka 기준)
+                                             (a') tlast 결론은 ka 격자(0.1–0.6/day) 전체에서 유지된다
+ (b) 모델 기반 참값 AUC(0-tlast)/AUC(0-inf) 진단 — 목표와의 차이를 보고(허용 3%p, NCA 검증 대체 아님)
+                                                       (c) NCA 기반 AUClast/AUCinf 비 — BEmaster 필요
+                                         (d) IIV 반영 tlast 분포(n=8 반복): 중앙값·범위 — FDA 표 필요
+                           변동성: 300 mg AUClast CV가 Li 2020 범위(35–51%) 안 — FDA 표·BEmaster 필요
+                             변동성: 200 mg AUClast log SD ≈ 0.49 (Cohen 2022) — FDA 표·BEmaster 필요
+ failed skipped error warning
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      1   FALSE FALSE       0
+      1   FALSE FALSE       0
+      1   FALSE FALSE       0
+      0    TRUE FALSE       0
+      0    TRUE FALSE       0
+      0    TRUE FALSE       0
+      0    TRUE FALSE       0
+TOTAL: 32 tests, 3 failed, 0 errors, 4 skipped

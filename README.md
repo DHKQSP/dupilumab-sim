@@ -23,11 +23,13 @@ Rscript -e 'install.packages("renv"); renv::restore()'
 Rscript scripts/run_tests.R
 # 3) 단계 1 요약, ka 보정, 개발 규모 루프
 Rscript scripts/02_validate_step1.R dev
+Rscript scripts/02b_step1_sensitivity.R      # 단계 1 미달 원인 스캔(진단)
 Rscript scripts/01_calibrate_ka.R dev
 Rscript scripts/03_run_dev.R dev S0 d57_base
 Rscript scripts/04_run_scenarios.R dev
 Rscript scripts/05_report.R
 ```
+- `renv::restore()` 없이 시스템 라이브러리로 바로 실행하려면(예: CRAN 차단 환경) `RENV_CONFIG_EXTERNAL_LIBRARIES="/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library"` 를 설정한다.
 - `run_mode`는 `dev`(개발용 자리표시자 허용) 또는 `final`(출처 미확정 값이 있으면 중단). 결과 보고는 `final`만 쓴다.
 - BEmaster: 패키지로 설치하거나 `BEMASTER_PATH`로 위치를 지정한 뒤 `R/nca_bemaster.R`, `R/be_bemaster.R`의 바인딩 함수를 BEmaster 시그니처에 맞춰 채운다(규칙 재구현 금지, SPEC §6).
 

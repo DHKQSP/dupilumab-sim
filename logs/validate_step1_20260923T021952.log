@@ -1,0 +1,44 @@
+run_name: validate_step1
+started_utc: 2026-09-23 02:19:52
+run_mode: dev
+master_seed: NA
+seed_rule_version: 1
+git_sha: d0cbe682aafeebd9a8892d554a47223978e47930
+R_version: R version 4.3.3 (2024-02-29)
+rxode2: 5.1.7
+BEmaster: not installed
+config_sha256:
+  calibration_targets.yaml: 4a20f6a9319635ced8530253fba145a1b38d3c0baa951696e563e7544af6c381
+  design_clot2021.yaml: a442d93f29f5e157019859e831f1ee21d9c6e6161699b5cc7a78fd458f71bc92
+  dev_assumptions.yaml: 8650390d45c6860285b7f0aaf30c63f55ac74559b3494963cf1a9a786f7af9fc
+  params_typical.yaml: 26e44cf62c92870dfa5d7e2dad6afff9b9ea9e537a682ac991f4907f0483c4ab
+  params_variability.yaml: 3486112a924cfafb3a182313435fd9d0f0ba3a06b2fd6fb84b4f1b7dc3c947db
+  scenarios.yaml: abd954456d22e21f44ecc4b096d24b9cb63e01cf8868f8383969eb5e80387d27
+  trial_design.yaml: e8c04c47fd58a379a2c6feef827b3ab8eaef0c6583c3c310511a076368a59105
+session_info:
+  R version 4.3.3 (2024-02-29)
+  Platform: x86_64-pc-linux-gnu (64-bit)
+  Running under: Ubuntu 24.04.4 LTS
+  
+  Matrix products: default
+  BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+  LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0
+  
+  locale:
+   [1] LC_CTYPE=C.UTF-8    LC_NUMERIC=C        LC_TIME=C          
+   [4] LC_COLLATE=C        LC_MONETARY=C       LC_MESSAGES=C      
+   [7] LC_PAPER=C          LC_NAME=C           LC_ADDRESS=C       
+  [10] LC_TELEPHONE=C      LC_MEASUREMENT=C    LC_IDENTIFICATION=C
+  
+  time zone: Etc/UTC
+  tzcode source: system (glibc)
+  
+  attached base packages:
+  [1] stats     graphics  grDevices utils     datasets  methods   base     
+  
+  other attached packages:
+  [1] digest_0.6.34      data.table_1.14.10 yaml_2.3.8        
+  
+  loaded via a namespace (and not attached):
+  [1] compiler_4.3.3
+[02:19:55] step1 status written
