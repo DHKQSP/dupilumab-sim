@@ -1,0 +1,14 @@
+- The project is out-of-sync -- use `renv::status()` for details.
+run log: /home/user/dupilumab-sim/logs/trial_products_base_20260923T054838.log
+  trial 50/500 05:49:21
+  trial 100/500 05:49:58
+  trial 150/500 05:50:38
+  trial 200/500 05:51:16
+  trial 250/500 05:51:54
+  trial 300/500 05:52:34
+  trial 350/500 05:53:11
+  trial 400/500 05:53:51
+  trial 450/500 05:54:29
+  trial 500/500 05:55:08
+elapsed: 6.5451 mins 
+postprocess products base: 500 trials, 14 scenarios

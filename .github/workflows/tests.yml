@@ -21,11 +21,12 @@ jobs:
       - name: Run tests
         run: Rscript scripts/run_tests.R
       - name: Step 1 summary
-        run: Rscript scripts/02_validate_step1.R dev
+        run: Rscript scripts/02_validate_step1.R && Rscript scripts/02_validate_step1.R k2020
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: logs-and-results
           path: |
             logs/
-            results/dev/
+            results/step1/
+            results/step1_k2020/

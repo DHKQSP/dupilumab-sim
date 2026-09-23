@@ -1,0 +1,14 @@
+start Wed Sep 23 05:25:54 UTC 2026
+ind base 0
+ind struct2020 0
+ind weight_alt ada10 0
+ind iiv150 resid12 0
+trial sched base 1
+trial sched struct2020 1
+trial sched iiv150 1
+trial sched resid12 1
+trial sched weight_alt 0
+trial sched ada10 0
+trial products base 0
+trial products struct2020 0
+ALL DONE Wed Sep 23 06:03:23 UTC 2026

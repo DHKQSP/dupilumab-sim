@@ -1,0 +1,65 @@
+- The project is out-of-sync -- use `renv::status()` for details.
+run log: /home/user/dupilumab-sim/logs/trial_schedules_weight_alt_20260923T054429.log
+variant=weight_alt n_trials=500 cores=4 combos=4
+  trial 50/500 05:44:44
+  trial 100/500 05:44:57
+  trial 150/500 05:45:08
+  trial 200/500 05:45:19
+  trial 250/500 05:45:31
+  trial 300/500 05:45:42
+  trial 350/500 05:45:54
+  trial 400/500 05:46:05
+  trial 450/500 05:46:18
+  trial 500/500 05:46:27
+elapsed: 1.995387 mins 
+    scenario schedule        endpoint pass_rate GMR_mean width_mean_pp n_T_mean
+ 1:     F090       B0            Cmax      73.8   0.8843         12.96    117.0
+ 2:     F090       B0         AUClast      26.6   0.8424         14.46    117.0
+ 3:     F090       B0 AUCinf_reliable      35.0   0.8552         14.80     98.8
+ 4:     F090       D2            Cmax      73.8   0.8843         12.96    117.0
+ 5:     F090       D2         AUClast      25.2   0.8419         14.51    117.0
+ 6:     F090       D2 AUCinf_reliable      35.4   0.8560         14.66     99.5
+ 7:      S00       B0            Cmax     100.0   1.0012         14.49    117.0
+ 8:      S00       B0         AUClast     100.0   1.0024         17.03    117.0
+ 9:      S00       B0 AUCinf_reliable      99.2   1.0026         17.16    102.0
+10:      S00       D2            Cmax     100.0   1.0012         14.49    117.0
+11:      S00       D2         AUClast      99.8   1.0024         17.09    117.0
+12:      S00       D2 AUCinf_reliable      99.6   1.0021         16.98    102.6
+   scenario schedule pass_both_primary agree_last_infrel last_pass_infrel_fail
+1:     F090       B0              25.6              81.6                   5.0
+2:     F090       D2              24.2              82.2                   3.8
+3:      S00       B0             100.0              99.2                   0.8
+4:      S00       D2              99.8              99.8                   0.2
+   cor_logGMR_last_infrel
+1:                 0.8705
+2:                 0.8704
+3:                 0.8830
+4:                 0.8789
+
+AUClast CI 폭 대응 비교(B0 대비):
+   schedule scenario n_trials width_rel_decrease width_rel_decrease_lo
+1:       D2      S00      500       -0.003816704          -0.003990142
+2:       D2     F090      500       -0.003355633          -0.003518981
+   width_rel_decrease_hi pass_change_pp pass_discordant
+1:          -0.003643266           -0.2               1
+2:          -0.003192284           -1.4               7
+
+판정 규칙(B0 대비):
+   schedule added_points width_rel_decrease reliable_gain_pp
+1:   Bminus           NA                 NA           -0.120
+2:       D1           NA                 NA            0.645
+3:       D2            3       -0.003816704            0.525
+4:       D3           NA                 NA            3.165
+5:       D4           NA                 NA            0.185
+   extrap_gt20_change_pp extrap_gt20_mcnemar_p crit_a_width crit_b_reliable
+1:                 0.395          6.782881e-23        FALSE           FALSE
+2:                -0.120          8.430332e-06        FALSE           FALSE
+3:                -0.125          4.649162e-06        FALSE           FALSE
+4:                -0.355          8.445815e-17        FALSE           FALSE
+5:                -0.150          1.536682e-08        FALSE           FALSE
+   crit_c_extrap recommend added_visits_total
+1:         FALSE     FALSE                 NA
+2:          TRUE      TRUE                 NA
+3:          TRUE      TRUE                780
+4:          TRUE      TRUE                 NA
+5:          TRUE      TRUE                 NA

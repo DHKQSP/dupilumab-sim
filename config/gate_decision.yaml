@@ -5,5 +5,8 @@ date: 2026-09-23
 note: >
   자동 판정: 정량 gate(AUClast 평균 ±15%)에서 200 mg ≈80 kg 데이터셋 2개(PKM14271 0.82, Cohen 2022 arm A 0.84) 미달.
   300·600 mg 데이터셋 5개, 코호트 tlast, log-CV, 체중 기울기, Cohen log SD는 통과. 진단: results/step1/diag_*.csv, DECISIONS D-018.
+  사전 명시 구조 민감도 모델(Kovalenko 2020 Model 1)은 단계 1 전 항목 통과(results/step1_k2020/). 단, 용량 형태 불일치는 같고 노출 수준만 약 7% 높다.
   검토자가 판정을 기록할 때까지 단계 2 이후 결과는 보고하지 않는다(계산 결과는 results/ 에 보관).
+# 주 모델: k2016(기본, 지시서 지정) | k2020(구조 민감도 모델을 주 모델로 격상할 경우). 보고서 단계 2 표·그림이 이 값을 따른다.
+primary_model: k2016
 reviewer: null

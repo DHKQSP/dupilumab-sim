@@ -1,0 +1,52 @@
+run_name: trial_schedules_ada10
+started_utc: 2026-09-23 05:46:34
+run_mode: final
+master_seed: 20260923
+seed_rule_version: 1
+git_sha: 8d69d82a839b332631baee9610a9865b9b1578b5
+R_version: R version 4.3.3 (2024-02-29)
+rxode2: 5.1.7
+BEmaster: not installed
+config_sha256:
+  crossval_reference.yaml: 0603f1c088a74f9ef8bb3d00f45287548aaf567beab9f26ab01e265b6c009711
+  design_clot2021.yaml: 964be641d7b2629f9b90ca3db84f84f454d4800ee7e308fa800a5847dc3672a7
+  gate_decision.yaml: 25bcb18da6be778bc3cc8aa01eb65f68824437ca81b8668a1dc343b2a28a8c73
+  nca_rules.yaml: 127297024e38ae75f49355bf87ce29574510ff68f83f606fefb12ae567594556
+  params_k2020_model1.yaml: e7359a1f1e73b8f46e7fd42dadcb1a2891d33ffbb538779daeb77b82cb448bda
+  params_typical.yaml: 0661b248227771273d5c58c86c61f35ef655fdeecebe3f188868fd61cff4b801
+  params_variability.yaml: b849a4cc3acc6d47f9833392ac4f47ebacc6ad9fa79fcc5848628fd4b5aa99a9
+  scenarios.yaml: 3c04a130e5636019467dcdd1d928f900a27c38e2a87a0ba266a9712edf483de8
+  trial_design.yaml: 02f9987e829bd172456fb81ff5084ba3046d1fc8e10113ec4f68db93f0692d40
+extra:
+  variant: ada10
+  n_trials: 500
+  cores: 4
+  schedules: B0,D2
+  scenarios: S00 ,F090
+session_info:
+  R version 4.3.3 (2024-02-29)
+  Platform: x86_64-pc-linux-gnu (64-bit)
+  Running under: Ubuntu 24.04.4 LTS
+  
+  Matrix products: default
+  BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+  LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0
+  
+  locale:
+   [1] LC_CTYPE=C.UTF-8    LC_NUMERIC=C        LC_TIME=C          
+   [4] LC_COLLATE=C        LC_MONETARY=C       LC_MESSAGES=C      
+   [7] LC_PAPER=C          LC_NAME=C           LC_ADDRESS=C       
+  [10] LC_TELEPHONE=C      LC_MEASUREMENT=C    LC_IDENTIFICATION=C
+  
+  time zone: Etc/UTC
+  tzcode source: system (glibc)
+  
+  attached base packages:
+  [1] stats     graphics  grDevices datasets  utils     methods   base     
+  
+  other attached packages:
+  [1] digest_0.6.34      data.table_1.14.10 yaml_2.3.8        
+  
+  loaded via a namespace (and not attached):
+  [1] compiler_4.3.3 tools_4.3.3    renv_1.2.4    
+[05:48:32] done

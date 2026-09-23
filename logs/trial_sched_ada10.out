@@ -1,0 +1,15 @@
+- The project is out-of-sync -- use `renv::status()` for details.
+run log: /home/user/dupilumab-sim/logs/trial_schedules_ada10_20260923T054634.log
+variant=ada10 n_trials=500 cores=4 combos=4
+  trial 50/500 05:46:49
+  trial 100/500 05:47:00
+  trial 150/500 05:47:12
+  trial 200/500 05:47:22
+  trial 250/500 05:47:35
+  trial 300/500 05:47:45
+  trial 350/500 05:47:57
+  trial 400/500 05:48:09
+  trial 450/500 05:48:20
+  trial 500/500 05:48:32
+elapsed: 1.958628 mins 
+postprocess schedules ada10: 500 trials, 2 scenarios, 2 schedules

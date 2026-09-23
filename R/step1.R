@@ -26,7 +26,7 @@ cohort_median_tlast <- function(nca, n_per_cohort = 8) {
 # 데이터셋 gate 표
 gate_row <- function(ds, nca, tol_pct, cv_range) {
   auc_mean <- mean(nca$AUClast, na.rm = TRUE); cv <- log_cv_pct(nca$AUClast)
-  data.table(id = ds$id, dose_mg = ds$dose_mg, n_obs = if (is.null(ds$n)) NA_integer_ else ds$n, wt_mean = ds$weight_mean,
+  data.table(id = ds$id, dose_mg = ds$dose_mg, n_obs = if (is.null(ds$n_subj)) NA_integer_ else as.integer(ds$n_subj), wt_mean = ds$weight_mean,
              AUClast_obs_mean = ds$auclast_mean, AUClast_sim_mean = auc_mean, AUClast_ratio = auc_mean / ds$auclast_mean,
              AUClast_sim_geo = geo_mean(nca$AUClast), AUClast_obs_geo = if (is.null(ds$auclast_geo)) NA_real_ else ds$auclast_geo,
              AUClast_sim_logcv = cv, AUClast_obs_cv_arith = 100 * ds$auclast_sd / ds$auclast_mean,

@@ -1,0 +1,27 @@
+- The project is out-of-sync -- use `renv::status()` for details.
+run log: /home/user/dupilumab-sim/logs/individual_schedules_20260923T052559.log
+
+=== variant struct2020 (구조: Kovalenko 2020 Model 1 (transit)) ===
+[====|====|====|====|====|====|====|====|====|====] 0:00:21 
+
+   schedule n_points tlast_median quant_at_last_pct lambda_ok_pct reliable_pct
+1:       B0       13     35.38504               5.5          99.1         85.1
+2:   Bminus       12     35.36684               5.5          99.1         84.8
+3:       D1       15     37.96011               5.5          99.2         86.8
+4:       D2       16     37.98675               5.5          99.2         86.6
+5:       D3       17     37.98675               5.5          99.6         89.6
+6:       D4       15     38.72881               5.5          99.2         85.7
+   extrap_median extrap_p95 extrap_gt20_pct extrap_true_median err_tlast_sd
+1:          2.77       12.4            1.15               0.64       0.0929
+2:          3.55       14.8            1.95               0.92       0.0931
+3:          1.32       11.2            0.99               0.25       0.0923
+4:          1.18       11.1            0.98               0.22       0.0923
+5:          0.91        6.4            0.51               0.18       0.0908
+6:          1.39       11.2            1.00               0.26       0.0924
+   err_inf_sd AUClast_logcv
+1:     0.0934          39.8
+2:     0.0937          39.4
+3:     0.0931          39.9
+4:     0.0931          39.9
+5:     0.0913          39.7
+6:     0.0931          39.9

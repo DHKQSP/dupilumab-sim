@@ -1,0 +1,77 @@
+- The project is out-of-sync -- use `renv::status()` for details.
+run log: /home/user/dupilumab-sim/logs/trial_schedules_resid12_20260923T054221.log
+variant=resid12 n_trials=500 cores=4 combos=4
+  trial 50/500 05:42:35
+  trial 100/500 05:42:46
+  trial 150/500 05:42:58
+  trial 200/500 05:43:09
+  trial 250/500 05:43:21
+  trial 300/500 05:43:33
+  trial 350/500 05:43:44
+  trial 400/500 05:43:56
+  trial 450/500 05:44:09
+  trial 500/500 05:44:23
+elapsed: 2.04192 mins 
+Aggregate function missing, defaulting to 'length'
+Warning messages:
+1: In cor(log(GMR_AUClast), log(GMR_AUCinf_reliable), use = "complete.obs") :
+  the standard deviation is zero
+2: In cor(log(GMR_AUClast), log(GMR_AUCinf_true), use = "complete.obs") :
+  the standard deviation is zero
+3: In cor(log(GMR_AUClast), log(GMR_AUCinf_reliable), use = "complete.obs") :
+  the standard deviation is zero
+4: In cor(log(GMR_AUClast), log(GMR_AUCinf_true), use = "complete.obs") :
+  the standard deviation is zero
+5: In cor(log(GMR_AUClast), log(GMR_AUCinf_reliable), use = "complete.obs") :
+  the standard deviation is zero
+6: In cor(log(GMR_AUClast), log(GMR_AUCinf_true), use = "complete.obs") :
+  the standard deviation is zero
+7: In cor(log(GMR_AUClast), log(GMR_AUCinf_reliable), use = "complete.obs") :
+  the standard deviation is zero
+8: In cor(log(GMR_AUClast), log(GMR_AUCinf_true), use = "complete.obs") :
+  the standard deviation is zero
+Aggregate function missing, defaulting to 'length'
+Warning messages:
+1: In cor(log(GMR_AUClast), log(GMR_AUCinf_reliable), use = "complete.obs") :
+  the standard deviation is zero
+2: In cor(log(GMR_AUClast), log(GMR_AUCinf_true), use = "complete.obs") :
+  the standard deviation is zero
+3: In cor(log(GMR_AUClast), log(GMR_AUCinf_reliable), use = "complete.obs") :
+  the standard deviation is zero
+4: In cor(log(GMR_AUClast), log(GMR_AUCinf_true), use = "complete.obs") :
+  the standard deviation is zero
+5: In cor(log(GMR_AUClast), log(GMR_AUCinf_reliable), use = "complete.obs") :
+  the standard deviation is zero
+6: In cor(log(GMR_AUClast), log(GMR_AUCinf_true), use = "complete.obs") :
+  the standard deviation is zero
+7: In cor(log(GMR_AUClast), log(GMR_AUCinf_reliable), use = "complete.obs") :
+  the standard deviation is zero
+8: In cor(log(GMR_AUClast), log(GMR_AUCinf_true), use = "complete.obs") :
+  the standard deviation is zero
+    scenario schedule        endpoint pass_rate GMR_mean width_mean_pp n_T_mean
+ 1:     F090       B0            Cmax      77.2   0.8820         11.86    117.0
+ 2:     F090       B0         AUClast      23.7   0.8393         13.49    117.0
+ 3:     F090       B0 AUCinf_reliable      34.8   0.8491         13.22    109.1
+ 4:     F090       D2            Cmax      77.2   0.8820         11.86    117.0
+ 5:     F090       D2         AUClast      23.6   0.8388         13.55    117.0
+ 6:     F090       D2 AUCinf_reliable      34.6   0.8491         13.21    108.3
+ 7:      S00       B0            Cmax     100.0   0.9985         13.23    117.0
+ 8:      S00       B0         AUClast     100.0   1.0002         15.90    117.0
+ 9:      S00       B0 AUCinf_reliable     100.0   0.9993         15.46    110.5
+10:      S00       D2            Cmax     100.0   0.9985         13.23    117.0
+11:      S00       D2         AUClast     100.0   1.0002         15.97    117.0
+12:      S00       D2 AUCinf_reliable      99.9   0.9996         15.46    109.8
+   scenario schedule pass_both_primary agree_last_infrel last_pass_infrel_fail
+1:     F090       B0               100               100                     0
+2:     F090       D2               100               100                     0
+3:      S00       B0               100               100                     0
+4:      S00       D2               100               100                     0
+   cor_logGMR_last_infrel
+1:                     NA
+2:                     NA
+3:                     NA
+4:                     NA
+Error in vecseq(f__, len__, if (allow.cartesian || notjoin || !anyDuplicated(f__,  : 
+  Join results in 200000 rows; more than 20000 = nrow(x)+nrow(i). Check for duplicate key values in i each of which join to the same group in x over and over again. If that's ok, try by=.EACHI to run j for each group to avoid the large allocation. If you are sure you wish to proceed, rerun with allow.cartesian=TRUE. Otherwise, please search for this error message in the FAQ, Wiki, Stack Overflow and data.table issue tracker for advice.
+Calls: rbindlist ... merge -> merge.data.table -> [ -> [.data.table -> vecseq
+Execution halted

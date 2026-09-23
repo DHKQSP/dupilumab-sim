@@ -10,7 +10,8 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.width = 8, fig.height = 4.2, dpi = 120)
+suppressPackageStartupMessages(library(ggplot2))
 source(file.path("..", "R", "00_setup.R")); source_project()
 p <- load_params("k2016")
 gate <- read_cfg("gate_decision.yaml")
@@ -41,12 +42,29 @@ kt(data.table::data.table(parameter = names(p$omega2), omega2 = unname(p$omega2)
 
 # 단계 1 검증
 ```{r step1}
-kt(rd("step1", "step1_status.csv"), "단계 1 상태")
-kt(rd("step1", "step1a_cohort_tlast.csv")[, .(dose_mg, weight_mean, obs_median, sim_median_of_cohort_medians, p05, p95, pct_cohorts_at_obs, pass)], "Clot 2021: 8명 코호트 2,000회의 중앙값 tlast (투여 후 일)")
-kt(rd("step1", "step1b_quant_gate.csv")[, .(id, dose_mg, wt_mean, AUClast_obs_mean, AUClast_sim_mean, AUClast_ratio, AUClast_sim_logcv, Cmax_ratio, pass_mean, pass_cv)], "정량 gate")
+kt(rd("step1", "step1_status.csv"), "단계 1 상태 (기본 모델)")
+kt(rd("step1_k2020", "step1_status.csv"), "단계 1 상태 (Kovalenko 2020 Model 1)")
+```
+
+```{r fig_cohort, fig.height=3.4}
+dl <- list(`200` = rd("step1", "cohort_median_tlast_dist_200mg.csv"), `300` = rd("step1", "cohort_median_tlast_dist_300mg.csv"), `600` = rd("step1", "cohort_median_tlast_dist_600mg.csv"))
+coh <- rd("step1", "step1a_cohort_tlast.csv")
+if (!is.null(coh)) print(fig_cohort_tlast(dl, coh))
+kt(coh[, .(dose_mg, weight_mean, obs_median, sim_median_of_cohort_medians, p05, p95, pct_cohorts_at_obs, pass)], "Clot 2021: 8명 코호트 2,000회의 중앙값 tlast (투여 후 일, 기본 모델)")
+```
+
+```{r fig_gate, fig.height=4}
+gb <- rd("step1", "step1b_quant_gate.csv"); ga <- rd("step1_k2020", "step1b_quant_gate.csv")
+if (!is.null(gb) && !is.null(ga)) print(fig_gate(gb, ga))
+kt(rd("step1", "diag_gate_sampling_error.csv"), "정량 gate: 모의/관측 AUClast 비와 관측 평균 표본오차 기준 z (SE = SD/√n)")
 kt(rd("step1", "step1e_auclast_cv_by_weight_range.csv"), "체중 범위별 AUClast log-CV (B0, 300 mg; 표본 수 논의용)")
-kt(rd("step1", "diag_dose_normalized.csv"), "진단: 용량 정규화 노출")
-kt(rd("step1", "diag_gate_alt_models.csv")[, .(variant, id, AUClast_ratio, AUClast_sim_logcv, pass_mean)], "진단: 사전 명시 대안 모델")
+```
+
+**진단 요약** (DECISIONS D-018): 비아시아인 ≈80 kg에서 AUClast/mg의 200/300 mg 비는 관측 0.935(근사 95% 구간 0.76–1.15), 두 모델 모두 약 0.73 — 저용량·고체중 영역의 비선형성이 관측보다 강하다. 검토자가 명시한 범위의 Km(0.005–0.1), Vmax(×0.8, ×1.25), MM 소실의 체중 비례 제거 중 어느 것도 관측 형태를 재현하지 못한다. 2020 모델은 형태는 같고 노출 수준이 약 7% 높아 gate를 통과한다.
+
+```{r diag}
+kt(rd("step1", "diag_dose_shape_summary.csv"), "용량 형태 진단 (채택 아님)")
+kt(rd("step1", "diag_assumption_sensitivity.csv")[, .(variant, id, AUClast_ratio, AUClast_sim_logcv)], "실패 데이터셋의 확정 전 가정 민감도")
 ```
 gate 판정: **`r gate$step1_gate`** (`config/gate_decision.yaml`).
 
@@ -58,23 +76,41 @@ kt(rd("crossval", "crossval_trial_compare.csv"), "시험 수준 (이전 일정, 
 
 # 결과: 채혈 밀도 (1차 목적)
 ```{r sched, eval=REPORT_STEP2}
-ind <- rd("individual", "individual_base.csv")
+MODEL_TAG <- if (!is.null(gate$primary_model) && gate$primary_model == "k2020") "struct2020" else "base"
+ind <- rd("individual", sprintf("individual_%s.csv", MODEL_TAG))
+print(fig_extrap_by_schedule(ind))
 kt(ind[, .(schedule, n_points, tlast_median, quant_at_last_pct, lambda_ok_pct, adj_r2_ge080_pct, reliable_pct, extrap_median, extrap_p95, extrap_gt20_pct, extrap_true_median, extrap_true_p95, err_tlast_sd, err_inf_sd)], "개인 수준 (20,000명)")
-kt(rd("trials", "schedule_decision_base.csv"), "판정 규칙 (B0 대비)")
-kt(rd("trials", "schedules_per_endpoint_base.csv")[endpoint %in% c("AUClast", "Cmax", "AUCinf_reliable")], "시험 수준 (500회, 117명/arm)")
+kt(rd("individual", sprintf("paired_vs_B0_%s.csv", MODEL_TAG)), "개인 수준 B0 대비 대응 비교 (같은 대상자)")
+pt <- rd("trials", sprintf("paired_trial_vs_B0_%s.csv", MODEL_TAG))
+print(fig_width_by_schedule(pt))
+kt(pt, "시험 수준 AUClast CI 폭 B0 대비 대응 비교 (같은 시험)")
+kt(rd("trials", sprintf("schedule_decision_%s.csv", MODEL_TAG)), "사전 명시 판정 규칙 (B0 대비)")
+kt(rd("trials", sprintf("schedules_per_endpoint_%s.csv", MODEL_TAG))[endpoint %in% c("AUClast", "Cmax", "AUCinf_reliable")], "시험 수준 (500회, 117명/arm)")
+kt(rd("trials", sprintf("schedules_concordance_%s.csv", MODEL_TAG)), "AUClast–AUCinf 판정 일치 (일정 × 시나리오)")
 ```
 ```{r sched_blocked, eval=!REPORT_STEP2, results="asis"}
 cat("> 단계 1 gate 판정 대기 중이므로 단계 2 이후 결과를 표시하지 않는다(SPEC §1).\n")
 ```
 
 # 결과: 제품 차이 시나리오 (2차 목적)
-```{r prod, eval=REPORT_STEP2}
-pe <- rd("trials", "products_per_endpoint.csv")
+```{r prod, eval=REPORT_STEP2, fig.height=5.5}
+sfx <- if (MODEL_TAG == "base") "" else "_struct2020"
+pe <- rd("trials", paste0("products_per_endpoint", sfx, ".csv"))
+print(fig_products_gmr(pe))
 kt(data.table::dcast(pe, scenario ~ endpoint, value.var = "pass_rate"), "통과율 (%)", 1)
 kt(data.table::dcast(pe, scenario ~ endpoint, value.var = "GMR_mean"), "GMR 평균", 4)
-kt(rd("trials", "products_concordance.csv"), "AUClast–AUCinf 판정 일치")
+kt(rd("trials", paste0("products_concordance", sfx, ".csv")), "AUClast–AUCinf 판정 일치")
 ```
 ```{r prod_blocked, eval=!REPORT_STEP2, results="asis"}
+cat("> 단계 1 gate 판정 대기 중.\n")
+```
+
+# 민감도 (구조·변동·잔차·체중·ADA)
+```{r sens, eval=REPORT_STEP2}
+kt(rd("individual", "individual_all_variants.csv")[schedule %in% c("B0", "D2"), .(variant, schedule, tlast_median, reliable_pct, extrap_median, extrap_gt20_pct, extrap_true_median, AUClast_logcv)], "개인 수준: 변형별 B0·D2")
+kt(rd("individual", "individual_ada10_by_subgroup.csv"), "ADA 유사 소집단별")
+```
+```{r sens_blocked, eval=!REPORT_STEP2, results="asis"}
 cat("> 단계 1 gate 판정 대기 중.\n")
 ```
 

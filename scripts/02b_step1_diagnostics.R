@@ -71,4 +71,37 @@ prof <- rbindlist(lapply(list(c(200, 80), c(300, 78), c(300, 60), c(600, 58.3)),
              frac_after_d14 = 1 - pr[time == 14, auc] / tr$inf$AUCinf_true)
 }))
 fwrite(prof, file.path(out_dir, "diag_typical_profiles.csv")); cat("\n4) 대표 개체 프로파일:\n"); print(prof)
+# 5) 용량 형태(200/300 mg, 600/300 mg AUClast/mg 비)를 어떤 가정이 결정하는가 — 채택 아님, 원인 가정 식별용(SPEC §1.3)
+#    변형 범위는 검토자가 사전에 그럴듯하다고 명시한 범위(지시서 §6 Km 0.005–0.1, Vmax ×0.8–×1.5)와 구조 대안(MM 소실의 체중 비례 제거)
+shape_ds <- Filter(function(d) d$id %in% c("pkm14271_200_nonasian", "clot300_nonasian_pooled", "clot300_chinese", "clot600_chinese"), dz$datasets)
+shape_variant <- function(tag, mult = list(), mm_not_weight_scaled = FALSE, model = "k2016") {
+  pp <- apply_multipliers(load_params(model), mult)
+  rbindlist(lapply(shape_ds, function(ds) {
+    b <- ds_weight_bounds(ds)
+    wt_spec <- list(mean = ds$weight_mean, sd = ds_weight_sd(ds), male_bounds = b$male, female_bounds = b$female)
+    subj <- with_seed(derive_seed("shape", tag, ds$id, "subj"), make_subjects(4000, pp, wt_spec, sr, 0))
+    planned <- sort(unique(c(0, sched_of(ds)))); obs <- CJ(id = subj$id, planned = planned)[, time := planned]
+    eps <- with_seed(derive_seed("shape", tag, ds$id, "eps"), draw_eps(subj$id, planned, pp$sigma))
+    ip <- individual_params(pp, subj)
+    if (mm_not_weight_scaled) ip[, Vmax := Vmax * (pp$cov$WT_ref / WT)^pp$cov$theta_WT]   # MM 양 기준 속도 = Vmax·Vc_i 에서 체중 비례 성분 제거
+    sim <- simulate_observations(ip, obs, ds$dose_mg, pp$lloq, eps, model_id = pp$model_id)
+    nca <- run_nca(sim$obs)
+    data.table(variant = tag, id = ds$id, dose = ds$dose_mg, sim_mean = mean(nca$AUClast, na.rm = TRUE), obs_mean = ds$auclast_mean)
+  }))
+}
+shp <- cache("diag_dose_shape.csv", rbindlist(list(
+  shape_variant("base"),
+  shape_variant("struct2020", model = "k2020"),
+  shape_variant("Km_x0.5", list(Km = 0.5)), shape_variant("Km_x2", list(Km = 2)), shape_variant("Km_x5", list(Km = 5)), shape_variant("Km_x10", list(Km = 10)),
+  shape_variant("Vmax_x0.8", list(Vmax = 0.8)), shape_variant("Vmax_x1.25", list(Vmax = 1.25)),
+  shape_variant("MM_not_weight_scaled", mm_not_weight_scaled = TRUE))))
+w <- dcast(shp, variant ~ id, value.var = "sim_mean")
+w[, `:=`(ratio_200v300_nonasian = (pkm14271_200_nonasian / 200) / (clot300_nonasian_pooled / 300),
+         ratio_600v300_chinese = (clot600_chinese / 600) / (clot300_chinese / 300),
+         pkm200_sim_obs = pkm14271_200_nonasian / 339, nonasian300_sim_obs = clot300_nonasian_pooled / 544,
+         chinese300_sim_obs = clot300_chinese / 792, chinese600_sim_obs = clot600_chinese / 2110)]
+obs_row <- data.table(variant = "OBSERVED", ratio_200v300_nonasian = (339 / 200) / (544 / 300), ratio_600v300_chinese = (2110 / 600) / (792 / 300))
+shape_tab <- rbind(obs_row, w[, .(variant, ratio_200v300_nonasian, ratio_600v300_chinese, pkm200_sim_obs, nonasian300_sim_obs, chinese300_sim_obs, chinese600_sim_obs)], fill = TRUE)
+fwrite(shape_tab, file.path(out_dir, "diag_dose_shape_summary.csv"))
+cat("\n5) 용량 형태 진단 (AUClast/mg 비; 채택 아님):\n"); print(shape_tab, digits = 3)
 append_run_log(logfile, "done")
