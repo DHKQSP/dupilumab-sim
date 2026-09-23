@@ -1,0 +1,12 @@
+# 시나리오(단계 3). 시험약(T) arm에만 적용되는 곱셈 계수. R arm은 항상 1.
+# 방향: 기본은 노출 감소 방향. ke 증가 = 선형 소실 10% 증가(노출 감소). 반대 방향은 sign을 바꿔 별도 실행 가능.
+scenarios:
+  S0:  {label: "차이 없음",            T_multipliers: {}}
+  S1a: {label: "생체이용률 -5%",        T_multipliers: {F: 0.95}}
+  S1b: {label: "생체이용률 -10%",       T_multipliers: {F: 0.90}}
+  S2:  {label: "선형 소실 +10%",        T_multipliers: {ke: 1.10}}
+  S3:  {label: "Vmax +10%",             T_multipliers: {Vmax: 1.10}}
+  S4:  {label: "Km x2",                 T_multipliers: {Km: 2.0}}
+sensitivity:
+  K1: {label: "Km 상향(양 arm)",          both_arms: {Km: null}, status: pending, source: "SPEC Q8 — 상향 Km 값 필요"}
+  K2: {label: "Km 개체간 변동(양 arm)",   both_arms_iiv: {Km_omega: null}, status: pending, source: "SPEC Q8 — Km IIV CV 필요"}

@@ -1,0 +1,26 @@
+# R
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+renv/library/
+renv/local/
+renv/cellar/
+renv/lock/
+renv/python/
+renv/sandbox/
+renv/staging/
+# rxode2 compiled model cache
+rxode2_cache/
+*.o
+*.so
+*.dll
+# results: keep small dev results, ignore large final runs
+results/final/
+results/**/*.rds
+!results/dev/*.csv
+logs/*.log
+!logs/.gitkeep
+report/*.html
+report/*_files/
+report/*_cache/

@@ -1,0 +1,10 @@
+# ka 보정 목표 — 300 mg 단회 피하투여 관측 Cmax·tmax  [PENDING, SPEC Q3]
+# 후보 출처: Clot 2021 (PKM14160, n=8) 또는 Li 2020 Table 3 (healthy subjects). 사용자 지정 필요.
+status: pending
+dose_mg: 300
+cmax_mg_L:   {value: null, stat: geometric_mean, source: null}
+tmax_day:    {value: null, stat: median, range: null, source: null}
+weight_kg_for_calibration: null   # 대상 집단 대표 체중(기준 체중이면 공변량 효과 1)
+ka_grid_1_day: [0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50, 0.60]   # 목표값 입수 전 민감도용 격자
+loss: "log(Cmax_sim/Cmax_obs)^2 + w * log(tmax_sim/tmax_obs)^2"
+tmax_weight: 1.0

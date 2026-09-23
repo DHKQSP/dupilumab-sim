@@ -1,0 +1,24 @@
+# 대표값(고정효과) — 출처: Kovalenko P, DiCioccio AT, Davis JD, et al.
+#   "Exploratory Population PK Analysis of Dupilumab, a Fully Human Monoclonal Antibody
+#    Against IL-4Rα, in Atopic Dermatitis Patients and Normal Volunteers."
+#   CPT Pharmacometrics Syst Pharmacol. 2016;5(11):617-624.
+#   표 번호·쪽수: [PENDING] 사용자 확인 필요 (SPEC Q9)
+# 단위: 시간 day, 양 mg, 용적 L, 농도 mg/L, 체중 kg
+model_id: dupilumab_2cmt_linMM_ka
+units: {time: day, amount: mg, volume: L, conc: mg/L, weight: kg}
+
+theta:
+  Vc:   {value: 2.74,   unit: L,         status: confirmed, source: "Kovalenko 2016, 최종 모델 파라미터 표 (쪽수 확인 필요)", note: "중심구획 용적, 체중 공변량 기준값"}
+  ke:   {value: 0.0459, unit: 1/day,     status: confirmed, source: "Kovalenko 2016, 최종 모델 파라미터 표", note: "선형 소실 속도상수"}
+  k12:  {value: 0.0652, unit: 1/day,     status: confirmed, source: "Kovalenko 2016, 최종 모델 파라미터 표"}
+  k21:  {value: 0.129,  unit: 1/day,     status: confirmed, source: "Kovalenko 2016, 최종 모델 파라미터 표"}
+  F:    {value: 0.607,  unit: fraction,  status: confirmed, source: "Kovalenko 2016, 최종 모델 파라미터 표", note: "생체이용률 60.7%"}
+  Vmax: {value: 0.968,  unit: mg/L/day,  status: confirmed, source: "Kovalenko 2016, 최종 모델 파라미터 표", note: "농도 단위 → 양 기준 식에서 Vc 곱함 (DECISIONS D-002)"}
+  Km:   {value: 0.01,   unit: mg/L,      status: confirmed, source: "Kovalenko 2016, 최종 모델 파라미터 표", note: "고정값(추정 아님)", fixed: true}
+  ka:   {value: null,   unit: 1/day,     status: pending,   source: "문헌 미보고 → scripts/01_calibrate_ka.R 로 보정 (SPEC §3.4, Q3)"}
+
+covariates:
+  WT_on_Vc:
+    form: "Vc_i = Vc * (WT/WT_ref)^theta_WT"
+    theta_WT: {value: null, status: pending, source: "Kovalenko 2016 — 지수 확인 필요 (SPEC Q4)"}
+    WT_ref:   {value: null, unit: kg, status: pending, source: "Kovalenko 2016 — 기준 체중 확인 필요 (SPEC Q4)"}

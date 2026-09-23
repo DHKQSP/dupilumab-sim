@@ -1,0 +1,23 @@
+# [DEV-가정] 개발 실행(run_mode = "dev")에서만 PENDING 값을 대체하는 임시값.
+# run_mode = "final"에서는 이 파일이 무시되고, PENDING 값이 남아 있으면 즉시 중단된다 (DECISIONS D-005).
+# 이 값들은 결과 보고에 쓰지 않는다. 각 항목의 근거는 '개발용 자리표시자'일 뿐 출처가 아니다.
+theta:
+  ka: {value: 0.25, unit: 1/day, note: "자리표시자. 보정 전 격자 중앙값. SmPC 5.2 'tmax 3-7일' 범위와 모순되지 않는 크기"}
+covariates:
+  WT_on_Vc:
+    theta_WT: {value: 1.0, note: "자리표시자(용적 선형 스케일링). 문헌 지수로 교체"}
+    WT_ref:   {value: 75,  unit: kg, note: "자리표시자. 문헌 기준 체중으로 교체"}
+iiv:
+  # 자리표시자: 파이프라인 동작 확인용. 결과 보고 금지.
+  Vc:   {omega: 0.30}
+  ke:   {omega: 0.30}
+  k12:  {omega: 0.0}
+  k21:  {omega: 0.0}
+  F:    {omega: 0.30}
+  Vmax: {omega: 0.30}
+  ka:   {omega: 0.30}
+residual:
+  sigma_prop: {value: 0.15}
+  sigma_add:  {value: 0.02}
+uncertainty:
+  rse_pct: {Vc: 10, ke: 10, k12: 20, k21: 20, F: 10, Vmax: 10, ka: 20}

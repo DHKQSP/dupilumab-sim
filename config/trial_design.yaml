@@ -1,0 +1,47 @@
+# 가상 시험 설계(단계 2). 값 대부분이 [DEV-가정]이며 사용자 확인 필요 (SPEC Q6).
+study_type: parallel_two_arm_single_dose
+arms: [R, T]
+dose_mg: 300
+route: SC
+lloq_mg_L: {value: 0.078, status: dev_assumption, source: "Clot 2021 정량한계와 동일하다고 가정 — 실제 시험 분석법 LLOQ로 교체"}
+n_per_arm: {value: 60, status: dev_assumption, source: "가정 — 실제 설계 n으로 교체"}
+
+# 채혈 일정(투여 후 일). 이름별 스케줄. 0 = 투여 전.
+schedules:
+  d57_base:   {days: [0, 1, 2, 3, 4, 5, 7, 10, 14, 21, 28, 35, 42, 49, 56], status: dev_assumption, note: "Day 57 종료 기본"}
+  d85_ext:    {days: [0, 1, 2, 3, 4, 5, 7, 10, 14, 21, 28, 35, 42, 49, 56, 63, 70, 77, 84], status: dev_assumption, note: "Day 85 종료"}
+  d57_dense:  {days: [0, 1, 2, 3, 4, 5, 7, 10, 14, 21, 28, 35, 42, 45, 49, 52, 56], status: dev_assumption, note: "Day 42-57 구간 밀도 증가"}
+  d57_sparse: {days: [0, 1, 2, 3, 4, 5, 7, 10, 14, 21, 28, 35, 42, 56], status: dev_assumption, note: "Day 42-57 구간 밀도 감소"}
+default_schedule: d57_base
+
+# 채혈 허용창(±, 일). 계획시각별로 적용. 실제 시각 = 계획 + U(-w, +w).  [DEV-가정]
+sampling_window_days:
+  rule:
+    - {max_day: 0,   window: 0}        # 투여 전: 편차 없음
+    - {max_day: 5,   window: 0.0833}   # ±2 h
+    - {max_day: 14,  window: 0.25}     # ±6 h
+    - {max_day: 999, window: 1.0}      # ±1 일
+  status: dev_assumption
+
+# 가상 피험자 [DEV-가정] — 체중 분포·포함기준·성별 비 출처 필요
+population:
+  sex_ratio_male: {value: 0.5, status: dev_assumption}
+  weight_kg:
+    inclusion: {min: 50, max: 100, status: dev_assumption, source: "가정 — 프로토콜 포함기준으로 교체"}
+    male:   {mean: 72, sd: 10, status: dev_assumption, source: "가정 — 출처 필요"}
+    female: {mean: 58, sd: 8,  status: dev_assumption, source: "가정 — 출처 필요"}
+    distribution: truncated_normal
+  weight_strata_kg: {breaks: [0, 65, 80, 999], labels: ["<65", "65-80", ">=80"], status: dev_assumption, note: "분산분석 체중 층"}
+
+# 몬테카를로 규모
+mc:
+  dev:   {n_outer: 20, n_inner: 50}
+  final: {n_outer: null, n_inner: null}   # 별도 지시
+
+# 판정
+be_limits: {lower: 0.80, upper: 1.25}
+ci_level: 0.90
+primary_endpoint_sets:
+  - {name: "AUClast+Cmax",        endpoints: [AUClast, Cmax]}
+  - {name: "AUCinf+Cmax",         endpoints: [AUCinf, Cmax]}
+  - {name: "AUClast+AUCinf+Cmax", endpoints: [AUClast, AUCinf, Cmax]}
