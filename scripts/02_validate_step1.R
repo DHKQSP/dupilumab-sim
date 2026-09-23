@@ -31,11 +31,11 @@ fwrite(tab, file.path(out_dir, "step1_typical_grid.csv"))
 cat("\n단계 1 (a)(b): 대표 개체, ka 격자별 tlast·참값 비율\n"); print(tab[, .(dose, ka, Cmax_true = round(Cmax_true, 2), tmax_true, tlast_typical, target_tlast, tlast_match, Clast_true = signif(Clast_true, 3), C_next_sched = signif(C_next_sched, 3), ratio_true_pct = round(ratio_true_pct, 2), target_ratio_pct, ratio_diff_pp = round(ratio_diff_pp, 2))])
 
 status <- data.table(
-  check = c("(a) 대표 개체 tlast = 목표 중앙값", "(a') ka 격자 전체에서 tlast 유지", "(b) 참값 비율 진단(±3%p)",
+  check = c("(a) 대표 개체 tlast = 목표 중앙값 (현재 ka)", "(a') ka 격자별 tlast 진단(단정 없음, D-008)", "(b) 참값 AUC 비율 진단(NCA 목표와 비교 불가, D-007)",
             "(c) NCA 기반 AUClast/AUCinf (BEmaster)", "(d) IIV 반영 tlast 분포 (FDA 표)", "Li 2020 CV 35–51% (FDA 표+BEmaster)", "Cohen 2022 log SD 0.49 (FDA 표+BEmaster)"),
-  status = c(if (all(tab[is_config_ka == TRUE, tlast_match])) "PASS" else "FAIL",
-             if (all(tab$tlast_match)) "PASS" else "FAIL",
-             if (all(abs(tab[is_config_ka == TRUE, ratio_diff_pp]) < 3)) "PASS(진단)" else "CHECK(진단)",
+  status = c(if (all(tab[is_config_ka == TRUE, tlast_match])) "PASS" else sprintf("FAIL: %s", paste(tab[is_config_ka == TRUE & !tlast_match, sprintf("%d mg tlast %g (목표 %g)", dose, tlast_typical, target_tlast)], collapse = "; ")),
+             sprintf("기록: 격자 중 전 용량 일치 ka = {%s}", paste(tab[, .(ok = all(tlast_match)), by = ka][ok == TRUE, ka], collapse = ", ")),
+             sprintf("기록: 참값 비율 %s%%", paste(tab[is_config_ka == TRUE, sprintf("%d mg %.2f", dose, ratio_true_pct)], collapse = ", ")),
              if (bemaster_available()) "RUN" else "BLOCKED: BEmaster 미입수 (Q1)",
              if (all(p$status[grepl("^omega", item), status] == "confirmed")) "RUN" else "BLOCKED: FDA 표 미입수 (Q2)",
              "BLOCKED: Q1, Q2", "BLOCKED: Q1, Q2"))
