@@ -56,6 +56,7 @@ analyze_arms <- function(sim_arms, scenario, sched_days, design, nca_mode = "sta
     nca <- run_nca(ob, mode = nca_mode)
     nca <- attach_truth(nca, ob, x$truth)
     nca <- merge(nca, x$subj[, .(id, WT, sex, stratum)], by = "id")
+    nca[, AUCinf_subC := fifelse(reliable %in% TRUE, AUCinf, AUClast)]
     nca[, arm := a]
     parts[[a]] <- nca
   }
@@ -75,7 +76,7 @@ run_trial <- function(j, p, design, scenarios, combos, master_seed, wt_spec, jit
     sc <- combos$scenario[r]; sh <- combos$schedule[r]
     an <- analyze_arms(sa, sc, get_schedule(design, sh), design, methods = methods)
     be_list[[r]] <- an$be[, `:=`(trial = j, scenario = sc, schedule = sh)]
-    ind_list[[r]] <- summarize_individual(an$nca, by = "arm")[, `:=`(trial = j, scenario = sc, schedule = sh)]
+    ind_list[[r]] <- merge(summarize_individual(an$nca, by = "arm"), summarize_dropout(an$nca, by = "arm"), by = "arm")[, `:=`(trial = j, scenario = sc, schedule = sh)]
     if (keep_nca) nca_list[[r]] <- an$nca[, `:=`(trial = j, scenario = sc, schedule = sh)]
   }
   list(be = rbindlist(be_list), ind = rbindlist(ind_list), nca = if (keep_nca) rbindlist(nca_list) else NULL)

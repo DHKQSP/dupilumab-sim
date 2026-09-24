@@ -1,4 +1,4 @@
-dose_mg,gate_role,weight_mean,weight_sd,obs_median,sim_median_of_cohort_medians,p05,p95,pct_cohorts_at_obs,subj_tlast_median,subj_p05,subj_p95,AUClast_mean,AUClast_logcv,Cmax_mean,tmax_median,obs_in_5_95,pass
-200,external,62.2,9,28,28,21,35,55.95,28,21,42,366.833544838259,45.4228673612751,26.0569358592265,7,TRUE,
-300,gate,59.9,8.9,42,38.5,31.5,45.5,26.1,35,28,56,740.747975992667,40.7246104122084,42.949154194091,7,TRUE,TRUE
-600,gate,58.3,6.5,56,56,49,56,70.3,56,42,56,2048.69478946787,35.7164395707678,94.371569918495,7,TRUE,TRUE
+dose_mg,gate_role,dev,weight_mean,weight_sd,obs_median,sim_median_of_cohort_medians,p05,p95,pct_cohorts_at_obs,subj_tlast_median,subj_p05,subj_p95,AUClast_mean,AUClast_logcv,Cmax_mean,tmax_median,obs_in_5_95,pass
+200,external,external,62.2,9,28,28,21,35,55.95,28,21,42,366.833544838259,45.4228673612751,26.0569358592265,7,TRUE,
+300,gate,external,59.9,8.9,42,38.5,31.5,45.5,26.1,35,28,56,740.747975992667,40.7246104122084,42.949154194091,7,TRUE,TRUE
+600,gate,external,58.3,6.5,56,56,49,56,70.3,56,42,56,2048.69478946787,35.7164395707678,94.371569918495,7,TRUE,TRUE

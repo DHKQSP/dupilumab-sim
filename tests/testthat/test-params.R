@@ -14,7 +14,7 @@ test_that("Kovalenko 2020 Model 1 파라미터와 IIV 차용", {
   p <- load_params("k2020")
   expect_equal(unname(p$theta[c("Vc", "ke", "k12", "k21", "ka", "MTT", "n_transit", "Vmax", "Km", "F")]), c(2.48, 0.0534, 0.213, 0.310, 0.256, 0.105, 3, 1.07, 0.01, 0.643))
   expect_equal(p$cov$theta_WT, 0.711)
-  expect_equal(p$omega2[["ke"]], 0.131)
+  expect_equal(p$omega2[["ke"]], 0.0812)   # 자체 IIV(D-029)
 })
 
 test_that("시나리오 배율과 민감도 변형", {

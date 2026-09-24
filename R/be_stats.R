@@ -50,5 +50,6 @@ BE_ENDPOINTS <- list(
   AUClast         = list(col = "AUClast"),
   AUCinf_all      = list(col = "AUCinf", subset_col = "lambda_ok"),
   AUCinf_reliable = list(col = "AUCinf", subset_col = "reliable"),
-  AUCinf_true     = list(col = "AUCinf_true")
+  AUCinf_true     = list(col = "AUCinf_true"),
+  AUCinf_subC     = list(col = "AUCinf_subC")      # §5-5 규칙 C: 신뢰 기준 미충족이면 AUCinf 자리에 AUClast
 )

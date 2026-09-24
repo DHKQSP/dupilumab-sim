@@ -1,19 +1,38 @@
-# 구조 민감도 모델 — 출처: Kovalenko P, et al. Clin Pharmacol Drug Dev. 2020;9(6):756-767, Table 1, Model 1.
-# 2구획 + 선형/MM 병렬 소실 + transit 흡수(3개, MTT) + ka. IIV는 미공개(shrinkage만 보고)이므로 2016 IIV 차용(지시서 §2, D-011).
+# 구조 민감도 모델 — Kovalenko P, et al. Clin Pharmacol Drug Dev. 2020;9(6):756-767, Table 1 Model 1 + Supplementary Table 2.
+# 2구획 + 선형/MM 병렬 소실 + transit 흡수(3개, MTT) + ka. 검토 의견 통합본(2026-09-24) §0-2로 확정 (D-029).
+# 개발 자료: R668-AS-0907, TDU12265, PKM14161, R668-AD-1117 (풍부 채혈 중심, BLQ를 M3로 포함).
+# Model 2(12개 연구)는 사용하지 않음: BLQ 제외 적합, 가산 잔차 0.403 mg/L → LLOQ 근처 말단 모의 부적합.
+# Model 3·4(3상 전용)는 사용하지 않음: IIV가 Vc·ke뿐, 가산 잔차 약 6 mg/L → 단회 투여 건강인 모의 부적합. 공변량 계수만 체중 일반화(§6)에 차용.
 model_id: k2020_model1_transit
 theta:
   Vc:   {value: 2.48,   unit: L,        status: confirmed, source: "Kovalenko 2020 Table 1 Model 1 (Vc)"}
   ke:   {value: 0.0534, unit: 1/day,    status: confirmed, source: "Kovalenko 2020 Table 1 Model 1"}
   k12:  {value: 0.213,  unit: 1/day,    status: confirmed, source: "Kovalenko 2020 Table 1 Model 1 (kcp)"}
-  k21:  {value: 0.310,  unit: 1/day,    status: confirmed, source: "Kovalenko 2020 Table 1 Model 1 (kpc)"}
+  k21:  {value: 0.310,  unit: 1/day,    status: confirmed, source: "Kovalenko 2020 Table 1 Model 1 (kpc, Mpc 0.686에서 유도)"}
   ka:   {value: 0.256,  unit: 1/day,    status: confirmed, source: "Kovalenko 2020 Table 1 Model 1"}
   MTT:  {value: 0.105,  unit: day,      status: confirmed, source: "Kovalenko 2020 Table 1 Model 1", note: "transit 3개, ktr = (n+1)/MTT"}
   n_transit: {value: 3, status: confirmed, source: "Kovalenko 2020 Table 1 Model 1"}
-  Vmax: {value: 1.07,   unit: mg/L/day, status: confirmed, source: "Kovalenko 2020 Table 1 Model 1"}
-  Km:   {value: 0.01,   unit: mg/L,     status: confirmed, source: "Kovalenko 2020 Table 1 Model 1 (고정)", fixed: true}
+  Vmax: {value: 1.07,   unit: mg/L/day, status: confirmed, source: "Kovalenko 2020 Table 1 Model 1 (Vm)"}
+  Km:   {value: 0.01,   unit: mg/L,     status: confirmed, source: "Kovalenko 2020 Table 1 Model 1 (고정, profiling으로 결정)", fixed: true}
   F:    {value: 0.643,  unit: fraction, status: confirmed, source: "Kovalenko 2020 Table 1 Model 1"}
 covariates:
   WT_on_Vc:
     theta_WT: {value: 0.711, status: confirmed, source: "Kovalenko 2020 Table 1 Model 1"}
-    WT_ref:   {value: 75, unit: kg, status: assumption, source: "확정 전 가정: 2016과 같은 기준 체중 75 kg으로 둠(지시서에 미기재)"}
-iiv_source: "config/params_variability.yaml (Kovalenko 2016 값 차용)"
+    WT_ref:   {value: 75, unit: kg, status: confirmed, source: "Kovalenko 2020 Model 1 (기준 75 kg, 검토 의견 통합본 §0-2)"}
+# 개체간 변동: 보충자료는 로그정규 SD로 보고 → 분산 = SD². 공분산 미보고 → 대각.
+iiv:
+  source: "Kovalenko 2020 Supplementary Table 2 (Model 1)"
+  sd:
+    Vc:   {sd: 0.192, omega2: 0.0369}
+    ke:   {sd: 0.285, omega2: 0.0812}
+    ka:   {sd: 0.474, omega2: 0.2247}
+    Vmax: {sd: 0.236, omega2: 0.0557}
+    MTT:  {sd: 0.525, omega2: 0.2756}
+    k12:  {sd: 0, omega2: 0}
+    k21:  {sd: 0, omega2: 0}
+    F:    {sd: 0, omega2: 0}
+    Km:   {sd: 0, omega2: 0}
+residual:
+  sigma_prop: {value: 0.150, unit: fraction, status: confirmed, source: "Kovalenko 2020 Supplementary Table 2 (비례 15.0%)"}
+  sigma_add:  {value: 0.03,  unit: mg/L,     status: confirmed, source: "Kovalenko 2020 Supplementary Table 2 (가산 0.03 mg/L 고정)"}
+lloq_mg_L: {value: 0.078, status: confirmed, source: "Clot 2021 §2.4"}

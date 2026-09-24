@@ -17,6 +17,9 @@ draw_weights <- function(n, wt_spec, sex_ratio_male = 0.5) {
     if (!is_male && !is.null(wt_spec$female_min)) b[1] <- max(b[1], as.numeric(wt_spec$female_min))
     b
   }
+  if (identical(wt_spec$dist, "uniform")) {                  # §6 체중 밴드 균등분포
+    b <- as.numeric(wt_spec$trunc); return(data.table(sex = ifelse(male, "M", "F"), WT = runif(n, b[1], b[2])))
+  }
   wt <- numeric(n)
   bm <- bounds(TRUE); bf <- bounds(FALSE)
   wt[male]  <- rtrunc_norm(sum(male),  wt_spec$mean, wt_spec$sd, bm[1], bm[2])
@@ -38,6 +41,10 @@ make_subjects <- function(n, p, wt_spec, sex_ratio_male = 0.5, ada_fraction = 0)
   e[, `:=`(sex = w$sex, WT = w$WT)]
   ada_vec <- if (ada_fraction > 0) as.integer(runif(nrow(e)) < ada_fraction) else 0L   # 난수 순서 동일(D-025)
   e[, ada := ada_vec]
+  if (!is.null(wt_spec$height)) {                            # §6: 키·BMI (지정된 분포에서만 추출 → 기존 실행의 난수 순서 불변)
+    h <- wt_spec$height; ht <- rtrunc_norm(nrow(e), h$mean, h$sd, h$trunc[1], h$trunc[2])
+    e[, `:=`(HT = ht, BMI = WT / (ht / 100)^2)]
+  }
   e[]
 }
 

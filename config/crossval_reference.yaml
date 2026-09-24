@@ -32,3 +32,26 @@ expected_direction_density:
   extrap_median_pct: {before: 2.9, after: 2.3}
   extrap_true_median_pct: {before: 0.69, after: 0.46}
   reliable_pct: {before: 87.8, after: 87.9}
+# 검토 의견 통합본(2026-09-24) 독립 구현 기준값 — 개체 8,000명(밴드당), Syneos 일정(B0). 지표: 실제 외삽 중앙값·95백분위(%), 실제 커버리지 80% 미만(%), 신뢰 충족(%), λz 산출 불가(%).
+# 이 구현은 20,000명이며 기준 일치는 판정 기준이 아니라 서술용(작은 백분율 지표는 Monte Carlo 변동이 큼).
+curve_shape_round5:
+  source: "검토 의견 통합본 2026-09-24 §5-1 (독립 구현, 8,000명)"
+  km_range: {variants: [km05_both, km2_both, km5_both, km10_both], extrap_true_median_min: 0.38, extrap_true_median_max: 0.67, extrap_true_p95_min: 2.6, extrap_true_p95_max: 3.5, coverage_lt80_pct: 0}
+  vmax080_both: {extrap_true_median: 0.53, extrap_true_p95: 2.63, coverage_lt80_pct: 0}
+  vmax050_both: {extrap_true_median: 0.62, extrap_true_p95: 6.52, extrap_true_max: 31.7, coverage_lt80_pct: 0.11}
+weight_bands_round5:
+  source: "검토 의견 통합본 2026-09-24 §6-1 (독립 구현, 밴드당 8,000명)"
+  a:
+    "40-60":   {extrap_true_median: 0.50, extrap_true_p95: 2.53, coverage_lt80_pct: 0.012, reliable_pct: 90.9, lambda_fail_pct: 0.38}
+    "60-75":   {extrap_true_median: 0.59, extrap_true_p95: 3.03, coverage_lt80_pct: 0, reliable_pct: 87.4, lambda_fail_pct: 1.04}
+    "75-90":   {extrap_true_median: 0.72, extrap_true_p95: 3.78, coverage_lt80_pct: 0, reliable_pct: 84.9, lambda_fail_pct: 1.94}
+    "90-110":  {extrap_true_median: 0.91, extrap_true_p95: 4.79, coverage_lt80_pct: 0, reliable_pct: 79.7, lambda_fail_pct: 3.16}
+    "110-130": {extrap_true_median: 1.12, extrap_true_p95: 6.08, coverage_lt80_pct: 0, reliable_pct: 76.0, lambda_fail_pct: 5.74}
+    "130-150": {extrap_true_median: 1.39, extrap_true_p95: 7.78, coverage_lt80_pct: 0, reliable_pct: 71.2, lambda_fail_pct: 8.11, AUClast_geo: 254}
+  c:
+    "130-150": {extrap_true_median: 1.42, extrap_true_p95: 8.57, coverage_lt80_pct: 0, reliable_pct: 70.4, lambda_fail_pct: 8.92, AUClast_geo: 228}
+  d:
+    "90-110":  {extrap_true_median: 1.02, extrap_true_p95: 5.36, coverage_lt80_pct: 0, reliable_pct: 78.9, lambda_fail_pct: 4.12}
+    "110-130": {extrap_true_median: 1.36, extrap_true_p95: 7.26, coverage_lt80_pct: 0, reliable_pct: 73.6, lambda_fail_pct: 7.69}
+    "130-150": {extrap_true_median: 1.68, extrap_true_p95: 9.68, coverage_lt80_pct: 0.012, reliable_pct: 67.3, lambda_fail_pct: 10.81, AUClast_geo: 199}
+  d_pooled_60_90: {extrap_true_median: 0.66, extrap_true_p95: 3.39, coverage_lt80_pct: 0, reliable_pct: 86.3, lambda_fail_pct: 1.32}

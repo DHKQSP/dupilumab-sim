@@ -1,2 +1,2 @@
-model_mean,arm_min,arm_max,in_range
-571.004274536646,487.5,630,TRUE
+model_mean_pooled,arm_min,arm_max,in_range
+565.99294242326,487.5,630,TRUE

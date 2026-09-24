@@ -46,3 +46,31 @@ gate_row <- function(ds, nca, tol_pct, cv_range) {
 
 ds_weight_sd <- function(ds) if (is.list(ds$weight_sd)) as.numeric(ds$weight_sd$value) else as.numeric(ds$weight_sd)
 ds_weight_bounds <- function(ds) if (!is.null(ds$weight_bounds)) list(male = as.numeric(ds$weight_bounds), female = as.numeric(ds$weight_bounds)) else list(male = c(50, 100), female = c(40, 90))
+
+# 연구별 일정 조회(검토 의견 통합본 §0-3). key → 투여 후 경과일 벡터
+schedule_days <- function(dz, key) { s <- dz$dataset_schedules[[key]]; if (is.null(s)) stop("알 수 없는 채혈 일정: ", key); as.numeric(unlist(if (is.list(s) && !is.null(s$days)) s$days else s)) }
+
+# 데이터셋 모의: components가 있으면 구성 연구별 일정으로 나눠 모의하고 합친다(동일 가중, 확정 전 가정)
+simulate_ds <- function(p, ds, dz, nsim, tag, sr) {
+  b <- ds_weight_bounds(ds)
+  if (!is.null(ds$components)) {
+    k <- length(ds$components); n_k <- ceiling(nsim / k)
+    parts <- lapply(seq_len(k), function(i) {
+      cp <- ds$components[[i]]
+      sim <- simulate_dataset(p, ds$dose_mg, ds$weight_mean, ds_weight_sd(ds), schedule_days(dz, cp$schedule), n_k, paste0(tag, "_c", i), sr, b$male, b$female)
+      sim$nca[, `:=`(id = id + (i - 1L) * n_k, component = cp$study)]
+    })
+    return(rbindlist(parts, fill = TRUE))
+  }
+  simulate_dataset(p, ds$dose_mg, ds$weight_mean, ds_weight_sd(ds), schedule_days(dz, ds$schedule), nsim, tag, sr, b$male, b$female)$nca
+}
+
+# 문헌 정합성용 커버리지 비(§8): 평균비·기하평균비, 비구획(산출 가능 전체·신뢰군)과 참값
+coverage_ratios <- function(nca) {
+  a <- nca[lambda_ok == TRUE]; r <- nca[reliable == TRUE]
+  data.table(n = nrow(nca), n_aucinf = nrow(a), n_reliable = nrow(r),
+             mean_ratio_nca_all = mean(a$AUClast) / mean(a$AUCinf), geo_ratio_nca_all = geo_mean(a$AUClast) / geo_mean(a$AUCinf),
+             mean_ratio_nca_reliable = mean(r$AUClast) / mean(r$AUCinf), geo_ratio_nca_reliable = geo_mean(r$AUClast) / geo_mean(r$AUCinf),
+             mean_ratio_true = mean(nca$AUClast_true, na.rm = TRUE) / mean(nca$AUCinf_true), geo_ratio_true = geo_mean(nca$AUClast_true) / geo_mean(nca$AUCinf_true),
+             mean_ratio_obs_last_vs_true_inf = mean(nca$AUClast, na.rm = TRUE) / mean(nca$AUCinf_true))
+}

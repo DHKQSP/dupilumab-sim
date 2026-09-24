@@ -25,11 +25,13 @@ load_params <- function(model = c("k2016", "k2020"), variant = "base") {
     e <- typ$theta[[nm]]; theta[nm] <- .num(e)
     st[[length(st) + 1]] <- data.table(item = paste0("theta.", nm), status = e$status, source = e$source)
   }
-  cov <- list(theta_WT = .num(typ$covariates$WT_on_Vc$theta_WT), WT_ref = .num(typ$covariates$WT_on_Vc$WT_ref))
+  cov <- list(theta_WT = .num(typ$covariates$WT_on_Vc$theta_WT), WT_ref = .num(typ$covariates$WT_on_Vc$WT_ref), ke_bmi_exp = 0, BMI_ref = 26)
   st[[length(st) + 1]] <- data.table(item = "cov.theta_WT", status = typ$covariates$WT_on_Vc$theta_WT$status, source = typ$covariates$WT_on_Vc$theta_WT$source)
   st[[length(st) + 1]] <- data.table(item = "cov.WT_ref", status = typ$covariates$WT_on_Vc$WT_ref$status, source = typ$covariates$WT_on_Vc$WT_ref$source)
-  om_names <- c("Vc", "ke", "k12", "k21", "ka", "Vmax", "Km", "F")
+  # k2016: params_variability.yaml(Kovalenko 2016). k2020: 자체 IIV·잔차(Supplementary Table 2, D-029), MTT IIV는 마지막(k2016 난수 순서 불변)
+  om_names <- c("Vc", "ke", "k12", "k21", "ka", "Vmax", "Km", "F", if (model == "k2020") "MTT")
   omega2 <- setNames(numeric(length(om_names)), om_names)
+  if (model == "k2020") var <- list(iiv_omega2 = lapply(typ$iiv$sd, function(e) list(omega2 = e$omega2, status = "confirmed", source = typ$iiv$source)), residual = typ$residual)
   for (nm in om_names) {
     e <- var$iiv_omega2[[nm]]; omega2[nm] <- as.numeric(e$omega2)
     st[[length(st) + 1]] <- data.table(item = paste0("omega2.", nm), status = e$status, source = e$source)
@@ -58,6 +60,9 @@ apply_variant <- function(p, variant_spec, design = NULL) {
   if (!is.null(variant_spec$theta_multipliers)) p <- apply_multipliers(p, variant_spec$theta_multipliers)   # 양 군 공통(곡률 민감도)
   if (!is.null(variant_spec$omega2_multiplier)) { p$omega2 <- p$omega2 * variant_spec$omega2_multiplier; p$omega <- sqrt(p$omega2) }
   if (!is.null(variant_spec$sigma_prop)) p$sigma["prop"] <- variant_spec$sigma_prop
+  if (!is.null(variant_spec$sigma_add)) p$sigma["add"] <- variant_spec$sigma_add
+  if (!is.null(variant_spec$ke_bmi)) { p$cov$ke_bmi_exp <- as.numeric(variant_spec$ke_bmi$exponent); p$cov$BMI_ref <- as.numeric(variant_spec$ke_bmi$bmi_ref) }   # §6 (c)(d)
+  if (!is.null(variant_spec$theta_WT_override)) p$cov$theta_WT <- as.numeric(variant_spec$theta_WT_override)                                                   # §6 (d)
   if (isTRUE(variant_spec$ada) && !is.null(design)) p$ada <- list(fraction = design$ada_sensitivity$fraction, onset_day = design$ada_sensitivity$onset_day, ke_multiplier = design$ada_sensitivity$ke_multiplier)
   p
 }

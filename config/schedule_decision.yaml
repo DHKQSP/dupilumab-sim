@@ -1,0 +1,10 @@
+# 채혈 밀도 최종 판정 (검토 의견 통합본 2026-09-24 §1). YAML 불리언 예약어 키 금지(D-021).
+final_schedule: B0
+governing_model: kovalenko2016_blq
+rule_application: "pre-specified rule applied to the primary model; sensitivity variants assess robustness only"
+decided_by: "reviewer, sponsor approved (Donghyun Kim)"
+decision_date: "2026-09-24"
+sensitivity_d3_rule_triggers:
+  note: "민감도 변형에서 규칙상 D3가 권고된 경우(기준 d 단독)는 결론을 바꾸지 않는다: (a)(b)(c) 전 변형 미충족, 부트스트랩 95% 구간이 0.5 포함, 절대 감소 arm당 1명 미만, AUClast 신뢰구간 폭·검정력 개선 없음, 대가는 추가 방문 1,040회."
+day50_removal: "권고하지 않음 (AUC0-inf 이차 평가변수와 fallback용 말단 점 확보)"
+lesson: "발생률이 낮은 사건의 상대 감소 기준에는 절대 하한(예: arm당 1명 이상)이 필요했다. 이번 판정에는 소급 적용하지 않는다."

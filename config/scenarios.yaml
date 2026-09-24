@@ -4,6 +4,7 @@ scenarios:
   F090:  {label: "F ×0.90",      T_multipliers: {F: 0.90}}
   F085:  {label: "F ×0.85",      T_multipliers: {F: 0.85}}
   F110:  {label: "F ×1.10",      T_multipliers: {F: 1.10}}
+  F097:  {label: "F ×0.97 (비선형 증폭으로 AUC 약 0.95)", T_multipliers: {F: 0.97}}
   KE110: {label: "ke ×1.10",     T_multipliers: {ke: 1.10}}
   KE120: {label: "ke ×1.20",     T_multipliers: {ke: 1.20}}
   VM080: {label: "Vmax ×0.80",   T_multipliers: {Vmax: 0.80}}
@@ -27,3 +28,14 @@ sensitivity_variants:
   # 곡률 민감도(검토 의견 3차 §5): 모집단 수준 Vmax 배율을 양 군 공통으로 적용. 개인 수준 20,000명 + 시험 수준(S00, KE110) 500회, 전 일정.
   vmax080_both: {label: "곡률: Vmax ×0.8 (양 군)", theta_multipliers: {Vmax: 0.8}}
   vmax125_both: {label: "곡률: Vmax ×1.25 (양 군)", theta_multipliers: {Vmax: 1.25}}
+  # 곡선 모양 민감도(검토 의견 통합본 §5-1): 양 군 공통 배율, 개인 수준 20,000명, B0
+  km05_both:    {label: "곡선: Km ×0.5 (양 군)", theta_multipliers: {Km: 0.5}}
+  km2_both:     {label: "곡선: Km ×2 (양 군)",   theta_multipliers: {Km: 2}}
+  km5_both:     {label: "곡선: Km ×5 (양 군)",   theta_multipliers: {Km: 5}}
+  km10_both:    {label: "곡선: Km ×10 (양 군)",  theta_multipliers: {Km: 10}}
+  vmax050_both: {label: "스트레스 테스트: Vmax ×0.5 (양 군), gate 불통과", theta_multipliers: {Vmax: 0.5}, stress_test: 1}
+  # 폭 확대 원인 분해(§2): 잔차 없는 참 농도
+  noresid:      {label: "잔차 없음(참 농도)", sigma_prop: 0, sigma_add: 0}
+  # 체중 일반화(§6): 2016 + 성인 공변량(Kovalenko 2020 Table 3, Supplementary Table 3 Model 4)
+  k2016_bmi:        {label: "(c) 2016 + ke~BMI 0.368", ke_bmi: {exponent: 0.368, bmi_ref: 26}}
+  k2016_bmi_vc0817: {label: "(d) 2016 + ke~BMI 0.368 + Vc~체중 0.817", ke_bmi: {exponent: 0.368, bmi_ref: 26}, theta_WT_override: 0.817}

@@ -17,6 +17,7 @@ rv <- resolve_variant(variant, design, sc); p <- rv$p
 all_scens <- sc$scenarios[sc$schedule_analysis]
 if (variant %in% c("base", "struct2020")) { scheds <- design$schedule_analysis; scens <- all_scens
 } else if (variant %in% c("vmax080_both", "vmax125_both")) { scheds <- design$schedule_analysis; scens <- all_scens[c("S00", "KE110")]
+} else if (variant == "noresid") { scheds <- design$schedule_analysis; scens <- all_scens["S00"]      # §2 폭 확대 원인 분해
 } else { scheds <- c("B0", "D2"); scens <- all_scens[c("S00", "F090", "KE110")] }
 combos <- CJ(scenario = names(scens), schedule = scheds)
 logfile <- start_run_log(paste0("trial_schedules_", variant), master_seed = MASTER_SEED, run_mode = "final",

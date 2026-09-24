@@ -1,0 +1,53 @@
+run log: /home/user/dupilumab-sim/logs/crossval_model1_20260924T060804.log
+[====|====|====|====|====|====|====|====|====|====] 0:00:12 
+
+[====|====|====|====|====|====|====|====|====|====] 0:00:12 
+
+[====|====|====|====|====|====|====|====|====|====] 0:00:07 
+
+                              condition                  metric     ref
+ 1:              2016 주 모델, 60–90 kg             AUClast_geo 546.000
+ 2:              2016 주 모델, 60–90 kg           AUClast_logcv  39.900
+ 3:              2016 주 모델, 60–90 kg            AUClast_mean 587.000
+ 4:              2016 주 모델, 60–90 kg               Cmax_mean  38.200
+ 5:              2016 주 모델, 60–90 kg            reliable_pct  86.200
+ 6:                   Model 1, 60–90 kg             AUClast_geo 587.000
+ 7:                   Model 1, 60–90 kg           AUClast_logcv  43.200
+ 8:                   Model 1, 60–90 kg            AUClast_mean 637.000
+ 9:                   Model 1, 60–90 kg              Cmax_logcv  34.100
+10:                   Model 1, 60–90 kg               Cmax_mean  34.900
+11:                   Model 1, 60–90 kg         extrap_gt20_pct   0.620
+12:                   Model 1, 60–90 kg       extrap_nca_median   2.790
+13:                   Model 1, 60–90 kg      extrap_true_median   0.610
+14:                   Model 1, 60–90 kg         extrap_true_p95   3.290
+15:                   Model 1, 60–90 kg            reliable_pct  91.400
+16:                   Model 1, 60–90 kg            tlast_median  35.000
+17:                   Model 1, 60–90 kg               tlast_p95  56.000
+18: Model 1, 약 78 kg (N(78,11) 55–110)            AUClast_mean 610.000
+19: Model 1, 약 78 kg (N(78,11) 55–110)               Cmax_mean  33.700
+20: Model 1, 약 78 kg (N(78,11) 55–110) AUClast_ratio_vs_obs544   1.121
+21: Model 1, 약 78 kg (N(78,11) 55–110)     Cmax_ratio_vs_obs32   1.053
+                              condition                  metric     ref
+         sim rel_diff_pct agree_3pct                               note
+ 1: 544.5706     -0.26180       TRUE                               <NA>
+ 2:  39.5625     -0.84587       TRUE                               <NA>
+ 3: 584.7383     -0.38530       TRUE                               <NA>
+ 4:  38.2141      0.03696       TRUE                               <NA>
+ 5:  86.5950      0.45824       TRUE                               <NA>
+ 6: 583.8815     -0.53126       TRUE                               <NA>
+ 7:  42.4806     -1.66518       TRUE                               <NA>
+ 8: 632.7323     -0.66997       TRUE                               <NA>
+ 9:  33.8452     -0.74732       TRUE                               <NA>
+10:  34.6360     -0.75633       TRUE                               <NA>
+11:   0.6786      9.45656      FALSE 작은 백분율 지표: 상대 차이는 참고
+12:   2.9134      4.42362      FALSE 작은 백분율 지표: 상대 차이는 참고
+13:   0.6398      4.87791      FALSE 작은 백분율 지표: 상대 차이는 참고
+14:   3.2619     -0.85556       TRUE 작은 백분율 지표: 상대 차이는 참고
+15:  91.1800     -0.24070       TRUE                               <NA>
+16:  35.0000      0.00000       TRUE                 경과일(연구일 − 1)
+17:  56.0000      0.00000       TRUE                 경과일(연구일 − 1)
+18: 609.5016     -0.08171       TRUE                               <NA>
+19:  33.6510     -0.14532       TRUE                               <NA>
+20:   1.1204           NA         NA                               <NA>
+21:   1.0516           NA         NA                               <NA>
+         sim rel_diff_pct agree_3pct                               note

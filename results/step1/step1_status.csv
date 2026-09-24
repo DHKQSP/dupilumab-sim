@@ -4,8 +4,9 @@ gate,(b) AUClast 평균 ±15% (연구 제형 5개),PASS
 gate,(b) AUClast log-CV 35–51% (연구 제형 5개),PASS
 gate,(c) 체중 기울기 부호·크기,PASS
 gate,gate 종합,PASS
+gate(외부만),완전 외부 데이터셋만의 gate,FAIL (10개 항목: clot300_japanese_TDU12265 1.00; clot300_chinese 0.94; clot600_chinese 0.98; clot600_japanese 1.07; PKM12350 test 1.17; PKM12350 reference 1.14; PKM14161 test 0.97; PKM14161 reference 0.99; Clot 300 mg 코호트 tlast 범위 안; Clot 600 mg 코호트 tlast 범위 안)
 external,(a) 200 mg 코호트 tlast,"관측 28일, 모의 5–95% [21, 35]"
 external,(b) 200 mg 1.14 mL 제형 4개 arm: 모의/관측 AUClast (z),PKM14271_200mg_test 0.82 (z -2.1); PKM14271_200mg_reference 0.86 (z -1.5); Cohen2022_200mg_AI 0.84 (z -3.4); Cohen2022_200mg_PFSS 0.91 (z -1.6)
 external,(d) Cohen 2022 log SD,"모의 0.439, 관측 0.49"
-external,(f) 300 mg 개별 arm 범위(Li 2020),"모델 571, arm 범위 [487.5, 630] → 범위 안"
-limitation,Cmax 모의/관측,clot300_nonasian_pooled 1.11; clot300_japanese_TDU12265 1.08; clot300_chinese 1.16; clot600_chinese 1.22; clot600_japanese 1.26; PKM14271_200mg_test 0.92; PKM14271_200mg_reference 0.94; Cohen2022_200mg_AI 0.94; Cohen2022_200mg_PFSS 1.01
+external,"(f) 300 mg 개별 arm (Li 2020, 연구별 일정)",PKM12350 test 1.17; PKM12350 reference 1.14; PKM14161 test 0.97; PKM14161 reference 0.99; HV-1108 test 0.91; HV-1108 reference 1.08
+limitation,Cmax 모의/관측,clot300_nonasian_pooled 1.12; clot300_japanese_TDU12265 1.08; clot300_chinese 1.16; clot600_chinese 1.22; clot600_japanese 1.27; PKM14271_200mg_test 0.92; PKM14271_200mg_reference 0.94; Cohen2022_200mg_AI 0.94; Cohen2022_200mg_PFSS 1.01
