@@ -175,7 +175,13 @@ rows <- rbindlist(lapply(names(vv), function(v) { d <- R("trials", sprintf("sche
                if (k3$d_ratio_boot_lo <= 0.5 && k3$d_ratio_boot_hi >= 0.5) "fragile (interval includes 0.5)" else if (k3$d_ratio_boot_lo > 0.5) "not met (interval above 0.5)" else "met (interval below 0.5)") else "not re-evaluated",
              `Final recommendation` = "B0 (conclusion unchanged)") }))
 if (nrow(rows)) add(md_table(rows))
-add("Rationale: criterion (d) alone was met in sensitivity variants (20,000 subjects, point estimate as pre-specified); criteria (a), (b) and (c) were not met in any variant; the 200,000-subject re-evaluation of (d) is shown with its bootstrap interval (4,000 resamples); the absolute reduction is below one subject per arm; neither the AUClast CI width nor power improves; the cost is 1,040 additional visits. Removing the Day 50 sample (B-) is not recommended because it preserves a terminal point for AUC0-inf as a secondary endpoint and for a fallback analysis. Lesson recorded: a relative-reduction criterion for a rare event needs an absolute floor (for example at least one subject per arm); not applied retroactively.", "")
+trig <- if (nrow(rows)) rows[startsWith(`Rule result`, "D3"), Variant] else character(0)
+abc_any <- any(unlist(lapply(c(names(vv), "iiv150", "resid12", "weight_alt", "ada10"), function(v) { d <- R("trials", sprintf("schedule_decision_%s.csv", v)); if (is.null(d)) FALSE else d[, any(crit_a %in% TRUE | crit_b %in% TRUE | crit_c %in% TRUE)] })))
+k_lo <- unlist(lapply(c("base", "struct2020", "vmax080_both"), function(v) { k <- R("individual200k", sprintf("criterion_d_200k_%s.csv", v)); if (is.null(k)) NA_real_ else k[schedule == "D3", d_ratio_boot_lo] }))
+if (abc_any) stop("criterion (a), (b) or (c) met in some variant: rationale text must be revised")
+if (anyNA(k_lo) || any(k_lo <= 0.5)) stop("200,000-subject criterion (d) interval reaches 0.5 in some variant: rationale text must be revised")
+add(sprintf("Rationale: %s; criteria (a), (b) and (c) were not met in any variant; re-evaluated with 200,000 subjects (4,000 bootstrap resamples), the D3 ratio for criterion (d) is above 0.5 with its whole interval in every re-evaluated variant; the absolute reduction is below one subject per arm; neither the AUClast CI width nor power improves; the cost is 1,040 additional visits. Removing the Day 50 sample (B-) is not recommended because it preserves a terminal point for AUC0-inf as a secondary endpoint and for a fallback analysis. Lesson recorded: a relative-reduction criterion for a rare event needs an absolute floor (for example at least one subject per arm); not applied retroactively.",
+            if (length(trig)) sprintf("at the pre-specified 20,000-subject level, criterion (d) alone was met in %s", paste(trig, collapse = " and ")) else "no variant met any criterion at the pre-specified 20,000-subject level"), "")
 
 # 8. Limitations
 add("## 8. Limitations", "",
