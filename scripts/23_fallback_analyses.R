@@ -57,7 +57,7 @@ sd_tab <- rbindlist(lapply(c(k2016 = "base", k2020 = "struct2020"), function(v) 
 sd_tab <- rbind(sd_tab, data.table(variant = "Cohen 2022 역산(AUClast 90% CI 0.96–1.28, n 62/63)", AUClast_logsd = 0.49, AUClast_logcv = 100 * sqrt(exp(0.49^2) - 1)), fill = TRUE)
 sd_tab <- rbind(sd_tab, data.table(variant = "Syneos 제안", AUClast_logcv = 43), fill = TRUE)
 fwrite(sd_tab, file.path(out_dir, "sample_size_logsd.csv"))
-pw_row <- function(wide, s_, model, nrep) { x <- wide[scenario == s_]; a <- wilson_ci(sum(x$pass_AUClast & x$pass_Cmax), nrow(x)); b <- wilson_ci(sum(x$pass_AUClast & x$pass_Cmax & x$pass_AUCinf_reliable), nrow(x))
+pw_row <- function(wide, s_, model, nrep) { x <- wide[scenario == s_]; if (!nrow(x)) return(NULL); a <- wilson_ci(sum(x$pass_AUClast & x$pass_Cmax), nrow(x)); b <- wilson_ci(sum(x$pass_AUClast & x$pass_Cmax & x$pass_AUCinf_reliable), nrow(x))
   data.table(model = model, scenario = s_, n_trials = nrow(x), power_last_cmax = a$est, lo = a$lo, hi = a$hi, power_3 = b$est, lo3 = b$lo, hi3 = b$hi) }
 pw <- rbind(pw_row(w, "S00", "k2016", 0), pw_row(w, "F097", "k2016", 0))
 b20 <- proj_path("results", "trials", "products_be_raw_struct2020.csv")
