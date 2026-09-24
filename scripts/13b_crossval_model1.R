@@ -11,7 +11,9 @@ run <- function(p, wt, tag) { x <- run_individual_population(20000, p, design, "
   data.table(AUClast_mean = mean(x$AUClast, na.rm = TRUE), AUClast_geo = geo_mean(x$AUClast), AUClast_logcv = log_cv_pct(x$AUClast),
              Cmax_mean = mean(x$Cmax, na.rm = TRUE), Cmax_logcv = log_cv_pct(x$Cmax), tlast_median = median(x$tlast, na.rm = TRUE), tlast_p95 = q95(x$tlast),
              extrap_true_median = median(x$pct_extrap_true, na.rm = TRUE), extrap_true_p95 = q95(x$pct_extrap_true), extrap_nca_median = median(x$pct_extrap, na.rm = TRUE),
-             extrap_gt20_pct = 100 * mean(x$pct_extrap > 20, na.rm = TRUE), reliable_pct = 100 * mean(x$reliable)) }
+             extrap_gt20_pct = 100 * mean(x$pct_extrap > 20, na.rm = TRUE),
+             reliable_pct = 100 * mean(x$lambda_ok & x$adj_r2 >= 0.80 & x$pct_extrap <= 20, na.rm = TRUE),   # 검토자 기준값과 같은 정의(adj R²·외삽만)
+             reliable_new_def_pct = 100 * mean(x$reliable)) }   # 새 엔진 정의(span ratio 포함, D-039) — 기준값 없음
 a <- run(m1, w6090, "xv_m1_6090"); b <- run(m1, w78, "xv_m1_78"); c16 <- run(m16, w6090, "xv_k16_6090")
 long <- function(x, cond) melt(x[, condition := cond], id.vars = "condition", variable.name = "metric", value.name = "sim", variable.factor = FALSE)
 sim <- rbind(long(a, "Model 1, 60–90 kg"), long(b, "Model 1, 약 78 kg (N(78,11) 55–110)"), long(c16, "2016 주 모델, 60–90 kg"))

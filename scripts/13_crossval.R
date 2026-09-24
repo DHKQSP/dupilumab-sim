@@ -17,7 +17,7 @@ pop <- run_individual_population(20000, p, design, "B0", MASTER_SEED, wt, jitter
 s <- summarize_individual(pop$nca, last_planned = 56)
 r <- ref$individual_B0_wt60_90_300mg_n20000
 ind_cmp <- data.table(metric = c("AUClast_geo", "AUClast_logcv_pct", "Cmax_logcv_pct", "tlast_median", "tlast_p05", "tlast_p95", "quant_at_day56_pct", "lambda_ok_pct", "reliable_pct", "n_lambda_median", "extrap_median_pct", "extrap_p95_pct", "extrap_gt20_pct", "extrap_true_median_pct", "extrap_true_p95_pct", "coverage_lt80_pct"),
-                      sim = c(s$AUClast_geo, s$AUClast_logcv, s$Cmax_logcv, s$tlast_median, s$tlast_p05, s$tlast_p95, s$quant_at_last_pct, s$lambda_ok_pct, s$reliable_pct, s$n_lambda_median, s$extrap_median, s$extrap_p95, s$extrap_gt20_pct, s$extrap_true_median, s$extrap_true_p95, s$coverage_lt80_pct),
+                      sim = c(s$AUClast_geo, s$AUClast_logcv, s$Cmax_logcv, s$tlast_median, s$tlast_p05, s$tlast_p95, s$quant_at_last_pct, s$lambda_ok_pct, s$reliable_no_span_pct, s$n_lambda_median, s$extrap_median, s$extrap_p95, s$extrap_gt20_pct, s$extrap_true_median, s$extrap_true_p95, s$coverage_lt80_pct),
                       ref = c(r$AUClast_geo, r$AUClast_logcv_pct, r$Cmax_logcv_pct, r$tlast_median_postdose_day, r$tlast_p05_postdose_day, r$tlast_p95_postdose_day, r$quant_at_day56_pct, r$lambda_ok_pct, r$reliable_pct, r$n_lambda_median, r$extrap_median_pct, r$extrap_p95_pct, r$extrap_gt20_pct, r$extrap_true_median_pct, r$extrap_true_p95_pct, r$coverage_lt80_pct))
 ind_cmp[, rel_diff_pct := 100 * (sim / ref - 1)]
 fwrite(ind_cmp, file.path(out_dir, "crossval_individual_B0.csv")); cat("\n개인 수준 교차검증:\n"); print(ind_cmp)

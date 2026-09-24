@@ -24,7 +24,7 @@ res <- rbindlist(lapply(names(MODELS), function(mk) rbindlist(lapply(BANDS, func
   data.table(model = mk, model_variant = MODELS[[mk]], band = sprintf("%g-%g", b[1], b[2]), n = nrow(x), BMI_median = median(x$BMI), WT_median = median(x$WT),
              extrap_true_median = median(x$pct_extrap_true, na.rm = TRUE), extrap_true_p95 = q95(x$pct_extrap_true), extrap_true_max = max(x$pct_extrap_true, na.rm = TRUE),
              coverage_lt80_pct = 100 * mean(x$coverage_true < 0.80, na.rm = TRUE), extrap_nca_median = median(x$pct_extrap, na.rm = TRUE),
-             extrap_gt20_pct = 100 * mean(x$pct_extrap > 20, na.rm = TRUE), reliable_pct = 100 * mean(x$reliable), lambda_fail_pct = 100 * mean(!x$lambda_ok),
+             extrap_gt20_pct = 100 * mean(x$pct_extrap > 20, na.rm = TRUE), reliable_pct = 100 * mean(x$reliable), reliable_rsq_extrap_pct = 100 * mean(x$lambda_ok & x$adj_r2 >= 0.80 & x$pct_extrap <= 20, na.rm = TRUE), lambda_fail_pct = 100 * mean(!x$lambda_ok),
              tlast_median = median(x$tlast, na.rm = TRUE), AUClast_geo = geo_mean(x$AUClast), AUClast_logcv = log_cv_pct(x$AUClast),
              dev_range_note = if (b[1] >= 130) "개발 자료 범위 확인 불가, 외삽 가능성" else "")
 }))))
