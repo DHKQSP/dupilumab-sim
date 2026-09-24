@@ -10,6 +10,10 @@ md_table <- function(dt) { h <- paste0("| ", paste(names(dt), collapse = " | "),
   b <- apply(dt, 1, function(r) paste0("| ", paste(r, collapse = " | "), " |")); c(h, s, b, "") }
 out <- c()
 add <- function(...) out <<- c(out, ...)
+# 그림: results/ 기준 상대 경로의 영문판(_en.png). 캡션에 모델·조건·반복 수
+fig <- function(rel, caption) { if (file.exists(proj_path("results", rel))) add(sprintf("![%s](%s)", caption, rel), "", sprintf("*%s*", caption), "") }
+oc_cfg <- read_cfg("oc_design.yaml"); nb_ <- format(oc_cfg$trials$reps_boundary, big.mark = ","); no_ <- format(oc_cfg$trials$reps_other, big.mark = ",")
+MLF <- c(k2016 = "Kovalenko 2016 (primary)", k2020 = "Kovalenko 2020 Model 1")
 gate <- read_cfg("gate_decision.yaml"); sdec <- read_cfg("schedule_decision.yaml"); design <- read_cfg("trial_design.yaml")
 
 add("# Dupilumab biosimilar Phase 1 pharmacokinetic simulation: summary for regulatory briefing", "",
@@ -25,7 +29,16 @@ if (file.exists(ocen)) add("## Key conclusion: operating characteristics of the 
   sprintf("Design fixed before any result in config/oc_design.yaml (commit %s%s). Truth is the population GMR of model-integrated AUC0-inf (no residual error; the same 200,000 virtual subjects receive both products, CRN), not AUClast; the true Cmax ratio is reported alongside. Configurations: P2 = AUClast + Cmax (proposed); F3-A, F3-B, F3-C = P2 + AUCinf under handling rule A, B or C; G2 = AUCinf (rule A) + Cmax (guideline default). Mechanisms F, ka, ke, Vmax, Km and peripheral volume V2 in both directions, with multipliers inverted by bisection to target true AUC0-inf ratios 0.70 to 1.43.",
           if (!is.null(pr)) substr(pr$prereg_commit, 1, 7) else "not found", if (!is.null(pr) && isTRUE(pr$changed_since)) ", changed since" else ", unchanged since"), "",
   readLines(ocen, warn = FALSE), "")
-if (file.exists(clen)) add("## Key conclusion: sampling on the terminal cliff", "", readLines(clen, warn = FALSE), "")
+fig("oc/fig3D_inversion_multipliers_en.png", "Figure 3-D. Test-arm multiplier needed for each target true AUC0-inf ratio, by mechanism and model (200,000 CRN subjects, 60 to 90 kg, 300 mg; bisection to within 0.1%; x marks targets not reachable within the search range).")
+for (m_ in c("k2016", "k2020")) fig(sprintf("oc/fig3A_oc_curves_%s_en.png", m_), sprintf("Figure 3-A (%s). Pass probability of P2, F3-A, F3-C and G2 against the true AUC0-inf ratio, by mechanism (B0, 117 per arm, 60 to 90 kg; %s trials at the boundaries and for identical products, %s trials elsewhere).", MLF[[m_]], nb_, no_))
+for (m_ in c("k2016", "k2020")) fig(sprintf("oc/fig3B_boundary_type1_%s_en.png", m_), sprintf("Figure 3-B (%s). Boundary type I error by mechanism and configuration, true AUC0-inf ratio 0.80 or 1.25 (%s trials per scenario, Wilson 95%% intervals; dashed line 5%%).", MLF[[m_]], nb_))
+for (m_ in c("k2016", "k2020")) fig(sprintf("oc/fig3C_random_space_%s_en.png", m_), sprintf("Figure 3-C (%s). Random product space: %s Latin hypercube products with log-uniform multipliers of all six mechanisms, one trial each (B0, 117 per arm); top, distribution of the true AUC0-inf ratio; bottom, pass rate per bin and logistic spline smooth.", MLF[[m_]], format(oc_cfg$random_space$n_products, big.mark = ",")))
+if (file.exists(clen)) { add("## Key conclusion: sampling on the terminal cliff", "", readLines(clen, warn = FALSE), "")
+  ccf <- oc_cfg$cliff; nsub <- format(ccf$n_subjects, big.mark = ",")
+  fig("cliff/fig2_1_lloq_day_en.png", sprintf("Figure 2-1. Study day when the true concentration reaches the LLOQ (Kovalenko 2016 primary model, 60 to 90 kg, 300 mg, %s virtual subjects, nominal days; bins containing a current sampling day highlighted).", nsub))
+  fig("cliff/fig2_2_points_in_cliff_en.png", sprintf("Figure 2-2. Share of subjects with 1, 2 or 3 or more samples on the cliff, by schedule, cliff definition (instantaneous half-life below 1 or 2 days) and timing (nominal days or visit windows of plus or minus 1 day); Kovalenko 2016, 60 to 90 kg, %s virtual subjects.", nsub))
+  fig("cliff/fig2_3_cliff_length_en.png", sprintf("Figure 2-3. Cliff length under the 1-day and 2-day definitions against the minimum visit interval after Day 22 of each schedule (Kovalenko 2016, 60 to 90 kg, %s virtual subjects).", nsub))
+  fig("cliff/fig2_4_representative_en.png", "Figure 2-4. True concentration of three representative subjects (25th, 50th and 75th percentile of the day of reaching the LLOQ) with the cliff shaded (1-day definition), current samples and the added Day 39, 46, 53 samples (Kovalenko 2016, 60 to 90 kg).") }
 
 # 0b. NCA engine
 ev <- R("nca_engine", "engine_validation_summary.csv"); dr <- R("nca_engine", "dropout_reasons_B0.csv"); edif <- R("nca_engine", "engine_difference_individual_B0.csv")

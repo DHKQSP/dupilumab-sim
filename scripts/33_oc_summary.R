@@ -96,72 +96,87 @@ if (length(rs_models)) {
                      truth_se_log_median = median(auc_se_log), truth_se_log_p95 = quantile(auc_se_log, 0.95)), by = model], file.path(out_dir, "random_space_truth_distribution.csv"))
 }
 
-# ----- 그림 ---------------------------------------------------------------------------------------------------------------
+# ----- 그림 3-A~3-D: 한국어(보고서)와 영문(summary_en.md, 파일명 _en) 두 벌. 색 + 선 모양 + 점 모양으로 구성 식별 ------------------------------
+FX <- list(
+  ko = list(model = MODEL_LABEL, cfg = CFG_LABEL, cap_n = "시험 반복: 경계·동일 제품 %s회, 나머지 %s회, arm당 117명, B0, 60–90 kg", xA = "참 AUC0-inf 비 (로그 척도, 200,000명 공통 난수)", yA = "통과 확률 (%)",
+            tA = "그림 3-A. 기전별 운용특성 곡선 — %s", sA = ". 세로선 0.80·1.25, 가로선 5%", same = "동일", panel = "참값 %.2f · %s %s (×%.3g)", yB = "경계 1종 오류 (%, Wilson 95% 구간)",
+            tB = "그림 3-B. 경계 1종 오류 — %s", sB = "기전 × 구성, 경계 시나리오 각 %s회. 점선 = 5%%. 막대 아래 구성 이름으로 식별", yC1 = "제품 수", tC = "그림 3-C. 무작위 제품 공간 — %s",
+            sC = "라틴 하이퍼큐브 %s개 제품(기전별 로그 균등), 제품당 시험 1회, 제품별 참값 1,000명 공통 난수. 위: 참 AUC0-inf 비 분포, 아래: 구간별 통과율(점, n ≥ 20)과 로지스틱 평활(선)",
+            xC = "참 AUC0-inf 비 (로그)", yC = "통과율 (%)", xD = "목표 참 AUC0-inf 비 (로그)", yD = "필요한 시험군 배율 (로그)", tD = "그림 3-D. 목표 참값 비에 필요한 기전별 배율",
+            sD = "×: 탐색 범위 끝에서도 도달 불가(표시 위치 = 범위 끝 배율). 200,000명 공통 난수, 이분법 ±0.1%"),
+  en = list(model = c(k2016 = "Kovalenko 2016 (primary)", k2020 = "Kovalenko 2020 Model 1"), cfg = c(CFG_LABEL[1:5], AUClast_only = "AUClast only", AUCinf_only = "AUCinf only"),
+            cap_n = "Trials: boundary and identical-product scenarios %s each, others %s each; 117 per arm, B0, 60 to 90 kg", xA = "True AUC0-inf ratio (log scale, 200,000 CRN subjects)", yA = "Pass probability (%)",
+            tA = "Figure 3-A. Operating characteristic curves by mechanism, %s", sA = ". Vertical lines 0.80 and 1.25, horizontal line 5%", same = "identical", panel = "True %.2f · %s %s (x%.3g)",
+            yB = "Boundary type I error (%, Wilson 95% CI)", tB = "Figure 3-B. Boundary type I error, %s", sB = "Mechanism by configuration, %s trials per boundary scenario. Dashed line = 5%%. Configurations named under the bars",
+            yC1 = "Products", tC = "Figure 3-C. Random product space, %s",
+            sC = "Latin hypercube, %s products (log-uniform per mechanism), one trial each, truth per product from 1,000 CRN subjects. Top: true AUC0-inf ratio; bottom: pass rate per bin (points, n >= 20) and logistic smooth (lines)",
+            xC = "True AUC0-inf ratio (log)", yC = "Pass rate (%)", xD = "Target true AUC0-inf ratio (log)", yD = "Required test-arm multiplier (log)", tD = "Figure 3-D. Multiplier required for each target true ratio, by mechanism",
+            sD = "x: not reachable even at the end of the search range (plotted at the range-end multiplier).\n200,000 CRN subjects, bisection to within 0.1%"))
 cols4 <- c(P2 = VIZ$s1, F3A = VIZ$s2, F3C = VIZ$s3, G2 = "#eda100"); lt4 <- c(P2 = "solid", F3A = "22", F3C = "42", G2 = "12"); sh4 <- c(P2 = 16, F3A = 17, F3C = 15, G2 = 18)
-cap_n <- sprintf("시험 반복: 경계·동일 제품 %s회, 나머지 %s회, arm당 117명, B0, 60–90 kg", format(oc$trials$reps_boundary, big.mark = ","), format(oc$trials$reps_other, big.mark = ","))
-for (mdl in models) {
-  x <- tab_all[model == mdl & config %in% names(cols4)]
-  s0 <- x[scenario == "S00"]
-  xx <- rbind(x[mechanism %in% MECH], rbindlist(lapply(MECH, function(mc) copy(s0)[, mechanism := mc])))
-  xx[, config := factor(config, levels = names(cols4), labels = CFG_LABEL[names(cols4)])]
-  xx[, mechanism := factor(mechanism, levels = MECH)]
-  setorder(xx, mechanism, config, auc_ratio)
-  cL <- setNames(cols4, CFG_LABEL[names(cols4)]); lL <- setNames(lt4, CFG_LABEL[names(lt4)]); sL <- setNames(sh4, CFG_LABEL[names(sh4)])   # 모델 반복마다 원본 이름 유지
-  g <- ggplot(xx, aes(auc_ratio, pass_pct, colour = config, linetype = config, shape = config)) +
-    geom_vline(xintercept = bnd, colour = VIZ$muted, linewidth = 0.4) + geom_hline(yintercept = 5, colour = VIZ$muted, linewidth = 0.4, linetype = "22") +
-    geom_line(linewidth = 0.6) + geom_point(size = 1.8) +
-    scale_x_log10(breaks = c(0.7, 0.8, 0.9, 1, 1.11, 1.25, 1.43)) + scale_colour_manual(values = cL, name = NULL) + scale_linetype_manual(values = lL, name = NULL) +
-    scale_shape_manual(values = sL, name = NULL) + facet_wrap(~mechanism, ncol = 3) +
-    labs(x = "참 AUC0-inf 비 (로그 척도, 200,000명 공통 난수)", y = "통과 확률 (%)", title = sprintf("그림 3-A. 기전별 운용특성 곡선 — %s", MODEL_LABEL[[mdl]]),
-         subtitle = paste0(cap_n, ". 세로선 0.80·1.25, 가로선 5%")) + theme_dupi()
-  ggsave(file.path(fig_dir, sprintf("fig3A_oc_curves_%s.png", mdl)), g, width = 11, height = 7, dpi = 120)
-  b <- bnd_all[model == mdl & config %in% c("P2", "F3A", "F3B", "F3C", "G2")]
-  if (nrow(b)) {
-    b[, config := factor(config, levels = c("P2", "F3A", "F3B", "F3C", "G2"), labels = CFG_LABEL[c("P2", "F3A", "F3B", "F3C", "G2")])]
-    # 패널 = 참값 경계 × 기전(도달 방향 표시). 빈 패널 없이 참값 0.80 줄, 1.25 줄
-    b[, panel := sprintf("참값 %.2f · %s %s (×%.3g)", target, mechanism, fifelse(direction == "down", "↓", "↑"), multiplier)]
-    b[, panel := factor(panel, levels = unique(b[order(target, match(mechanism, MECH), direction), panel]))]
-    g <- ggplot(b, aes(config, pass_pct, fill = config)) + geom_col(width = 0.7) + geom_errorbar(aes(ymin = lo, ymax = hi), width = 0.25, colour = VIZ$ink2) +
-      geom_hline(yintercept = 5, colour = VIZ$ink, linetype = "22") + geom_text(aes(label = sprintf("%.1f", pass_pct), y = hi), vjust = -0.4, size = 2.5, colour = VIZ$ink2) +
-      scale_fill_manual(values = c(VIZ$s1, VIZ$s2, "#e87ba4", VIZ$s3, "#eda100"), guide = "none") + facet_wrap(~panel, ncol = 6) +
-      scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
-      labs(x = NULL, y = "경계 1종 오류 (%, Wilson 95% 구간)", title = sprintf("그림 3-B. 경계 1종 오류 — %s", MODEL_LABEL[[mdl]]),
-           subtitle = sprintf("기전 × 구성, 경계 시나리오 각 %s회. 점선 = 5%%. 막대 아래 구성 이름으로 식별", format(oc$trials$reps_boundary, big.mark = ","))) +
-      theme_dupi() + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 7))
-    ggsave(file.path(fig_dir, sprintf("fig3B_boundary_type1_%s.png", mdl)), g, width = 12, height = 6, dpi = 120)
+cfg5 <- c("P2", "F3A", "F3B", "F3C", "G2"); fill5 <- c(VIZ$s1, VIZ$s2, "#e87ba4", VIZ$s3, "#eda100")
+for (lg in names(FX)) {
+  T_ <- FX[[lg]]; sfx <- if (lg == "en") "_en" else ""
+  cap_n <- sprintf(T_$cap_n, format(oc$trials$reps_boundary, big.mark = ","), format(oc$trials$reps_other, big.mark = ","))
+  cL <- setNames(cols4, T_$cfg[names(cols4)]); lL <- setNames(lt4, T_$cfg[names(lt4)]); sL <- setNames(sh4, T_$cfg[names(sh4)])
+  for (mdl in models) {
+    x <- tab_all[model == mdl & config %in% names(cols4)]
+    s0 <- x[scenario == "S00"]
+    xx <- rbind(x[mechanism %in% MECH], rbindlist(lapply(MECH, function(mc) copy(s0)[, mechanism := mc])))
+    xx[, config := factor(config, levels = names(cols4), labels = T_$cfg[names(cols4)])]
+    xx[, mechanism := factor(mechanism, levels = MECH)]
+    setorder(xx, mechanism, config, auc_ratio)
+    g <- ggplot(xx, aes(auc_ratio, pass_pct, colour = config, linetype = config, shape = config)) +
+      geom_vline(xintercept = bnd, colour = VIZ$muted, linewidth = 0.4) + geom_hline(yintercept = 5, colour = VIZ$muted, linewidth = 0.4, linetype = "22") +
+      geom_line(linewidth = 0.6) + geom_point(size = 1.8) +
+      scale_x_log10(breaks = c(0.7, 0.8, 0.9, 1, 1.11, 1.25, 1.43)) + scale_colour_manual(values = cL, name = NULL) + scale_linetype_manual(values = lL, name = NULL) +
+      scale_shape_manual(values = sL, name = NULL) + facet_wrap(~mechanism, ncol = 3) +
+      labs(x = T_$xA, y = T_$yA, title = sprintf(T_$tA, T_$model[[mdl]]), subtitle = paste0(cap_n, T_$sA)) + theme_dupi()
+    ggsave(file.path(fig_dir, sprintf("fig3A_oc_curves_%s%s.png", mdl, sfx)), g, width = 11, height = 7, dpi = 120)
+    b <- bnd_all[model == mdl & config %in% cfg5]
+    if (nrow(b)) {
+      b[, config := factor(config, levels = cfg5, labels = T_$cfg[cfg5])]
+      # 패널 = 참값 경계 × 기전(도달 방향 표시). 빈 패널 없이 참값 0.80 줄, 1.25 줄
+      b[, panel := sprintf(T_$panel, target, mechanism, fifelse(direction == "down", "↓", "↑"), multiplier)]
+      b[, panel := factor(panel, levels = unique(b[order(target, match(mechanism, MECH), direction), panel]))]
+      g <- ggplot(b, aes(config, pass_pct, fill = config)) + geom_col(width = 0.7) + geom_errorbar(aes(ymin = lo, ymax = hi), width = 0.25, colour = VIZ$ink2) +
+        geom_hline(yintercept = 5, colour = VIZ$ink, linetype = "22") + geom_text(aes(label = sprintf("%.1f", pass_pct), y = hi), vjust = -0.4, size = 2.5, colour = VIZ$ink2) +
+        scale_fill_manual(values = fill5, guide = "none") + facet_wrap(~panel, ncol = 6) + scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+        labs(x = NULL, y = T_$yB, title = sprintf(T_$tB, T_$model[[mdl]]), subtitle = sprintf(T_$sB, format(oc$trials$reps_boundary, big.mark = ","))) +
+        theme_dupi() + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 7))
+      ggsave(file.path(fig_dir, sprintf("fig3B_boundary_type1_%s%s.png", mdl, sfx)), g, width = 12, height = 6, dpi = 120)
+    }
   }
-}
-if (length(rs_models)) for (mdl in rs_models) {
-  bb <- rbindlist(bins_all)[model == mdl & config %in% c("P2", "F3A", "F3C", "G2") & n >= 20]
-  sm <- rbindlist(smooth_all)[model == mdl & config %in% c("P2", "F3A", "F3C", "G2")]
-  lab <- CFG_LABEL[c("P2", "F3A", "F3C", "G2")]; c4 <- setNames(c(VIZ$s1, VIZ$s2, VIZ$s3, "#eda100"), lab); l4 <- setNames(c("solid", "22", "42", "12"), lab); s4 <- setNames(c(16, 17, 15, 18), lab)
-  bb[, config := factor(config, levels = names(lab), labels = lab)]; sm[, config := factor(config, levels = names(lab), labels = lab)]
-  pd <- rbindlist(rs_prod_all)[model == mdl]
-  xl <- range(pd$true_auc_ratio) * c(0.98, 1.02)   # 모든 제품이 보이도록 자료 범위로
-  g1 <- ggplot(pd, aes(true_auc_ratio)) + geom_histogram(bins = 80, fill = VIZ$s1) + geom_vline(xintercept = bnd, colour = VIZ$ink, linetype = "22") +
-    scale_x_log10(limits = xl) + labs(x = NULL, y = "제품 수", title = sprintf("그림 3-C. 무작위 제품 공간 — %s", MODEL_LABEL[[mdl]]),
-    subtitle = sprintf("라틴 하이퍼큐브 %s개 제품(기전별 로그 균등), 제품당 시험 1회. 위: 참 AUC0-inf 비 분포, 아래: 구간별 통과율(점)과 로지스틱 평활(선)", format(nrow(pd), big.mark = ","))) + theme_dupi()
-  g2 <- ggplot() + geom_vline(xintercept = bnd, colour = VIZ$muted) + geom_hline(yintercept = 5, colour = VIZ$muted, linetype = "22") +
-    geom_point(data = bb, aes(ratio, pass_pct, colour = config, shape = config), size = 1.6, alpha = 0.8) +
-    geom_line(data = sm, aes(ratio, pass_pct, colour = config, linetype = config), linewidth = 0.7) +
-    scale_x_log10(limits = xl) + scale_colour_manual(values = c4, name = NULL) + scale_linetype_manual(values = l4, name = NULL) + scale_shape_manual(values = s4, name = NULL) +
-    labs(x = "참 AUC0-inf 비 (로그)", y = "통과율 (%)") + theme_dupi()
-  png(file.path(fig_dir, sprintf("fig3C_random_space_%s.png", mdl)), width = 10 * 120, height = 8 * 120, res = 120)
-  grid::grid.newpage(); grid::pushViewport(grid::viewport(layout = grid::grid.layout(5, 1)))
-  print(g1, vp = grid::viewport(layout.pos.row = 1:2, layout.pos.col = 1)); print(g2, vp = grid::viewport(layout.pos.row = 3:5, layout.pos.col = 1)); dev.off()
-}
-if (nrow(inv_all)) {
-  iv <- copy(inv_all)
-  iv[, mechanism := factor(mechanism, levels = MECH)]; iv[, model_l := MODEL_LABEL[model]]
-  g <- ggplot(iv[reachable == TRUE], aes(target, multiplier, colour = model_l, shape = model_l)) +
-    geom_hline(yintercept = 1, colour = VIZ$muted) + geom_vline(xintercept = bnd, colour = VIZ$muted, linetype = "22") +
-    geom_line(aes(group = interaction(model_l, direction)), linewidth = 0.5) + geom_point(size = 2) +
-    geom_point(data = iv[reachable == FALSE], aes(target, end_multiplier), shape = 4, size = 2.4, stroke = 0.9) +
-    scale_x_log10(breaks = c(0.7, 0.8, 0.9, 1, 1.11, 1.25, 1.43)) + scale_y_log10() +
-    scale_colour_manual(values = c(VIZ$s1, VIZ$s2), name = NULL) + scale_shape_manual(values = c(16, 17), name = NULL) + facet_wrap(~mechanism, ncol = 3, scales = "free_y") +
-    labs(x = "목표 참 AUC0-inf 비 (로그)", y = "필요한 시험군 배율 (로그)", title = "그림 3-D. 목표 참값 비에 필요한 기전별 배율",
-         subtitle = "×: 탐색 범위 끝에서도 도달 불가(표시 위치 = 범위 끝 배율). 200,000명 공통 난수, 이분법 ±0.1%") + theme_dupi()
-  ggsave(file.path(fig_dir, "fig3D_inversion_multipliers.png"), g, width = 11, height = 7, dpi = 120)
+  if (length(rs_models)) for (mdl in rs_models) {
+    c4n <- c("P2", "F3A", "F3C", "G2")
+    bb <- rbindlist(bins_all)[model == mdl & config %in% c4n & n >= 20]
+    sm <- rbindlist(smooth_all)[model == mdl & config %in% c4n]
+    lab <- T_$cfg[c4n]; c4 <- setNames(unname(cols4[c4n]), lab); l4 <- setNames(unname(lt4[c4n]), lab); s4 <- setNames(unname(sh4[c4n]), lab)
+    bb[, config := factor(config, levels = c4n, labels = lab)]; sm[, config := factor(config, levels = c4n, labels = lab)]
+    pd <- rbindlist(rs_prod_all)[model == mdl]
+    xl <- range(pd$true_auc_ratio) * c(0.98, 1.02)   # 모든 제품이 보이도록 자료 범위로
+    g1 <- ggplot(pd, aes(true_auc_ratio)) + geom_histogram(bins = 80, fill = VIZ$s1) + geom_vline(xintercept = bnd, colour = VIZ$ink, linetype = "22") +
+      scale_x_log10(limits = xl) + labs(x = NULL, y = T_$yC1, title = sprintf(T_$tC, T_$model[[mdl]]), subtitle = sprintf(T_$sC, format(nrow(pd), big.mark = ","))) + theme_dupi()
+    g2 <- ggplot() + geom_vline(xintercept = bnd, colour = VIZ$muted) + geom_hline(yintercept = 5, colour = VIZ$muted, linetype = "22") +
+      geom_point(data = bb, aes(ratio, pass_pct, colour = config, shape = config), size = 1.6, alpha = 0.8) +
+      geom_line(data = sm, aes(ratio, pass_pct, colour = config, linetype = config), linewidth = 0.7) +
+      scale_x_log10(limits = xl) + scale_colour_manual(values = c4, name = NULL) + scale_linetype_manual(values = l4, name = NULL) + scale_shape_manual(values = s4, name = NULL) +
+      labs(x = T_$xC, y = T_$yC) + theme_dupi()
+    png(file.path(fig_dir, sprintf("fig3C_random_space_%s%s.png", mdl, sfx)), width = 10 * 120, height = 8 * 120, res = 120)
+    grid::grid.newpage(); grid::pushViewport(grid::viewport(layout = grid::grid.layout(5, 1)))
+    print(g1, vp = grid::viewport(layout.pos.row = 1:2, layout.pos.col = 1)); print(g2, vp = grid::viewport(layout.pos.row = 3:5, layout.pos.col = 1)); dev.off()
+  }
+  if (nrow(inv_all)) {
+    iv <- copy(inv_all)
+    iv[, mechanism := factor(mechanism, levels = MECH)]; iv[, model_l := factor(T_$model[model], levels = unname(T_$model))]
+    g <- ggplot(iv[reachable == TRUE], aes(target, multiplier, colour = model_l, shape = model_l)) +
+      geom_hline(yintercept = 1, colour = VIZ$muted) + geom_vline(xintercept = bnd, colour = VIZ$muted, linetype = "22") +
+      geom_line(aes(group = interaction(model_l, direction)), linewidth = 0.5) + geom_point(size = 2) +
+      geom_point(data = iv[reachable == FALSE], aes(target, end_multiplier), shape = 4, size = 2.4, stroke = 0.9) +
+      scale_x_log10(breaks = c(0.7, 0.8, 0.9, 1, 1.11, 1.25, 1.43)) + scale_y_log10(labels = function(v) format(v, drop0trailing = TRUE, scientific = FALSE, trim = TRUE)) +
+      scale_colour_manual(values = c(VIZ$s1, VIZ$s2), name = NULL, drop = FALSE) + scale_shape_manual(values = c(16, 17), name = NULL, drop = FALSE) + facet_wrap(~mechanism, ncol = 3, scales = "free_y") +
+      labs(x = T_$xD, y = T_$yD, title = T_$tD, subtitle = T_$sD) + theme_dupi()
+    ggsave(file.path(fig_dir, sprintf("fig3D_inversion_multipliers%s.png", sfx)), g, width = 11, height = 7, dpi = 120)
+  }
 }
 cat("summary written\n"); print(bnd_all[config %in% c("P2", "F3A", "F3C", "G2"), .(model, mechanism, direction, target, config, pass_pct, lo, hi)], digits = 3)
 
