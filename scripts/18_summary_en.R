@@ -184,6 +184,13 @@ if (!is.null(bt)) {
             `P2 (%)` = f2(P2), `F3-A (%)` = f2(F3A), `F3-C (%)` = f2(F3C), `G2 (%)` = f2(G2))]),
       "Wilson 95% intervals are in the full report (Appendix B); each rate is based on 10,000 trials.", "")
 }
+gb <- R("oc", "gmr_by_endpoint.csv")
+if (!is.null(gb)) {
+  x <- dcast(gb[endpoint %in% c("AUClast", "AUCinf_A", "AUCinf_B", "AUCinf_C", "Cmax") & (abs(target - 0.8) < 1e-9 | abs(target - 1.25) < 1e-9)], model + mechanism + direction + target + auc_ratio + cmax_ratio ~ endpoint, value.var = "rel_bias_pct")
+  add("Relative bias (%) of the geometric mean of trial GMRs against the truth at the boundaries (AUC endpoints against the true AUC0-inf ratio, Cmax against the true Cmax ratio). Rule A combines estimation and selection (flagged subjects excluded), rule B is estimation only, rule C substitutes AUClast for flagged subjects:", "",
+      md_table(x[order(model, mechanism, target), .(Model = c(k2016 = "2016", k2020 = "Model 1")[model], Mechanism = mechanism, Direction = direction, Target = f2(target), `AUClast` = f1(AUClast), `AUCinf rule A` = f1(AUCinf_A),
+                                                    `AUCinf rule B` = f1(AUCinf_B), `AUCinf rule C` = f1(AUCinf_C), `Cmax` = f1(Cmax))]))
+}
 if (!is.null(ivv)) {
   x <- ivv[abs(target - 0.8) < 1e-9 | abs(target - 1.25) < 1e-9]
   add("Multipliers required to reach the boundaries (200,000 subjects, CRN; unreachable means the end of the search range does not reach the target):", "",

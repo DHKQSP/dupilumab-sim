@@ -198,6 +198,9 @@ bt <- rd("oc", "boundary_type1.csv")
 if (!is.null(bt)) print(kt(dcast(bt[config %in% c("P2", "F3A", "F3B", "F3C", "G2", "AUClast_only", "AUCinf_only")], model + mechanism + direction + target + auc_ratio + cmax_ratio + n_trials ~ config,
                           value.var = "pass_pct"), "경계 1종 오류 (%): 기전 × 방향 × 구성 × 모델 (각 10,000회; 구간은 부록 B)", 2))
 imgs(proj_path("results", "oc", sprintf("fig3B_boundary_type1_%s.png", c("k2016", "k2020"))))
+gb <- rd("oc", "gmr_by_endpoint.csv")
+if (!is.null(gb)) print(kt(dcast(gb[endpoint %in% c("AUClast", "AUCinf_A", "AUCinf_B", "AUCinf_C", "Cmax")], model + mechanism + direction + target + auc_ratio + cmax_ratio ~ endpoint, value.var = "rel_bias_pct")[order(model, mechanism, target)],
+                          "평가변수별 시험 GMR 기하평균의 참값 대비 상대 치우침(%). AUC 계열은 참 AUC0-inf 비, Cmax는 참 Cmax 비 기준. 규칙 A = 추정 + 선택(플래그 제외), 규칙 B = 추정만, 규칙 C = 플래그 대상 AUClast 대입", 2))
 ```
 ## 검정력과 구성 비교
 ```{r oc_pow}

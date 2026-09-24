@@ -21,7 +21,7 @@ inv_all <- rbindlist(lapply(list.files(out_dir, pattern = "^inversion_k20(16|20)
 fwrite(inv_all[order(model, mechanism, direction, target)], file.path(out_dir, "inversion_all.csv"))
 
 cfg_pass <- function(be) { w <- config_pass(be, oc); w }
-tab_all <- list(); bnd_all <- list(); pow_all <- list(); comp_all <- list()
+tab_all <- list(); bnd_all <- list(); pow_all <- list(); comp_all <- list(); gmr_all <- list()
 for (mdl in models) {
   be <- fread(file.path(out_dir, sprintf("oc_trials_be_%s.csv.gz", mdl)))
   sc <- fread(file.path(out_dir, sprintf("oc_scenarios_%s.csv", mdl)))
@@ -49,8 +49,15 @@ for (mdl in models) {
   comp <- merge(comp, info, by = "scenario"); comp[, `:=`(model = mdl, region = fifelse(abs(auc_ratio - bnd[1]) < 0.002 | abs(auc_ratio - bnd[2]) < 0.002, "경계",
                                                                                fifelse(auc_ratio < bnd[1] | auc_ratio > bnd[2], "범위 밖", "범위 안")))]
   comp_all[[mdl]] <- comp
+  # 평가변수별 시험 GMR의 기하평균(시험 간) 대 참값: 비구획 AUCinf의 치우침(규칙 A = 추정 + 선택, 규칙 B = 추정)을 분해
+  g <- be[, .(gmr_geo = exp(mean(log(GMR), na.rm = TRUE)), n_R_mean = mean(n_R), n_T_mean = mean(n_T), n_trials = .N), by = .(scenario, endpoint)]
+  g <- merge(g, info, by = "scenario")
+  g[, truth := fifelse(endpoint == "Cmax", cmax_ratio, auc_ratio)]
+  g[, rel_bias_pct := 100 * (gmr_geo / truth - 1)][, model := mdl]
+  gmr_all[[mdl]] <- g
 }
 tab_all <- rbindlist(tab_all); bnd_all <- rbindlist(bnd_all); pow_all <- rbindlist(pow_all); comp_all <- rbindlist(comp_all)
+gmr_all <- rbindlist(gmr_all); if (nrow(gmr_all)) fwrite(gmr_all[order(model, mechanism, direction, target, endpoint)], file.path(out_dir, "gmr_by_endpoint.csv"))
 fwrite(tab_all, file.path(out_dir, "oc_curves.csv")); fwrite(bnd_all, file.path(out_dir, "boundary_type1.csv"))
 fwrite(pow_all, file.path(out_dir, "power.csv")); fwrite(comp_all, file.path(out_dir, "config_comparison.csv"))
 
@@ -116,10 +123,11 @@ cols4 <- c(P2 = VIZ$s1, F3A = VIZ$s2, F3C = VIZ$s3, G2 = "#eda100"); lt4 <- c(P2
 cfg5 <- c("P2", "F3A", "F3B", "F3C", "G2"); fill5 <- c(VIZ$s1, VIZ$s2, "#e87ba4", VIZ$s3, "#eda100")
 for (lg in names(FX)) {
   T_ <- FX[[lg]]; sfx <- if (lg == "en") "_en" else ""
-  cap_n <- sprintf(T_$cap_n, format(oc$trials$reps_boundary, big.mark = ","), format(oc$trials$reps_other, big.mark = ","))
   cL <- setNames(cols4, T_$cfg[names(cols4)]); lL <- setNames(lt4, T_$cfg[names(lt4)]); sL <- setNames(sh4, T_$cfg[names(sh4)])
   for (mdl in models) {
     x <- tab_all[model == mdl & config %in% names(cols4)]
+    isb <- x$scenario == "S00" | abs(x$target - bnd[1]) < 1e-9 | abs(x$target - bnd[2]) < 1e-9      # 캡션의 반복 수는 실제 시험 수
+    cap_n <- sprintf(T_$cap_n, format(max(x$n_trials[isb]), big.mark = ","), format(if (any(!isb)) max(x$n_trials[!isb]) else 0, big.mark = ","))
     s0 <- x[scenario == "S00"]
     xx <- rbind(x[mechanism %in% MECH], rbindlist(lapply(MECH, function(mc) copy(s0)[, mechanism := mc])))
     xx[, config := factor(config, levels = names(cols4), labels = T_$cfg[names(cols4)])]
@@ -140,8 +148,8 @@ for (lg in names(FX)) {
       b[, panel := factor(panel, levels = unique(b[order(target, match(mechanism, MECH), direction), panel]))]
       g <- ggplot(b, aes(config, pass_pct, fill = config)) + geom_col(width = 0.7) + geom_errorbar(aes(ymin = lo, ymax = hi), width = 0.25, colour = VIZ$ink2) +
         geom_hline(yintercept = 5, colour = VIZ$ink, linetype = "22") + geom_text(aes(label = sprintf("%.1f", pass_pct), y = hi), vjust = -0.4, size = 2.5, colour = VIZ$ink2) +
-        scale_fill_manual(values = fill5, guide = "none") + facet_wrap(~panel, ncol = 6) + scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
-        labs(x = NULL, y = T_$yB, title = sprintf(T_$tB, T_$model[[mdl]]), subtitle = sprintf(T_$sB, format(oc$trials$reps_boundary, big.mark = ","))) +
+        scale_fill_manual(values = fill5, guide = "none") + facet_wrap(~panel, ncol = max(b[, uniqueN(panel), by = target]$V1)) +   # 한 줄 = 한 경계(0.80이 더 많을 때) scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+        labs(x = NULL, y = T_$yB, title = sprintf(T_$tB, T_$model[[mdl]]), subtitle = sprintf(T_$sB, format(max(b$n_trials), big.mark = ","))) +
         theme_dupi() + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 7))
       ggsave(file.path(fig_dir, sprintf("fig3B_boundary_type1_%s%s.png", mdl, sfx)), g, width = 12, height = 6, dpi = 120)
     }
@@ -200,15 +208,34 @@ if (nrow(bnd_all)) {
     mx <- p2[which.max(pass_pct)]
     stopifnot(max(p2$pass_pct) <= 5)
     ko <- c(ko, sprintf("P2(AUClast + Cmax)의 경계 1종 오류는 모든 기전·방향·모델에서 5%% 이하다(%d개 경계 시나리오, 각 %s회). 최대 %s%% [%s, %s]: %s %s, 참값 %.2f.",
-                        nrow(p2), format(oc$trials$reps_boundary, big.mark = ","), f1(mx$pass_pct), f1(mx$lo), f1(mx$hi), MODEL_LABEL[[mx$model]], MECH_KO[[mx$mechanism]], mx$target))
+                        nrow(p2), format(min(p2$n_trials), big.mark = ","), f1(mx$pass_pct), f1(mx$lo), f1(mx$hi), MODEL_LABEL[[mx$model]], MECH_KO[[mx$mechanism]], mx$target))
     en <- c(en, sprintf("The boundary type I error of P2 (AUClast + Cmax) is at most 5%% for every mechanism, direction and model (%d boundary scenarios, %s trials each); the largest is %s%% (95%% CI %s to %s) for %s, %s, true ratio %.2f.",
-                        nrow(p2), format(oc$trials$reps_boundary, big.mark = ","), f1(mx$pass_pct), f1(mx$lo), f1(mx$hi), c(k2016 = "the 2016 model", k2020 = "Model 1")[[mx$model]], MECH_EN[[mx$mechanism]], mx$target))
+                        nrow(p2), format(min(p2$n_trials), big.mark = ","), f1(mx$pass_pct), f1(mx$lo), f1(mx$hi), c(k2016 = "the 2016 model", k2020 = "Model 1")[[mx$model]], MECH_EN[[mx$mechanism]], mx$target))
   }
   g2 <- bnd_all[config == "G2"]; exg <- g2[pass_pct > 5]
   ko <- c(ko, sprintf("G2(AUCinf 규칙 A + Cmax)의 경계 1종 오류: 범위 %s–%s%%%s.", f1(min(g2$pass_pct)), f1(max(g2$pass_pct)),
                       if (nrow(exg)) sprintf(", 5%% 초과 %d건(%s)", nrow(exg), paste(sprintf("%s %s %.2f: %s%%", c(k2016 = "2016", k2020 = "Model 1")[exg$model], exg$mechanism, exg$target, f1(exg$pass_pct)), collapse = "; ")) else ", 모두 5% 이하"))
   en <- c(en, sprintf("G2 (AUCinf rule A + Cmax) boundary type I error ranges from %s%% to %s%%%s.", f1(min(g2$pass_pct)), f1(max(g2$pass_pct)),
                       if (nrow(exg)) sprintf("; above 5%% in %d cases (%s)", nrow(exg), paste(sprintf("%s %s %.2f: %s%%", c(k2016 = "2016", k2020 = "Model 1")[exg$model], exg$mechanism, exg$target, f1(exg$pass_pct)), collapse = "; ")) else "; all at most 5%"))
+  # 원인: G2가 가장 높은 경계 시나리오(모델별)의 평가변수별 평균 GMR 대 참값. 전제(비구획 AUCinf가 AUClast보다 참값에서 멀다)를 검사해 문구를 고른다
+  for (mdl in unique(g2$model)) {
+    x <- g2[model == mdl][which.max(pass_pct)]; gg <- gmr_all[model == mdl & scenario == x$scenario]
+    gv <- setNames(gg$gmr_geo, gg$endpoint); tr <- x$auc_ratio
+    d_last <- abs(log(gv[["AUClast"]] / tr)); d_A <- abs(log(gv[["AUCinf_A"]] / tr)); d_B <- abs(log(gv[["AUCinf_B"]] / tr))
+    toward1 <- abs(log(gv[["AUCinf_A"]])) < abs(log(tr))
+    ko <- c(ko, sprintf("%s G2 최대 시나리오(%s %s, 참 AUC0-inf 비 %s): 시험 GMR 기하평균은 AUCinf 규칙 A %s, 규칙 B %s, AUClast %s, Cmax %s(참값 %s). %s",
+                        MODEL_LABEL[[mdl]], MECH_KO[[x$mechanism]], x$direction, formatC(tr, format = "f", digits = 3), formatC(gv[["AUCinf_A"]], format = "f", digits = 3), formatC(gv[["AUCinf_B"]], format = "f", digits = 3),
+                        formatC(gv[["AUClast"]], format = "f", digits = 3), formatC(gv[["Cmax"]], format = "f", digits = 3), formatC(x$cmax_ratio, format = "f", digits = 3),
+                        if (d_A > d_last && toward1) sprintf("비구획 AUCinf가 참값보다 1 쪽으로 치우쳐(규칙 A %s%%, 규칙 B %s%%; AUClast %s%%) 범위 밖 제품이 통과하기 쉽다.", formatC(100 * (gv[["AUCinf_A"]] / tr - 1), format = "f", digits = 1, flag = "+"),
+                                                            formatC(100 * (gv[["AUCinf_B"]] / tr - 1), format = "f", digits = 1, flag = "+"), formatC(100 * (gv[["AUClast"]] / tr - 1), format = "f", digits = 1, flag = "+"))
+                        else "비구획 AUCinf의 치우침이 AUClast보다 크지 않다(차이는 표본 수·변동 때문)."))
+    en <- c(en, sprintf("%s, scenario with the largest G2 error (%s, %s, true AUC0-inf ratio %s): geometric mean of trial GMRs AUCinf rule A %s, rule B %s, AUClast %s, Cmax %s (true %s). %s",
+                        c(k2016 = "2016 model", k2020 = "Model 1")[[mdl]], MECH_EN[[x$mechanism]], x$direction, formatC(tr, format = "f", digits = 3), formatC(gv[["AUCinf_A"]], format = "f", digits = 3), formatC(gv[["AUCinf_B"]], format = "f", digits = 3),
+                        formatC(gv[["AUClast"]], format = "f", digits = 3), formatC(gv[["Cmax"]], format = "f", digits = 3), formatC(x$cmax_ratio, format = "f", digits = 3),
+                        if (d_A > d_last && toward1) sprintf("Non-compartmental AUCinf is biased toward 1 relative to the truth (rule A %s%%, rule B %s%%; AUClast %s%%), so products outside the limits pass more often.", formatC(100 * (gv[["AUCinf_A"]] / tr - 1), format = "f", digits = 1, flag = "+"),
+                                                            formatC(100 * (gv[["AUCinf_B"]] / tr - 1), format = "f", digits = 1, flag = "+"), formatC(100 * (gv[["AUClast"]] / tr - 1), format = "f", digits = 1, flag = "+"))
+                        else "The bias of non-compartmental AUCinf is not larger than that of AUClast (differences reflect sample size and variability)."))
+  }
 }
 if (nrow(comp_all)) {
   cb <- comp_all[region == "경계"]; ci_ <- comp_all[region == "범위 안" & mechanism != "동일"]; co <- comp_all[region == "범위 밖"]
