@@ -111,7 +111,7 @@ Kovalenko 2020은 정량한계 미만 값을 제외하면 모델이 덜 가파�
 p2 <- rd("rationale", "pillar2_products_B0.csv")
 kt(p2[, .(model, scenario, source, n_trials, GMR_mean_AUClast, GMR_mean_AUCinf_true, GMR_mean_AUCinf_reliable, pass_rate_AUClast, pass_lo_AUClast, pass_hi_AUClast, pass_rate_AUCinf_reliable, pass_lo_AUCinf_reliable, pass_hi_AUCinf_reliable, agree, agree_lo, agree_hi, last_pass_inf_fail, last_pass_inf_fail_lo, last_pass_inf_fail_hi, cor_logGMR_last_infrel)], "Pillar 2: 주 모델은 5,000회 이상(해당 시나리오)과 500회, Model 1은 500회. 비율은 Wilson 95% 구간", 3)
 kt(rd("trials5000", "products5000_props_base.csv"), "5,000회 이상 결과의 인용 비율 (Wilson 95% 구간, 적응적 상향 후 반복 수)", 2)
-kt(rd("pillar2_curvature", "pillar2_vmax080_per_endpoint.csv")[endpoint %in% c("AUClast", "AUCinf_reliable", "AUCinf_true", "Cmax")], "곡률 견고성(§5-2): 모집단 Vmax ×0.8, 2,000회", 3)
+pc <- rd("pillar2_curvature", "pillar2_vmax080_per_endpoint.csv"); if (!is.null(pc)) kt(pc[endpoint %in% c("AUClast", "AUCinf_reliable", "AUCinf_true", "Cmax")], "곡률 견고성(§5-2): 모집단 Vmax ×0.8, 2,000회", 3)
 kt(rd("pillar2_curvature", "pillar2_vmax080_concordance.csv"), "곡률 견고성: 판정 일치 (2,000회)", 3)
 ```
 ## 판정 불일치 분류·소비자 위험·fallback (§5-3–5-6, 5,000회 이상)
