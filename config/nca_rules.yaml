@@ -1,10 +1,12 @@
-# 비구획분석 규칙(지시서 2026-09-23 §3, D-010). R/nca.R 이 이 파일을 읽는다.
+# 비구획분석 규칙(지시서 2026-09-23 §3, D-010; Phoenix WinNonlin 호환 엔진 검토 의견 2026-09-24 §1, D-039). R/nca.R 이 이 파일을 읽는다.
+# 참조 구현 NonCompart 0.8.4(BestSlope TOL 1e-4, excludeDelta 1, down = "Log", sNCA R2ADJ = 0으로 대화형 점 선택 끔), 보조 PKNCA 0.12.1.
 standard:
   auc_method: linear_up_log_down
   blq:
-    pre_tmax: zero          # tmax 이전 BLQ는 0
-    intermediate: missing   # tmax–tlast 사이 BLQ는 결측(인접점 연결)
-    post_tlast: exclude     # tlast 이후 BLQ 제외
+    pre_first_quant: zero          # 첫 정량값 이전 BLQ는 0 (이전 엔진: tmax 이전)
+    intermediate: missing          # 정량값 사이 BLQ는 결측(인접점 연결)
+    post_tlast: exclude            # 마지막 정량값 이후 BLQ 제외
+    two_consecutive_blq: truncate  # 첫 정량 이후 BLQ 2회 연속이면 그 뒤 정량값은 결측(통계분석계획 관행)
   predose_anchor: true      # (0, 0) 포함(투여 전 기저치는 BLQ → tmax 이전 규칙으로 0)
   lambda_z:
     min_points: 3
@@ -12,12 +14,17 @@ standard:
     exclude_cmax: true
     candidate_windows: "마지막 k점, k = 3..n"
     selection: max_adj_r2
-    tie_tolerance: 0.0001
+    tie_tolerance: 0.0001          # |max adj R² − 창| < 1e-4 (엄격 부등호, NonCompart)
     tie_rule: more_points
+    positive_slope_windows: excluded_before_selection   # NonCompart::Slope (PKNCA는 전체 창 최댓값 기준 후 기울기 검사)
     require_positive: true
   aucinf: "AUClast + Clast_obs / lambda_z"
   extrapolation_pct: "(AUCinf - AUClast) / AUCinf * 100"
-  reliability: {adj_r2_min: 0.80, extrap_max_pct: 20}
+  reliability: {adj_r2_min: 0.80, extrap_max_pct: 20, span_ratio_min: 2}   # 플래그: Rsq_adjusted < 0.80, AUC_%Extrap_obs > 20, span ratio < 2
+  aucinf_rules:
+    A: "플래그(또는 λz 산출 불가) 대상 제외"
+    B: "λz 산출 가능 전원 포함(플래그 후 포함)"
+    C: "플래그 또는 λz 산출 불가 대상은 AUCinf 자리에 AUClast 대입"
   analysis_sets: [all_computable, reliable]
 bemaster_compat:
   # 교차검증 전용(Cmax, AUCt). BEmaster Analysis v2.4.2(브라우저 JS) 검토 결과를 흉내 낸다. BE 판정에는 쓰지 않는다.

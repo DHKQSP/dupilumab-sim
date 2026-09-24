@@ -1,0 +1,62 @@
+- The project is out-of-sync -- use `renv::status()` for details.
+run log: /home/user/dupilumab-sim/logs/nca_engine_validation_20260924T131753.log
+Warning message:
+In as.data.table.list(x, keep.rownames = keep.rownames, check.names = check.names,  :
+  Item 1 has 0 rows but longest item has 1; filled with NA
+ ■■■                                6% |  ETA: 21s
+ ■■■■■■■                           20% |  ETA: 18s
+ ■■■■■■■■■■■                       34% |  ETA: 15s
+ ■■■■■■■■■■■■■■■                   48% |  ETA: 11s
+ ■■■■■■■■■■■■■■■■■■■               61% |  ETA:  8s
+ ■■■■■■■■■■■■■■■■■■■■■■■           74% |  ETA:  6s
+ ■■■■■■■■■■■■■■■■■■■■■■■■■■■       86% |  ETA:  3s
+ ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■   99% |  ETA:  0s
+Warning message:
+In as.data.table.list(x, keep.rownames = keep.rownames, check.names = check.names,  :
+  Item 1 has 0 rows but longest item has 1; filled with NA
+Warning message:
+In as.data.table.list(x, keep.rownames = keep.rownames, check.names = check.names,  :
+  Item 1 has 0 rows but longest item has 1; filled with NA
+       engine   Lambda_z No_points_lambda_z Lambda_z_lower Lambda_z_upper
+1:       자체 0.01831984                  5              4             24
+2: NonCompart 0.01831984                  5              4             24
+3:      PKNCA         NA                 NA             NA             NA
+   Rsq_adjusted
+1:   0.02903744
+2:   0.02903744
+3:           NA
+Warning message:
+In fwrite(mm, file.path(out_dir, "engine_validation_pknca_mismatch.csv")) :
+  Input has no columns; doing nothing.
+If you intended to overwrite the file at /home/user/dupilumab-sim/results/nca_engine/engine_validation_pknca_mismatch.csv with an empty one, please use file.remove first.
+                                          dataset          comparison
+1:                                  Theoph (12명)  자체 vs NonCompart
+2:                                  Theoph (12명) PKNCA vs NonCompart
+3:                                  Theoph (12명)       자체 vs PKNCA
+4:                    Indometh (6명, 혈관외 규칙)  자체 vs NonCompart
+5:                    Indometh (6명, 혈관외 규칙) PKNCA vs NonCompart
+6:                    Indometh (6명, 혈관외 규칙)       자체 vs PKNCA
+7: 두필루맙 모의 1,000개 (2016 500 + Model 1 500)  자체 vs NonCompart
+8: 두필루맙 모의 1,000개 (2016 500 + Model 1 500) PKNCA vs NonCompart
+9: 두필루맙 모의 1,000개 (2016 500 + Model 1 500)       자체 vs PKNCA
+   n_profiles lz_points_identical lz_points_mismatch max_rel_diff na_mismatch
+1:         12                  12                  0 2.600673e-15           0
+2:         12                  12                  0 3.311568e-15           0
+3:         12                  12                  0 3.311568e-15           0
+4:          6                   6                  0 2.010073e-15           0
+5:          6                   6                  0 5.015735e-15           0
+6:          6                   6                  0 4.331771e-15           0
+7:       1000                1000                  0 6.423553e-14           0
+8:       1000                1000                  0 4.940262e-13           0
+9:       1000                1000                  0 4.940262e-13           0
+   pass
+1: TRUE
+2: TRUE
+3: TRUE
+4: TRUE
+5: TRUE
+6: TRUE
+7: TRUE
+8: TRUE
+9: TRUE
+Empty data.table (0 rows and 6 cols): parameter,n_both,n_na_mismatch,max_rel_diff,dataset,comparison

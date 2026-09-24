@@ -1,0 +1,154 @@
+parameter,n_both,n_na_mismatch,max_rel_diff,dataset,comparison
+Cmax,12,0,0,Theoph (12명),자체 vs NonCompart
+Tmax,12,0,0,Theoph (12명),자체 vs NonCompart
+Tlast,12,0,0,Theoph (12명),자체 vs NonCompart
+Clast,12,0,0,Theoph (12명),자체 vs NonCompart
+AUClast,12,0,4.80992805052116e-16,Theoph (12명),자체 vs NonCompart
+Lambda_z,12,0,6.28405626872412e-16,Theoph (12명),자체 vs NonCompart
+HL_Lambda_z,12,0,6.79150735157605e-16,Theoph (12명),자체 vs NonCompart
+Rsq,12,0,1.22287154121971e-15,Theoph (12명),자체 vs NonCompart
+Rsq_adjusted,12,0,1.99840841493581e-15,Theoph (12명),자체 vs NonCompart
+Lambda_z_lower,12,0,0,Theoph (12명),자체 vs NonCompart
+Lambda_z_upper,12,0,0,Theoph (12명),자체 vs NonCompart
+Clast_pred,12,0,8.74545653133437e-16,Theoph (12명),자체 vs NonCompart
+AUCINF_obs,12,0,4.17031882883003e-16,Theoph (12명),자체 vs NonCompart
+AUCINF_pred,12,0,6.2630666020204e-16,Theoph (12명),자체 vs NonCompart
+AUC_%Extrap_obs,12,0,2.60067321404063e-15,Theoph (12명),자체 vs NonCompart
+AUC_%Extrap_pred,12,0,2.22797542675869e-15,Theoph (12명),자체 vs NonCompart
+Span_ratio,12,0,6.21973211450269e-16,Theoph (12명),자체 vs NonCompart
+Cmax,12,0,0,Theoph (12명),PKNCA vs NonCompart
+Tmax,12,0,0,Theoph (12명),PKNCA vs NonCompart
+Tlast,12,0,0,Theoph (12명),PKNCA vs NonCompart
+Clast,12,0,0,Theoph (12명),PKNCA vs NonCompart
+AUClast,12,0,7.41088956731699e-16,Theoph (12명),PKNCA vs NonCompart
+Lambda_z,12,0,1.57516638921908e-15,Theoph (12명),PKNCA vs NonCompart
+HL_Lambda_z,12,0,1.6143756551046e-15,Theoph (12명),PKNCA vs NonCompart
+Rsq,12,0,3.34003657959858e-16,Theoph (12명),PKNCA vs NonCompart
+Rsq_adjusted,12,0,6.66136138311937e-16,Theoph (12명),PKNCA vs NonCompart
+Lambda_z_lower,12,0,0,Theoph (12명),PKNCA vs NonCompart
+Lambda_z_upper,12,0,0,Theoph (12명),PKNCA vs NonCompart
+Clast_pred,12,0,2.34962718100408e-15,Theoph (12명),PKNCA vs NonCompart
+AUCINF_obs,12,0,6.69516955922733e-16,Theoph (12명),PKNCA vs NonCompart
+AUCINF_pred,12,0,1.05791287795637e-15,Theoph (12명),PKNCA vs NonCompart
+AUC_%Extrap_obs,12,0,2.05617815900872e-15,Theoph (12명),PKNCA vs NonCompart
+AUC_%Extrap_pred,12,0,3.31156801162848e-15,Theoph (12명),PKNCA vs NonCompart
+Span_ratio,12,0,1.65859523053405e-15,Theoph (12명),PKNCA vs NonCompart
+Cmax,12,0,0,Theoph (12명),자체 vs PKNCA
+Tmax,12,0,0,Theoph (12명),자체 vs PKNCA
+Tlast,12,0,0,Theoph (12명),자체 vs PKNCA
+Clast,12,0,0,Theoph (12명),자체 vs PKNCA
+AUClast,12,0,6.92309901505105e-16,Theoph (12명),자체 vs PKNCA
+Lambda_z,12,0,1.34639996849494e-15,Theoph (12명),자체 vs PKNCA
+HL_Lambda_z,12,0,1.26792083616772e-15,Theoph (12명),자체 vs PKNCA
+Rsq,12,0,1.11170140110883e-15,Theoph (12명),자체 vs PKNCA
+Rsq_adjusted,12,0,2.0006274832159e-15,Theoph (12명),자체 vs PKNCA
+Lambda_z_lower,12,0,0,Theoph (12명),자체 vs PKNCA
+Lambda_z_upper,12,0,0,Theoph (12명),자체 vs PKNCA
+Clast_pred,12,0,2.16888662861914e-15,Theoph (12명),자체 vs PKNCA
+AUCINF_obs,12,0,6.61204848021925e-16,Theoph (12명),자체 vs PKNCA
+AUCINF_pred,12,0,9.25673768211821e-16,Theoph (12명),자체 vs PKNCA
+AUC_%Extrap_obs,12,0,2.60067321404063e-15,Theoph (12명),자체 vs PKNCA
+AUC_%Extrap_pred,12,0,3.31156801162847e-15,Theoph (12명),자체 vs PKNCA
+Span_ratio,12,0,1.31360035351899e-15,Theoph (12명),자체 vs PKNCA
+Cmax,6,0,0,"Indometh (6명, 혈관외 규칙)",자체 vs NonCompart
+Tmax,6,0,0,"Indometh (6명, 혈관외 규칙)",자체 vs NonCompart
+Tlast,6,0,0,"Indometh (6명, 혈관외 규칙)",자체 vs NonCompart
+Clast,6,0,0,"Indometh (6명, 혈관외 규칙)",자체 vs NonCompart
+AUClast,6,0,3.12594269245889e-16,"Indometh (6명, 혈관외 규칙)",자체 vs NonCompart
+Lambda_z,6,0,5.50924450094281e-16,"Indometh (6명, 혈관외 규칙)",자체 vs NonCompart
+HL_Lambda_z,6,0,5.80999096238883e-16,"Indometh (6명, 혈관외 규칙)",자체 vs NonCompart
+Rsq,6,0,1.28868326738506e-15,"Indometh (6명, 혈관외 규칙)",자체 vs NonCompart
+Rsq_adjusted,6,0,1.53509919451482e-15,"Indometh (6명, 혈관외 규칙)",자체 vs NonCompart
+Lambda_z_lower,6,0,0,"Indometh (6명, 혈관외 규칙)",자체 vs NonCompart
+Lambda_z_upper,6,0,0,"Indometh (6명, 혈관외 규칙)",자체 vs NonCompart
+Clast_pred,6,0,5.20774077740529e-16,"Indometh (6명, 혈관외 규칙)",자체 vs NonCompart
+AUCINF_obs,6,0,2.86888977459325e-16,"Indometh (6명, 혈관외 규칙)",자체 vs NonCompart
+AUCINF_pred,6,0,2.96019378389711e-16,"Indometh (6명, 혈관외 규칙)",자체 vs NonCompart
+AUC_%Extrap_obs,6,0,0,"Indometh (6명, 혈관외 규칙)",자체 vs NonCompart
+AUC_%Extrap_pred,6,0,2.01007284916846e-15,"Indometh (6명, 혈관외 규칙)",자체 vs NonCompart
+Span_ratio,6,0,5.61834268372435e-16,"Indometh (6명, 혈관외 규칙)",자체 vs NonCompart
+Cmax,6,0,0,"Indometh (6명, 혈관외 규칙)",PKNCA vs NonCompart
+Tmax,6,0,0,"Indometh (6명, 혈관외 규칙)",PKNCA vs NonCompart
+Tlast,6,0,0,"Indometh (6명, 혈관외 규칙)",PKNCA vs NonCompart
+Clast,6,0,0,"Indometh (6명, 혈관외 규칙)",PKNCA vs NonCompart
+AUClast,6,0,3.12594269245889e-16,"Indometh (6명, 혈관외 규칙)",PKNCA vs NonCompart
+Lambda_z,6,0,3.15562682419154e-15,"Indometh (6명, 혈관외 규칙)",PKNCA vs NonCompart
+HL_Lambda_z,6,0,3.24587538827439e-15,"Indometh (6명, 혈관외 규칙)",PKNCA vs NonCompart
+Rsq,6,0,5.07051838516552e-16,"Indometh (6명, 혈관외 규칙)",PKNCA vs NonCompart
+Rsq_adjusted,6,0,5.16200146279638e-16,"Indometh (6명, 혈관외 규칙)",PKNCA vs NonCompart
+Lambda_z_lower,6,0,0,"Indometh (6명, 혈관외 규칙)",PKNCA vs NonCompart
+Lambda_z_upper,6,0,0,"Indometh (6명, 혈관외 규칙)",PKNCA vs NonCompart
+Clast_pred,6,0,2.60387038870264e-15,"Indometh (6명, 혈관외 규칙)",PKNCA vs NonCompart
+AUCINF_obs,6,0,4.36412625270996e-16,"Indometh (6명, 혈관외 규칙)",PKNCA vs NonCompart
+AUCINF_pred,6,0,8.72152599118238e-16,"Indometh (6명, 혈관외 규칙)",PKNCA vs NonCompart
+AUC_%Extrap_obs,6,0,3.54880444113715e-15,"Indometh (6명, 혈관외 규칙)",PKNCA vs NonCompart
+AUC_%Extrap_pred,6,0,5.01573484039647e-15,"Indometh (6명, 혈관외 규칙)",PKNCA vs NonCompart
+Span_ratio,6,0,3.24046494235215e-15,"Indometh (6명, 혈관외 규칙)",PKNCA vs NonCompart
+Cmax,6,0,0,"Indometh (6명, 혈관외 규칙)",자체 vs PKNCA
+Tmax,6,0,0,"Indometh (6명, 혈관외 규칙)",자체 vs PKNCA
+Tlast,6,0,0,"Indometh (6명, 혈관외 규칙)",자체 vs PKNCA
+Clast,6,0,0,"Indometh (6명, 혈관외 규칙)",자체 vs PKNCA
+AUClast,6,0,1.81687618533484e-16,"Indometh (6명, 혈관외 규칙)",자체 vs PKNCA
+Lambda_z,6,0,3.3309394255355e-15,"Indometh (6명, 혈관외 규칙)",자체 vs PKNCA
+HL_Lambda_z,6,0,3.2458753882744e-15,"Indometh (6명, 혈관외 규칙)",자체 vs PKNCA
+Rsq,6,0,1.28868326738506e-15,"Indometh (6명, 혈관외 규칙)",자체 vs PKNCA
+Rsq_adjusted,6,0,1.53509919451482e-15,"Indometh (6명, 혈관외 규칙)",자체 vs PKNCA
+Lambda_z_lower,6,0,0,"Indometh (6명, 혈관외 규칙)",자체 vs PKNCA
+Lambda_z_upper,6,0,0,"Indometh (6명, 혈관외 규칙)",자체 vs PKNCA
+Clast_pred,6,0,2.08309631096212e-15,"Indometh (6명, 혈관외 규칙)",자체 vs PKNCA
+AUCINF_obs,6,0,4.36412625270996e-16,"Indometh (6명, 혈관외 규칙)",자체 vs PKNCA
+AUCINF_pred,6,0,6.54114449338679e-16,"Indometh (6명, 혈관외 규칙)",자체 vs PKNCA
+AUC_%Extrap_obs,6,0,3.54880444113714e-15,"Indometh (6명, 혈관외 규칙)",자체 vs PKNCA
+AUC_%Extrap_pred,6,0,4.33177099852425e-15,"Indometh (6명, 혈관외 규칙)",자체 vs PKNCA
+Span_ratio,6,0,3.24046494235214e-15,"Indometh (6명, 혈관외 규칙)",자체 vs PKNCA
+Cmax,1000,0,0,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs NonCompart
+Tmax,1000,0,0,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs NonCompart
+Tlast,1000,0,0,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs NonCompart
+Clast,1000,0,0,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs NonCompart
+AUClast,1000,0,2.63028286290434e-14,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs NonCompart
+Lambda_z,992,0,1.62708366627256e-15,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs NonCompart
+HL_Lambda_z,992,0,1.56286386754762e-15,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs NonCompart
+Rsq,992,0,2.10857359366896e-15,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs NonCompart
+Rsq_adjusted,992,0,3.39554557802526e-15,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs NonCompart
+Lambda_z_lower,992,0,0,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs NonCompart
+Lambda_z_upper,992,0,0,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs NonCompart
+Clast_pred,992,0,3.57202944475113e-15,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs NonCompart
+AUCINF_obs,992,0,2.47039856722647e-14,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs NonCompart
+AUCINF_pred,992,0,2.4154534150824e-14,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs NonCompart
+AUC_%Extrap_obs,992,0,5.16787377743585e-14,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs NonCompart
+AUC_%Extrap_pred,992,0,6.42355290867752e-14,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs NonCompart
+Span_ratio,992,0,1.53465154862256e-15,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs NonCompart
+Cmax,1000,0,0,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",PKNCA vs NonCompart
+Tmax,1000,0,0,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",PKNCA vs NonCompart
+Tlast,1000,0,0,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",PKNCA vs NonCompart
+Clast,1000,0,0,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",PKNCA vs NonCompart
+AUClast,1000,0,6.89167681052954e-14,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",PKNCA vs NonCompart
+Lambda_z,992,0,3.32890673946991e-15,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",PKNCA vs NonCompart
+HL_Lambda_z,992,0,3.33866917558582e-15,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",PKNCA vs NonCompart
+Rsq,992,0,1.81604026889322e-15,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",PKNCA vs NonCompart
+Rsq_adjusted,992,0,1.01687802081341e-14,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",PKNCA vs NonCompart
+Lambda_z_lower,992,0,0,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",PKNCA vs NonCompart
+Lambda_z_upper,992,0,0,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",PKNCA vs NonCompart
+Clast_pred,992,0,8.97906828348798e-15,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",PKNCA vs NonCompart
+AUCINF_obs,992,0,6.5722796938979e-14,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",PKNCA vs NonCompart
+AUCINF_pred,992,0,6.51772830092428e-14,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",PKNCA vs NonCompart
+AUC_%Extrap_obs,992,0,4.94026166636245e-13,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",PKNCA vs NonCompart
+AUC_%Extrap_pred,992,0,3.11312265310995e-13,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",PKNCA vs NonCompart
+Span_ratio,992,0,3.32661513085382e-15,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",PKNCA vs NonCompart
+Cmax,1000,0,0,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs PKNCA
+Tmax,1000,0,0,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs PKNCA
+Tlast,1000,0,0,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs PKNCA
+Clast,1000,0,0,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs PKNCA
+AUClast,1000,0,5.68041240140656e-14,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs PKNCA
+Lambda_z,992,0,3.11776013387113e-15,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs PKNCA
+HL_Lambda_z,992,0,3.2510762445248e-15,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs PKNCA
+Rsq,992,0,1.84907928264632e-15,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs PKNCA
+Rsq_adjusted,992,0,7.62658515610053e-15,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs PKNCA
+Lambda_z_lower,992,0,0,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs PKNCA
+Lambda_z_upper,992,0,0,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs PKNCA
+Clast_pred,992,0,8.9790682834879e-15,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs PKNCA
+AUCINF_obs,992,0,5.41715174769802e-14,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs PKNCA
+AUCINF_pred,992,0,5.37218817530764e-14,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs PKNCA
+AUC_%Extrap_obs,992,0,4.94026166636489e-13,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs PKNCA
+AUC_%Extrap_pred,992,0,3.11312265310898e-13,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs PKNCA
+Span_ratio,992,0,3.2202562450219e-15,"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs PKNCA

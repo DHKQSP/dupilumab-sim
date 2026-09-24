@@ -1,0 +1,10 @@
+dataset,comparison,n_profiles,lz_points_identical,lz_points_mismatch,max_rel_diff,na_mismatch,pass
+Theoph (12명),자체 vs NonCompart,12,12,0,2.60067321404063e-15,0,TRUE
+Theoph (12명),PKNCA vs NonCompart,12,12,0,3.31156801162848e-15,0,TRUE
+Theoph (12명),자체 vs PKNCA,12,12,0,3.31156801162847e-15,0,TRUE
+"Indometh (6명, 혈관외 규칙)",자체 vs NonCompart,6,6,0,2.01007284916846e-15,0,TRUE
+"Indometh (6명, 혈관외 규칙)",PKNCA vs NonCompart,6,6,0,5.01573484039647e-15,0,TRUE
+"Indometh (6명, 혈관외 규칙)",자체 vs PKNCA,6,6,0,4.33177099852425e-15,0,TRUE
+"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs NonCompart,1000,1000,0,6.42355290867752e-14,0,TRUE
+"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",PKNCA vs NonCompart,1000,1000,0,4.94026166636245e-13,0,TRUE
+"두필루맙 모의 1,000개 (2016 500 + Model 1 500)",자체 vs PKNCA,1000,1000,0,4.94026166636489e-13,0,TRUE

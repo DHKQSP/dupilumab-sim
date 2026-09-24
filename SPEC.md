@@ -23,6 +23,8 @@
 |---|---|---|
 | R | 4.3.3 | Ubuntu 24.04 apt |
 | rxode2 | 5.1.7 | CRAN 릴리스(`cran/rxode2@5.1.7` 미러에서 소스 설치, D-001) |
+| NonCompart | 0.8.4 | CRAN 릴리스(`cran/NonCompart@0.8.4` 미러 소스, NCA 참조 구현, D-039) |
+| PKNCA | 0.12.1 | CRAN 릴리스(`cran/PKNCA@0.12.1` 미러 소스, NCA 보조 구현, D-039) |
 | Rcpp / BH / RcppParallel | 1.1.2 / 1.90.0-1 / 6.2.1 | rxode2 5.1.7 빌드 요건 |
 | lotri / dparser / PreciseSums / rxode2ll | 1.0.5 / 1.3.1-13 / 0.7 / 2.0.18 | |
 | renv | 1.2.4 | `renv.lock`. 컨테이너에서는 시스템 라이브러리 우회 설정 사용(D-017, 최종본 전 정리) |
@@ -141,12 +143,16 @@ gate는 **연구 제형**에 한정한다: 300 mg(2 mL of 150 mg/mL), 600 mg(2 x
 
 채혈 허용창(±2 h ≤ Day 1, ±6 h ≤ Day 14, ±1일 이후) `[확정 전 가정]`. 교차검증(§9)은 편차 없이 실행. PD(TARC) Day 0,6,15,22,29,43,57, ADA Day 0,15,29,57, nAb는 ADA 양성 — 범위 밖, config에 기록.
 
-## 6. NCA와 통계 규칙 `[확정]` (지시서 §3, `config/nca_rules.yaml`, D-010)
+## 6. NCA와 통계 규칙 `[확정]` (Phoenix WinNonlin 호환 엔진, 검토 의견 2026-09-24 §1, `config/nca_rules.yaml`, D-039; 이전 D-010)
 
-- **AUClast**: linear-up/log-down. tmax 이전 BLQ = 0, tlast 이후 BLQ 제외, 중간 BLQ = 결측(인접점 연결).
-- **λz**: tmax 이후 정량 가능 3점 이상, Cmax 제외, 후보는 마지막 k점(k ≥ 3), adjusted R² 최대(동률 ±0.0001은 점 수 많은 쪽), λz > 0.
-- **AUCinf** = AUClast + Clast_obs/λz. 외삽률 = (AUCinf − AUClast)/AUCinf.
-- **신뢰 기준**: adjusted R² ≥ 0.80 그리고 외삽 ≤ 20%. 두 분석군(전체 산출 가능, 신뢰 기준 충족) 모두 보고.
+- **엔진**: 자체 구현 `R/nca.R::run_nca`(벡터화). 참조 구현 NonCompart 0.8.4(`sNCA(down = "Log", R2ADJ = 0, excludeDelta = 1)`, BestSlope TOL 1e-4), 보조 PKNCA 0.12.1(`auc.method = "lin up/log down"`, `adj.r.squared.factor = 1e-4`, `min.hl.points = 3`, `allow.tmax.in.half.life = FALSE`). 검증(`scripts/28_nca_engine_validation.R`): Theoph 12명, Indometh 6명(혈관외 규칙), 두필루맙 모의 1,000개에서 세 구현의 λz 선택 점 전부 일치, 파라미터 최대 상대 차이 4.9e-13(기준 1e-6) → 통과.
+- **BLQ 전처리**(Phoenix는 자동 처리하지 않으므로 명시): 첫 정량값 이전 BLQ = 0(투여 전 (0, 0) 포함), 정량값 사이 BLQ = 결측(인접점 연결), 마지막 정량값 이후 BLQ 제외, 첫 정량 이후 BLQ 2회 연속이면 그 뒤 정량값은 결측(통계분석계획 관행).
+- **AUClast**: Linear Up Log Down(농도 감소이고 두 값이 양수인 구간만 로그 사다리꼴), 실제 채혈 시각.
+- **λz Best Fit**: Cmax 이후 양수 농도의 마지막 3, 4, 5, ... 점으로 ln C 비가중 OLS. 기울기 > 0인 창은 선택 전에 제외(NonCompart; PKNCA는 전체 창 최댓값 기준이라 말단 상승 사례에서 λz를 내지 않을 수 있음 — `engine_validation_edge_case.csv`). adjusted R² = 1 − (1 − R²)(n − 1)/(n − 2) 최대, |최대 − 창| < 0.0001이면 점 수가 많은 창. Cmax 이후 양수 농도 3개 미만이거나 기울기가 음이 아니면 산출 불가.
+- **출력(Phoenix 표기)**: Lambda_z, HL_Lambda_z, Rsq, Rsq_adjusted, No_points_lambda_z, Lambda_z_lower, Lambda_z_upper, Clast_pred, AUClast, AUCINF_obs, AUCINF_pred, AUC_%Extrap_obs, AUC_%Extrap_pred, Span_ratio. AUCinf(분석 기본)는 AUCINF_obs.
+- **신뢰 플래그**(통계분석계획 관행, Phoenix 기능 아님): Rsq_adjusted < 0.80, AUC_%Extrap_obs > 20%, span ratio((Lambda_z_upper − Lambda_z_lower)/HL_Lambda_z) < 2. 처리 규칙 세 가지 모두 보고 — A: 플래그(또는 λz 산출 불가) 대상 제외, B: λz 산출 가능 전원 포함, C: 플래그 또는 산출 불가 대상은 AUCinf 자리에 AUClast 대입. 탈락 사유별 비율(중복 포함) 표 제시.
+- **한계**: 실제 시험에서는 약동학 담당자가 λz 점 선택을 검토·수정할 수 있으나 모의에는 반영하지 않았다.
+- 이전 엔진(`run_nca_legacy`, D-010)과의 차이: tmax 이전 BLQ = 0, 2회 연속 BLQ 규칙 없음, 동률 판정 ≤ 1e-4, span 플래그 없음. 차이표 `results/nca_engine/`.
 - **참값**: 모델 진적분 기준 실제 외삽률 = 1 − AUC0-tlast,true/AUC0-inf,true. 비구획 추정 외삽률과의 괴리 자체가 핵심 결과.
 - **통계(D-025)**: 동등성 판정은 평행군 두 표본 pooled t — log 변환 후 자유도 n1+n2−2의 90% CI, 동등성 80.00–125.00%. 민감도 체중 ANCOVA. Cmax, AUClast, AUCinf(전체·신뢰군), 진적분 AUCinf 각각. **대응(paired) 비교는 같은 가상 시험·같은 대상자(공통 난수) 위에서 채혈 일정 간 비교에만 쓰며 동등성 판정에는 쓰지 않는다.**
 - **BEmaster 호환 모드**(선형 사다리꼴, BQL=0, 마지막 3점 λz)는 Cmax·AUCt 교차검증 옵션으로만 유지.

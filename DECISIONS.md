@@ -197,3 +197,11 @@
 - AUC0-inf가 강제될 경우의 대응: 규칙 C(신뢰 기준 미충족 시 AUClast 대입)가 분석군 손실 없이 참값 대비 편향이 가장 작고(Vmax ×1.25 −0.5%, A +2.6%, B +1.9%) AUClast와 판정 일치가 가장 높다(95.4%). 채혈 추가가 아니라 통계분석계획 규칙으로 대응 가능하다는 근거로 기록.
 - 체중 일반화: 150 kg까지 실제 외삽률 중앙값 ≤ 1.8%, 커버리지 80% 미만 ≤ 0.02%(네 모델 변형). 비만 비중이 높은 시험에서 신뢰 기준 탈락자가 잔류자보다 5–6 kg 무겁다 → 신뢰군 AUCinf는 체중에 따른 선택 편향이 있다. AUClast는 전원 분석.
 - CI 폭 확대 원인(§2): 잔차 없는 참 농도에서도 확대가 남아 "tlast 연장에 따른 꼬리 면적 이질성"으로 기재.
+
+## D-039 | 2026-09-24 | NCA 엔진을 Phoenix WinNonlin 호환으로 교체하고 NonCompart·PKNCA로 검증 (검토 의견 §1)
+- 규칙: BLQ 전처리 명시(첫 정량 이전 0, 사이 결측, 이후 제외, 첫 정량 이후 BLQ 2회 연속이면 그 뒤 정량값 결측), Linear Up Log Down, λz Best Fit(Cmax 이후 마지막 3, 4, ... 점, 기울기 > 0 창 제외 후 adjusted R² 최대, |차이| < 1e-4이면 점 수 많은 쪽), Phoenix 표기 출력(Clast_pred, AUCINF_pred, AUC_%Extrap_pred 추가).
+- 패키지: NonCompart 0.8.4(참조), PKNCA 0.12.1(보조)를 GitHub `cran/*` 미러의 릴리스 태그 소스에서 설치(CRAN 차단, D-001과 같은 경로), renv.lock 갱신. NonCompart `sNCA`는 기본 `R2ADJ = 0.7`에서 적합도가 낮으면 대화형 점 선택(DetSlope)을 호출하므로 `R2ADJ = 0`으로 끈다(자동 Best Fit만).
+- 검증 결과: Theoph 12명, Indometh 6명(정맥 자료이나 혈관외 규칙으로 알고리즘 비교), 두필루맙 모의 1,000개(2016 500, Model 1 500; B0, 채혈 허용창·잔차·BLQ) 모두에서 자체 = NonCompart = PKNCA: λz 선택 점 100% 일치, 파라미터 최대 상대 차이 4.9e-13 → 통과. 불일치 없음.
+- 알려진 구현 차이(검증 자료에서는 발생하지 않음): NonCompart는 기울기 > 0 창을 먼저 빼고 최댓값을 고르고, PKNCA는 전체 창의 adj R² 최댓값을 기준으로 삼은 뒤 λz > 0 조건을 건다. 말단 상승 합성 사례에서 PKNCA만 λz를 내지 않는다(`engine_validation_edge_case.csv`). 지시대로 NonCompart를 기준으로 삼는다. 동률 판정은 NonCompart처럼 엄격 부등호(< 1e-4), 이전 엔진은 ≤.
+- 신뢰 플래그에 span ratio < 2를 추가(통계분석계획 관행). reliable = λz 산출 가능 & 플래그 없음. 규칙 A/B/C를 모두 보고.
+- 이전 엔진은 `run_nca_legacy`로 남겨 차이표에만 쓴다. 이후 모든 NCA 의존 산출물은 새 엔진으로 재실행한다.

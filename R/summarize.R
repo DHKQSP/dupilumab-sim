@@ -29,6 +29,9 @@ summarize_individual <- function(nca, by = NULL, last_planned = NULL) {
     tlast_median = as.numeric(median(tlast, na.rm = TRUE)), tlast_p05 = q05(tlast), tlast_p95 = q95(tlast),
     quant_at_last_pct = if (!is.null(last_planned)) 100 * mean(tlast >= last_planned - 1.5, na.rm = TRUE) else NA_real_,
     lambda_ok_pct = 100 * mean(lambda_ok), adj_r2_ge080_pct = 100 * mean(!is.na(adj_r2) & adj_r2 >= 0.80), reliable_pct = 100 * mean(reliable),
+    flag_rsq_pct = if ("flag_rsq" %in% names(.SD)) 100 * mean(flag_rsq %in% TRUE) else NA_real_, flag_extrap_pct = if ("flag_extrap" %in% names(.SD)) 100 * mean(flag_extrap %in% TRUE) else NA_real_,
+    flag_span_pct = if ("flag_span" %in% names(.SD)) 100 * mean(flag_span %in% TRUE) else NA_real_,
+    reliable_no_span_pct = if ("flag_span" %in% names(.SD)) 100 * mean(lambda_ok & !(flag_rsq %in% TRUE) & !(flag_extrap %in% TRUE)) else NA_real_,
     n_lambda_median = as.numeric(median(n_lambda, na.rm = TRUE)), n_lambda_eq3_pct = 100 * mean(n_lambda == 3, na.rm = TRUE),
     extrap_median = median(pct_extrap, na.rm = TRUE), extrap_p95 = q95(pct_extrap), extrap_gt20_pct = 100 * mean(pct_extrap > 20, na.rm = TRUE),
     extrap_true_median = median(pct_extrap_true, na.rm = TRUE), extrap_true_p95 = q95(pct_extrap_true), coverage_lt80_pct = 100 * mean(coverage_true < 0.80, na.rm = TRUE),
@@ -37,7 +40,7 @@ summarize_individual <- function(nca, by = NULL, last_planned = NULL) {
     AUClast_geo = geo_mean(AUClast), AUClast_logcv = log_cv_pct(AUClast), AUClast_mean = mean(AUClast, na.rm = TRUE),
     Cmax_geo = geo_mean(Cmax), Cmax_logcv = log_cv_pct(Cmax), Cmax_mean = mean(Cmax, na.rm = TRUE),
     AUCinf_geo = geo_mean(AUCinf[reliable]), AUCinf_true_geo = geo_mean(AUCinf_true)
-  ), by = by]
+  ), by = by, .SDcols = intersect(c("flag_rsq", "flag_extrap", "flag_span"), names(nca))]
 }
 
 # λz 점 수 분포
