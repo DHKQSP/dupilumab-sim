@@ -1,9 +1,13 @@
 #!/bin/bash
-# 전체 재현 순서(검토 의견 통합본 2026-09-24 기준). CRAN 차단 환경에서는 RENV_CONFIG_EXTERNAL_LIBRARIES 설정 후 실행(README).
-# 4코어 기준 약 5–6시간. 이번 회차의 병렬 드라이버는 scripts/run_round5.sh(같은 스크립트를 두 대기열로 실행).
+# 전체 재현 순서(검토 의견 통합 2026-09-24: Phoenix 호환 NCA 엔진, 절벽 분석, 운용특성 기준). CRAN 차단 환경에서는 RENV_CONFIG_EXTERNAL_LIBRARIES 설정 후 실행(README).
+# 4코어 기준 약 30시간(운용특성 역산·시험 반복·무작위 제품 공간이 대부분). 이번 회차의 병렬 드라이버:
+#   scripts/run_round6_rerun.sh(새 엔진으로 NCA 의존 산출물 재실행), scripts/run_oc_inversion.sh(역산 12건), scripts/run_oc_followup.sh(31→32→33).
 set -e
 cd "$(dirname "$0")/.."
 Rscript scripts/run_tests.R || echo "[경고] 테스트 실패 — logs/tests_*.log 확인. 단계 1 gate 미달이면 config/gate_decision.yaml 참조"
+# NCA 엔진 검증(§1): 자체 엔진 대 NonCompart·PKNCA — Theoph, Indometh, 듀필루맙 1,000명. 교체 전 엔진 산출물 스냅숏은 results/nca_engine/legacy_snapshot/
+Rscript scripts/28_nca_engine_validation.R
+Rscript scripts/29_nca_engine_difference.R
 # 단계 1: gate(연구별 채혈 일정, 내부/외부, 완전 외부 재판정), 진단, 흡수 부록, Li 2020 arm 가정 체중 민감도
 Rscript scripts/02_validate_step1.R
 Rscript scripts/02_validate_step1.R k2020
@@ -27,6 +31,14 @@ Rscript scripts/22_pillar2_curvature.R 4
 Rscript scripts/24_weight_generalization.R
 Rscript scripts/24_weight_generalization.R a nojitter 40-60 60-75 75-90 130-150   # 독립 구현 조건(채혈 편차 없음) 비교용
 for m in a b d; do Rscript scripts/25_weight_trials.R $m 4; done
+# 절벽 채혈 분석(§2): 순간 반감기 < 1일(및 < 2일) 구간, 두 모델 × 체중 밴드, 20,000명, 명목일·허용창
+Rscript scripts/34_cliff_analysis.R
+Rscript scripts/34b_cliff_figures.R
+Rscript scripts/36_cliff_conclusion.R
+# 운용특성(§3–4): 설계는 config/oc_design.yaml(결과 전 커밋). 역산 → 시험 반복 → 무작위 제품 공간 → 요약
+for m in k2016 k2020; do Rscript scripts/30_oc_inversion.R $m prep; done   # 공통 난수 200,000명 대조 참값(results/oc/truth_ref_<model>.rds, 저장소 제외)
+bash scripts/run_oc_inversion.sh
+bash scripts/run_oc_followup.sh
 # 후처리·요약·보고서
 Rscript scripts/14_postprocess.R
 Rscript scripts/26_schedule_extras.R
@@ -35,5 +47,7 @@ Rscript scripts/15_rationale_summary.R
 Rscript scripts/17_literature_table.R
 Rscript scripts/23_fallback_analyses.R
 Rscript scripts/27_reviewer_reference_round5.R
+Rscript scripts/35_engine_difference_trials.R
+Rscript scripts/37_key_numbers_en.R
 Rscript scripts/18_summary_en.R
 Rscript scripts/05_report.R
