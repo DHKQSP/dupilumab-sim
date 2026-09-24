@@ -1,3 +1,3 @@
 model,max_abs_GMR_change_pct,max_abs_pass_change_pp,worst
-k2016,1.17991024840553,0.4,KM10 AUCinf_reliable
-k2020,0.849896567570034,0.4,KM10 AUClast
+k2016,1.44703989398978,0.4,KM10 AUCinf_reliable
+k2020,1.16354175564507,0.8,KM10 AUCinf_reliable
