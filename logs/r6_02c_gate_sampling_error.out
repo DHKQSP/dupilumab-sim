@@ -1,0 +1,40 @@
+          model                        id dose_mg n_obs AUClast_ratio
+ 1:       step1        Cohen2022_200mg_AI     200    62         0.838
+ 2:       step1      Cohen2022_200mg_PFSS     200    63         0.912
+ 3:       step1  PKM14271_200mg_reference     200    19         0.857
+ 4:       step1       PKM14271_200mg_test     200    19         0.818
+ 5:       step1           clot300_chinese     300     8         0.939
+ 6:       step1 clot300_japanese_TDU12265     300     6         1.003
+ 7:       step1   clot300_nonasian_pooled     300    40         1.040
+ 8:       step1           clot600_chinese     600     8         0.976
+ 9:       step1          clot600_japanese     600    NA         1.068
+10: step1_k2020        Cohen2022_200mg_AI     200    62         0.921
+11: step1_k2020      Cohen2022_200mg_PFSS     200    63         1.003
+12: step1_k2020  PKM14271_200mg_reference     200    19         0.943
+13: step1_k2020       PKM14271_200mg_test     200    19         0.900
+14: step1_k2020           clot300_chinese     300     8         1.015
+15: step1_k2020 clot300_japanese_TDU12265     300     6         1.083
+16: step1_k2020   clot300_nonasian_pooled     300    40         1.128
+17: step1_k2020           clot600_chinese     600     8         1.035
+18: step1_k2020          clot600_japanese     600    NA         1.131
+    se_obs_pct       z pass_mean
+ 1:       4.82 -3.3704        NA
+ 2:       5.37 -1.6346        NA
+ 3:       9.38 -1.5244        NA
+ 4:       8.66 -2.0995        NA
+ 5:      14.55 -0.4201      TRUE
+ 6:      13.65  0.0217      TRUE
+ 7:       6.34  0.6348      TRUE
+ 8:       8.16 -0.2953      TRUE
+ 9:         NA      NA      TRUE
+10:       4.82 -1.6470        NA
+11:       5.37  0.0581        NA
+12:       9.38 -0.6069        NA
+13:       8.66 -1.1600        NA
+14:      14.55  0.1062      TRUE
+15:      13.65  0.6117      TRUE
+16:       6.34  2.0226      TRUE
+17:       8.16  0.4233      TRUE
+18:         NA      NA      TRUE
+
+관측 200/300 mg AUClast/mg 비 0.935, 근사 95% 구간 [0.757, 1.154] (두 연구 평균의 표본오차만 반영)

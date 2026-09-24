@@ -2,13 +2,27 @@
 
 Generated 2026-09-24 from repository results (branch claude/epic-bardeen-axbreo). Every number below is read from the result files used by the full report.
 
-Abbreviations: area under the concentration-time curve to the last quantifiable concentration (AUClast), to infinity (AUCinf); maximum concentration (Cmax); non-compartmental analysis (NCA); geometric mean ratio (GMR); confidence interval (CI); lower limit of quantification (LLOQ, 0.078 mg/L); inter-individual variability (IIV); target-mediated drug disposition (TMDD); Michaelis-Menten (MM); Monte Carlo (MC); body mass index (BMI).
+Abbreviations: area under the concentration-time curve to the last quantifiable concentration (AUClast), to infinity (AUCinf); maximum concentration (Cmax); non-compartmental analysis (NCA); geometric mean ratio (GMR); confidence interval (CI); lower limit of quantification (LLOQ, 0.078 mg/L); inter-individual variability (IIV); target-mediated drug disposition (TMDD); Michaelis-Menten (MM); Monte Carlo (MC); body mass index (BMI); operating characteristic (OC); terminal elimination rate constant (lambda-z); common random numbers (CRN).
 
 Models: primary model Kovalenko et al. 2016 (CPT Pharmacometrics Syst Pharmacol 5:617, Table 2, BLQ-included column): two-compartment, first-order absorption, parallel linear and MM elimination, Km fixed at 0.01 mg/L, central volume scaled by (weight/75)^0.705. Sensitivity model Kovalenko et al. 2020 Model 1 (Clin Pharmacol Drug Dev 9:756, Table 1 and Supplementary Table 2): transit absorption (3 compartments, mean transit time 0.105 day), its own IIV and residual error (proportional 15.0%, additive 0.03 mg/L).
 
 Scenario codes (test arm only unless stated; reference arm shared through common random numbers): S00 identical products; F085, F090, F097, F110 bioavailability x0.85, x0.90, x0.97, x1.10; KE110, KE120 linear elimination rate constant (ke) x1.10, x1.20; VM080, VM125, VM150 maximum MM elimination rate (Vmax) x0.80, x1.25, x1.50; KM05, KM2, KM5, KM10 MM constant (Km) x0.5, x2, x5, x10; KA075 absorption rate constant x0.75. Sampling schedules: B0 Syneos baseline; D1 to D4 add two to four samples between Day 32 and Day 53 (D1: Days 39, 46; D2: Days 39, 46, 53; D3: Days 32, 39, 46, 53; D4: Days 40, 47); B- removes Day 50.
 
 Study design simulated: 300 mg single subcutaneous dose (2 mL of 150 mg/mL), parallel groups, 117 evaluable subjects per arm, body weight 60 to 90 kg, Syneos sampling schedule (B0: Days 1, 2, 4, 6, 8, 11, 15, 22, 29, 36, 43, 50, 57). Equivalence: two one-sided tests via the 90% CI of the GMR from a pooled two-sample t on log scale, limits 80.00% to 125.00%.
+
+## Key conclusion: sampling on the terminal cliff
+
+The cliff (instantaneous half-life below 1 day until the true concentration reaches the LLOQ) lasts a median 1.38 days (5th to 95th percentile 1.33 to 1.43) with the 1-day definition and 2.94 days (2.86 to 3.09) with the 2-day definition (2016 model, 60 to 90 kg, 20,000 subjects; Model 1 1.38 and 2.94 days). It is shorter than the minimum visit interval after Day 22 of any added-sampling schedule (3 days) in 100.0% (1-day) and 79.7% (2-day) of subjects.
+At nominal sampling days, the share of subjects with two or more samples in the cliff under a fixed schedule is 0.0% with the 1-day definition (structurally impossible) and at most 0.1% with the 2-day definition. With visit windows of plus or minus 1 day it is at most 0.0% (1-day) and 4.5% (2-day).
+Three points, the minimum for lambda-z, occur in 0.0% of subjects even with daily sampling from Day 29 to Day 57 (1-day definition, nominal days; 7.7% with visit windows). Even if lambda-z were estimated on the cliff, the instantaneous half-life is close to zero, so the extrapolated area tends to zero and AUCinf tends to AUClast.
+With daily sampling from Day 29 to Day 57, 89.2% of all subjects and 100.0% of subjects whose cliff lies within Day 29 to Day 57 have at least one sample in the cliff (2016 model, 1-day definition); the difference comes from cliffs starting before Day 29 (13.2%) or ending after Day 57 (3.0%).
+
+## NCA engine: Phoenix WinNonlin-compatible rules
+
+Rules: BLQ handled explicitly before NCA (zero before the first quantifiable value, missing between quantifiable values, excluded after the last one, and quantifiable values after two consecutive BLQ set to missing); linear-up log-down AUC; lambda-z Best Fit (last 3, 4, 5, ... positive concentrations after Cmax, windows with positive slope excluded, largest adjusted R-squared, ties within 0.0001 resolved to more points). Reliability flags (statistical analysis plan convention, not a Phoenix feature): adjusted R-squared below 0.80, extrapolated AUC above 20%, span ratio below 2. AUCinf handling rules: A excludes flagged subjects, B includes all subjects with lambda-z, C substitutes AUClast for flagged subjects.
+Validation against the reference implementation NonCompart 0.8.4 and PKNCA 0.12.1 on Theoph (12 profiles), Indometh (6) and 1,000 simulated dupilumab profiles: lambda-z points identical in every profile and every pair of implementations; largest relative difference in any parameter 4.9e-13 (criterion 1e-6).
+
+Subjects failing the reliability criteria at B0 (20,000 per model, flags overlap): 16.4% to 19.7% in total; lambda-z not estimable 0.6% to 1.3%, adjusted R-squared below 0.80 7.4% to 11.7%, extrapolation above 20% 0.8% to 1.2%, span ratio below 2 8.5% to 9.2% (two-model ranges).
 
 ## 1. Model qualification
 
@@ -114,7 +128,7 @@ Model 1 (500 trials per scenario; mean GMR only, proportions are reported in the
 
 Largest rate of AUClast pass with AUCinf fail: 6.14 (5.51 to 6.84)% in scenario KE120 (true AUCinf ratio 0.905, inside 80% to 125%, so these are false negatives of AUCinf).
 
-Consumer risk (true AUCinf ratio outside the limits):
+Preliminary exploration only (arbitrary multipliers; the out-of-range judgement is superseded by the pre-specified operating-characteristic analysis below):
 
 | Scenario | True ratio | Trials | Pass AUClast and Cmax (%) | Pass all three (%) | Only AUCinf fails (%) |
 |---|---|---|---|---|---|
@@ -220,8 +234,8 @@ Pre-specified rule, versus B0: recommend added sampling if at least one holds: (
 
 | Variant | Rule result | D3: AUClast CI width change (%, positive = wider) | D3: reliability gain (pp) | D3: extrapolation >20% ratio, 20,000 subjects | D3: same ratio, 200,000 subjects | Final recommendation |
 |---|---|---|---|---|---|---|
-| 2016 (primary) | no schedule meets any criterion | 0.06 (0.03 to 0.09) | 2.89 | 0.59 (0.52 to 0.66) | 0.59 (0.57 to 0.62), 0.53 fewer subjects per arm; not met (interval above 0.5) | B0 |
-| Model 1 | no schedule meets any criterion | -0.11 (-0.13 to -0.08) | 1.30 | 0.67 (0.60 to 0.75) | 0.71 (0.68 to 0.73), 0.27 fewer subjects per arm; not met (interval above 0.5) | B0 |
+| 2016 (primary) | no schedule meets any criterion | 0.13 (0.10 to 0.16) | 2.89 | 0.59 (0.52 to 0.66) | 0.59 (0.57 to 0.62), 0.53 fewer subjects per arm; not met (interval above 0.5) | B0 |
+| Model 1 | no schedule meets any criterion | -0.06 (-0.08 to -0.04) | -1.94 | 0.69 (0.61 to 0.76) | 0.71 (0.68 to 0.73), 0.27 fewer subjects per arm; not met (interval above 0.5) | B0 |
 | Vmax x0.8 (both arms) | D3 by criterion d only | -0.40 (-0.43 to -0.36) | 2.69 | 0.48 (0.36 to 0.61) | 0.59 (0.55 to 0.62), 0.23 fewer subjects per arm; not met (interval above 0.5) | B0 (conclusion unchanged) |
 | Vmax x1.25 (both arms) | no schedule meets any criterion | 0.49 (0.47 to 0.51) | 2.77 | 0.77 (0.74 to 0.81) | not re-evaluated | B0 |
 
@@ -239,4 +253,6 @@ Rationale: at the pre-specified 20,000-subject level, criterion (d) alone was me
 - The AUCinf reliability rate and the share with NCA extrapolation above 20% depend on the residual error model and are reported as two-model ranges.
 - Placeholders not yet confirmed: Day 1 post-dose sampling time (0.25 day), weight distribution and stratification split, sampling windows, BMI reference of 26, body weights of the Li 2020 single-arm studies.
 - Development-data body weight ranges are not reported; results above 130 kg are extrapolations.
+- Only the automatic lambda-z Best Fit is simulated; in a real study a pharmacokineticist may review and adjust the lambda-z points.
+- In the random product space the truth of each product is computed from 1,000 common virtual subjects (not 200,000) for computational reasons, as pre-specified; the Monte Carlo standard error of each product's truth is reported.
 
