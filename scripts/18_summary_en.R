@@ -14,10 +14,31 @@ gate <- read_cfg("gate_decision.yaml"); sdec <- read_cfg("schedule_decision.yaml
 
 add("# Dupilumab biosimilar Phase 1 pharmacokinetic simulation: summary for regulatory briefing", "",
     sprintf("Generated %s from repository results (branch claude/epic-bardeen-axbreo). Every number below is read from the result files used by the full report.", format(Sys.Date())), "",
-    "Abbreviations: area under the concentration-time curve to the last quantifiable concentration (AUClast), to infinity (AUCinf); maximum concentration (Cmax); non-compartmental analysis (NCA); geometric mean ratio (GMR); confidence interval (CI); lower limit of quantification (LLOQ, 0.078 mg/L); inter-individual variability (IIV); target-mediated drug disposition (TMDD); Michaelis-Menten (MM); Monte Carlo (MC); body mass index (BMI).", "",
+    "Abbreviations: area under the concentration-time curve to the last quantifiable concentration (AUClast), to infinity (AUCinf); maximum concentration (Cmax); non-compartmental analysis (NCA); geometric mean ratio (GMR); confidence interval (CI); lower limit of quantification (LLOQ, 0.078 mg/L); inter-individual variability (IIV); target-mediated drug disposition (TMDD); Michaelis-Menten (MM); Monte Carlo (MC); body mass index (BMI); operating characteristic (OC); terminal elimination rate constant (lambda-z); common random numbers (CRN).", "",
     "Models: primary model Kovalenko et al. 2016 (CPT Pharmacometrics Syst Pharmacol 5:617, Table 2, BLQ-included column): two-compartment, first-order absorption, parallel linear and MM elimination, Km fixed at 0.01 mg/L, central volume scaled by (weight/75)^0.705. Sensitivity model Kovalenko et al. 2020 Model 1 (Clin Pharmacol Drug Dev 9:756, Table 1 and Supplementary Table 2): transit absorption (3 compartments, mean transit time 0.105 day), its own IIV and residual error (proportional 15.0%, additive 0.03 mg/L).", "",
     "Scenario codes (test arm only unless stated; reference arm shared through common random numbers): S00 identical products; F085, F090, F097, F110 bioavailability x0.85, x0.90, x0.97, x1.10; KE110, KE120 linear elimination rate constant (ke) x1.10, x1.20; VM080, VM125, VM150 maximum MM elimination rate (Vmax) x0.80, x1.25, x1.50; KM05, KM2, KM5, KM10 MM constant (Km) x0.5, x2, x5, x10; KA075 absorption rate constant x0.75. Sampling schedules: B0 Syneos baseline; D1 to D4 add two to four samples between Day 32 and Day 53 (D1: Days 39, 46; D2: Days 39, 46, 53; D3: Days 32, 39, 46, 53; D4: Days 40, 47); B- removes Day 50.", "",
     "Study design simulated: 300 mg single subcutaneous dose (2 mL of 150 mg/mL), parallel groups, 117 evaluable subjects per arm, body weight 60 to 90 kg, Syneos sampling schedule (B0: Days 1, 2, 4, 6, 8, 11, 15, 22, 29, 36, 43, 50, 57). Equivalence: two one-sided tests via the 90% CI of the GMR from a pooled two-sample t on log scale, limits 80.00% to 125.00%.", "")
+
+# 0. Key conclusions: operating characteristics (pre-specified design) and the sampling cliff
+ocen <- proj_path("results", "oc", "oc_conclusion_en.md"); clen <- proj_path("results", "cliff", "cliff_conclusion_en.md"); pr <- R("oc", "prereg.csv")
+if (file.exists(ocen)) add("## Key conclusion: operating characteristics of the co-primary endpoint configurations", "",
+  sprintf("Design fixed before any result in config/oc_design.yaml (commit %s%s). Truth is the population GMR of model-integrated AUC0-inf (no residual error; the same 200,000 virtual subjects receive both products, CRN), not AUClast; the true Cmax ratio is reported alongside. Configurations: P2 = AUClast + Cmax (proposed); F3-A, F3-B, F3-C = P2 + AUCinf under handling rule A, B or C; G2 = AUCinf (rule A) + Cmax (guideline default). Mechanisms F, ka, ke, Vmax, Km and peripheral volume V2 in both directions, with multipliers inverted by bisection to target true AUC0-inf ratios 0.70 to 1.43.",
+          if (!is.null(pr)) substr(pr$prereg_commit, 1, 7) else "not found", if (!is.null(pr) && isTRUE(pr$changed_since)) ", changed since" else ", unchanged since"), "",
+  readLines(ocen, warn = FALSE), "")
+if (file.exists(clen)) add("## Key conclusion: sampling on the terminal cliff", "", readLines(clen, warn = FALSE), "")
+
+# 0b. NCA engine
+ev <- R("nca_engine", "engine_validation_summary.csv"); dr <- R("nca_engine", "dropout_reasons_B0.csv"); edif <- R("nca_engine", "engine_difference_individual_B0.csv")
+if (!is.null(ev)) {
+  add("## NCA engine: Phoenix WinNonlin-compatible rules", "",
+      "Rules: BLQ handled explicitly before NCA (zero before the first quantifiable value, missing between quantifiable values, excluded after the last one, and quantifiable values after two consecutive BLQ set to missing); linear-up log-down AUC; lambda-z Best Fit (last 3, 4, 5, ... positive concentrations after Cmax, windows with positive slope excluded, largest adjusted R-squared, ties within 0.0001 resolved to more points). Reliability flags (statistical analysis plan convention, not a Phoenix feature): adjusted R-squared below 0.80, extrapolated AUC above 20%, span ratio below 2. AUCinf handling rules: A excludes flagged subjects, B includes all subjects with lambda-z, C substitutes AUClast for flagged subjects.",
+      sprintf("Validation against the reference implementation NonCompart 0.8.4 and PKNCA 0.12.1 on Theoph (12 profiles), Indometh (6) and %s simulated dupilumab profiles: lambda-z points identical in every profile and every pair of implementations; largest relative difference in any parameter %s (criterion 1e-6).",
+              format(max(ev$n_profiles), big.mark = ","), formatC(max(ev$max_rel_diff), format = "e", digits = 1)), "")
+  if (!is.null(dr)) { x <- dr[model %in% c("base", "struct2020")]
+    add(sprintf("Subjects failing the reliability criteria at B0 (20,000 per model, flags overlap): %s%% to %s%% in total; lambda-z not estimable %s%% to %s%%, adjusted R-squared below 0.80 %s%% to %s%%, extrapolation above 20%% %s%% to %s%%, span ratio below 2 %s%% to %s%% (two-model ranges).",
+                f1(min(x$any_flag_or_fail_pct)), f1(max(x$any_flag_or_fail_pct)), f1(min(x$lambda_fail_pct)), f1(max(x$lambda_fail_pct)), f1(min(x$flag_rsq_pct)), f1(max(x$flag_rsq_pct)),
+                f1(min(x$flag_extrap_pct)), f1(max(x$flag_extrap_pct)), f1(min(x$flag_span_pct)), f1(max(x$flag_span_pct))), "") }
+}
 
 # 1. Model qualification
 add("## 1. Model qualification", "",
@@ -116,7 +137,7 @@ if (!is.null(p2)) {
 fb <- R("fallback", "discordance_classification.csv"); cr <- R("fallback", "consumer_risk.csv"); fc <- R("fallback", "fallback_cost.csv"); rr <- R("fallback", "aucinf_rules.csv")
 if (!is.null(fb)) { top <- fb[which.max(last_pass_inf_fail)]
   add(sprintf("Largest rate of AUClast pass with AUCinf fail: %s%% in scenario %s (true AUCinf ratio %s, inside 80%% to 125%%, so these are false negatives of AUCinf).", ci(top$last_pass_inf_fail, top$last_pass_inf_fail_lo, top$last_pass_inf_fail_hi, 2), top$scenario, f3(top$true_ratio)), "") }
-if (!is.null(cr) && nrow(cr)) add("Consumer risk (true AUCinf ratio outside the limits):", "",
+if (!is.null(cr) && nrow(cr)) add("Preliminary exploration only (arbitrary multipliers; the out-of-range judgement is superseded by the pre-specified operating-characteristic analysis below):", "",
   md_table(cr[, .(Scenario = scenario, `True ratio` = f3(true_ratio), Trials = n_trials, `Pass AUClast and Cmax (%)` = ci(joint_last_cmax, joint_last_cmax_lo, joint_last_cmax_hi, 2),
                   `Pass all three (%)` = ci(joint_3, joint_3_lo, joint_3_hi, 2), `Only AUCinf fails (%)` = ci(only_inf_fails, only_inf_fails_lo, only_inf_fails_hi, 2))]))
 if (!is.null(fc)) add("Cost of a three-endpoint fallback (joint pass rates, >= 5,000 trials):", "",
@@ -138,6 +159,32 @@ if (!is.null(sd) && !is.null(pw)) {
   add(sprintf("- Empirical power with 117 per arm (2016 model, %s trials): identical products %s%% for AUClast and Cmax jointly and %s%% with AUCinf (reliable set) added; test bioavailability x0.97 (true AUC ratio about 0.95) %s%% and %s%%.",
               format(x$n_trials[1], big.mark = ","), ci(x[scenario == "S00", power_last_cmax], x[scenario == "S00", lo], x[scenario == "S00", hi]), ci(x[scenario == "S00", power_3], x[scenario == "S00", lo3], x[scenario == "S00", hi3]),
               ci(x[scenario == "F097", power_last_cmax], x[scenario == "F097", lo], x[scenario == "F097", hi]), ci(x[scenario == "F097", power_3], x[scenario == "F097", lo3], x[scenario == "F097", hi3])), "")
+}
+
+# OC detail
+bt <- R("oc", "boundary_type1.csv"); ivv <- R("oc", "inversion_all.csv"); rk <- R("oc", "random_space_risks.csv"); pw_oc <- R("oc", "power.csv")
+if (!is.null(bt)) {
+  ml <- c(k2016 = "2016", k2020 = "Model 1")
+  add("## Operating characteristics: boundary type I error (true AUC0-inf ratio 0.80 or 1.25, 10,000 trials each)", "",
+      md_table(dcast(bt[config %in% c("P2", "F3A", "F3C", "G2")], model + mechanism + direction + target + auc_ratio + cmax_ratio ~ config, value.var = "pass_pct")[
+        , .(Model = ml[model], Mechanism = mechanism, Direction = direction, `Target` = f2(target), `True AUC0-inf ratio` = f3(auc_ratio), `True Cmax ratio` = f3(cmax_ratio),
+            `P2 (%)` = f2(P2), `F3-A (%)` = f2(F3A), `F3-C (%)` = f2(F3C), `G2 (%)` = f2(G2))]),
+      "Wilson 95% intervals are in the full report (Appendix B); each rate is based on 10,000 trials.", "")
+}
+if (!is.null(ivv)) {
+  x <- ivv[abs(target - 0.8) < 1e-9 | abs(target - 1.25) < 1e-9]
+  add("Multipliers required to reach the boundaries (200,000 subjects, CRN; unreachable means the end of the search range does not reach the target):", "",
+      md_table(x[, .(Model = c(k2016 = "2016", k2020 = "Model 1")[model], Mechanism = mechanism, Direction = direction, Target = f2(target),
+                     Multiplier = ifelse(reachable, formatC(multiplier, format = "g", digits = 4), "unreachable"),
+                     `True Cmax ratio` = ifelse(reachable, f3(cmax_ratio), ""), `Range-end AUC0-inf ratio` = ifelse(reachable, "", f3(end_auc_ratio)))]))
+}
+if (!is.null(rk)) {
+  x <- rk[config %in% c("P2", "F3A", "F3C", "G2") & truth == "AUC0-inf"]
+  x[, metric_en := fifelse(startsWith(metric, "소비자"), "Consumer risk (pass when truth outside)", "Producer risk (fail when truth inside)")]
+  x[, scope_en := fifelse(scope == "전체", "all", "near boundary")]
+  add("Random product space (Latin hypercube, 20,000 products, log-uniform multipliers of all six mechanisms, one trial per product; truth from 1,000 CRN subjects per product):", "",
+      md_table(x[, .(Model = c(k2016 = "2016", k2020 = "Model 1")[model], Configuration = c(P2 = "P2", F3A = "F3-A", F3C = "F3-C", G2 = "G2")[config], Metric = metric_en, Scope = scope_en,
+                     `Rate (%)` = ci(pct, lo, hi, 2), Products = n_products)]))
 }
 
 # 4. Pillar 3
@@ -217,7 +264,9 @@ add("## 8. Limitations", "",
     "- Km is fixed at 0.01 mg/L in both models; with no uncertainty or IIV on Km, terminal-phase variability may be underestimated. Km and Vmax sensitivity analyses address this.",
     "- The AUCinf reliability rate and the share with NCA extrapolation above 20% depend on the residual error model and are reported as two-model ranges.",
     "- Placeholders not yet confirmed: Day 1 post-dose sampling time (0.25 day), weight distribution and stratification split, sampling windows, BMI reference of 26, body weights of the Li 2020 single-arm studies.",
-    "- Development-data body weight ranges are not reported; results above 130 kg are extrapolations.", "")
+    "- Development-data body weight ranges are not reported; results above 130 kg are extrapolations.",
+    "- Only the automatic lambda-z Best Fit is simulated; in a real study a pharmacokineticist may review and adjust the lambda-z points.",
+    "- In the random product space the truth of each product is computed from 1,000 common virtual subjects (not 200,000) for computational reasons, as pre-specified; the Monte Carlo standard error of each product's truth is reported.", "")
 txt <- paste(out, collapse = "\n")
 if (grepl("—", txt)) stop("summary_en.md contains an em-dash")
 if (grepl("[가-힣]", txt)) { bad <- regmatches(txt, gregexpr("[^\n]*[가-힣][^\n]*", txt))[[1]]; stop("summary_en.md contains Korean text: ", paste(head(bad, 3), collapse = " || ")) }
