@@ -16,6 +16,7 @@ add("# Dupilumab biosimilar Phase 1 pharmacokinetic simulation: summary for regu
     sprintf("Generated %s from repository results (branch claude/epic-bardeen-axbreo). Every number below is read from the result files used by the full report.", format(Sys.Date())), "",
     "Abbreviations: area under the concentration-time curve to the last quantifiable concentration (AUClast), to infinity (AUCinf); maximum concentration (Cmax); non-compartmental analysis (NCA); geometric mean ratio (GMR); confidence interval (CI); lower limit of quantification (LLOQ, 0.078 mg/L); inter-individual variability (IIV); target-mediated drug disposition (TMDD); Michaelis-Menten (MM); Monte Carlo (MC); body mass index (BMI).", "",
     "Models: primary model Kovalenko et al. 2016 (CPT Pharmacometrics Syst Pharmacol 5:617, Table 2, BLQ-included column): two-compartment, first-order absorption, parallel linear and MM elimination, Km fixed at 0.01 mg/L, central volume scaled by (weight/75)^0.705. Sensitivity model Kovalenko et al. 2020 Model 1 (Clin Pharmacol Drug Dev 9:756, Table 1 and Supplementary Table 2): transit absorption (3 compartments, mean transit time 0.105 day), its own IIV and residual error (proportional 15.0%, additive 0.03 mg/L).", "",
+    "Scenario codes (test arm only unless stated; reference arm shared through common random numbers): S00 identical products; F085, F090, F097, F110 bioavailability x0.85, x0.90, x0.97, x1.10; KE110, KE120 linear elimination rate constant (ke) x1.10, x1.20; VM080, VM125, VM150 maximum MM elimination rate (Vmax) x0.80, x1.25, x1.50; KM05, KM2, KM5, KM10 MM constant (Km) x0.5, x2, x5, x10; KA075 absorption rate constant x0.75. Sampling schedules: B0 Syneos baseline; D1 to D4 add two to four samples between Day 32 and Day 53 (D1: Days 39, 46; D2: Days 39, 46, 53; D3: Days 32, 39, 46, 53; D4: Days 40, 47); B- removes Day 50.", "",
     "Study design simulated: 300 mg single subcutaneous dose (2 mL of 150 mg/mL), parallel groups, 117 evaluable subjects per arm, body weight 60 to 90 kg, Syneos sampling schedule (B0: Days 1, 2, 4, 6, 8, 11, 15, 22, 29, 36, 43, 50, 57). Equivalence: two one-sided tests via the 90% CI of the GMR from a pooled two-sample t on log scale, limits 80.00% to 125.00%.", "")
 
 # 1. Model qualification
@@ -54,7 +55,14 @@ if (!is.null(ab)) {
               f2(so[1, ratio_per_mg]), f2(so[2, ratio_per_mg]), f2(sh[ka_multiplier == 1, ratio_per_mg]), f2(sh[ka_multiplier == 1.5, ratio_per_mg]), f2(sh[ka_multiplier == 2, ratio_per_mg])), "")
 }
 xv <- R("crossval", "crossval_model1.csv")
-if (!is.null(xv)) add(sprintf("Cross-validation against an independent implementation (first-order absorption approximation of Model 1, 20,000 subjects): %d of %d comparable metrics within 3%%.", sum(xv$agree_3pct %in% TRUE), sum(!is.na(xv$agree_3pct))), "")
+if (!is.null(xv)) { off <- xv[agree_3pct %in% FALSE]
+  add(sprintf("Cross-validation of Model 1 against an independent implementation (first-order absorption approximation of the transit model, 20,000 subjects, acceptance within 3%%): %d of %d metrics within 3%%; the %d others are small percentages with absolute differences of %s to %s percentage points (%s).",
+              sum(xv$agree_3pct %in% TRUE), sum(!is.na(xv$agree_3pct)), nrow(off), f2(min(abs(off$sim - off$ref))), f2(max(abs(off$sim - off$ref))),
+              paste(c(extrap_gt20_pct = "share with NCA extrapolation above 20%", extrap_nca_median = "median NCA extrapolation", extrap_true_median = "median true extrapolation")[off$metric], collapse = ", ")), "") }
+rf <- R("crossval", "reviewer_reference_round5.csv")
+if (!is.null(rf)) { m <- rf[note == "" & !is.na(rel_diff_pct)]; p95 <- rf[metric == "extrap_true_p95" & !is.na(sim_20000_nojitter)]
+  add(sprintf("Curve-shape and weight-band results were compared with the reviewer's independent implementation (8,000 subjects per condition): %d of %d non-rare metrics within 10%%. The 95th percentile of true extrapolation is higher here because sampling-time windows are simulated; without them the same subjects give %s%% to %s%% relative to the reference.",
+              sum(abs(m$rel_diff_pct) <= 10), nrow(m), f1(min(100 * (p95$sim_20000_nojitter / p95$ref_8000 - 1))), f1(max(100 * (p95$sim_20000_nojitter / p95$ref_8000 - 1)))), "") }
 
 # 2. Pillar 1
 add("## 2. Pillar 1: coverage of total exposure by AUClast (B0, 60 to 90 kg, 20,000 virtual subjects per model)", "")
@@ -88,13 +96,26 @@ if (!is.null(p2)) {
                      `Pass AUClast (%)` = ci(pass_rate_AUClast, pass_lo_AUClast, pass_hi_AUClast), `Pass AUCinf reliable (%)` = ci(pass_rate_AUCinf_reliable, pass_lo_AUCinf_reliable, pass_hi_AUCinf_reliable),
                      `Pass Cmax (%)` = ci(pass_rate_Cmax, pass_lo_Cmax, pass_hi_Cmax), `Agreement (%)` = ci(agree, agree_lo, agree_hi), `AUClast pass, AUCinf fail (%)` = ci(last_pass_inf_fail, last_pass_inf_fail_lo, last_pass_inf_fail_hi, 2),
                      `log GMR correlation` = f3(cor_logGMR_last_infrel))]))
+  pr <- R("trials5000", "products5000_props_base.csv"); mc <- R("trials5000", "mc_consistency_500_vs_5000.csv"); idt <- R("trials5000", "mc_consistency_identity.csv")
+  if (!is.null(pr)) { reps <- unique(pr[, .(scenario, n_trials)]); esc <- reps[n_trials > 5000 & scenario != "S00"]
+    pr[, target := fifelse(est <= 10 | est >= 90, 1, 1.5)]; miss <- pr[(hi - lo) / 2 > target]
+    open_thr <- pr[scenario %in% esc$scenario & ((lo <= 90 & hi >= 90) | (lo <= 5 & hi >= 5))]
+    add(sprintf("Monte Carlo precision: %s (95%% interval half-width at most 1 percentage point below 10%% or above 90%%, at most 1.5 points otherwise; largest half-width here %s points). Adaptive escalation: %s extended to %s trials because an interval included the 90%% or 5%% threshold at 5,000 and 10,000 trials (identical products run in the same batches for paired comparison)%s.%s",
+                if (nrow(miss)) sprintf("%d proportions miss the pre-set precision (%s)", nrow(miss), paste(miss$scenario, miss$metric, collapse = "; ")) else "every cited proportion meets the pre-set precision",
+                f2(max((pr$hi - pr$lo) / 2)), paste(esc$scenario, collapse = " and "), format(max(esc$n_trials), big.mark = ","),
+                if (nrow(open_thr)) sprintf("; at the cap, %s", paste(sprintf("%s %s %s%% (%s to %s) still includes the threshold", open_thr$scenario, open_thr$metric, f1(open_thr$est), f1(open_thr$lo), f1(open_thr$hi)), collapse = "; ")) else "",
+                if (!is.null(mc) && !is.null(idt)) sprintf(" Trials 1 to 500 reproduce the earlier 500-trial run exactly (maximum difference %s); the 500-trial estimates differ from the independent later trials beyond MC error in %d of %d comparisons.", format(idt$max_abs_diff), sum(mc$outside_mc), nrow(mc)) else ""), "") }
+  pc <- R("pillar2_curvature", "pillar2_vmax080_per_endpoint.csv")
+  if (!is.null(pc)) { x <- dcast(pc[endpoint %in% c("AUClast", "AUCinf_true", "AUCinf_reliable")], scenario + n_trials ~ endpoint, value.var = "GMR_mean")
+    add("Curvature robustness (population Vmax x0.8 in both arms, 2,000 trials per scenario; mean GMR only):", "",
+        md_table(x[, .(Scenario = scenario, Trials = n_trials, `GMR AUClast` = f3(AUClast), `GMR true AUCinf` = f3(AUCinf_true), `GMR NCA AUCinf (reliable)` = f3(AUCinf_reliable))])) }
   y <- p2[model == "k2020"]
   if (nrow(y)) add("Model 1 (500 trials per scenario; mean GMR only, proportions are reported in the full report): ", "",
                    md_table(y[, .(Scenario = scenario, `GMR AUClast` = f3(GMR_mean_AUClast), `GMR true AUCinf` = f3(GMR_mean_AUCinf_true), `GMR NCA AUCinf (reliable)` = f3(GMR_mean_AUCinf_reliable))]))
 }
 fb <- R("fallback", "discordance_classification.csv"); cr <- R("fallback", "consumer_risk.csv"); fc <- R("fallback", "fallback_cost.csv"); rr <- R("fallback", "aucinf_rules.csv")
 if (!is.null(fb)) { top <- fb[which.max(last_pass_inf_fail)]
-  add(sprintf("Largest rate of AUClast pass with AUCinf fail: %s in scenario %s (true AUCinf ratio %s, inside 80%% to 125%%, so these are false negatives of AUCinf).", ci(top$last_pass_inf_fail, top$last_pass_inf_fail_lo, top$last_pass_inf_fail_hi, 2), top$scenario, f3(top$true_ratio)), "") }
+  add(sprintf("Largest rate of AUClast pass with AUCinf fail: %s%% in scenario %s (true AUCinf ratio %s, inside 80%% to 125%%, so these are false negatives of AUCinf).", ci(top$last_pass_inf_fail, top$last_pass_inf_fail_lo, top$last_pass_inf_fail_hi, 2), top$scenario, f3(top$true_ratio)), "") }
 if (!is.null(cr) && nrow(cr)) add("Consumer risk (true AUCinf ratio outside the limits):", "",
   md_table(cr[, .(Scenario = scenario, `True ratio` = f3(true_ratio), Trials = n_trials, `Pass AUClast and Cmax (%)` = ci(joint_last_cmax, joint_last_cmax_lo, joint_last_cmax_hi, 2),
                   `Pass all three (%)` = ci(joint_3, joint_3_lo, joint_3_hi, 2), `Only AUCinf fails (%)` = ci(only_inf_fails, only_inf_fails_lo, only_inf_fails_hi, 2))]))
@@ -102,8 +123,8 @@ if (!is.null(fc)) add("Cost of a three-endpoint fallback (joint pass rates, >= 5
   md_table(fc[, .(Scenario = scenario, `AUClast + Cmax (%)` = ci(i_last_cmax, i_lo, i_hi), `+ AUCinf reliable (%)` = ci(ii_plus_inf_rel, ii_lo, ii_hi), `+ AUCinf all estimable (%)` = ci(iii_plus_inf_all, iii_lo, iii_hi),
                   `Loss with reliable set (pp)` = ci(cost_ii_pp, cost_ii_lo, cost_ii_hi, 2), `Loss with all estimable (pp)` = ci(cost_iii_pp, cost_iii_lo, cost_iii_hi, 2))]))
 if (!is.null(rr)) add("AUCinf handling rules if AUCinf were mandated (A: exclude subjects failing reliability, B: include all estimable, C: substitute AUClast when reliability fails):", "",
-  md_table(rr[!is.na(n_R_mean) | rule != "", .(Rule = rule, `Analysis n per arm` = f1((n_R_mean + n_T_mean) / 2), `Pass, identical products (%)` = ifelse(is.na(pass_S00_lo), f1(pass_S00), ci(pass_S00, pass_S00_lo, pass_S00_hi)),
-                  `GMR bias vs truth, Vmax x1.25 (%)` = f2(bias_VM125_pct), `GMR bias vs truth, F x0.90 (%)` = f2(bias_F090_pct), `Agreement with AUClast, Vmax x1.25 (%)` = ifelse(is.na(agree_VM125), "", f1(agree_VM125)))]))
+  md_table(rr[, .(Rule = rule, `Analysis n per arm` = f1((n_R_mean + n_T_mean) / 2), `Pass, identical products (%)` = ci(pass_S00, pass_S00_lo, pass_S00_hi),
+                  `GMR bias vs truth, Vmax x1.25 (%)` = f2(bias_VM125_pct), `GMR bias vs truth, F x0.90 (%)` = f2(bias_F090_pct), `Agreement with AUClast, Vmax x1.25 (%)` = ifelse(startsWith(rule, "Reference"), "", f1(agree_VM125)))]))
 
 sd <- R("fallback", "sample_size_logsd.csv"); pw <- R("fallback", "empirical_power.csv")
 if (!is.null(sd) && !is.null(pw)) {
@@ -168,7 +189,7 @@ vv <- c(base = "2016 (primary)", struct2020 = "Model 1", vmax080_both = "Vmax x0
 rows <- rbindlist(lapply(names(vv), function(v) { d <- R("trials", sprintf("schedule_decision_%s.csv", v)); if (is.null(d)) return(NULL)
   d3 <- d[schedule == "D3"]; k <- R("individual200k", sprintf("criterion_d_200k_%s.csv", v)); k3 <- if (!is.null(k)) k[schedule == "D3"] else NULL
   data.table(Variant = vv[[v]], `Rule result` = if (any(d$recommend)) paste0("D3 by criterion ", paste(c("a", "b", "c", "d")[unlist(d3[, .(crit_a %in% TRUE, crit_b %in% TRUE, crit_c %in% TRUE, crit_d %in% TRUE)])], collapse = ","), " only") else "no schedule meets any criterion",
-             `D3: CI width change (%)` = sprintf("%s (%s to %s)", f2(-100 * d3$a_mean_width_rel_decrease), f2(-100 * d3$a_paired_hi), f2(-100 * d3$a_paired_lo)),
+             `D3: AUClast CI width change (%, positive = wider)` = sprintf("%s (%s to %s)", f2(-100 * d3$a_mean_width_rel_decrease), f2(-100 * d3$a_paired_hi), f2(-100 * d3$a_paired_lo)),
              `D3: reliability gain (pp)` = f2(d3$c_reliable_gain_pp),
              `D3: extrapolation >20% ratio, 20,000 subjects` = sprintf("%s (%s to %s)", f2(d3$d_extrap20_ratio), f2(d3$d_ratio_boot_lo), f2(d3$d_ratio_boot_hi)),
              `D3: same ratio, 200,000 subjects` = if (!is.null(k3) && nrow(k3)) sprintf("%s (%s to %s), %s fewer subjects per arm; %s", f2(k3$extrap_gt20_ratio), f2(k3$d_ratio_boot_lo), f2(k3$d_ratio_boot_hi), f2(-k3$d_abs_change_per_arm),

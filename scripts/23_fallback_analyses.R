@@ -34,7 +34,7 @@ fb <- rbindlist(lapply(c("S00", "KE110", "F097"), function(s_) { x <- w[scenario
 fwrite(fb, file.path(out_dir, "fallback_cost.csv"))
 
 # 5-5 AUCinf 처리 규칙: (A) 신뢰군, (B) 산출 가능 전체, (C) 미충족은 AUClast 대입
-rules <- c(A = "AUCinf_reliable", B = "AUCinf_all", C = "AUCinf_subC")
+rules <- c(A = "AUCinf_reliable", B = "AUCinf_all", C = "AUCinf_subC", `Reference: AUClast` = "AUClast")
 rr <- rbindlist(lapply(names(rules), function(r) { ep <- rules[[r]]
   n <- be[endpoint == ep & scenario == "S00", .(n_R = mean(n_R), n_T = mean(n_T))]
   s00 <- be[endpoint == ep & scenario == "S00"]; pw <- wilson_ci(sum(s00$pass), nrow(s00))
@@ -46,9 +46,6 @@ rr <- rbindlist(lapply(names(rules), function(r) { ep <- rules[[r]]
              bias_VM125_pct = bias[scenario == "VM125", bias_pct], GMR_VM125 = bias[scenario == "VM125", GMR], bias_F090_pct = bias[scenario == "F090", bias_pct], GMR_F090 = bias[scenario == "F090", GMR],
              agree_S00 = agree[scenario == "S00", agree_with_AUClast], agree_VM125 = agree[scenario == "VM125", agree_with_AUClast], agree_VM125_lo = agree[scenario == "VM125", agree_lo], agree_VM125_hi = agree[scenario == "VM125", agree_hi],
              agree_F090 = agree[scenario == "F090", agree_with_AUClast]) }))
-rr <- rbind(rr, data.table(rule = "Reference: AUClast", endpoint = "AUClast", pass_S00 = st$per_endpoint[scenario == "S00" & endpoint == "AUClast", pass_rate],
-                           bias_VM125_pct = 100 * (st$per_endpoint[scenario == "VM125" & endpoint == "AUClast", GMR_mean] / truth[scenario == "VM125", true_ratio] - 1),
-                           bias_F090_pct = 100 * (st$per_endpoint[scenario == "F090" & endpoint == "AUClast", GMR_mean] / truth[scenario == "F090", true_ratio] - 1)), fill = TRUE)
 fwrite(rr, file.path(out_dir, "aucinf_rules.csv"))
 
 # 5-6 표본 수 교차점검: log-scale SD·CV (20,000명, B0), 경험적 검정력(arm당 117명)
