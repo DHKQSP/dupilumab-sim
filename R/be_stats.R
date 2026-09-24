@@ -36,6 +36,7 @@ be_analyze <- function(nca_arm, endpoints, ci_level = 0.90, limits = c(0.80, 1.2
     spec <- endpoints[[ep]]
     d <- nca_arm
     if (!is.null(spec$subset_col)) d <- d[get(spec$subset_col) %in% TRUE]
+    if (!spec$col %in% names(d)) stop("평가변수 열 없음: ", spec$col, " (", ep, ")")   # 조용히 NULL로 진행하지 않는다
     y <- d[[spec$col]]
     rbindlist(lapply(methods, function(m) {
       r <- if (m == "pooled_t") be_pooled_t(y, d$arm, ci_level, limits) else be_ancova_weight(y, d$arm, d$WT, ci_level, limits)

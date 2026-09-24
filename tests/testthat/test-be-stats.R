@@ -24,8 +24,11 @@ test_that("be_analyze는 평가변수별·부분집합별로 계산한다", {
   d <- data.table(arm = rep(c("R", "T"), each = 40), WT = runif(80, 60, 90),
                   Cmax = exp(rnorm(80, 3, 0.3)), AUClast = exp(rnorm(80, 6, 0.4)), AUCinf = exp(rnorm(80, 6.1, 0.4)),
                   AUCinf_true = exp(rnorm(80, 6.05, 0.4)), lambda_ok = rep(c(TRUE, FALSE), 40), reliable = rep(c(TRUE, FALSE, FALSE, TRUE), 20))
+  d[, AUCinf_subC := fifelse(reliable %in% TRUE, AUCinf, AUClast)]   # 규칙 C(통합본 §5-5): trial.R과 같은 정의
   r <- be_analyze(d, BE_ENDPOINTS, methods = c("pooled_t", "ancova_weight"))
   expect_equal(nrow(r), length(BE_ENDPOINTS) * 2)
   expect_equal(r[endpoint == "AUCinf_all" & method == "pooled_t", n_R + n_T], sum(d$lambda_ok))
   expect_equal(r[endpoint == "AUCinf_reliable" & method == "pooled_t", n_R + n_T], sum(d$reliable))
+  expect_equal(r[endpoint == "AUCinf_subC" & method == "pooled_t", n_R + n_T], nrow(d))   # 규칙 C는 전원 포함
+  expect_error(be_analyze(d[, !"AUCinf_subC"], BE_ENDPOINTS), "평가변수 열 없음")
 })
