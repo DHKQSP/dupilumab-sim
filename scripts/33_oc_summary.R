@@ -106,14 +106,14 @@ if (length(rs_models)) {
 # ----- 그림 3-A~3-D: 한국어(보고서)와 영문(summary_en.md, 파일명 _en) 두 벌. 색 + 선 모양 + 점 모양으로 구성 식별 ------------------------------
 FX <- list(
   ko = list(model = MODEL_LABEL, cfg = CFG_LABEL, cap_n = "시험 반복: 경계·동일 제품 %s회, 나머지 %s회, arm당 117명, B0, 60–90 kg", xA = "참 AUC0-inf 비 (로그 척도, 200,000명 공통 난수)", yA = "통과 확률 (%)",
-            tA = "그림 3-A. 기전별 운용특성 곡선 — %s", sA = ". 세로선 0.80·1.25, 가로선 5%", same = "동일", panel = "참값 %.2f · %s %s (×%.3g)", yB = "경계 1종 오류 (%, Wilson 95% 구간)",
+            tA = "그림 3-A. 기전별 운용특성 곡선 — %s", sA = ".\n세로선 0.80·1.25, 가로선 5%", same = "동일", panel = "참값 %.2f · %s %s (×%.3g)", yB = "경계 1종 오류 (%, Wilson 95% 구간)",
             tB = "그림 3-B. 경계 1종 오류 — %s", sB = "기전 × 구성, 경계 시나리오 각 %s회. 점선 = 5%%. 막대 아래 구성 이름으로 식별", yC1 = "제품 수", tC = "그림 3-C. 무작위 제품 공간 — %s",
             sC = "라틴 하이퍼큐브 %s개 제품(기전별 로그 균등), 제품당 시험 1회, 제품별 참값 1,000명 공통 난수. 위: 참 AUC0-inf 비 분포, 아래: 구간별 통과율(점, n ≥ 20)과 로지스틱 평활(선)",
             xC = "참 AUC0-inf 비 (로그)", yC = "통과율 (%)", xD = "목표 참 AUC0-inf 비 (로그)", yD = "필요한 시험군 배율 (로그)", tD = "그림 3-D. 목표 참값 비에 필요한 기전별 배율",
             sD = "×: 탐색 범위 끝에서도 도달 불가(표시 위치 = 범위 끝 배율). 200,000명 공통 난수, 이분법 ±0.1%"),
   en = list(model = c(k2016 = "Kovalenko 2016 (primary)", k2020 = "Kovalenko 2020 Model 1"), cfg = c(CFG_LABEL[1:5], AUClast_only = "AUClast only", AUCinf_only = "AUCinf only"),
             cap_n = "Trials: boundary and identical-product scenarios %s each, others %s each; 117 per arm, B0, 60 to 90 kg", xA = "True AUC0-inf ratio (log scale, 200,000 CRN subjects)", yA = "Pass probability (%)",
-            tA = "Figure 3-A. Operating characteristic curves by mechanism, %s", sA = ". Vertical lines 0.80 and 1.25, horizontal line 5%", same = "identical", panel = "True %.2f · %s %s (x%.3g)",
+            tA = "Figure 3-A. Operating characteristic curves by mechanism, %s", sA = ".\nVertical lines 0.80 and 1.25, horizontal line 5%", same = "identical", panel = "True %.2f · %s %s (x%.3g)",
             yB = "Boundary type I error (%, Wilson 95% CI)", tB = "Figure 3-B. Boundary type I error, %s", sB = "Mechanism by configuration, %s trials per boundary scenario. Dashed line = 5%%. Configurations named under the bars",
             yC1 = "Products", tC = "Figure 3-C. Random product space, %s",
             sC = "Latin hypercube, %s products (log-uniform per mechanism), one trial each, truth per product from 1,000 CRN subjects. Top: true AUC0-inf ratio; bottom: pass rate per bin (points, n >= 20) and logistic smooth (lines)",
