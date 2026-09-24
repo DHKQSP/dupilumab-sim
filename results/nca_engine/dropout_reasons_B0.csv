@@ -1,0 +1,3 @@
+n,lambda_fail_pct,flag_rsq_pct,flag_extrap_pct,flag_span_pct,any_flag_or_fail_pct,model
+20000,1.34,11.745,1.185,8.515,19.67,base
+20000,0.615,7.36,0.785,9.15,16.41,struct2020

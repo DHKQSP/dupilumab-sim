@@ -1,0 +1,8 @@
+source,statement
+Kovalenko 2020 Results,"LLOQ에 가까워질수록 말단 기울기가 음의 무한대로 가며, 표적 매개 구간은 거의 수직선이다."
+"Kovalenko 2020 Discussion, Supplementary Figure 1, Figure 4",의미 있는 말단 반감기는 계산할 수 없고 규제기관에 제출하지 않았다. 순간 반감기는 0으로 감소한다. 최대 총 청소율이 선형 청소율보다 훨씬 커서 가파른 구간이 생긴다.
+Kovalenko 2021 Discussion (p.1353–1354),Km 0.01 mg/L에서 0.09 mg/L 농도는 순환 표적의 90%를 제거한다. 순간 반감기는 베타기 약 25일에서 표적 매개기 0 근처로 변한다.
+Kovalenko 2016 Methods,가파른 표적 매개 구간을 기술할 저농도 정량값이 적어 BLQ 값을 M3로 사용했다.
+Li 2020 p.750,농도가 낮을수록 소실 기울기가 가팔라지고 AUClast가 용량 비례 이상으로 증가한다.
+Cohen 2022 p.677–678,말단 비선형 때문에 반감기와 AUCinf를 산출하지 않았다.
+Clot 2021 Discussion,저농도에서 표적 매개로 소실이 빨라지는 다지수 감소.

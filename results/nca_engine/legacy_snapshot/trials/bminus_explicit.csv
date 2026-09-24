@@ -1,0 +1,2 @@
+schedule,a_width_B0_pp,a_width_pp,a_mean_width_rel_decrease,a_paired_lo,a_paired_hi,a_label,c_reliable_B0,c_reliable,c_reliable_gain_pp,c_gain_boot_lo,c_gain_boot_hi,d_extrap20_B0,d_extrap20,d_extrap20_ratio,d_ratio_boot_lo,d_ratio_boot_hi,recommendation
+Bminus,16.6598369732536,16.5495528544488,0.00661975978407103,0.00643256579076947,0.00679537964230799,감소,86.63,86.565,-0.065,-0.265,0.12,1.08568819440921,1.40552060077126,1.29458955896273,1.21794444444444,1.39024970963995,Day 50 삭제 권고하지 않음 (AUC0-inf 이차 평가변수와 fallback용 말단 점 확보)

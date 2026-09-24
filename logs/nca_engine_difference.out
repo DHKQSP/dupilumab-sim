@@ -1,0 +1,57 @@
+run log: /home/user/dupilumab-sim/logs/nca_engine_difference_20260924T132352.log
+[====|====|====|====|====|====|====|====|====|====] 0:00:10 
+
+[====|====|====|====|====|====|====|====|====|====] 0:00:16 
+
+        model                       engine     n AUClast_geo tlast_median
+1:       base             이전 엔진(D-010) 20000       546.4        34.75
+2:       base 새 엔진(Phoenix 호환, D-039) 20000       546.2        34.72
+3: struct2020             이전 엔진(D-010) 20000       587.3        35.40
+4: struct2020 새 엔진(Phoenix 호환, D-039) 20000       587.1        35.37
+   lambda_ok_pct reliable_pct reliable_rsq_extrap_only_pct extrap_median
+1:         98.67        86.42                        86.42         2.730
+2:         98.66        80.33                        86.34         2.759
+3:         99.40        91.41                        91.41         2.871
+4:         99.39        83.59                        91.35         2.903
+   extrap_gt20_pct n_lambda_median AUCinf_rel_geo AUCinf_all_geo
+1:          1.1807               3          586.5          574.5
+2:          1.2011               3          588.1          574.6
+3:          0.7797               3          624.5          615.5
+4:          0.7899               3          628.2          615.7
+   extrap_true_median
+1:             0.6543
+2:             0.6646
+3:             0.6276
+4:             0.6390
+        model     n tlast_changed_pct AUClast_changed_pct
+1:       base 20000             0.585               0.605
+2: struct2020 20000             0.560               0.560
+   lambda_window_changed_pct reliable_old_to_unreliable_new_pct
+1:                     0.585                               6.10
+2:                     0.560                               7.82
+   reliable_new_not_old_pct lost_by_span_only_pct
+1:                    0.005                  6.01
+2:                    0.005                  7.76
+       n lambda_fail_pct flag_rsq_pct flag_extrap_pct flag_span_pct
+1: 20000           1.340        11.74           1.185          8.52
+2: 20000           0.615         7.36           0.785          9.15
+   any_flag_or_fail_pct      model
+1:                 19.7       base
+2:                 16.4 struct2020
+    lambda_fail   rsq extrap  span    pct      model
+ 1:       FALSE FALSE  FALSE FALSE 80.330       base
+ 2:       FALSE  TRUE  FALSE FALSE  9.810       base
+ 3:       FALSE FALSE  FALSE  TRUE  6.010       base
+ 4:        TRUE FALSE  FALSE FALSE  1.340       base
+ 5:       FALSE  TRUE  FALSE  TRUE  1.325       base
+ 6:       FALSE  TRUE   TRUE  TRUE  0.610       base
+ 7:       FALSE FALSE   TRUE  TRUE  0.570       base
+ 8:       FALSE FALSE   TRUE FALSE  0.005       base
+ 9:       FALSE FALSE  FALSE FALSE 83.590 struct2020
+10:       FALSE FALSE  FALSE  TRUE  7.760 struct2020
+11:       FALSE  TRUE  FALSE FALSE  6.640 struct2020
+12:       FALSE FALSE   TRUE  TRUE  0.670 struct2020
+13:        TRUE FALSE  FALSE FALSE  0.615 struct2020
+14:       FALSE  TRUE  FALSE  TRUE  0.610 struct2020
+15:       FALSE  TRUE   TRUE  TRUE  0.110 struct2020
+16:       FALSE FALSE   TRUE FALSE  0.005 struct2020
