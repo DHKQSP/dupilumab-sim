@@ -23,19 +23,25 @@ cohort_median_tlast <- function(nca, n_per_cohort = 8) {
   x[, .(tlast_median = median(tlast_planned, na.rm = TRUE), tlast_min = min(tlast_planned, na.rm = TRUE), tlast_max = max(tlast_planned, na.rm = TRUE)), by = cohort]
 }
 
-# 데이터셋 gate 표
+# 데이터셋 표: gate_role = gate 이면 pass/fail, external 이면 관측 대비 비·z만(판정 NA) (D-023)
 gate_row <- function(ds, nca, tol_pct, cv_range) {
   auc_mean <- mean(nca$AUClast, na.rm = TRUE); cv <- log_cv_pct(nca$AUClast)
-  data.table(id = ds$id, dose_mg = ds$dose_mg, n_obs = if (is.null(ds$n_subj)) NA_integer_ else as.integer(ds$n_subj), wt_mean = ds$weight_mean,
+  role <- if (is.null(ds$gate_role)) "gate" else ds$gate_role
+  n_obs <- if (is.null(ds$n_subj)) NA_real_ else as.numeric(ds$n_subj)
+  se_obs <- ds$auclast_sd / sqrt(n_obs)
+  data.table(id = ds$id, gate_role = role, dose_mg = ds$dose_mg, presentation = if (is.null(ds$presentation)) NA_character_ else ds$presentation,
+             n_obs = n_obs, wt_mean = ds$weight_mean,
              AUClast_obs_mean = ds$auclast_mean, AUClast_sim_mean = auc_mean, AUClast_ratio = auc_mean / ds$auclast_mean,
+             AUClast_z = (auc_mean - ds$auclast_mean) / se_obs, AUClast_se_obs_pct = 100 * se_obs / ds$auclast_mean,
              AUClast_sim_geo = geo_mean(nca$AUClast), AUClast_obs_geo = if (is.null(ds$auclast_geo)) NA_real_ else ds$auclast_geo,
              AUClast_sim_logcv = cv, AUClast_obs_cv_arith = 100 * ds$auclast_sd / ds$auclast_mean,
              Cmax_obs_mean = ds$cmax_mean, Cmax_sim_mean = mean(nca$Cmax, na.rm = TRUE), Cmax_ratio = mean(nca$Cmax, na.rm = TRUE) / ds$cmax_mean,
              Cmax_sim_logcv = log_cv_pct(nca$Cmax),
+             tmax_obs_median = if (is.null(ds$tmax_median)) NA_real_ else ds$tmax_median, tmax_sim_median = median(nca$tmax, na.rm = TRUE),
              AUCinf_obs_mean = if (is.null(ds$aucinf_mean)) NA_real_ else ds$aucinf_mean, AUCinf_sim_mean_reliable = mean(nca[reliable == TRUE, AUCinf], na.rm = TRUE),
-             tmax_sim_median = median(nca$tmax, na.rm = TRUE), tlast_sim_median = median(nca$tlast_planned, na.rm = TRUE),
-             pass_mean = abs(auc_mean / ds$auclast_mean - 1) <= tol_pct / 100,
-             pass_cv = cv >= cv_range[1] & cv <= cv_range[2])
+             tlast_sim_median = median(nca$tlast_planned, na.rm = TRUE),
+             pass_mean = if (role == "gate") abs(auc_mean / ds$auclast_mean - 1) <= tol_pct / 100 else NA,
+             pass_cv = if (role == "gate") (cv >= cv_range[1] & cv <= cv_range[2]) else NA)
 }
 
 ds_weight_sd <- function(ds) if (is.list(ds$weight_sd)) as.numeric(ds$weight_sd$value) else as.numeric(ds$weight_sd)

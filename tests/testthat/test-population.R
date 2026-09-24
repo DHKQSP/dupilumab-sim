@@ -23,20 +23,28 @@ test_that("개체 파라미터: 체중 공변량 지수 0.705, F는 고정 0.607
   expect_equal(unique(ip$F), 0.607); expect_equal(ip$ada, c(0, 1, 0))
 })
 
-test_that("층화 무작위배정: 각 arm 정확히 n, 층 내 1:1(±1)", {
-  s <- with_seed(4, make_subjects(234, p, weight_spec_from_design(design, "base"), 0.5, 0))
-  a <- with_seed(5, assign_arms_stratified(s, design$stratification$weight_breaks, design$stratification$labels))
-  expect_equal(sum(a$arm == "R"), 117); expect_equal(sum(a$arm == "T"), 117)
-  tab <- a[, .N, by = .(stratum, arm)]
-  for (st in unique(tab$stratum)) expect_lte(abs(diff(tab[stratum == st][order(arm), N])), 1)
-  expect_true(all(a[WT <= 75, stratum] == "60-75"))
+test_that("층 경계는 체중 절단 범위에서 자동 생성된다 (D-024)", {
+  split <- design$stratification$split_kg$value
+  st_b <- strata_from_weight_spec(weight_spec_from_design(design, "base"), split)
+  expect_equal(st_b$breaks, c(60, 75, 90)); expect_equal(st_b$labels, c("60-75", ">75-90"))
+  st_s <- strata_from_weight_spec(weight_spec_from_design(design, "sensitivity"), split)
+  expect_equal(st_s$breaks, c(50, 75, 90)); expect_equal(st_s$labels, c("50-75", ">75-90"))
+  expect_error(strata_from_weight_spec(list(trunc = c(80, 100)), split), "분할점")
 })
 
-test_that("층화 배정: 층 경계 밖 체중(50–115)도 전원 배정된다 (D-020 회귀 테스트)", {
-  s <- with_seed(6, make_subjects(234, p, list(mean = 82.5, sd = 1e3, trunc = c(50, 115)), 0.5, 0))
-  expect_true(any(s$WT < 60) && any(s$WT > 90))
-  a <- with_seed(7, assign_arms_stratified(s, design$stratification$weight_breaks, design$stratification$labels))
-  expect_false(anyNA(a$arm)); expect_false(anyNA(a$stratum))
+test_that("층화 무작위배정: 각 arm 정확히 n, 층 내 1:1(±1), 층 밖 대상자는 오류", {
+  wt <- weight_spec_from_design(design, "base"); st <- strata_from_weight_spec(wt, design$stratification$split_kg$value)
+  s <- with_seed(4, make_subjects(234, p, wt, 0.5, 0))
+  a <- with_seed(5, assign_arms_stratified(s, st$breaks, st$labels))
   expect_equal(sum(a$arm == "R"), 117); expect_equal(sum(a$arm == "T"), 117)
-  expect_true(all(a[WT < 60, stratum] == "60-75")); expect_true(all(a[WT > 90, stratum] == ">75-90"))
+  tab <- a[, .N, by = .(stratum, arm)]
+  for (x in unique(tab$stratum)) expect_lte(abs(diff(tab[stratum == x][order(arm), N])), 1)
+  expect_true(all(a[WT <= 75, stratum] == "60-75"))
+  # 민감도 50–90: 전원 배정
+  wt2 <- weight_spec_from_design(design, "sensitivity"); st2 <- strata_from_weight_spec(wt2, 75)
+  s2 <- with_seed(6, make_subjects(234, p, wt2, 0.5, 0)); expect_true(any(s2$WT < 60))
+  a2 <- with_seed(7, assign_arms_stratified(s2, st2$breaks, st2$labels)); expect_false(anyNA(a2$arm))
+  # 층 밖 대상자: 오류로 중단 (D-020의 조용한 누락 재발 방지)
+  s3 <- with_seed(8, make_subjects(234, p, list(mean = 82.5, sd = 1e3, trunc = c(50, 115)), 0.5, 0))
+  expect_error(assign_arms_stratified(s3, st$breaks, st$labels), "층 밖 대상자")
 })

@@ -1,54 +1,54 @@
-# 단계 1: Clot 2021 재현과 정량 gate (지시서 2026-09-23 §1, D-014)
+# 단계 1 gate (지시서 §1, 검토 의견 3차 §1–2, D-014/D-023). gate_role = gate 항목만 pass/fail.
+# 200 mg 1.14 mL(175 mg/mL) 제형 데이터셋과 200 mg 코호트는 외부 점검 — 판정하지 않고 값만 계산(스크립트 02가 표로 보고).
 skip_if_no_rxode2()
 p  <- load_params("k2016")
 dz <- read_cfg("design_clot2021.yaml")
-days <- as.numeric(dz$sample_days_post_dose)
-n_coh <- dz$cohort_sim$n_cohorts; n_per <- dz$n_per_cohort
-sr <- dz$cohort_sim$sex_ratio_male$value
-bm <- as.numeric(dz$cohort_sim$weight_bounds_kg$male); bf <- as.numeric(dz$cohort_sim$weight_bounds_kg$female)
+days <- as.numeric(unlist(dz$sample_days_post_dose))
+n_coh <- dz$cohort_sim$n_cohorts; n_per <- dz$n_per_cohort; sr <- dz$cohort_sim$sex_ratio_male$value
+bm <- as.numeric(unlist(dz$cohort_sim$weight_bounds_kg$male)); bf <- as.numeric(unlist(dz$cohort_sim$weight_bounds_kg$female))
+sched_of <- function(ds) { s <- dz$dataset_schedules[[ds$schedule]]; as.numeric(unlist(if (is.list(s) && !is.null(s$days)) s$days else s)) }
 
-test_that("(a) 용량군별 실제 체중으로 8명 코호트 2,000회: 관측 중앙값 tlast가 모의 코호트 중앙값의 5–95 백분위 안", {
-  res <- rbindlist(lapply(dz$groups, function(g) {
+test_that("gate 범위: 연구 제형(300 mg, 600 mg)만 gate, 200 mg 1.14 mL 제형은 external (gate_decision.yaml)", {
+  g <- read_cfg("gate_decision.yaml")
+  expect_equal(g$decision_option, 1); expect_equal(g$primary_model, "kovalenko2016_blq")
+  roles <- vapply(dz$datasets, function(d) d$gate_role, ""); doses <- vapply(dz$datasets, function(d) d$dose_mg, 0)
+  expect_true(all(roles[doses == 200] == "external")); expect_true(all(roles[doses %in% c(300, 600)] == "gate"))
+  expect_equal(sum(roles == "external"), 4L)
+})
+
+test_that("(a) 연구 용량 300·600 mg: 관측 중앙값 tlast가 8명 코호트 2,000회 중앙값 분포의 5–95 백분위 안", {
+  for (g in Filter(function(x) x$gate_role == "gate", dz$groups)) {
     sim <- simulate_dataset(p, g$dose_mg, g$weight_mean, g$weight_sd, days, n_coh * n_per, paste0("clot_cohort_", g$dose_mg), sr, bm, bf)
     cm <- cohort_median_tlast(sim$nca, n_per)
-    data.table(dose_mg = g$dose_mg, obs_median = g$tlast_median_obs,
-               sim_median_of_medians = median(cm$tlast_median), p05 = q05(cm$tlast_median), p95 = q95(cm$tlast_median),
-               subj_tlast_median = median(sim$nca$tlast_planned, na.rm = TRUE), subj_p05 = q05(sim$nca$tlast_planned), subj_p95 = q95(sim$nca$tlast_planned))
-  }))
-  message("\n코호트 중앙값 tlast 분포:\n", paste(capture.output(print(res)), collapse = "\n"))
-  for (k in seq_len(nrow(res))) expect_true(res$obs_median[k] >= res$p05[k] & res$obs_median[k] <= res$p95[k],
-                                            info = sprintf("%d mg: 관측 %g, 모의 5–95%% [%g, %g]", res$dose_mg[k], res$obs_median[k], res$p05[k], res$p95[k]))
+    expect_true(g$tlast_median_obs >= q05(cm$tlast_median) & g$tlast_median_obs <= q95(cm$tlast_median),
+                info = sprintf("%d mg: 관측 %g, 모의 [%g, %g]", g$dose_mg, g$tlast_median_obs, q05(cm$tlast_median), q95(cm$tlast_median)))
+  }
 })
 
-test_that("(b) 정량 gate: 체중 매칭 후 모의 AUClast 평균이 관측 ±15% 이내, log-scale CV 35–51% (Cmax는 gate 제외)", {
-  tol <- dz$gate$auclast_mean_tol_pct; cvr <- as.numeric(dz$gate$log_cv_range_pct); nsim <- dz$gate$n_sim_per_dataset
-  tab <- rbindlist(lapply(dz$datasets, function(ds) {
-    sched <- dz$dataset_schedules[[ds$schedule]]; sched <- as.numeric(if (is.list(sched)) sched$days else sched)
+test_that("(b) 연구 제형 데이터셋: AUClast 평균 ±15%, log-CV 35–51%", {
+  tol <- dz$gate$auclast_mean_tol_pct; cvr <- as.numeric(unlist(dz$gate$log_cv_range_pct))
+  tab <- rbindlist(lapply(Filter(function(d) d$gate_role == "gate", dz$datasets), function(ds) {
     b <- ds_weight_bounds(ds)
-    sim <- simulate_dataset(p, ds$dose_mg, ds$weight_mean, ds_weight_sd(ds), sched, nsim, paste0("gate_", ds$id), sr, b$male, b$female)
+    sim <- simulate_dataset(p, ds$dose_mg, ds$weight_mean, ds_weight_sd(ds), sched_of(ds), dz$gate$n_sim_per_dataset, paste0("gate_", ds$id), sr, b$male, b$female)
     gate_row(ds, sim$nca, tol, cvr)
   }))
-  message("\n정량 gate:\n", paste(capture.output(print(tab[, .(id, wt_mean, AUClast_obs_mean, AUClast_sim_mean = round(AUClast_sim_mean, 1), AUClast_ratio = round(AUClast_ratio, 3), AUClast_sim_logcv = round(AUClast_sim_logcv, 1), Cmax_ratio = round(Cmax_ratio, 3), pass_mean, pass_cv)])), collapse = "\n"))
-  expect_true(all(tab$pass_mean), info = paste("평균 ±15% 실패:", paste(tab[pass_mean == FALSE, sprintf("%s (%.3f)", id, AUClast_ratio)], collapse = "; ")))
-  expect_true(all(tab$pass_cv), info = paste("CV 35–51% 실패:", paste(tab[pass_cv == FALSE, sprintf("%s (%.1f%%)", id, AUClast_sim_logcv)], collapse = "; ")))
+  expect_equal(nrow(tab), 5L)
+  expect_true(all(tab$pass_mean), info = paste(tab[pass_mean == FALSE, sprintf("%s %.3f", id, AUClast_ratio)], collapse = "; "))
+  expect_true(all(tab$pass_cv), info = paste(tab[pass_cv == FALSE, sprintf("%s %.1f", id, AUClast_sim_logcv)], collapse = "; "))
 })
 
-test_that("(c) 체중 기울기: 체중 5 kg 증가당 AUClast 약 50 mg·day/L 감소 (부호·크기 확인, 허용 ±50%는 확정 전 가정)", {
-  wr <- as.numeric(dz$weight_slope_check$weight_range_kg)
-  sim <- simulate_dataset(p, dz$weight_slope_check$dose_mg, mean(wr), 1e3, days, 20000, "wt_slope", sr, wr, wr)   # 큰 SD + 절단 = 거의 균등
-  fit <- lm(AUClast ~ WT, data = sim$nca)
-  slope5 <- unname(coef(fit)[2]) * 5
-  message(sprintf("\n체중 기울기: %.1f mg·day/L per 5 kg (기대 약 -%g)", slope5, dz$weight_slope_check$expected_auclast_decrease_per_5kg))
+test_that("(c) 체중 기울기: 5 kg당 AUClast 약 50 mg·day/L 감소 (허용 ±50%는 확정 전 가정)", {
+  wr <- as.numeric(unlist(dz$weight_slope_check$weight_range_kg))
+  sim <- simulate_dataset(p, dz$weight_slope_check$dose_mg, mean(wr), 1e3, days, 20000, "wt_slope", sr, wr, wr)
+  slope5 <- unname(coef(lm(AUClast ~ WT, data = sim$nca))[2]) * 5
   expect_lt(slope5, 0)
-  expect_true(abs(slope5) >= 0.5 * dz$weight_slope_check$expected_auclast_decrease_per_5kg & abs(slope5) <= 1.5 * dz$weight_slope_check$expected_auclast_decrease_per_5kg)
+  expect_true(abs(slope5) >= 25 & abs(slope5) <= 75)
 })
 
-test_that("(d) Cohen 2022: 200 mg, 70–100 kg, Day 43까지 채혈에서 log(AUClast) SD ≈ 0.49 (허용 ±0.10은 확정 전 가정)", {
-  ds <- dz$datasets[[which(vapply(dz$datasets, function(d) d$id == "cohen2022_200_armA", logical(1)))]]
-  sched <- as.numeric(dz$dataset_schedules$cohen_d42$days)
+test_that("(f) 300 mg 개별 arm 외부 점검: 모델 평균(약 78 kg)이 Li 2020 arm 평균 범위 안", {
+  ds <- Filter(function(d) d$id == dz$arm_checks_300mg$model_reference_dataset, dz$datasets)[[1]]
   b <- ds_weight_bounds(ds)
-  sim <- simulate_dataset(p, 200, ds$weight_mean, ds_weight_sd(ds), sched, 20000, "cohen_sd", sr, b$male, b$female)
-  sdlog <- sd(log(sim$nca$AUClast), na.rm = TRUE)
-  message(sprintf("\nCohen 2022 비교: 모의 log(AUClast) SD = %.3f (관측 %.2f)", sdlog, dz$variability_checks$cohen2022$log_sd))
-  expect_equal(sdlog, dz$variability_checks$cohen2022$log_sd, tolerance = 0.10 / dz$variability_checks$cohen2022$log_sd)
+  sim <- simulate_dataset(p, ds$dose_mg, ds$weight_mean, ds_weight_sd(ds), sched_of(ds), dz$gate$n_sim_per_dataset, paste0("gate_", ds$id), sr, b$male, b$female)
+  m <- mean(sim$nca$AUClast); rng <- range(vapply(dz$arm_checks_300mg$arms, function(a) a$auclast_mean, 0))
+  expect_true(m >= rng[1] & m <= rng[2], info = sprintf("모델 %.0f, 범위 [%.1f, %.0f]", m, rng[1], rng[2]))
 })

@@ -3,8 +3,8 @@
 
 be_pooled_t <- function(y, arm, ci_level = 0.90, limits = c(0.80, 1.25)) {
   ok <- is.finite(y) & y > 0 & !is.na(arm)
-  y <- log(y[ok]); arm <- arm[ok]
-  yR <- y[arm == "R"]; yT <- y[arm == "T"]
+  ly <- log(y[ok]); grp <- arm[ok]                     # 인자명(arm)을 부분집합 조건에 직접 쓰지 않는다(D-025)
+  yR <- ly[grp == "R"]; yT <- ly[grp == "T"]
   nR <- length(yR); nT <- length(yT)
   if (nR < 2 || nT < 2) return(list(GMR = NA_real_, CI_lower = NA_real_, CI_upper = NA_real_, pass = NA, n_R = nR, n_T = nT, width = NA_real_, se = NA_real_, df = NA_real_))
   df <- nR + nT - 2

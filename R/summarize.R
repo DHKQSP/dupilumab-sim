@@ -67,9 +67,29 @@ paired_individual_vs_ref <- function(nca, ref = "B0") {
                reliable_mcnemar_p = mcn(b_r, c_r),
                extrap_gt20_change_pp = 100 * (mean(m$x1) - mean(m$x0)), extrap_gt20_only_ref = b_x, extrap_gt20_only_sched = c_x,
                extrap_gt20_mcnemar_p = mcn(b_x, c_x),
+               extrap_gt20_ratio = if (sum(m$x0) > 0) sum(m$x1) / sum(m$x0) else NA_real_,
                lambda_ok_change_pp = 100 * (mean(m$l1) - mean(m$l0)),
                extrap_true_median_change = median(m$e1 - m$e0, na.rm = TRUE),
                auclast_err_inf_sd_ratio = sd(m$a1, na.rm = TRUE) / sd(m$a0, na.rm = TRUE))
+  }))
+}
+
+# 판정 (c)(d)의 몬테카를로 불확실성: 대응 2×2 칸(대상자 수)을 다항 재표집해 신뢰 충족률 차이와 외삽 20% 초과 비율의 비에 대한 95% 구간(D-028)
+paired_bootstrap_cd <- function(nca, ref = "B0", B = 2000, seed = 20260924L) {
+  ref_ <- ref
+  base <- nca[schedule == ref_, .(id, r0 = reliable, x0 = !is.na(pct_extrap) & pct_extrap > 20)]
+  rbindlist(lapply(setdiff(unique(nca$schedule), ref_), function(sh) {
+    m <- merge(base, nca[schedule == sh, .(id, r1 = reliable, x1 = !is.na(pct_extrap) & pct_extrap > 20)], by = "id")
+    n <- nrow(m)
+    cr <- c(sum(!m$r0 & !m$r1), sum(!m$r0 & m$r1), sum(m$r0 & !m$r1), sum(m$r0 & m$r1))   # 00, 01, 10, 11
+    cx <- c(sum(!m$x0 & !m$x1), sum(!m$x0 & m$x1), sum(m$x0 & !m$x1), sum(m$x0 & m$x1))
+    bs <- with_seed(derive_seed(seed, sh, "cd"), {
+      R <- rmultinom(B, n, cr / n); X <- rmultinom(B, n, cx / n)
+      list(gain = 100 * (R[2, ] - R[3, ]) / n, ratio = (X[2, ] + X[4, ]) / pmax(X[3, ] + X[4, ], 1))
+    })
+    data.table(schedule = sh, c_gain_boot_lo = quantile(bs$gain, 0.025, names = FALSE), c_gain_boot_hi = quantile(bs$gain, 0.975, names = FALSE),
+               d_ratio_boot_lo = quantile(bs$ratio, 0.025, names = FALSE), d_ratio_boot_hi = quantile(bs$ratio, 0.975, names = FALSE),
+               d_n_ref = cx[3] + cx[4], d_n_sched = cx[2] + cx[4], d_n_subjects = n)
   }))
 }
 
@@ -88,16 +108,50 @@ paired_trial_width_vs_ref <- function(be, ref = "B0", scenario = "S00", endpoint
   }))
 }
 
-# 채혈 일정 판정 규칙(지시서 §5, SPEC §7.3): B0 대비. 입력은 위 두 대응 비교 표.
-schedule_decision <- function(paired_ind, paired_trial, design, n_points) {
-  dr <- design$decision_rule
-  out <- merge(paired_ind, paired_trial[scenario == "S00", .(schedule, width_rel_decrease, width_rel_decrease_lo, width_rel_decrease_hi)], by = "schedule", all.x = TRUE)
-  out <- merge(out, n_points, by = "schedule", all.x = TRUE)
-  out[, `:=`(
-    crit_a_width = !is.na(width_rel_decrease_lo) & width_rel_decrease >= dr$ci_width_relative_decrease_min & width_rel_decrease_lo > 0,
-    crit_b_reliable = reliable_gain_pp >= dr$reliability_gain_pp_min,
-    crit_c_extrap = extrap_gt20_change_pp < 0 & extrap_gt20_mcnemar_p < dr$extrap_gt20_test_alpha)]
-  out[, recommend := crit_a_width | crit_b_reliable | crit_c_extrap]
+# 채혈 일정 판정 규칙(검토 의견 3차 §5, SPEC §7.3, D-026). B0 대비, 하나 이상 충족이면 추가 채혈 권고.
+#  (a) AUClast 90% CI 평균 폭 상대 감소 ≥ 2% (S00): 1 − mean(폭_s)/mean(폭_B0). 대응 비교 95% CI 병기.
+#  (b) ke ×1.10(KE110)에서 AUClast 통과율 +2%p 이상.
+#  (c) AUCinf 신뢰 기준 충족률 +5%p 이상(같은 20,000명).
+#  (d) 비구획 외삽 20% 초과 비율이 B0의 절반 이하.
+# 입력: ind(summarize_individual 일정별 표), paired_ind(paired_individual_vs_ref), per_ep(summarize_trials()$per_endpoint, pooled_t),
+#       paired_tr(paired_trial_width_vs_ref, 시나리오별), n_points(schedule, n_points, added_points)
+schedule_decision <- function(ind, paired_ind, per_ep, paired_tr, design, n_points, ref = "B0") {
+  dr <- design$decision_rule; ref_ <- ref
+  ind_ref <- ind[schedule == ref_]
+  w_ref <- per_ep[scenario == "S00" & endpoint == "AUClast" & schedule == ref_, width_mean_pp]
+  ke_ref <- per_ep[scenario == "KE110" & endpoint == "AUClast" & schedule == ref_, pass_rate]
+  scheds <- setdiff(ind$schedule, ref_)
+  out <- rbindlist(lapply(scheds, function(sh) {
+    w_s <- per_ep[scenario == "S00" & endpoint == "AUClast" & schedule == sh, width_mean_pp]
+    ke_s <- per_ep[scenario == "KE110" & endpoint == "AUClast" & schedule == sh, pass_rate]
+    pt_s <- paired_tr[scenario == "S00" & schedule == sh]
+    pk_s <- paired_tr[scenario == "KE110" & schedule == sh]
+    pi_s <- paired_ind[schedule == sh]
+    i_s <- ind[schedule == sh]
+    a <- if (length(w_s) && length(w_ref)) 1 - w_s / w_ref else NA_real_
+    b <- if (length(ke_s) && length(ke_ref)) ke_s - ke_ref else NA_real_
+    d_ratio <- if (ind_ref$extrap_gt20_pct > 0) i_s$extrap_gt20_pct / ind_ref$extrap_gt20_pct else NA_real_
+    data.table(schedule = sh,
+      a_width_B0_pp = if (length(w_ref)) w_ref else NA_real_, a_width_pp = if (length(w_s)) w_s else NA_real_, a_mean_width_rel_decrease = a,
+      a_paired_lo = if (nrow(pt_s)) pt_s$width_rel_decrease_lo else NA_real_, a_paired_hi = if (nrow(pt_s)) pt_s$width_rel_decrease_hi else NA_real_,
+      b_ke110_pass_B0 = if (length(ke_ref)) ke_ref else NA_real_, b_ke110_pass = if (length(ke_s)) ke_s else NA_real_, b_ke110_gain_pp = b,
+      b_discordant_trials = if (nrow(pk_s)) pk_s$pass_discordant else NA_integer_,
+      c_reliable_B0 = ind_ref$reliable_pct, c_reliable = i_s$reliable_pct, c_reliable_gain_pp = pi_s$reliable_gain_pp,
+      d_extrap20_B0 = ind_ref$extrap_gt20_pct, d_extrap20 = i_s$extrap_gt20_pct, d_extrap20_ratio = d_ratio, d_mcnemar_p = pi_s$extrap_gt20_mcnemar_p,
+      c_gain_boot_lo = if ("c_gain_boot_lo" %in% names(pi_s)) pi_s$c_gain_boot_lo else NA_real_, c_gain_boot_hi = if ("c_gain_boot_hi" %in% names(pi_s)) pi_s$c_gain_boot_hi else NA_real_,
+      d_ratio_boot_lo = if ("d_ratio_boot_lo" %in% names(pi_s)) pi_s$d_ratio_boot_lo else NA_real_, d_ratio_boot_hi = if ("d_ratio_boot_hi" %in% names(pi_s)) pi_s$d_ratio_boot_hi else NA_real_,
+      d_n_ref = if ("d_n_ref" %in% names(pi_s)) pi_s$d_n_ref else NA_integer_, d_n_sched = if ("d_n_sched" %in% names(pi_s)) pi_s$d_n_sched else NA_integer_,
+      d_abs_change_per_arm = if ("d_n_subjects" %in% names(pi_s)) (pi_s$d_n_sched - pi_s$d_n_ref) / pi_s$d_n_subjects * design$n_per_arm else NA_real_)
+  }))
+  out[, `:=`(crit_a = a_mean_width_rel_decrease >= dr$ci_width_mean_rel_decrease_min,
+             crit_b = b_ke110_gain_pp >= dr$ke110_pass_gain_pp_min,
+             crit_c = c_reliable_gain_pp >= dr$reliability_gain_pp_min,
+             crit_d = d_extrap20_ratio <= dr$extrap_gt20_ratio_max)]
+  # 권고: 하나라도 TRUE면 권고. 판정 불가(NA) 기준은 권고 근거로 쓰지 않되 표에 NA로 남긴다.
+  out[, recommend := (crit_a %in% TRUE) | (crit_b %in% TRUE) | (crit_c %in% TRUE) | (crit_d %in% TRUE)]
+  out[, n_criteria_evaluable := (!is.na(crit_a)) + (!is.na(crit_b)) + (!is.na(crit_c)) + (!is.na(crit_d))]
+  out <- merge(n_points, out, by = "schedule", all.y = TRUE)
   out[, added_visits_total := added_points * dr$cost_per_added_point$subjects * dr$cost_per_added_point$visits]
+  setcolorder(out, c("schedule", "n_points", "added_points", "added_visits_total"))
   out[]
 }

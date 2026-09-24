@@ -1,0 +1,12 @@
+start Thu Sep 24 02:19:52 UTC 2026
+ind vmax080_both 0
+ind vmax125_both 0
+trial sched base 0
+trial sched struct2020 0
+trial sched vmax080_both 0
+trial sched vmax125_both 0
+trial sched iiv150 0
+trial sched resid12 0
+trial sched weight_alt 0
+trial sched ada10 0
+ALL DONE Thu Sep 24 02:46:24 UTC 2026

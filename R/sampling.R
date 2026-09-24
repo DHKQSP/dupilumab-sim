@@ -17,11 +17,12 @@ window_for_time <- function(t, design) {
 
 # 계획 → 실제 시각. 시점 0은 고정, 순서 유지(최소 간격 1시간)
 jitter_times <- function(planned, design, min_gap = 1 / 24) {
-  w <- window_for_time(planned, design)
-  actual <- planned + runif(length(planned), -w, w)
-  actual[planned == 0] <- 0
+  pl <- planned                                        # 인자명을 부분집합 조건에 직접 쓰지 않는다(D-025)
+  w <- window_for_time(pl, design)
+  actual <- pl + runif(length(pl), -w, w)
+  actual[pl == 0] <- 0
   actual <- pmax(actual, 0)
-  o <- order(planned); a <- actual[o]
+  o <- order(pl); a <- actual[o]
   for (k in seq_along(a)[-1]) if (a[k] < a[k - 1] + min_gap) a[k] <- a[k - 1] + min_gap
   actual[o] <- a
   actual
@@ -29,7 +30,7 @@ jitter_times <- function(planned, design, min_gap = 1 / 24) {
 
 # 모든 피험자의 관측 시각 표: data.table(id, planned, time)
 make_obs_times <- function(ids, planned, design, jitter = TRUE) {
-  planned <- sort(unique(c(0, planned)))
-  if (!jitter) return(CJ(id = ids, planned = planned)[, time := planned][])
-  rbindlist(lapply(ids, function(i) data.table(id = i, planned = planned, time = jitter_times(planned, design))))
+  pl <- sort(unique(c(0, planned)))
+  if (!jitter) { g <- CJ(id = ids, planned = pl); g[, time := g[["planned"]]]; return(g[]) }
+  rbindlist(lapply(ids, function(i) data.table(id = i, planned = pl, time = jitter_times(pl, design))))
 }

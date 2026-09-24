@@ -1,0 +1,150 @@
+tests run at 2026-09-24 02:48:27 (UTC)
+rxode2: 5.1.7
+                        file
+             test-be-stats.R
+             test-be-stats.R
+             test-be-stats.R
+        test-config-schema.R
+        test-config-schema.R
+        test-config-schema.R
+        test-config-schema.R
+ test-lint-datatable-scope.R
+ test-lint-datatable-scope.R
+      test-model-structure.R
+      test-model-structure.R
+      test-model-structure.R
+      test-model-structure.R
+      test-model-structure.R
+                  test-nca.R
+                  test-nca.R
+                  test-nca.R
+                  test-nca.R
+                  test-nca.R
+                  test-nca.R
+                  test-nca.R
+                  test-nca.R
+               test-params.R
+               test-params.R
+               test-params.R
+               test-params.R
+           test-population.R
+           test-population.R
+           test-population.R
+           test-population.R
+           test-population.R
+             test-sampling.R
+             test-sampling.R
+ test-scenario-propagation.R
+ test-scenario-propagation.R
+                test-seeds.R
+                test-seeds.R
+             test-simulate.R
+             test-simulate.R
+             test-simulate.R
+       test-step1-clot2021.R
+       test-step1-clot2021.R
+       test-step1-clot2021.R
+       test-step1-clot2021.R
+       test-step1-clot2021.R
+            test-summarize.R
+            test-summarize.R
+            test-summarize.R
+                                                                                                  test
+                               pooled t 90% CI는 t.test(var.equal=TRUE)와 일치하고 80–125% 판정이 맞다
+                                                                   ANCOVA(체중) CI는 lm/confint와 일치
+                                                         be_analyze는 평가변수별·부분집합별로 계산한다
+                               모든 config에 YAML 불리언 예약어 키가 없다 (원문 검사 + 파싱 결과 검사)
+                                                                                파라미터 config 자료형
+                                                                               시험 설계 config 자료형
+                                                                      시나리오·gate·검증 config 자료형
+                                                     R/와 scripts/의 함수에서 인자-열 이름 충돌이 없다
+                                                              검사기가 실제로 위반을 잡는다(자기 검증)
+                                                                Vmax=0이면 해석적 선형 2구획 해와 일치
+                                                              질량 보존, F 반영, MM 0차 극한, auc 상태
+                                             MM 소실로 용량당 AUCinf가 용량과 함께 증가; 다개체 일관성
+                                               ADA 스위치: onset 이전 동일, 이후 ke 배율만큼 소실 증가
+ Kovalenko 2020 transit 모델: 질량 보존, 평균 통과 시간 = MTT, 대표 프로파일이 2016 모델과 같은 자릿수
+                                            AUClast: linear-up/log-down 손계산과 일치, (0,0) 앵커 포함
+                              λz: 마지막 k점 후보 중 adjusted R² 최대 창 선택, AUCinf·외삽률·신뢰 기준
+                            λz 동률(정확한 단일지수)이면 점 수가 많은 창을 택한다; Cmax 점은 후보 제외
+                                        BLQ 규칙: tmax 이전 0, 중간 결측(인접점 연결), tlast 이후 제외
+                                               λz 산출 불가: tmax 이후 정량점 3개 미만 또는 기울기 ≥ 0
+                                 정량치가 전혀 없는 개체는 NA 행으로 남고 여러 개체를 한 번에 처리한다
+                                               BEmaster 호환 모드: 선형 사다리꼴, BLQ=0, 마지막 3점 λz
+                                                                                        참값 지표 부착
+                                          기본 파라미터는 Kovalenko 2016 Table 2 값이고 전부 confirmed
+                                                            Kovalenko 2020 Model 1 파라미터와 IIV 차용
+                                                                           시나리오 배율과 민감도 변형
+                                                                            CV <-> omega 변환과 log-CV
+                                                                       체중: 절단 정규분포와 성별 하한
+                                                            eta 표본 SD = omega, IIV 없는 파라미터는 0
+                                         개체 파라미터: 체중 공변량 지수 0.705, F는 고정 0.607, ADA 열
+                                                    층 경계는 체중 절단 범위에서 자동 생성된다 (D-024)
+                                  층화 무작위배정: 각 arm 정확히 n, 층 내 1:1(±1), 층 밖 대상자는 오류
+                                                                             채혈 일정 정의(지시서 §5)
+                                                         채혈 편차는 허용창 안, 시점 0 고정, 순서 유지
+            모든 제품 시나리오: 시험군 개체 파라미터 기하평균이 해당 배율만큼만 이동하고 대조군은 불변
+                                        양 군 공통 배율(곡률 민감도)은 대조군과 시험군 모두에 적용된다
+                                                                시드 파생은 결정적이고 인자에 민감하다
+                                                                  with_seed는 바깥 RNG 상태를 복원한다
+                                                                             잔차·BLQ 규칙과 시드 재현
+                                                                             일정 부분집합과 참값 부착
+     시험 엔진: 대조군은 시나리오 간 동일(공통 난수), 시험군은 같은 eta로 배율만 다름, 각 arm 정확히 n
+      gate 범위: 연구 제형(300 mg, 600 mg)만 gate, 200 mg 1.14 mL 제형은 external (gate_decision.yaml)
+         (a) 연구 용량 300·600 mg: 관측 중앙값 tlast가 8명 코호트 2,000회 중앙값 분포의 5–95 백분위 안
+                                              (b) 연구 제형 데이터셋: AUClast 평균 ±15%, log-CV 35–51%
+                        (c) 체중 기울기: 5 kg당 AUClast 약 50 mg·day/L 감소 (허용 ±50%는 확정 전 가정)
+                         (f) 300 mg 개별 arm 외부 점검: 모델 평균(약 78 kg)이 Li 2020 arm 평균 범위 안
+                                             개인 수준 대응 비교: McNemar 불일치 쌍과 신뢰 충족률 차이
+                                            시험 수준 대응 비교와 판정 규칙 (a)–(d) (검토 의견 3차 §5)
+                                   시나리오·방법이 섞인 결과에서도 필터가 정확하다 (D-022 회귀 테스트)
+ failed skipped error warning
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+      0   FALSE FALSE       0
+TOTAL: 48 tests, 0 failed, 0 errors, 0 skipped

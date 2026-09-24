@@ -13,7 +13,8 @@ simulate_trial_arms <- function(j, p, design, scenarios, schedules, master_seed,
   grid <- union_grid(design, schedules)
   # (1) 피험자 (2) 배정
   subj <- with_seed(derive_seed(master_seed, j, "subj"), make_subjects(2 * n_per_arm, p, wt_spec, sex_ratio_male, p$ada$fraction))
-  subj <- with_seed(derive_seed(master_seed, j, "alloc"), assign_arms_stratified(subj, design$stratification$weight_breaks, design$stratification$labels))
+  st <- strata_from_weight_spec(wt_spec, as.numeric(design$stratification$split_kg$value))
+  subj <- with_seed(derive_seed(master_seed, j, "alloc"), assign_arms_stratified(subj, st$breaks, st$labels))
   arms <- list()
   for (a in c("R", "T")) {
     e <- subj[arm == a]
@@ -23,7 +24,7 @@ simulate_trial_arms <- function(j, p, design, scenarios, schedules, master_seed,
     if (a == "R") {
       ip <- individual_params(p, e)
       sim <- simulate_observations(ip, obs, dose, lloq, eps, model_id = model_id)
-      arms[[a]] <- list(S00 = list(obs = sim$obs, truth = sim$truth, subj = e))
+      arms[[a]] <- list(S00 = list(obs = sim$obs, truth = sim$truth, subj = e, ipar = ip))
     } else {
       # 시나리오 스택: id 오프셋으로 한 번에 풀이
       res <- list(); ip_all <- list(); obs_all <- list(); eps_all <- list(); off <- 0L; offs <- list()
@@ -39,7 +40,7 @@ simulate_trial_arms <- function(j, p, design, scenarios, schedules, master_seed,
         o <- offs[[sc]]
         ob <- sim$obs[id > o & id <= o + max(ids)][, id := id - o]
         tr <- sim$truth[id > o & id <= o + max(ids)][, id := id - o]
-        arms[[a]][[sc]] <- list(obs = ob, truth = tr, subj = e)
+        arms[[a]][[sc]] <- list(obs = ob, truth = tr, subj = e, ipar = copy(ip_all[[sc]])[, id := id - o])
       }
     }
   }

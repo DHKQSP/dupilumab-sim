@@ -14,7 +14,7 @@ scenarios:
   KM5:   {label: "Km ×5 (0.05 mg/L)",    T_multipliers: {Km: 5}}
   KM10:  {label: "Km ×10 (0.1 mg/L)",    T_multipliers: {Km: 10}}
   KA075: {label: "ka ×0.75",     T_multipliers: {ka: 0.75}}
-schedule_analysis_scenarios: [S00, F090, VM125]
+schedule_analysis_scenarios: [S00, F090, VM125, KE110]   # 검토 의견 3차 §5: ke ×1.10 추가
 km_caveat: "Kovalenko 2016에서 Km < 0.01은 목적함수가 둔감했으므로 아래쪽은 동등하게 그럴듯하고, 0.1 mg/L은 정량한계보다 높은 극단값. Km은 Michaelis-Menten 근사 상수로 결합력과 정확히 같지 않음."
 # 모델·변동 민감도 변형(지시서 §2). 개인 수준 지표 전 일정 + 시험 수준(B0, S00·F090) 실행.
 sensitivity_variants:
@@ -24,3 +24,6 @@ sensitivity_variants:
   resid12:    {label: "잔차: 비례 12%", sigma_prop: 0.12}
   weight_alt: {label: "체중: 평균 72, SD 10, 절단 50–90", weight: sensitivity}
   ada10:      {label: "ADA 유사 소집단 10%, 14일 이후 ke ×2", ada: true}
+  # 곡률 민감도(검토 의견 3차 §5): 모집단 수준 Vmax 배율을 양 군 공통으로 적용. 개인 수준 20,000명 + 시험 수준(S00, KE110) 500회, 전 일정.
+  vmax080_both: {label: "곡률: Vmax ×0.8 (양 군)", theta_multipliers: {Vmax: 0.8}}
+  vmax125_both: {label: "곡률: Vmax ×1.25 (양 군)", theta_multipliers: {Vmax: 1.25}}

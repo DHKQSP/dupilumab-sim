@@ -27,7 +27,7 @@ for (v in variants) {
     fwrite(rbindlist(lapply(scheds, function(sh) summarize_individual(nca[schedule == sh], by = "ada", last_planned = 56)[, schedule := sh])),
            file.path(out_dir, "individual_ada10_by_subgroup.csv"))
   }
-  pi <- paired_individual_vs_ref(nca, "B0")
+  pi <- merge(paired_individual_vs_ref(nca, "B0"), paired_bootstrap_cd(nca, "B0"), by = "schedule")
   fwrite(pi, file.path(out_dir, sprintf("paired_vs_B0_%s.csv", v)))
   saveRDS(nca, file.path(out_dir, sprintf("nca_%s_20000.rds", v)))
   all_summ[[v]] <- summ
@@ -37,5 +37,5 @@ for (v in variants) {
   append_run_log(logfile, sprintf("variant %s done in %s", v, format(Sys.time() - t0)))
 }
 # 변형별 파일을 모아 전체 표 갱신(변형을 여러 프로세스로 나눠 돌려도 안전)
-allf <- list.files(out_dir, pattern = "^individual_(base|struct2020|iiv150|resid12|weight_alt|ada10)\\.csv$", full.names = TRUE)
+allf <- list.files(out_dir, pattern = "^individual_(base|struct2020|iiv150|resid12|weight_alt|ada10|vmax080_both|vmax125_both)\\.csv$", full.names = TRUE)
 fwrite(rbindlist(lapply(allf, fread), fill = TRUE), file.path(out_dir, "individual_all_variants.csv"))

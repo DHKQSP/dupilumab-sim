@@ -36,20 +36,31 @@ make_subjects <- function(n, p, wt_spec, sex_ratio_male = 0.5, ada_fraction = 0)
   w <- draw_weights(n, wt_spec, sex_ratio_male)
   e <- draw_etas(n, p$omega)
   e[, `:=`(sex = w$sex, WT = w$WT)]
-  e[, ada := if (ada_fraction > 0) as.integer(runif(n) < ada_fraction) else 0L]
+  ada_vec <- if (ada_fraction > 0) as.integer(runif(nrow(e)) < ada_fraction) else 0L   # 난수 순서 동일(D-025)
+  e[, ada := ada_vec]
   e[]
 }
 
-# 층 경계의 바깥 끝은 열어 둔다(-Inf, Inf): 선정 기준 밖 체중(민감도·교차검증 모집단)도 반드시 층에 들어가야 배정에서 빠지지 않는다(D-020)
-weight_stratum <- function(WT, breaks, labels) {
-  b <- as.numeric(breaks); b[1] <- -Inf; b[length(b)] <- Inf
-  cut(WT, breaks = b, labels = labels, include.lowest = TRUE, right = TRUE)
+# 층 경계: 활성 체중 분포의 절단 범위에서 자동 생성 [lo, split], (split, hi] (검토 의견 3차 §4, D-024).
+weight_range_of_spec <- function(wt_spec) {
+  b <- c(if (!is.null(wt_spec$trunc)) as.numeric(wt_spec$trunc), if (!is.null(wt_spec$male_bounds)) as.numeric(wt_spec$male_bounds),
+         if (!is.null(wt_spec$female_bounds)) as.numeric(wt_spec$female_bounds))
+  if (!length(b) || any(!is.finite(b))) stop("층화: 체중 분포에 유한한 절단 범위가 없습니다")
+  lo <- min(b); if (!is.null(wt_spec$female_min) && is.null(wt_spec$trunc)) lo <- min(lo, as.numeric(wt_spec$female_min))
+  c(lo, max(b))
 }
+strata_from_weight_spec <- function(wt_spec, split_kg) {
+  r <- weight_range_of_spec(wt_spec)
+  if (!(split_kg > r[1] && split_kg < r[2])) stop(sprintf("층화: 분할점 %g kg이 체중 범위 [%g, %g] 안에 있지 않습니다", split_kg, r[1], r[2]))
+  list(breaks = c(r[1], split_kg, r[2]), labels = c(sprintf("%g-%g", r[1], split_kg), sprintf(">%g-%g", split_kg, r[2])))
+}
+weight_stratum <- function(WT, breaks, labels) cut(WT, breaks = as.numeric(breaks), labels = labels, include.lowest = TRUE, right = TRUE)
 
 # 층화 무작위배정 1:1. subj에 WT 필요. 반환: arm 열 추가(R/T), 각 arm 정확히 n/2 (홀수 층은 층 간 교대 배정으로 보정)
 assign_arms_stratified <- function(subj, breaks, labels) {
   subj <- copy(subj)
   subj[, stratum := weight_stratum(WT, breaks, labels)]
+  if (anyNA(subj$stratum)) stop(sprintf("층화 배정: 층 밖 대상자 %d명 (체중 범위 [%g, %g] 밖)", sum(is.na(subj$stratum)), min(breaks), max(breaks)))
   subj[, arm := NA_character_]
   leftover <- integer(0)
   for (s in levels(subj$stratum)) {

@@ -15,17 +15,33 @@ suppressPackageStartupMessages(library(ggplot2))
 source(file.path("..", "R", "00_setup.R")); source_project()
 p <- load_params("k2016")
 gate <- read_cfg("gate_decision.yaml")
-REPORT_STEP2 <- gate$step1_gate %in% c("passed", "accepted_by_reviewer")
+REPORT_STEP2 <- isTRUE(gate$decision_option %in% c(1, 2))
+PRIMARY <- gate$model_code_map[[gate$primary_model]]
+TAG <- c(k2016 = "base", k2020 = "struct2020"); LABEL <- c(base = "Kovalenko 2016 (주)", struct2020 = "Kovalenko 2020 Model 1 (구조 민감도)")
 rd <- function(...) { fp <- proj_path("results", ...); if (file.exists(fp)) data.table::fread(fp) else NULL }
 kt <- function(x, cap = NULL, digits = 3) if (!is.null(x)) knitr::kable(x, caption = cap, digits = digits)
+dec <- function(v) rd("trials", sprintf("schedule_decision_%s.csv", v))
+rec_text <- function(d) {
+  if (is.null(d)) return("결과 없음")
+  r <- d[recommend == TRUE]
+  if (!nrow(r)) return("모든 후보 일정이 4개 기준을 충족하지 못함 → B0 유지")
+  paste(vapply(seq_len(nrow(r)), function(i) {
+    x <- r[i]; crit <- c("a", "b", "c", "d")[c(x$crit_a %in% TRUE, x$crit_b %in% TRUE, x$crit_c %in% TRUE, x$crit_d %in% TRUE)]
+    sprintf("%s 권고(기준 %s만 충족; 외삽 20%% 초과 비율 B0 대비 %.2f [MC 95%% %.2f–%.2f], 절대 변화 arm당 %.2f명; 추가 방문 %d회)",
+            x$schedule, paste(crit, collapse = ","), x$d_extrap20_ratio, x$d_ratio_boot_lo, x$d_ratio_boot_hi, x$d_abs_change_per_arm, as.integer(x$added_visits_total))
+  }, ""), collapse = "; ")
+}
 ```
 
-# 목적
-- **1차**: Syneos 기본 채혈 일정(B0)에서 Day 36–50(투여 후 35–49일) 채혈 포인트 추가의 가치를 정량 판단.
-- **2차**: AUC0-last + Cmax 공동 1차 평가변수 근거 — 커버리지(Pillar 1), 판정 일치(Pillar 2), 결합력 차이 비가시성(Pillar 3).
+# 요약
+
+- **목적**: Syneos 기본 채혈(B0)에 Day 36–50(투여 후 35–49일) 채혈을 추가할 가치가 있는지, 그리고 AUC0-last + Cmax 공동 1차 평가변수의 근거.
+- **단계 1 gate**: 연구 제형(300 mg 2 mL of 150 mg/mL, 600 mg 2 x 300 mg) 기준 **PASS** (판정: 옵션 `r gate$decision_option`, `r gate$decided_by`, `r gate$decision_date`).
+- **채혈 밀도 판정(사전 명시 규칙)**: 기본 모델 — `r rec_text(dec("base"))`. 구조 민감도 모델 — `r rec_text(dec("struct2020"))`. 곡률 Vmax ×0.8 — `r rec_text(dec("vmax080_both"))`; Vmax ×1.25 — `r rec_text(dec("vmax125_both"))`.
+- 수치와 해석은 §6–§8.
 
 # 모델과 출처
-기본 모델은 Kovalenko 2016(CPT:PSP 5:617–624) Table 2 "BLQ data included" 열: 2구획, 1차 흡수, 선형 + Michaelis–Menten 병렬 소실, `V2 = 2.74·(WT/75)^0.705`. 구조 민감도는 Kovalenko 2020 Model 1(transit 3개). 상세와 모든 값의 출처는 SPEC.md §3.
+기본 모델은 Kovalenko 2016(CPT:PSP 5(11):617–624) Table 2 "BLQ data included" 열: 2구획, 1차 흡수, 선형 + Michaelis–Menten 병렬 소실, `V2 = 2.74·(WT/75)^0.705`. 구조 민감도는 Kovalenko 2020(Clin Pharmacol Drug Dev 9(6):756–767) Table 1 Model 1(transit 3개, IIV는 2016 차용). 상세와 모든 값의 출처는 SPEC.md §3.
 
 ```{r params}
 kt(data.table::data.table(parameter = names(p$theta), value = unname(p$theta)), "고정효과 (Kovalenko 2016 Table 2)", 4)
@@ -33,85 +49,115 @@ kt(data.table::data.table(parameter = names(p$omega2), omega2 = unname(p$omega2)
 ```
 
 # 가정과 한계
-- **Km 고정(0.01 mg/L)**: LLOQ(0.078 mg/L) 부근에서 MM 소실이 급격해져 말단 농도가 "절벽"처럼 떨어진다. Km에 불확실성·개체간 변동이 없으므로 말단 산포와 λz 산포가 과소평가될 수 있다. Km ×0.5–×10 시나리오로 민감도를 평가한다. Km은 MM 근사 상수로 결합력과 정확히 같지 않다.
-- **Cmax**: 이 모델은 관측보다 Cmax를 10–26% 높게 예측한다(단계 1 gate에서 제외). Cmax 절대값 해석에 주의.
-- **200 mg·≈80 kg 노출 과소예측**: 단계 1 진단 참조. 300 mg 표적 설계에는 직접 해당하지 않지만 모델의 저농도 비선형성이 관측보다 강할 가능성을 시사한다.
+- **제형**: 기본 모델은 200 mg 1.14 mL(175 mg/mL) 제형의 빠른 흡수를 재현하지 않는다. 연구 제형인 300 mg 2 mL(150 mg/mL)의 흡수 시점과 노출은 재현한다. 반대 자료로 Clot 2021 중국인 200 mg(같은 175 mg/mL PFS)은 tmax 7.0일(3.0–10.0)이었으나 n=8이고 Day 4 다음 채혈이 Day 8이라 해상도가 낮다.
+- **Km 고정(0.01 mg/L)**: LLOQ(0.078 mg/L) 부근에서 MM 소실이 급격해져 말단 농도가 "절벽"처럼 떨어진다. Km에 불확실성·개체간 변동이 없으므로 말단 산포와 λz 산포가 과소평가될 수 있다. Km ×0.5–×10 시나리오(Pillar 3)와 Vmax 곡률 민감도로 영향을 본다. Km은 MM 근사 상수로 결합력과 정확히 같지 않다.
+- **Cmax**: 연구 제형에서 모델 Cmax가 관측보다 8–26% 높다(gate 제외). Cmax 절대값 해석에 주의.
 - FDA BLA 761055 Table 4.6.6–4.6.7 대신 Kovalenko 2016 IIV·잔차를 사용(이미지라 추출 불가).
-- 확정 전 가정(Day 1 투여 후 시각, 체중 분포, 층화 경계, 채혈 허용창 등)은 SPEC.md §8.
-- NCA·BE는 R 직접 구현(BEmaster는 평행군·λz 선택 규칙 미지원, DECISIONS D-010).
+- 확정 전 가정(Day 1 투여 후 시각 0.25일, 체중 분포, 층화 분할점, 채혈 허용창)은 SPEC.md §8.
+- NCA·BE는 R 직접 구현(BEmaster는 평행군·λz 선택 규칙 미지원, DECISIONS D-010). 동등성은 평행군 pooled t, 대응 비교는 일정 간 비교에만 사용.
 
 # 단계 1 검증
+gate 범위: `r gate$gate_scope`. gate 제외: `r paste(gate$excluded_from_gate, collapse = ", ")` — `r gate$exclusion_reason`.
+
 ```{r step1}
 kt(rd("step1", "step1_status.csv"), "단계 1 상태 (기본 모델)")
-kt(rd("step1_k2020", "step1_status.csv"), "단계 1 상태 (Kovalenko 2020 Model 1)")
+kt(rd("step1_k2020", "step1_status.csv")[, .(role, check, status)], "단계 1 상태 (Kovalenko 2020 Model 1)")
 ```
 
 ```{r fig_cohort, fig.height=3.4}
 dl <- list(`200` = rd("step1", "cohort_median_tlast_dist_200mg.csv"), `300` = rd("step1", "cohort_median_tlast_dist_300mg.csv"), `600` = rd("step1", "cohort_median_tlast_dist_600mg.csv"))
 coh <- rd("step1", "step1a_cohort_tlast.csv")
 if (!is.null(coh)) print(fig_cohort_tlast(dl, coh))
-kt(coh[, .(dose_mg, weight_mean, obs_median, sim_median_of_cohort_medians, p05, p95, pct_cohorts_at_obs, pass)], "Clot 2021: 8명 코호트 2,000회의 중앙값 tlast (투여 후 일, 기본 모델)")
+kt(coh[, .(dose_mg, gate_role, weight_mean, obs_median, sim_median_of_cohort_medians, p05, p95, pct_cohorts_at_obs, pass)], "Clot 2021: 8명 코호트 2,000회의 중앙값 tlast (투여 후 일, 기본 모델; 200 mg는 외부 점검)")
 ```
 
-```{r fig_gate, fig.height=4}
+```{r fig_gate, fig.height=4.4}
 gb <- rd("step1", "step1b_quant_gate.csv"); ga <- rd("step1_k2020", "step1b_quant_gate.csv")
 if (!is.null(gb) && !is.null(ga)) print(fig_gate(gb, ga))
-kt(rd("step1", "diag_gate_sampling_error.csv"), "정량 gate: 모의/관측 AUClast 비와 관측 평균 표본오차 기준 z (SE = SD/√n)")
+kt(gb[, .(id, gate_role, presentation, n_obs, AUClast_obs_mean, AUClast_sim_mean, AUClast_ratio, AUClast_z, AUClast_sim_logcv, tmax_obs_median, tmax_sim_median, Cmax_ratio, pass_mean, pass_cv)], "정량 gate(연구 제형)와 외부 점검(200 mg 1.14 mL 제형): 기본 모델. z = (모의 − 관측)/(SD/√n)")
+kt(rd("step1", "step1f_300mg_arm_check.csv"), "300 mg 개별 arm 외부 점검 (Li 2020 Table 3 p.750)")
 kt(rd("step1", "step1e_auclast_cv_by_weight_range.csv"), "체중 범위별 AUClast log-CV (B0, 300 mg; 표본 수 논의용)")
 ```
 
-**진단 요약** (DECISIONS D-018): 비아시아인 ≈80 kg에서 AUClast/mg의 200/300 mg 비는 관측 0.935(근사 95% 구간 0.76–1.15), 두 모델 모두 약 0.73 — 저용량·고체중 영역의 비선형성이 관측보다 강하다. 검토자가 명시한 범위의 Km(0.005–0.1), Vmax(×0.8, ×1.25), MM 소실의 체중 비례 제거 중 어느 것도 관측 형태를 재현하지 못한다. 2020 모델은 형태는 같고 노출 수준이 약 7% 높아 gate를 통과한다.
-
-```{r diag}
-kt(rd("step1", "diag_dose_shape_summary.csv"), "용량 형태 진단 (채택 아님)")
-kt(rd("step1", "diag_assumption_sensitivity.csv")[, .(variant, id, AUClast_ratio, AUClast_sim_logcv)], "실패 데이터셋의 확정 전 가정 민감도")
-```
-gate 판정: **`r gate$step1_gate`** (`config/gate_decision.yaml`).
-
-# 교차검증(독립 구현 대비)
+# 교차검증 (독립 구현 대비)
+판정: **일치** (DECISIONS D-027).
 ```{r xv}
 kt(rd("crossval", "crossval_individual_B0.csv"), "개인 수준 (B0, 60–90 kg, 20,000명)")
-kt(rd("crossval", "crossval_trial_compare.csv"), "시험 수준 (이전 일정, 50–115 kg, 500회)")
+kt(rd("crossval", "crossval_weight_range_cv.csv"), "체중 분포 형태별 AUClast log-CV")
+kt(rd("crossval", "crossval_trial_compare.csv"), "시험 수준 (이전 일정, 체중 정규 78/12 절단 50–115, 500회)")
 ```
 
 # 결과: 채혈 밀도 (1차 목적)
-```{r sched, eval=REPORT_STEP2}
-MODEL_TAG <- if (!is.null(gate$primary_model) && gate$primary_model == "k2020") "struct2020" else "base"
-ind <- rd("individual", sprintf("individual_%s.csv", MODEL_TAG))
-print(fig_extrap_by_schedule(ind))
-kt(ind[, .(schedule, n_points, tlast_median, quant_at_last_pct, lambda_ok_pct, adj_r2_ge080_pct, reliable_pct, extrap_median, extrap_p95, extrap_gt20_pct, extrap_true_median, extrap_true_p95, err_tlast_sd, err_inf_sd)], "개인 수준 (20,000명)")
-kt(rd("individual", sprintf("paired_vs_B0_%s.csv", MODEL_TAG)), "개인 수준 B0 대비 대응 비교 (같은 대상자)")
-pt <- rd("trials", sprintf("paired_trial_vs_B0_%s.csv", MODEL_TAG))
-print(fig_width_by_schedule(pt))
-kt(pt, "시험 수준 AUClast CI 폭 B0 대비 대응 비교 (같은 시험)")
-kt(rd("trials", sprintf("schedule_decision_%s.csv", MODEL_TAG)), "사전 명시 판정 규칙 (B0 대비)")
-kt(rd("trials", sprintf("schedules_per_endpoint_%s.csv", MODEL_TAG))[endpoint %in% c("AUClast", "Cmax", "AUCinf_reliable")], "시험 수준 (500회, 117명/arm)")
-kt(rd("trials", sprintf("schedules_concordance_%s.csv", MODEL_TAG)), "AUClast–AUCinf 판정 일치 (일정 × 시나리오)")
-```
-```{r sched_blocked, eval=!REPORT_STEP2, results="asis"}
-cat("> 단계 1 gate 판정 대기 중이므로 단계 2 이후 결과를 표시하지 않는다(SPEC §1).\n")
+```{r sched_fig, eval=REPORT_STEP2}
+print(fig_extrap_by_schedule(rd("individual", "individual_base.csv")))
+print(fig_width_by_schedule(list(`Kovalenko 2016 (주)` = dec("base"), `Kovalenko 2020 Model 1` = dec("struct2020"))))
 ```
 
-# 결과: 제품 차이 시나리오 (2차 목적)
-```{r prod, eval=REPORT_STEP2, fig.height=5.5}
-sfx <- if (MODEL_TAG == "base") "" else "_struct2020"
-pe <- rd("trials", paste0("products_per_endpoint", sfx, ".csv"))
-print(fig_products_gmr(pe))
-kt(data.table::dcast(pe, scenario ~ endpoint, value.var = "pass_rate"), "통과율 (%)", 1)
-kt(data.table::dcast(pe, scenario ~ endpoint, value.var = "GMR_mean"), "GMR 평균", 4)
-kt(rd("trials", paste0("products_concordance", sfx, ".csv")), "AUClast–AUCinf 판정 일치")
-```
-```{r prod_blocked, eval=!REPORT_STEP2, results="asis"}
-cat("> 단계 1 gate 판정 대기 중.\n")
+## 판정 규칙 결과 (B0 대비, 두 모델 나란히)
+```{r sched_dec, eval=REPORT_STEP2}
+cols <- c("schedule", "added_points", "added_visits_total", "a_mean_width_rel_decrease", "b_ke110_pass_B0", "b_ke110_pass", "b_ke110_gain_pp", "c_reliable_B0", "c_reliable", "c_reliable_gain_pp", "d_extrap20_B0", "d_extrap20", "d_extrap20_ratio", "crit_a", "crit_b", "crit_c", "crit_d", "recommend")
+for (v in c("base", "struct2020")) kt(dec(v)[, ..cols], paste0("판정 규칙: ", LABEL[[v]]), 4) |> print()
+both <- merge(dec("base")[, .(schedule, rec_2016 = recommend)], dec("struct2020")[, .(schedule, rec_2020 = recommend)], by = "schedule")
+both[, same := rec_2016 == rec_2020]
+kt(both, "두 모델의 권고 비교 (same = FALSE이면 결론이 다름)")
 ```
 
-# 민감도 (구조·변동·잔차·체중·ADA)
+## 개인 수준 (20,000명, 60–90 kg)
+```{r sched_ind, eval=REPORT_STEP2}
+for (v in c("base", "struct2020")) {
+  ind <- rd("individual", sprintf("individual_%s.csv", v))
+  print(kt(ind[, .(schedule, n_points, tlast_median, tlast_p05, tlast_p95, quant_at_last_pct, lambda_ok_pct, adj_r2_ge080_pct, reliable_pct, n_lambda_median, extrap_median, extrap_p95, extrap_gt20_pct, extrap_true_median, extrap_true_p95, err_tlast_median, err_tlast_sd, err_inf_sd)], paste0("개인 수준: ", LABEL[[v]]), 3))
+}
+kt(rd("individual", "n_lambda_base.csv"), "λz 회귀 점 수 분포 (기본 모델)")
+```
+
+## 시험 수준 (500회, 117명/arm)
+```{r sched_trial, eval=REPORT_STEP2}
+for (v in c("base", "struct2020")) {
+  pe <- rd("trials", sprintf("schedules_per_endpoint_%s.csv", v))
+  print(kt(pe[endpoint %in% c("AUClast", "Cmax", "AUCinf_reliable"), .(scenario, schedule, endpoint, pass_rate, GMR_mean, width_mean_pp, n_T_mean)], paste0("시험 수준: ", LABEL[[v]]), 3))
+  print(kt(rd("trials", sprintf("schedules_concordance_%s.csv", v))[, .(scenario, schedule, pass_both_primary, agree_last_infrel, last_pass_infrel_fail, last_fail_infrel_pass, cor_logGMR_last_infrel)], paste0("AUClast–AUCinf 판정 일치: ", LABEL[[v]]), 3))
+}
+```
+
+## 곡률 민감도 (Vmax ×0.8, ×1.25, 양 군 공통)
+```{r curv, eval=REPORT_STEP2}
+cols2 <- c("schedule", "a_mean_width_rel_decrease", "b_ke110_gain_pp", "c_reliable_gain_pp", "d_extrap20_B0", "d_extrap20", "d_extrap20_ratio", "crit_a", "crit_b", "crit_c", "crit_d", "recommend")
+for (v in c("vmax080_both", "vmax125_both")) print(kt(dec(v)[, ..cols2], paste0("판정 규칙: ", v), 4))
+kt(rd("individual", "individual_all_variants.csv")[variant %in% c("base", "vmax080_both", "vmax125_both") & schedule %in% c("B0", "D2"), .(variant, schedule, tlast_median, reliable_pct, extrap_median, extrap_gt20_pct, extrap_true_median, AUClast_logcv)], "개인 수준: 곡률 변형 B0·D2")
+```
+
+## 기타 민감도 (ω² ×1.5, 잔차 12%, 체중 대안, ADA 유사 소집단)
 ```{r sens, eval=REPORT_STEP2}
+kt(rbindlist(lapply(c("iiv150", "resid12", "weight_alt", "ada10"), function(v) { d <- dec(v); if (is.null(d)) NULL else d[, .(variant = v, schedule, a_mean_width_rel_decrease, b_ke110_gain_pp, c_reliable_gain_pp, d_extrap20_ratio, recommend)] })), "판정 규칙: 기타 변형 (B0 대비 D2)", 4)
 kt(rd("individual", "individual_all_variants.csv")[schedule %in% c("B0", "D2"), .(variant, schedule, tlast_median, reliable_pct, extrap_median, extrap_gt20_pct, extrap_true_median, AUClast_logcv)], "개인 수준: 변형별 B0·D2")
-kt(rd("individual", "individual_ada10_by_subgroup.csv"), "ADA 유사 소집단별")
+kt(rd("individual", "individual_ada10_by_subgroup.csv")[, .(schedule, ada, n, tlast_median, quant_at_last_pct, reliable_pct, extrap_median, extrap_true_median, err_tlast_sd, AUClast_logcv)], "ADA 유사 소집단(10%, 14일 이후 ke ×2)")
 ```
-```{r sens_blocked, eval=!REPORT_STEP2, results="asis"}
-cat("> 단계 1 gate 판정 대기 중.\n")
+
+# 결과: AUC0-last 공동 1차 평가변수 근거 (2차 목적, B0·60–90 kg)
+```{r pillars, eval=REPORT_STEP2, fig.height=5.5}
+kt(rd("rationale", "pillar1_coverage_B0.csv"), "Pillar 1 — 커버리지: 실제 외삽률(진적분), 비구획 외삽률, 신뢰 충족률(전체·체중층)", 2)
+print(fig_products_gmr(rd("trials", "products_per_endpoint.csv")))
+p2 <- rd("rationale", "pillar2_products_B0.csv")
+kt(p2[, .(model, scenario, GMR_AUClast = GMR_mean_AUClast, GMR_AUCinf_rel = GMR_mean_AUCinf_reliable, GMR_AUCinf_true = GMR_mean_AUCinf_true, GMR_Cmax = GMR_mean_Cmax, pass_AUClast = pass_rate_AUClast, pass_AUCinf_rel = pass_rate_AUCinf_reliable, pass_Cmax = pass_rate_Cmax, agree_last_infrel, last_pass_infrel_fail, cor_logGMR_last_infrel)], "Pillar 2 — 제품 차이 14개: GMR, 통과율(%), 판정 일치(%), AUClast 통과·AUCinf 불통과(%), log GMR 상관", 3)
+kt(rd("rationale", "pillar3_km_B0.csv")[, .(model, scenario, endpoint, GMR_change_pct, pass_change_pp, width_change_pp)], "Pillar 3 — Km ×0.5–×10: 동일 제품 대비 변화", 2)
+kt(rd("rationale", "pillar3_km_summary.csv"), "Pillar 3 요약", 2)
+```
+```{r blocked, eval=!REPORT_STEP2, results="asis"}
+cat("> 단계 1 gate 판정 전이므로 단계 2 이후 결과를 표시하지 않는다(SPEC §1).\n")
+```
+
+# 부록 A. 제형 흡수 진단 (채택 아님)
+200 mg 1.14 mL(175 mg/mL) 조건에서만 ka에 배율을 적용했다. 300 mg 시뮬레이션 파라미터는 바꾸지 않았고, 이 값은 어떤 산출물에도 쓰지 않는다.
+```{r appx}
+kt(rd("step1", "appendix_absorption_diagnostic.csv")[, .(condition, dose_mg, ka_multiplier, Cmax_sim_mean, tmax_sim_median, AUClast_sim_mean, AUClast_obs_nweighted, AUClast_ratio_nweighted, Cmax_ratio_nweighted, obs_arms)], "ka 배율별 Cmax, tmax 중앙값, AUClast 평균, 관측 대비 비", 3)
+kt(rd("step1", "appendix_dose_shape_observed.csv"), "관측 용량 형태 비 (AUClast/mg, 200:300 mg)", 3)
+kt(rd("step1", "appendix_dose_shape_model.csv"), "모델 용량 형태 비 (200 mg 조건만 ka 배율)", 3)
+```
+
+# 부록 B. 이전 진단 (기록)
+```{r appx_b}
+kt(rd("step1", "diag_dose_shape_summary.csv"), "용량 형태 진단 (Km·Vmax·체중 비례 변경; 채택 아님)")
 ```
 
 # 재현 방법

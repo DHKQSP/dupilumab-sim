@@ -23,7 +23,9 @@ ind_cmp[, rel_diff_pct := 100 * (sim / ref - 1)]
 fwrite(ind_cmp, file.path(out_dir, "crossval_individual_B0.csv")); cat("\n개인 수준 교차검증:\n"); print(ind_cmp)
 # 체중 50–115 vs 60–90 CV. 검토자 50–115 분포 형태는 미전달 → 형태별로 산출(D-019)
 wt_wide <- list(mean = 82.5, sd = 1e3, trunc = c(50, 115))     # 거의 균등
-wt_shapes <- list(uniform_50_115 = wt_wide, normal78_sd13_50_115 = list(mean = 78, sd = 13, trunc = c(50, 115)),
+wd <- ref$weight_distribution_50_115   # 검토자 분포: 정규(78, 12) 50–115 절단 (D-027)
+wt_shapes <- list(normal78_sd12_50_115 = list(mean = wd$mean, sd = wd$sd, trunc = as.numeric(unlist(wd$trunc))),
+                  uniform_50_115 = wt_wide, normal78_sd13_50_115 = list(mean = 78, sd = 13, trunc = c(50, 115)),
                   normal78_sd10_50_115 = list(mean = 78, sd = 10, trunc = c(50, 115)), normal75_sd9_60_90 = weight_spec_from_design(design, "base"))
 cv_cmp <- rbindlist(lapply(names(wt_shapes), function(nm) {
   pp <- run_individual_population(20000, p, design, "B0", MASTER_SEED, wt_shapes[[nm]], jitter = FALSE, tag = paste0("xv_wt_", nm))
@@ -32,7 +34,7 @@ cv_cmp <- rbindlist(lapply(names(wt_shapes), function(nm) {
 cv_cmp[, ref_logcv := fifelse(grepl("50_115", weight_shape), ref$weight_range_effect$logcv_wt50_115_pct, ref$weight_range_effect$logcv_wt60_90_pct)]
 fwrite(cv_cmp, file.path(out_dir, "crossval_weight_range_cv.csv")); cat("\n체중 분포 형태별 AUClast log-CV:\n"); print(cv_cmp)
 # 밀도 예상 방향: Day 46·53(경과일 45·52) 추가. 기준 일정이 B0인지 이전 일정인지 미전달 → 둘 다, 체중 균등·정규 두 형태
-dens <- rbindlist(lapply(c("uniform_50_115", "normal78_sd13_50_115"), function(nm) {
+dens <- rbindlist(lapply(c("normal78_sd12_50_115", "uniform_50_115"), function(nm) {
   pd <- run_individual_population(20000, p, design, c("B0", "XV_B0_dens", "XV_prev", "XV_prev_dens"), MASTER_SEED, wt_shapes[[nm]], jitter = FALSE, tag = paste0("xv_dens_", nm))
   rbindlist(lapply(c("B0", "XV_B0_dens", "XV_prev", "XV_prev_dens"), function(sh) summarize_individual(pd$nca[schedule == sh], last_planned = 56)[, `:=`(schedule = sh, weight_shape = nm)]))
 }))
@@ -44,7 +46,7 @@ scens <- sc$scenarios[c("S00", "F090", "VM125", "KM10")]
 combos <- CJ(scenario = names(scens), schedule = "XV_prev")
 rt <- ref$trial_XVprev_wt50_115_n117_500trials
 all_cmp <- list(); all_tr <- list()
-for (shape in c("normal78_sd13_50_115", "uniform_50_115")) {
+for (shape in c("normal78_sd12_50_115")) {   # 주 비교(검토자 분포). SD 13·균등 결과는 SPEC §9에 기록
   t0 <- Sys.time()
   res <- run_trials(n_trials, p, design, scens, combos, MASTER_SEED, wt_shapes[[shape]], jitter = FALSE, methods = "pooled_t", cores = cores)
   cat(shape, "trial-level elapsed:", format(Sys.time() - t0), "\n")

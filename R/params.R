@@ -55,6 +55,7 @@ apply_multipliers <- function(p, mult) {
 
 # 민감도 변형(지시서 §2, config/scenarios.yaml sensitivity_variants)
 apply_variant <- function(p, variant_spec, design = NULL) {
+  if (!is.null(variant_spec$theta_multipliers)) p <- apply_multipliers(p, variant_spec$theta_multipliers)   # 양 군 공통(곡률 민감도)
   if (!is.null(variant_spec$omega2_multiplier)) { p$omega2 <- p$omega2 * variant_spec$omega2_multiplier; p$omega <- sqrt(p$omega2) }
   if (!is.null(variant_spec$sigma_prop)) p$sigma["prop"] <- variant_spec$sigma_prop
   if (isTRUE(variant_spec$ada) && !is.null(design)) p$ada <- list(fraction = design$ada_sensitivity$fraction, onset_day = design$ada_sensitivity$onset_day, ke_multiplier = design$ada_sensitivity$ke_multiplier)

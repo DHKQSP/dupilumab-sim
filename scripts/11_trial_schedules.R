@@ -10,10 +10,14 @@ cores <- if (length(args) >= 3) as.integer(args[3]) else max(1L, parallel::detec
 MASTER_SEED <- 20260923L
 out_dir <- proj_path("results", "trials"); dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
 rv <- resolve_variant(variant, design, sc); p <- rv$p
-FULL <- variant %in% c("base", "struct2020")   # 2020 모델은 주 모델 후보(D-018)이므로 전체 조합
-scheds <- if (FULL) design$schedule_analysis else c("B0", "D2")
-scens <- sc$scenarios[sc$schedule_analysis]
-if (!FULL) scens <- scens[c("S00", "F090")]
+# 변형별 조합(검토 의견 3차 §5):
+#  base, struct2020: 6개 일정 × S00/F090/VM125/KE110
+#  vmax080_both, vmax125_both(곡률 민감도): 6개 일정 × S00/KE110
+#  나머지 변형: B0·D2 × S00/F090/KE110
+all_scens <- sc$scenarios[sc$schedule_analysis]
+if (variant %in% c("base", "struct2020")) { scheds <- design$schedule_analysis; scens <- all_scens
+} else if (variant %in% c("vmax080_both", "vmax125_both")) { scheds <- design$schedule_analysis; scens <- all_scens[c("S00", "KE110")]
+} else { scheds <- c("B0", "D2"); scens <- all_scens[c("S00", "F090", "KE110")] }
 combos <- CJ(scenario = names(scens), schedule = scheds)
 logfile <- start_run_log(paste0("trial_schedules_", variant), master_seed = MASTER_SEED, run_mode = "final",
                          extra = list(variant = variant, n_trials = n_trials, cores = cores, schedules = scheds, scenarios = names(scens)))

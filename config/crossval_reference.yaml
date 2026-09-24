@@ -16,6 +16,8 @@ individual_B0_wt60_90_300mg_n20000:
   extrap_true_median_pct: 0.65
   extrap_true_p95_pct: 3.3
   coverage_lt80_pct: 0
+# 검토자 독립 구현의 체중 분포(검토 의견 3차 §3): 정규 평균 78, SD 12, 50–115 절단(기각 표집) = 절단 정규분포
+weight_distribution_50_115: {mean: 78, sd: 12, trunc: [50, 115]}
 weight_range_effect:
   logcv_wt50_115_pct: 43
   logcv_wt60_90_pct: 40

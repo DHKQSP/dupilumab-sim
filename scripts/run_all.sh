@@ -7,6 +7,8 @@ Rscript scripts/02_validate_step1.R
 Rscript scripts/02_validate_step1.R k2020
 Rscript scripts/02b_step1_diagnostics.R
 Rscript scripts/02c_gate_sampling_error.R
+Rscript scripts/02d_absorption_diagnostic.R
 bash scripts/run_step2_all.sh
 Rscript scripts/13_crossval.R
+Rscript scripts/15_rationale_summary.R
 Rscript scripts/05_report.R

@@ -10,23 +10,41 @@ cohort_sim:
   weight_bounds_kg: {male: [50, 100], female: [40, 90]}
   pass_rule: "관측 코호트 중앙값 tlast가 모의 코호트 중앙값 분포의 5–95 백분위 안 (채혈 간격 7일 → 한 칸 차이는 실패 아님)"
 groups:
-  - {dose_mg: 200, weight_mean: 62.2, weight_sd: 9.0, tlast_median_obs: 28, tlast_range_obs: null, source: "Clot 2021 Table 1, Table 3"}
-  - {dose_mg: 300, weight_mean: 59.9, weight_sd: 8.9, tlast_median_obs: 42, tlast_range_obs: [28, 49], source: "Clot 2021 Table 1, Table 3"}
-  - {dose_mg: 600, weight_mean: 58.3, weight_sd: 6.5, tlast_median_obs: 56, tlast_range_obs: null, source: "Clot 2021 Table 1, Table 3"}
+  - {dose_mg: 200, gate_role: external, weight_mean: 62.2, weight_sd: 9.0, tlast_median_obs: 28, tlast_range_obs: null, source: "Clot 2021 Table 1, Table 3"}
+  - {dose_mg: 300, gate_role: gate, weight_mean: 59.9, weight_sd: 8.9, tlast_median_obs: 42, tlast_range_obs: [28, 49], source: "Clot 2021 Table 1, Table 3"}
+  - {dose_mg: 600, gate_role: gate, weight_mean: 58.3, weight_sd: 6.5, tlast_median_obs: 56, tlast_range_obs: null, source: "Clot 2021 Table 1, Table 3"}
 # 정량 gate: 체중 매칭 후 모의 AUClast 산술평균이 관측 ±15% 이내, log-scale CV 35–51%. Cmax는 gate 제외(모델이 10–20% 높게 나옴, 한계로 기재).
 gate:
   auclast_mean_tol_pct: 15
   log_cv_range_pct: [35, 51]
   n_sim_per_dataset: 20000
+# gate_role: gate = 연구 제형(300 mg 2 mL of 150 mg/mL; 600 mg = 2 x 300 mg) → pass/fail 판정
+#            external = 연구 제형 외 외부 점검(200 mg 1.14 mL of 175 mg/mL 등) → 관측 대비 비·z만 서술 보고 (gate_decision.yaml, D-023)
+# n_subj: 표본 수(YAML 키 n 금지, D-021). tmax_median/tmax_range: 관측값(일).
 datasets:
-  - {id: clot300_nonasian_pooled, dose_mg: 300, n_subj: 40, weight_mean: 78, weight_sd: {value: 10, status: assumption, note: "확정 전 가정: Table 5 SD 미전달"}, schedule: clot, cmax_mean: 32.0, cmax_sd: 10.5, auclast_mean: 544, auclast_sd: 218, source: "Clot 2021 Table 5 (비아시아인 pooled)"}
-  - {id: clot300_japanese_TDU12265, dose_mg: 300, n_subj: 6, weight_mean: 64, weight_sd: {value: 8, status: assumption, note: "확정 전 가정"}, schedule: clot, cmax_mean: 38.3, cmax_sd: 15.3, auclast_mean: 700, auclast_sd: 234, source: "Clot 2021 Table 5 (일본인, TDU12265)"}
-  - {id: clot300_chinese, dose_mg: 300, n_subj: 8, weight_mean: 59.9, weight_sd: 8.9, schedule: clot, cmax_mean: 37.2, cmax_sd: 14.5, cmax_geo: 34.0, auclast_mean: 792, auclast_sd: 326, auclast_geo: 710, aucinf_mean: 807, aucinf_sd: 325, aucinf_geo: 726, tmax_median: 7.0, tmax_range: [3, 10], tlast_median: 42, tlast_range: [28, 49], source: "Clot 2021 Table 3"}
-  - {id: clot600_chinese, dose_mg: 600, n_subj: 8, weight_mean: 58.3, weight_sd: 6.5, schedule: clot, cmax_mean: 77.3, cmax_sd: 19.0, auclast_mean: 2110, auclast_sd: 487, source: "Clot 2021 Table 3"}
-  - {id: clot600_japanese, dose_mg: 600, n_subj: null, weight_mean: 64, weight_sd: {value: 8, status: assumption, note: "확정 전 가정"}, schedule: clot, cmax_mean: 70.1, cmax_sd: 24.1, auclast_mean: 1780, auclast_sd: 699, source: "Clot 2021 Table 5 (일본인)"}
-  - {id: pkm14271_200_nonasian, dose_mg: 200, n_subj: 19, weight_mean: 80, weight_sd: {value: 10, status: assumption, note: "확정 전 가정"}, schedule: clot, cmax_mean: 23.2, cmax_sd: 7.8, auclast_mean: 339, auclast_sd: 128, source: "Clot 2021 Table 5 (PKM14271 비아시아인)"}
-  - {id: cohen2022_200_armA, dose_mg: 200, n_subj: 64, weight_mean: 80.6, weight_sd: {value: 8, status: assumption, note: "확정 전 가정: 70–100 kg 기준"}, weight_bounds: [70, 100], schedule: cohen_d42, cmax_mean: 21.7, cmax_sd: 6.83, auclast_mean: 311, auclast_sd: 118, source: "Cohen 2022 Table 2 p.678"}
-  - {id: cohen2022_200_armB, dose_mg: 200, n_subj: 64, weight_mean: 80.6, weight_sd: {value: 8, status: assumption, note: "확정 전 가정"}, weight_bounds: [70, 100], schedule: cohen_d42, cmax_mean: 20.3, cmax_sd: 7.22, auclast_mean: 284, auclast_sd: 121, gmr_auclast: 1.11, gmr_ci: [0.96, 1.28], source: "Cohen 2022 Table 2 p.678"}
+  - {id: clot300_nonasian_pooled, gate_role: gate, dose_mg: 300, presentation: "2 mL of 150 mg/mL", n_subj: 40, weight_mean: 78, weight_sd: {value: 10, status: assumption, note: "확정 전 가정: Table 5 SD 미전달"}, schedule: clot, cmax_mean: 32.0, cmax_sd: 10.5, auclast_mean: 544, auclast_sd: 218, tmax_median: 7.0, source: "Clot 2021 Table 5 (비아시아인 pooled)"}
+  - {id: clot300_japanese_TDU12265, gate_role: gate, dose_mg: 300, presentation: "2 mL of 150 mg/mL", n_subj: 6, weight_mean: 64, weight_sd: {value: 8, status: assumption, note: "확정 전 가정"}, schedule: clot, cmax_mean: 38.3, cmax_sd: 15.3, auclast_mean: 700, auclast_sd: 234, source: "Clot 2021 Table 5 (일본인, TDU12265)"}
+  - {id: clot300_chinese, gate_role: gate, dose_mg: 300, presentation: "2 mL of 150 mg/mL", n_subj: 8, weight_mean: 59.9, weight_sd: 8.9, schedule: clot, cmax_mean: 37.2, cmax_sd: 14.5, cmax_geo: 34.0, auclast_mean: 792, auclast_sd: 326, auclast_geo: 710, aucinf_mean: 807, aucinf_sd: 325, aucinf_geo: 726, tmax_median: 7.0, tmax_range: [3, 10], tlast_median: 42, tlast_range: [28, 49], source: "Clot 2021 Table 3"}
+  - {id: clot600_chinese, gate_role: gate, dose_mg: 600, presentation: "2 x 300 mg", n_subj: 8, weight_mean: 58.3, weight_sd: 6.5, schedule: clot, cmax_mean: 77.3, cmax_sd: 19.0, auclast_mean: 2110, auclast_sd: 487, source: "Clot 2021 Table 3"}
+  - {id: clot600_japanese, gate_role: gate, dose_mg: 600, presentation: "2 x 300 mg", n_subj: null, weight_mean: 64, weight_sd: {value: 8, status: assumption, note: "확정 전 가정"}, schedule: clot, cmax_mean: 70.1, cmax_sd: 24.1, auclast_mean: 1780, auclast_sd: 699, source: "Clot 2021 Table 5 (일본인)"}
+  - {id: PKM14271_200mg_test, gate_role: external, dose_mg: 200, presentation: "1.14 mL of 175 mg/mL", n_subj: 19, weight_mean: 80, weight_sd: {value: 10, status: assumption, note: "확정 전 가정"}, schedule: clot, cmax_mean: 23.2, cmax_sd: 7.8, auclast_mean: 339, auclast_sd: 128, tmax_median: 3.1, tmax_range: [2.9, 10.0], source: "Clot 2021 Table 5 (PKM14271 비아시아인); tmax: Li 2020 Table 3 p.750 (Test)"}
+  - {id: PKM14271_200mg_reference, gate_role: external, dose_mg: 200, presentation: "1.14 mL of 175 mg/mL (formulation I vial)", n_subj: 19, weight_mean: 80, weight_sd: {value: 10, status: assumption, note: "확정 전 가정"}, schedule: clot, cmax_mean: 22.8, cmax_sd: 8.9, auclast_mean: 323, auclast_sd: 132, tmax_median: 3.0, tmax_range: [1.0, 7.2], source: "Li 2020 Table 3 p.750 (Reference); 검토 의견 3차"}
+  - {id: Cohen2022_200mg_AI, gate_role: external, dose_mg: 200, presentation: "1.14 mL of 175 mg/mL, 복부 투여", n_subj: 62, weight_mean: 80.6, weight_sd: {value: 8, status: assumption, note: "확정 전 가정: 70–100 kg 기준"}, weight_bounds: [70, 100], schedule: cohen_d42, cmax_mean: 21.7, cmax_sd: 6.83, auclast_mean: 311, auclast_sd: 118, tmax_median: 3.00, tmax_range: [2.96, 7.02], source: "Cohen 2022 Table 2 p.678 (AI); 투여 p.677"}
+  - {id: Cohen2022_200mg_PFSS, gate_role: external, dose_mg: 200, presentation: "1.14 mL of 175 mg/mL, 복부 투여", n_subj: 63, weight_mean: 80.6, weight_sd: {value: 8, status: assumption, note: "확정 전 가정"}, weight_bounds: [70, 100], schedule: cohen_d42, cmax_mean: 20.3, cmax_sd: 7.22, auclast_mean: 284, auclast_sd: 121, tmax_median: 3.00, tmax_range: [2.92, 7.06], gmr_auclast: 1.11, gmr_ci: [0.96, 1.28], source: "Cohen 2022 Table 2 p.678 (PFS-S)"}
+# 300 mg 개별 arm 외부 점검(Li 2020 Table 3 p.750): 모델 평균(300 mg, 약 78 kg)이 arm 평균 범위 안인지 확인. 체중·n 미전달.
+arm_checks_300mg:
+  source: "Li 2020 Table 3 p.750"
+  model_reference_dataset: clot300_nonasian_pooled
+  arms:
+    - {study: PKM12350, arm: test,      auclast_mean: 487.5, auclast_sd: 199.6, tmax_median: 7.0}
+    - {study: PKM12350, arm: reference, auclast_mean: 500,   auclast_sd: 179.2, tmax_median: 7.0}
+    - {study: PKM14161, arm: test,      auclast_mean: 587,   auclast_sd: 302,   tmax_median: 7.0}
+    - {study: PKM14161, arm: reference, auclast_mean: 575,   auclast_sd: 235,   tmax_median: 7.0}
+    - {study: HV-1108,  arm: test,      auclast_mean: 630,   auclast_sd: 223,   tmax_median: 5.0}
+    - {study: HV-1108,  arm: reference, auclast_mean: 530,   auclast_sd: 233,   tmax_median: 6.9}
+# 반대 자료(한계에 기재): Clot 2021 중국인 200 mg(같은 175 mg/mL PFS)은 tmax 7.0일(3.0–10.0), n=8, Day 4 다음 채혈이 Day 8이라 해상도 낮음.
+counter_evidence:
+  - {id: clot200_chinese, dose_mg: 200, presentation: "175 mg/mL PFS", n_subj: 8, tmax_median: 7.0, tmax_range: [3.0, 10.0], note: "Day 4 다음 채혈이 Day 8이라 해상도 낮음", source: "Clot 2021 Table 3"}
 dataset_schedules:
   clot: [1, 3, 7, 10, 14, 21, 28, 35, 42, 49, 56]
   cohen_d42: {days: [1, 3, 7, 10, 14, 21, 28, 35, 42], status: assumption, note: "확정 전 가정: Cohen 2022 p.677 채혈은 Day 43까지; 세부 시점 미전달 → Clot 시점을 42일까지 사용"}
@@ -35,5 +53,12 @@ weight_slope_check:
   weight_range_kg: [50, 115]
   dose_mg: 300
 variability_checks:
-  li2020:    {dose_mg: 300, metric: AUClast, cv_pct_range: [35, 51], source: "Li 2020 Table 3 p.750"}
-  cohen2022: {dose_mg: 200, metric: AUClast, log_sd: 0.49, source: "Cohen 2022 Table 2 p.678 (log SD)"}
+  li2020:    {gate_role: gate, dose_mg: 300, metric: AUClast, cv_pct_range: [35, 51], source: "Li 2020 Table 3 p.750"}
+  cohen2022: {gate_role: external, dose_mg: 200, metric: AUClast, log_sd: 0.49, source: "Cohen 2022 Table 2 p.678 (log SD)"}
+# 흡수 진단(부록, 채택 아님): 200 mg 조건에서만 ka 배율 적용. 300 mg 파라미터는 변경하지 않는다(검토 의견 3차 §2).
+absorption_diagnostic:
+  ka_multipliers: [1, 1.5, 2, 3]
+  conditions:
+    - {id: cohen_like, dose_mg: 200, weight_mean: 80.6, weight_sd: 8, weight_bounds: [70, 100], schedule: cohen_d42, obs_ids: [Cohen2022_200mg_AI, Cohen2022_200mg_PFSS]}
+    - {id: pkm14271_like, dose_mg: 200, weight_mean: 80, weight_sd: 10, schedule: clot, obs_ids: [PKM14271_200mg_test, PKM14271_200mg_reference]}
+  reference_300mg: {id: nonasian300_like, dose_mg: 300, weight_mean: 78, weight_sd: 10, schedule: clot, obs_ids: [clot300_nonasian_pooled], ka_multiplier: 1}

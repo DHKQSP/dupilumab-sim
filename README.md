@@ -22,9 +22,9 @@ Rscript -e 'install.packages("renv"); renv::restore()'
 # 2) 전체 순서 (테스트 → 단계 1 → 진단 → 개인 수준 → 시험 수준 → 제품 시나리오 → 교차검증 → 보고서)
 bash scripts/run_all.sh
 ```
-- 개별 실행: `Rscript scripts/run_tests.R`, `02_validate_step1.R [k2016|k2020]`, `02b_step1_diagnostics.R`, `02c_gate_sampling_error.R`, `10_individual_schedules.R [변형...]`, `11_trial_schedules.R [변형] [시험 수] [코어]`, `12_trial_products.R [시험 수] [코어] [변형]`, `13_crossval.R [시험 수] [코어]`, `14_postprocess.R`, `05_report.R`. 단계 2–4 일괄: `bash scripts/run_step2_all.sh`.
+- 개별 실행: `Rscript scripts/run_tests.R`, `02_validate_step1.R [k2016|k2020]`, `02b_step1_diagnostics.R`, `02c_gate_sampling_error.R`, `02d_absorption_diagnostic.R`(부록, 채택 아님), `10_individual_schedules.R [변형...]`, `11_trial_schedules.R [변형] [시험 수] [코어]`, `12_trial_products.R [시험 수] [코어] [변형]`, `13_crossval.R [시험 수] [코어]`, `14_postprocess.R`, `15_rationale_summary.R`, `05_report.R`. 단계 2–4 일괄: `bash scripts/run_step2_all.sh`.
 - `renv::restore()` 없이 시스템 라이브러리로 실행하려면(CRAN 차단 환경) `RENV_CONFIG_EXTERNAL_LIBRARIES="/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library"` 를 설정한다. 최종본 전 정리 대상(D-017).
-- 단계 1 gate 판정은 `config/gate_decision.yaml`에 기록한다. 보고서는 판정이 `passed` 또는 `accepted_by_reviewer`일 때만 단계 2 이후 결과를 렌더링한다.
+- 단계 1 gate 판정은 `config/gate_decision.yaml`에 기록한다(2026-09-23 옵션 1). 보고서는 `decision_option`이 1 또는 2일 때 단계 2 이후 결과를 렌더링한다.
 - `scripts/01_calibrate_ka.R`은 보관용이다(실행 시 중단, D-015).
 
 ## 상태

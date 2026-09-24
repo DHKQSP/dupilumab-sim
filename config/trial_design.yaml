@@ -14,8 +14,9 @@ weight:
   sensitivity: {mean: 72, sd: 10, trunc: [50, 90], female_min: 50, status: assumption, note: "확정 전 가정(지시서 §4 민감도)"}
   sex_ratio_male: {value: 0.5, status: assumption, note: "확정 전 가정"}
 stratification:
-  weight_breaks: [60, 75, 90]     # 2층: [60,75], (75,90]  — 확정 전 가정
-  labels: ["60-75", ">75-90"]
+  # 층 경계는 활성 체중 분포의 절단 범위에서 자동 생성한다: [lo, split_kg], (split_kg, hi]. 층 밖 대상자가 생기면 오류로 중단(검토 의견 3차 §4, D-024).
+  # 예: 기본 60–90 → 60–75, >75–90; 민감도 50–90 → 50–75, >75–90.
+  split_kg: {value: 75, status: assumption, note: "확정 전 가정: 2층 자리표시자"}
   allocation: "층 내 1:1"
 
 # 채혈 일정(투여 후 경과일). Day 0 = 투여 전 기저치(AUC 미포함, BLQ 처리). Day 1 투여 후 시각은 미정 → 0.25일 자리표시자.
@@ -61,10 +62,11 @@ be:
   primary_set: [AUClast, Cmax]
 
 decision_rule:
-  # 추가 채혈 권고 조건(B0 대비): (a) AUClast CI 폭 상대 감소, (b) AUCinf 신뢰 기준 충족률 +5%p 이상, (c) 외삽 20% 초과 비율의 유의한 감소
-  ci_width_relative_decrease_min: 0.05   # 확정 전 가정: (a)의 "상대 감소" 임계 5%
-  reliability_gain_pp_min: 5
-  extrap_gt20_test_alpha: 0.05
+  # 추가 채혈 권고 조건(B0 대비, 하나 이상 충족 시 권고; 모두 미충족이면 B0 유지). 검토 의견 3차 §5가 이전 규칙을 대체(D-026).
+  ci_width_mean_rel_decrease_min: 0.02   # (a) AUClast 90% CI 평균 폭 상대 감소 ≥ 2% (표본 수 약 4% 절감에 해당), 시나리오 S00
+  ke110_pass_gain_pp_min: 2              # (b) ke ×1.10 시나리오에서 AUClast 동등성 통과율 +2%p 이상
+  reliability_gain_pp_min: 5             # (c) AUCinf 신뢰 기준 충족률 +5%p 이상
+  extrap_gt20_ratio_max: 0.5             # (d) 비구획 외삽 20% 초과 비율이 B0의 절반 이하
   cost_per_added_point: {subjects: 260, visits: 1}
 
 ada_sensitivity:

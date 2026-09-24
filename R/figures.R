@@ -47,15 +47,17 @@ fig_extrap_by_schedule <- function(ind) {
     ggplot2::labs(x = "채혈 일정", y = "외삽률 (%) — 점 중앙값, 선 끝 95백분위", title = "일정별 외삽률: 비구획 추정과 실제의 괴리") + theme_dupi()
 }
 
-# 단계 2: 일정별 AUClast CI 폭 상대 감소(B0 대비, 평균과 95% CI)
-fig_width_by_schedule <- function(pt) {
-  d <- copy(pt)[scenario == "S00"]; d[, schedule := factor(schedule, levels = c("Bminus", "D4", "D1", "D2", "D3"))]
-  ggplot2::ggplot(d, ggplot2::aes(100 * width_rel_decrease, schedule)) +
+# 단계 2: 일정별 AUClast CI 평균 폭 상대 감소(B0 대비), 모델별 소형 다중. 점선 = 판정 임계 2%
+fig_width_by_schedule <- function(dec_list) {
+  d <- rbindlist(lapply(names(dec_list), function(m) dec_list[[m]][, .(schedule, model = m, v = 100 * a_mean_width_rel_decrease, lo = 100 * a_paired_lo, hi = 100 * a_paired_hi)]))
+  d[, schedule := factor(schedule, levels = c("Bminus", "D4", "D1", "D2", "D3"))]
+  ggplot2::ggplot(d, ggplot2::aes(v, schedule)) +
     ggplot2::geom_vline(xintercept = 0, colour = VIZ$muted, linewidth = 0.4) +
-    ggplot2::geom_vline(xintercept = 5, colour = VIZ$ink2, linewidth = 0.4, linetype = "22") +
-    ggplot2::geom_errorbarh(ggplot2::aes(xmin = 100 * width_rel_decrease_lo, xmax = 100 * width_rel_decrease_hi), height = 0.2, colour = VIZ$s1) +
-    ggplot2::geom_point(size = 3, colour = VIZ$s1) +
-    ggplot2::labs(x = "AUClast 90% CI 폭의 B0 대비 상대 감소 (%) — 점선 = 권고 임계 5%", y = NULL, title = "추가 채혈이 AUClast 정밀도에 주는 효과") + theme_dupi()
+    ggplot2::geom_vline(xintercept = 2, colour = VIZ$ink2, linewidth = 0.4, linetype = "22") +
+    ggplot2::geom_errorbarh(ggplot2::aes(xmin = lo, xmax = hi), height = 0.2, colour = VIZ$s1) +
+    ggplot2::geom_point(size = 3, colour = VIZ$s1) + ggplot2::facet_wrap(~model, nrow = 1) +
+    ggplot2::labs(x = "AUClast 90% CI 평균 폭의 B0 대비 상대 감소 (%) — 점선 = 권고 임계 2%", y = NULL,
+                  title = "추가 채혈이 AUClast 정밀도에 주는 효과", subtitle = "동일 제품 500회, 같은 시험의 대응 비교 95% CI") + theme_dupi()
 }
 
 # 단계 3: 제품 시나리오별 GMR — AUClast vs AUCinf(신뢰) vs 진적분 AUCinf

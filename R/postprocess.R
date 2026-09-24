@@ -17,11 +17,13 @@ postprocess_schedules <- function(variant, design = read_cfg("trial_design.yaml"
   pt <- rbindlist(lapply(scens, function(s_) paired_trial_width_vs_ref(be, "B0", s_)))
   fwrite(pt, file.path(out_dir, sprintf("paired_trial_vs_B0_%s.csv", variant)))
   dec <- NULL
-  indf <- proj_path("results", "individual", sprintf("paired_vs_B0_%s.csv", variant))
-  if (file.exists(indf)) {
+  indf <- proj_path("results", "individual", sprintf("individual_%s.csv", variant))
+  pindf <- proj_path("results", "individual", sprintf("paired_vs_B0_%s.csv", variant))
+  if (file.exists(indf) && file.exists(pindf)) {
+    ind <- fread(indf)[schedule %in% scheds]
     npts <- data.table(schedule = scheds, n_points = vapply(scheds, function(sh) length(get_schedule(design, sh)), numeric(1)))
     npts[, added_points := n_points - npts[schedule == "B0", n_points]]
-    dec <- schedule_decision(fread(indf)[schedule %in% scheds], pt, design, npts)
+    dec <- schedule_decision(ind, fread(pindf)[schedule %in% scheds], st$per_endpoint, pt, design, npts)
     fwrite(dec, file.path(out_dir, sprintf("schedule_decision_%s.csv", variant)))
   }
   if (verbose) cat(sprintf("postprocess schedules %s: %d trials, %d scenarios, %d schedules\n", variant, uniqueN(be$trial), length(scens), length(scheds)))
@@ -37,4 +39,15 @@ postprocess_products <- function(variant = "base", verbose = TRUE) {
   fwrite(st_anc$per_endpoint, file.path(out_dir, paste0("products_per_endpoint_ancova", sfx, ".csv")))
   if (verbose) cat(sprintf("postprocess products %s: %d trials, %d scenarios\n", variant, uniqueN(be$trial), uniqueN(be$scenario)))
   invisible(list(per_endpoint = st$per_endpoint, concordance = st$concordance))
+}
+
+# 개인 수준 대응 비교를 저장된 NCA 원자료(rds)에서 다시 만든다(시뮬레이션 재실행 없음). 부트스트랩 구간 포함.
+postprocess_individual_paired <- function(variant, verbose = TRUE) {
+  f <- proj_path("results", "individual", sprintf("nca_%s_20000.rds", variant))
+  if (!file.exists(f)) { if (verbose) message("NCA 원자료 없음: ", f); return(invisible(NULL)) }
+  nca <- readRDS(f)
+  pi <- merge(paired_individual_vs_ref(nca, "B0"), paired_bootstrap_cd(nca, "B0"), by = "schedule")
+  fwrite(pi, proj_path("results", "individual", sprintf("paired_vs_B0_%s.csv", variant)))
+  if (verbose) cat(sprintf("postprocess individual paired %s: %d schedules\n", variant, nrow(pi)))
+  invisible(pi)
 }
