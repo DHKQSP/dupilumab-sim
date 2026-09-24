@@ -1,0 +1,19 @@
+postprocess individual paired ada10: 5 schedules
+postprocess individual paired base: 5 schedules
+postprocess individual paired iiv150: 5 schedules
+postprocess individual paired resid12: 5 schedules
+postprocess individual paired struct2020: 5 schedules
+postprocess individual paired vmax080_both: 5 schedules
+postprocess individual paired vmax125_both: 5 schedules
+postprocess individual paired weight_alt: 5 schedules
+postprocess schedules ada10: 500 trials, 3 scenarios, 2 schedules
+postprocess schedules base: 500 trials, 4 scenarios, 6 schedules
+postprocess schedules iiv150: 500 trials, 3 scenarios, 2 schedules
+postprocess schedules noresid: 500 trials, 1 scenarios, 6 schedules
+postprocess schedules resid12: 500 trials, 3 scenarios, 2 schedules
+postprocess schedules struct2020: 500 trials, 4 scenarios, 6 schedules
+postprocess schedules vmax080_both: 500 trials, 2 scenarios, 6 schedules
+postprocess schedules vmax125_both: 500 trials, 2 scenarios, 6 schedules
+postprocess schedules weight_alt: 500 trials, 3 scenarios, 2 schedules
+postprocess products struct2020: 500 trials, 14 scenarios
+postprocess products base: 500 trials, 14 scenarios

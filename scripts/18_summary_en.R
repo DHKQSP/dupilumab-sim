@@ -194,8 +194,14 @@ rows <- rbindlist(lapply(names(vv), function(v) { d <- R("trials", sprintf("sche
              `D3: extrapolation >20% ratio, 20,000 subjects` = sprintf("%s (%s to %s)", f2(d3$d_extrap20_ratio), f2(d3$d_ratio_boot_lo), f2(d3$d_ratio_boot_hi)),
              `D3: same ratio, 200,000 subjects` = if (!is.null(k3) && nrow(k3)) sprintf("%s (%s to %s), %s fewer subjects per arm; %s", f2(k3$extrap_gt20_ratio), f2(k3$d_ratio_boot_lo), f2(k3$d_ratio_boot_hi), f2(-k3$d_abs_change_per_arm),
                if (k3$d_ratio_boot_lo <= 0.5 && k3$d_ratio_boot_hi >= 0.5) "fragile (interval includes 0.5)" else if (k3$d_ratio_boot_lo > 0.5) "not met (interval above 0.5)" else "met (interval below 0.5)") else "not re-evaluated",
-             `Final recommendation` = "B0 (conclusion unchanged)") }))
+             `Final recommendation` = if (any(d$recommend)) "B0 (conclusion unchanged)" else "B0") }))
 if (nrow(rows)) add(md_table(rows))
+bm <- R("trials", "bminus_explicit.csv"); wd <- R("trials", "width_decomposition.csv")
+if (!is.null(wd)) { w <- wd[schedule %in% c("D1", "D2", "D4")]
+  add(sprintf("AUClast CI width: D1, D2 and D4 widen the mean AUClast 90%% CI by %s%% to %s%% (paired intervals exclude zero; D3 %s%%). Recomputed with true concentrations and no residual error, the widening remains (%s%% to %s%%), so it reflects heterogeneity of the added tail area as the last quantifiable time is extended, not measurement error at the added low points.",
+              f2(-100 * max(w$base)), f2(-100 * min(w$base)), f2(-100 * wd[schedule == "D3", base]), f2(-100 * max(w$noresid)), f2(-100 * min(w$noresid))), "") }
+if (!is.null(bm)) add(sprintf("Removing Day 50 (B-): AUClast CI width %s%% (negative = narrower), AUCinf reliability change %s percentage points, share with NCA extrapolation above 20%% multiplied by %s. Not recommended, to keep a terminal sample for AUC0-inf as a secondary endpoint and for a fallback analysis.",
+                      f2(-100 * bm$a_mean_width_rel_decrease), ci(bm$c_reliable_gain_pp, bm$c_gain_boot_lo, bm$c_gain_boot_hi, 2), ci(bm$d_extrap20_ratio, bm$d_ratio_boot_lo, bm$d_ratio_boot_hi, 2)), "")
 trig <- if (nrow(rows)) rows[startsWith(`Rule result`, "D3"), Variant] else character(0)
 abc_any <- any(unlist(lapply(c(names(vv), "iiv150", "resid12", "weight_alt", "ada10"), function(v) { d <- R("trials", sprintf("schedule_decision_%s.csv", v)); if (is.null(d)) FALSE else d[, any(crit_a %in% TRUE | crit_b %in% TRUE | crit_c %in% TRUE)] })))
 k_lo <- unlist(lapply(c("base", "struct2020", "vmax080_both"), function(v) { k <- R("individual200k", sprintf("criterion_d_200k_%s.csv", v)); if (is.null(k)) NA_real_ else k[schedule == "D3", d_ratio_boot_lo] }))

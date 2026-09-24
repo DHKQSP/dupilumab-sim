@@ -1,0 +1,14 @@
+run log: /home/user/dupilumab-sim/logs/trial_schedules_noresid_20260924T071716.log
+variant=noresid n_trials=500 cores=1 combos=6
+  trial 50 (500개 중) 07:18:17
+  trial 100 (500개 중) 07:19:15
+  trial 150 (500개 중) 07:20:18
+  trial 200 (500개 중) 07:21:15
+  trial 250 (500개 중) 07:22:26
+  trial 300 (500개 중) 07:23:38
+  trial 350 (500개 중) 07:24:44
+  trial 400 (500개 중) 07:25:54
+  trial 450 (500개 중) 07:27:04
+  trial 500 (500개 중) 07:28:15
+elapsed: 10.99703 mins 
+postprocess schedules noresid: 500 trials, 1 scenarios, 6 schedules

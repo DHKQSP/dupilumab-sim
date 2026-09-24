@@ -1,14 +1,13 @@
-- The project is out-of-sync -- use `renv::status()` for details.
-run log: /home/user/dupilumab-sim/logs/trial_products_struct2020_20260923T055516.log
-  trial 50/500 05:56:08
-  trial 100/500 05:56:55
-  trial 150/500 05:57:44
-  trial 200/500 05:58:31
-  trial 250/500 05:59:18
-  trial 300/500 06:00:07
-  trial 350/500 06:00:54
-  trial 400/500 06:01:42
-  trial 450/500 06:02:30
-  trial 500/500 06:03:20
-elapsed: 8.077929 mins 
-postprocess products struct2020: 500 trials, 14 scenarios
+run log: /home/user/dupilumab-sim/logs/trial_products_struct2020_20260924T075035.log
+  trial 50 (500개 중) 07:51:24
+  trial 100 (500개 중) 07:52:12
+  trial 150 (500개 중) 07:52:55
+  trial 200 (500개 중) 07:53:43
+  trial 250 (500개 중) 07:54:30
+  trial 300 (500개 중) 07:55:15
+  trial 350 (500개 중) 07:56:02
+  trial 400 (500개 중) 07:56:48
+  trial 450 (500개 중) 07:57:33
+  trial 500 (500개 중) 07:58:20
+elapsed: 7.750695 mins 
+postprocess products struct2020: 500 trials, 15 scenarios

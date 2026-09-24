@@ -1,0 +1,20 @@
+                                                           source
+1:                                              Clot 2021 Table 3
+2:                                              Clot 2021 Table 3
+3:                                              Clot 2021 Table 3
+4: FDA BLA 761055 Clin Pharm Review Table 4.2.c (PKM12350 대조군)
+   lit_mean_ratio nca_mean_ratio_k2016 true_mean_ratio_k2016
+1:          0.946                0.947                 0.986
+2:          0.981                0.967                 0.992
+3:          0.981                0.923                 0.968
+4:          0.960                0.963                 0.990
+   nca_mean_ratio_k2020 true_mean_ratio_k2020
+1:                0.951                 0.987
+2:                0.967                 0.991
+3:                0.928                 0.969
+4:                0.964                 0.991
+                                                judgment
+1: 일치(비구획 평균비 ±3%p) — 제형 차이로 외부 점검 성격
+2:                              일치(비구획 평균비 ±3%p)
+3:   모의가 낮음(AUClast 커버리지 과소평가, 보수적 방향)
+4:                              일치(비구획 평균비 ±3%p)

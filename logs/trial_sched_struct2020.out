@@ -1,14 +1,14 @@
-run log: /home/user/dupilumab-sim/logs/trial_schedules_struct2020_20260924T022625.log
-variant=struct2020 n_trials=500 cores=4 combos=24
-  trial 50/500 02:27:05
-  trial 100/500 02:27:39
-  trial 150/500 02:28:17
-  trial 200/500 02:28:50
-  trial 250/500 02:29:28
-  trial 300/500 02:30:01
-  trial 350/500 02:30:39
-  trial 400/500 02:31:11
-  trial 450/500 02:31:48
-  trial 500/500 02:32:21
-elapsed: 5.958875 mins 
+run log: /home/user/dupilumab-sim/logs/trial_schedules_struct2020_20260924T075825.log
+variant=struct2020 n_trials=500 cores=3 combos=24
+  trial 50 (500개 중) 07:59:14
+  trial 100 (500개 중) 08:00:02
+  trial 150 (500개 중) 08:00:46
+  trial 200 (500개 중) 08:01:33
+  trial 250 (500개 중) 08:02:22
+  trial 300 (500개 중) 08:03:08
+  trial 350 (500개 중) 08:03:56
+  trial 400 (500개 중) 08:04:48
+  trial 450 (500개 중) 08:05:34
+  trial 500 (500개 중) 08:06:23
+elapsed: 7.983708 mins 
 postprocess schedules struct2020: 500 trials, 4 scenarios, 6 schedules

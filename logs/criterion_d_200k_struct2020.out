@@ -16,3 +16,25 @@ run log: /home/user/dupilumab-sim/logs/criterion_d_200k_struct2020_20260924T0619
   chunk 5/10 06:21:38
 [====|====|====|====|====|====|====|====|====|====] 0:00:12 
 
+  chunk 6/10 06:21:59
+[====|====|====|====|====|====|====|====|====|====] 0:00:13 
+
+  chunk 7/10 06:22:20
+[====|====|====|====|====|====|====|====|====|====] 0:00:12 
+
+  chunk 8/10 06:22:41
+[====|====|====|====|====|====|====|====|====|====] 0:00:12 
+
+  chunk 9/10 06:23:02
+[====|====|====|====|====|====|====|====|====|====] 0:00:13 
+
+  chunk 10/10 06:23:23
+      variant n_subjects schedule reliable_gain_pp c_gain_boot_lo
+1: struct2020     200000       D3           1.3875          1.247
+   c_gain_boot_hi extrap_gt20_ratio d_ratio_boot_lo d_ratio_boot_hi d_n_ref
+1:         1.5225         0.7065983       0.6831803       0.7298552    1561
+   d_n_sched extrap_gt20_mcnemar_p d_abs_change_per_arm d_meets_point d_fragile
+1:      1103         4.699333e-122             -0.26793         FALSE     FALSE
+   schedule      n reliable_pct extrap_gt20_pct n_extrap_gt20
+1:       B0 200000      91.7705       0.7854918          1561
+2:       D3 200000      93.1580       0.5534537          1103

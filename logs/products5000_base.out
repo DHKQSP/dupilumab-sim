@@ -5,3 +5,23 @@ trials 1001–1500 done in 4.088382 mins
 trials 1501–2000 done in 3.681026 mins
 trials 2001–2500 done in 3.954524 mins
 trials 2501–3000 done in 4.19359 mins
+trials 3001–3500 done in 3.808077 mins
+trials 3501–4000 done in 3.721573 mins
+trials 4001–4500 done in 3.678133 mins
+trials 4501–5000 done in 3.683626 mins
+
+적응적 상향 → 10000회: VM150 (임계 포함 지표: VM150 AUCinf_reliable; VM150 Cmax)
+
+적응적 상향 → 20000회: VM150 (임계 포함 지표: VM150 AUCinf_reliable; VM150 Cmax)
+
+최종 반복 수:
+   scenario n_trials
+1:     F085     5000
+2:     F090     5000
+3:     F097     5000
+4:     F110     5000
+5:    KE110     5000
+6:    KE120     5000
+7:      S00    20000
+8:    VM125     5000
+9:    VM150    20000

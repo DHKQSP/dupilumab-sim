@@ -1,9 +1,9 @@
-run_name: criterion_d_200k_struct2020
-started_utc: 2026-09-24 06:19:51
+run_name: trial_schedules_noresid
+started_utc: 2026-09-24 07:17:16
 run_mode: final
 master_seed: 20260923
 seed_rule_version: 1
-git_sha: c0187296e7dbb87b384cd75c5d5571f5b481294f
+git_sha: f4763fa671d2ffb5a68ad45ccd6efcb893e058bf
 R_version: R version 4.3.3 (2024-02-29)
 rxode2: 5.1.7
 BEmaster: not installed
@@ -19,8 +19,11 @@ config_sha256:
   schedule_decision.yaml: de62d815c54d33e4016ed7fdb535ede38ae9c0a6350ef8e7e0a26cb5dd9572b2
   trial_design.yaml: ff6424d371b8f6a6c9bfef3035cf242fa4c9c5c92819cfd699f0c467e8f605db
 extra:
-  variant: struct2020
-  n: 200000
+  variant: noresid
+  n_trials: 500
+  cores: 1
+  schedules: B0    ,Bminus,D1    ,D2    ,D3    ,D4    
+  scenarios: S00
 session_info:
   R version 4.3.3 (2024-02-29)
   Platform: x86_64-pc-linux-gnu (64-bit)
@@ -31,10 +34,10 @@ session_info:
   LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0
   
   locale:
-   [1] LC_CTYPE=C.UTF-8    LC_NUMERIC=C        LC_TIME=C          
-   [4] LC_COLLATE=C        LC_MONETARY=C       LC_MESSAGES=C      
-   [7] LC_PAPER=C          LC_NAME=C           LC_ADDRESS=C       
-  [10] LC_TELEPHONE=C      LC_MEASUREMENT=C    LC_IDENTIFICATION=C
+   [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       
+   [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   
+   [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          
+  [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   
   
   time zone: Etc/UTC
   tzcode source: system (glibc)
@@ -47,4 +50,4 @@ session_info:
   
   loaded via a namespace (and not attached):
   [1] compiler_4.3.3 tools_4.3.3    renv_1.2.4    
-[06:23:23] done
+[07:28:16] done

@@ -5,3 +5,16 @@ Q2 crossval_model1 0
 Q2 curve_shape 0
 Q2 weight_bands 0
 Q2 criterion_d_200k base 0
+Q2 criterion_d_200k struct2020 0
+Q2 criterion_d_200k vmax080_both 0
+Q2 DONE Thu Sep 24 06:26:01 UTC 2026
+Q1 products5000 ready
+Q1 weight_trials a 0
+Q1 weight_trials b 0
+Q1 weight_trials d 0
+Q1 pillar2_curvature 0
+Q1 products struct2020 0
+Q1 sched struct2020 0
+Q1 sched noresid 0
+Q1 DONE Thu Sep 24 08:08:44 UTC 2026
+ALL DONE Thu Sep 24 08:08:44 UTC 2026
