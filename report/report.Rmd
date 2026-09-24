@@ -71,7 +71,7 @@ kt(data.table::data.table(model = c("k2016", "k2020"), prop = c(p$sigma[["prop"]
 규칙: BLQ 전처리 명시(첫 정량값 이전 0, 정량값 사이 결측, 마지막 정량값 이후 제외, 첫 정량 이후 BLQ 2회 연속이면 그 뒤 정량값 결측), Linear Up Log Down, λz Best Fit(Cmax 이후 마지막 3, 4, … 점, 기울기 > 0 창 제외 후 adjusted R² 최대, 차이 < 0.0001이면 점 수가 많은 창). 출력은 Phoenix 표기. 참조 구현 NonCompart 0.8.4, 보조 PKNCA 0.12.1(SPEC §6, D-039).
 ```{r nca_engine}
 kt(rd("nca_engine", "engine_validation_summary.csv"), "세 구현 비교: λz 선택 점 일치 수와 파라미터 최대 상대 차이 (통과 기준: 전부 일치, ≤ 1e-6)", 3)
-kt(rd("nca_engine", "engine_validation_edge_case.csv")[, .(engine, Lambda_z, No_points_lambda_z, Lambda_z_lower, Lambda_z_upper, Rsq_adjusted, AUCINF_obs)], "알려진 구현 차이(합성 사례, 통과 판정 대상 아님): 말단 상승으로 adj R² 최대 창의 기울기가 양수 — PKNCA는 λz 미산출", 4)
+ee <- rd("nca_engine", "engine_validation_edge_case.csv"); if (!is.null(ee)) kt(ee[, .(engine, Lambda_z, No_points_lambda_z, Lambda_z_lower, Lambda_z_upper, Rsq_adjusted, AUCINF_obs)], "알려진 구현 차이(합성 사례, 통과 판정 대상 아님): 말단 상승으로 adj R² 최대 창의 기울기가 양수 — PKNCA는 λz 미산출", 4)
 kt(rd("nca_engine", "engine_difference_individual_B0.csv"), "이전 엔진 대비 개인 수준 차이 (B0, 60–90 kg, 모델당 20,000명, 같은 관측치)", 3)
 kt(rd("nca_engine", "engine_difference_subject_changes.csv"), "대상자별 변화 유형 (%)", 3)
 kt(rd("nca_engine", "dropout_reasons_B0.csv"), "AUCinf 신뢰 기준 탈락 사유 (%, 중복 포함; B0, 20,000명)", 2)
@@ -252,7 +252,7 @@ kt(rd("step1", "appendix_dose_shape_model.csv"), "모델 용량 형태 비", 3)
 
 # 부록 B. 운용특성 전체 결과 (모든 기전·구성)
 ```{r appx_oc}
-kt(rd("oc", "oc_curves.csv")[order(model, mechanism, direction, target, config)], "시나리오 × 구성 통과율 (%)과 Wilson 95% 구간", 2)
+occ <- rd("oc", "oc_curves.csv"); if (!is.null(occ)) kt(occ[order(model, mechanism, direction, target, config)], "시나리오 × 구성 통과율 (%)과 Wilson 95% 구간", 2)
 ```
 
 # 재현 방법
