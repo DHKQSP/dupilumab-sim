@@ -1,0 +1,160 @@
+#!/usr/bin/env Rscript
+# §3–§4 요약: 운용특성 곡선, 경계 1종 오류, 검정력, 무작위 제품 공간의 소비자·생산자 위험, 세 구성 비교, 그림 3-A~3-D, 자동 문구.
+# 입력: results/oc/ (30·31·32 산출물), config/oc_design.yaml. 사전 고정 커밋 해시는 git에서 읽는다.
+source("R/00_setup.R"); source_project()
+suppressPackageStartupMessages(library(ggplot2))
+oc <- read_cfg("oc_design.yaml"); out_dir <- proj_path("results", "oc"); fig_dir <- out_dir
+models <- intersect(c("k2016", "k2020"), unique(sub("^oc_trials_be_(.*)\\.csv\\.gz$", "\\1", list.files(out_dir, pattern = "^oc_trials_be_.*\\.csv\\.gz$"))))
+MODEL_LABEL <- c(k2016 = "Kovalenko 2016 (주)", k2020 = "Kovalenko 2020 Model 1")
+CFG <- c("P2", "F3A", "F3B", "F3C", "G2", "AUClast_only", "AUCinf_only"); CFG_LABEL <- c(P2 = "P2", F3A = "F3-A", F3B = "F3-B", F3C = "F3-C", G2 = "G2", AUClast_only = "AUClast 단독", AUCinf_only = "AUCinf 단독")
+MECH <- c("F", "ka", "ke", "Vmax", "Km", "V2")
+bnd <- as.numeric(unlist(oc$boundary_targets))
+
+# 사전 고정 해시: config/oc_design.yaml을 처음 추가한 커밋, 그 뒤 변경 여부
+git <- function(...) tryCatch(system2("git", c(...), stdout = TRUE, stderr = FALSE), error = function(e) character(0))
+prereg_hash <- tail(git("log", "--diff-filter=A", "--format=%H", "--", "config/oc_design.yaml"), 1)
+prereg_changed <- length(prereg_hash) && length(git("diff", "--name-only", prereg_hash, "--", "config/oc_design.yaml")) > 0
+fwrite(data.table(prereg_commit = if (length(prereg_hash)) prereg_hash else NA_character_, changed_since = prereg_changed), file.path(out_dir, "prereg.csv"))
+
+inv_all <- rbindlist(lapply(list.files(out_dir, pattern = "^inversion_k20(16|20)_.*\\.csv$", full.names = TRUE), fread))
+fwrite(inv_all[order(model, mechanism, direction, target)], file.path(out_dir, "inversion_all.csv"))
+
+cfg_pass <- function(be) { w <- config_pass(be, oc); w }
+tab_all <- list(); bnd_all <- list(); pow_all <- list(); comp_all <- list()
+for (mdl in models) {
+  be <- fread(file.path(out_dir, sprintf("oc_trials_be_%s.csv.gz", mdl)))
+  sc <- fread(file.path(out_dir, sprintf("oc_scenarios_%s.csv", mdl)))
+  w <- cfg_pass(be)
+  long <- melt(w, id.vars = c("trial", "scenario"), measure.vars = paste0("cfg_", CFG), variable.name = "config", value.name = "pass")
+  long[, config := sub("^cfg_", "", config)]
+  tab <- long[, { wc <- wilson_ci(sum(pass), .N); .(n_trials = .N, pass_pct = wc$est, lo = wc$lo, hi = wc$hi) }, by = .(scenario, config)]
+  info <- rbind(sc[, .(scenario = code, mechanism, direction, target, multiplier, auc_ratio, cmax_ratio)],
+                data.table(scenario = "S00", mechanism = "동일", direction = "-", target = 1, multiplier = 1, auc_ratio = 1, cmax_ratio = 1))
+  tab <- merge(tab, info, by = "scenario"); tab[, model := mdl]
+  tab_all[[mdl]] <- tab
+  # (b) 경계 1종 오류
+  bt <- tab[abs(target - bnd[1]) < 1e-9 | abs(target - bnd[2]) < 1e-9]
+  bnd_all[[mdl]] <- bt
+  # (c) 검정력: 1.00(동일 제품), 0.95, 1.05
+  pow_all[[mdl]] <- tab[abs(target - 1) < 1e-9 | abs(target - 0.95) < 1e-9 | abs(target - 1.05) < 1e-9]
+  # 4절 구성 비교: 같은 시험의 쌍대 차이 (P2 − F3x: 추가 보호/추가 탈락, G2 − P2)
+  pr <- function(a, b) paired_prop_diff_ci(a, b)
+  comp <- w[, {
+    d1 <- pr(cfg_P2, cfg_F3A); d2 <- pr(cfg_P2, cfg_F3C); d3 <- pr(cfg_G2, cfg_P2); d4 <- pr(cfg_P2, cfg_F3B)
+    .(n_trials = .N, P2_minus_F3A = d1$est, P2_minus_F3A_lo = d1$lo, P2_minus_F3A_hi = d1$hi, P2_minus_F3B = d4$est, P2_minus_F3B_lo = d4$lo, P2_minus_F3B_hi = d4$hi,
+      P2_minus_F3C = d2$est, P2_minus_F3C_lo = d2$lo, P2_minus_F3C_hi = d2$hi, G2_minus_P2 = d3$est, G2_minus_P2_lo = d3$lo, G2_minus_P2_hi = d3$hi,
+      P2_pass_AUCinfA_fail = 100 * mean(cfg_P2 & !(AUCinf_A %in% TRUE)))
+  }, by = scenario]
+  comp <- merge(comp, info, by = "scenario"); comp[, `:=`(model = mdl, region = fifelse(abs(auc_ratio - bnd[1]) < 0.002 | abs(auc_ratio - bnd[2]) < 0.002, "경계",
+                                                                               fifelse(auc_ratio < bnd[1] | auc_ratio > bnd[2], "범위 밖", "범위 안")))]
+  comp_all[[mdl]] <- comp
+}
+tab_all <- rbindlist(tab_all); bnd_all <- rbindlist(bnd_all); pow_all <- rbindlist(pow_all); comp_all <- rbindlist(comp_all)
+fwrite(tab_all, file.path(out_dir, "oc_curves.csv")); fwrite(bnd_all, file.path(out_dir, "boundary_type1.csv"))
+fwrite(pow_all, file.path(out_dir, "power.csv")); fwrite(comp_all, file.path(out_dir, "config_comparison.csv"))
+
+# (d) 무작위 제품 공간
+rs_models <- intersect(models, unique(sub("^random_trials_be_(.*)\\.csv\\.gz$", "\\1", list.files(out_dir, pattern = "^random_trials_be_.*\\.csv\\.gz$"))))
+risk_all <- list(); bins_all <- list(); smooth_all <- list(); rs_prod_all <- list()
+nb <- oc$random_space$near_boundary
+for (mdl in rs_models) {
+  tr <- fread(file.path(out_dir, sprintf("random_truth_%s.csv", mdl)))
+  be <- fread(file.path(out_dir, sprintf("random_trials_be_%s.csv.gz", mdl)))
+  w <- config_pass(be, oc); w[, product := trial]
+  d <- merge(w, tr, by = "product")
+  d[, inside := true_auc_ratio >= bnd[1] & true_auc_ratio <= bnd[2]]
+  d[, inside_both := inside & true_cmax_ratio >= bnd[1] & true_cmax_ratio <= bnd[2]]
+  d[, near_out := (true_auc_ratio >= nb$low[[1]] & true_auc_ratio < bnd[1]) | (true_auc_ratio > bnd[2] & true_auc_ratio <= nb$high[[2]])]
+  d[, near_in := (true_auc_ratio >= bnd[1] & true_auc_ratio <= nb$low[[2]]) | (true_auc_ratio >= nb$high[[1]] & true_auc_ratio <= bnd[2])]
+  rs_prod_all[[mdl]] <- d[, .(model = mdl, product, true_auc_ratio, true_cmax_ratio, auc_se_log, inside, inside_both)]
+  risk_all[[mdl]] <- rbindlist(lapply(CFG, function(cf) { pcol <- paste0("cfg_", cf)
+    f <- function(sel, fail = FALSE) { x <- d[sel][[pcol]]; if (fail) x <- !x; w_ <- wilson_ci(sum(x), length(x)); c(w_$est, w_$lo, w_$hi, length(x)) }
+    rbind(data.table(model = mdl, config = cf, truth = "AUC0-inf", metric = "소비자 위험(범위 밖 통과)", scope = "전체", t(f(!d$inside))),
+          data.table(model = mdl, config = cf, truth = "AUC0-inf", metric = "소비자 위험(범위 밖 통과)", scope = "경계 근처", t(f(d$near_out))),
+          data.table(model = mdl, config = cf, truth = "AUC0-inf", metric = "생산자 위험(범위 안 불통과)", scope = "전체", t(f(d$inside, TRUE))),
+          data.table(model = mdl, config = cf, truth = "AUC0-inf", metric = "생산자 위험(범위 안 불통과)", scope = "경계 근처", t(f(d$near_in, TRUE))),
+          data.table(model = mdl, config = cf, truth = "AUC0-inf·Cmax 모두", metric = "소비자 위험(범위 밖 통과)", scope = "전체", t(f(!d$inside_both))),
+          data.table(model = mdl, config = cf, truth = "AUC0-inf·Cmax 모두", metric = "생산자 위험(범위 안 불통과)", scope = "전체", t(f(d$inside_both, TRUE)))) }))
+  setnames(risk_all[[mdl]], c("V1", "V2", "V3", "V4"), c("pct", "lo", "hi", "n_products"))
+  bw <- as.numeric(oc$random_space$bins_log_width)
+  d[, bin := round(floor(log(true_auc_ratio) / bw) * bw + bw / 2, 6)]
+  bins_all[[mdl]] <- rbindlist(lapply(CFG, function(cf) d[, { x <- get(paste0("cfg_", cf)); wc <- wilson_ci(sum(x), .N); .(n = .N, pass_pct = wc$est, lo = wc$lo, hi = wc$hi) }, by = bin][, `:=`(config = cf, model = mdl, ratio = exp(bin))]))
+  grid <- data.table(lr = seq(log(0.6), log(1.7), length.out = 200))
+  smooth_all[[mdl]] <- rbindlist(lapply(CFG, function(cf) {
+    fit <- glm(as.formula(sprintf("cfg_%s ~ splines::ns(log(true_auc_ratio), df = %d)", cf, 6)), family = binomial(), data = d)
+    pr <- predict(fit, newdata = data.table(true_auc_ratio = exp(grid$lr)), type = "response")
+    data.table(model = mdl, config = cf, ratio = exp(grid$lr), pass_pct = 100 * pr) }))
+}
+if (length(rs_models)) {
+  fwrite(rbindlist(risk_all), file.path(out_dir, "random_space_risks.csv")); fwrite(rbindlist(bins_all), file.path(out_dir, "random_space_bins.csv"))
+  fwrite(rbindlist(smooth_all), file.path(out_dir, "random_space_smooth.csv"))
+  rs_prod <- rbindlist(rs_prod_all)
+  fwrite(rs_prod[, .(n = .N, inside_pct = 100 * mean(inside), lt080_pct = 100 * mean(true_auc_ratio < bnd[1]), gt125_pct = 100 * mean(true_auc_ratio > bnd[2]),
+                     near_low_pct = 100 * mean(true_auc_ratio >= 0.75 & true_auc_ratio <= 0.85), near_high_pct = 100 * mean(true_auc_ratio >= 1.18 & true_auc_ratio <= 1.33),
+                     truth_se_log_median = median(auc_se_log), truth_se_log_p95 = quantile(auc_se_log, 0.95)), by = model], file.path(out_dir, "random_space_truth_distribution.csv"))
+}
+
+# ----- 그림 ---------------------------------------------------------------------------------------------------------------
+cols4 <- c(P2 = VIZ$s1, F3A = VIZ$s2, F3C = VIZ$s3, G2 = "#eda100"); lt4 <- c(P2 = "solid", F3A = "22", F3C = "42", G2 = "12"); sh4 <- c(P2 = 16, F3A = 17, F3C = 15, G2 = 18)
+cap_n <- sprintf("시험 반복: 경계·동일 제품 %s회, 나머지 %s회, arm당 117명, B0, 60–90 kg", format(oc$trials$reps_boundary, big.mark = ","), format(oc$trials$reps_other, big.mark = ","))
+for (mdl in models) {
+  x <- tab_all[model == mdl & config %in% names(cols4)]
+  s0 <- x[scenario == "S00"]
+  xx <- rbind(x[mechanism %in% MECH], rbindlist(lapply(MECH, function(mc) copy(s0)[, mechanism := mc])))
+  xx[, config := factor(config, levels = names(cols4), labels = CFG_LABEL[names(cols4)])]
+  xx[, mechanism := factor(mechanism, levels = MECH)]
+  setorder(xx, mechanism, config, auc_ratio)
+  names(cols4) <- CFG_LABEL[names(cols4)]; names(lt4) <- names(cols4); names(sh4) <- names(cols4)
+  g <- ggplot(xx, aes(auc_ratio, pass_pct, colour = config, linetype = config, shape = config)) +
+    geom_vline(xintercept = bnd, colour = VIZ$muted, linewidth = 0.4) + geom_hline(yintercept = 5, colour = VIZ$muted, linewidth = 0.4, linetype = "22") +
+    geom_line(linewidth = 0.6) + geom_point(size = 1.8) +
+    scale_x_log10(breaks = c(0.7, 0.8, 0.9, 1, 1.11, 1.25, 1.43)) + scale_colour_manual(values = cols4, name = NULL) + scale_linetype_manual(values = lt4, name = NULL) +
+    scale_shape_manual(values = sh4, name = NULL) + facet_wrap(~mechanism, ncol = 3) +
+    labs(x = "참 AUC0-inf 비 (로그 척도, 200,000명 공통 난수)", y = "통과 확률 (%)", title = sprintf("그림 3-A. 기전별 운용특성 곡선 — %s", MODEL_LABEL[[mdl]]),
+         subtitle = paste0(cap_n, ". 세로선 0.80·1.25, 가로선 5%")) + theme_dupi()
+  ggsave(file.path(fig_dir, sprintf("fig3A_oc_curves_%s.png", mdl)), g, width = 11, height = 7, dpi = 120)
+  b <- bnd_all[model == mdl & config %in% c("P2", "F3A", "F3B", "F3C", "G2")]
+  if (nrow(b)) {
+    b[, config := factor(config, levels = c("P2", "F3A", "F3B", "F3C", "G2"), labels = CFG_LABEL[c("P2", "F3A", "F3B", "F3C", "G2")])]
+    b[, facet := sprintf("참값 %.2f (%s)", target, direction)]
+    g <- ggplot(b, aes(config, pass_pct, fill = config)) + geom_col(width = 0.7) + geom_errorbar(aes(ymin = lo, ymax = hi), width = 0.25, colour = VIZ$ink2) +
+      geom_hline(yintercept = 5, colour = VIZ$ink, linetype = "22") + geom_text(aes(label = sprintf("%.1f", pass_pct), y = hi), vjust = -0.4, size = 2.5, colour = VIZ$ink2) +
+      scale_fill_manual(values = c(VIZ$s1, VIZ$s2, "#e87ba4", VIZ$s3, "#eda100"), guide = "none") + facet_grid(facet ~ mechanism) +
+      labs(x = NULL, y = "경계 1종 오류 (%, Wilson 95% 구간)", title = sprintf("그림 3-B. 경계 1종 오류 — %s", MODEL_LABEL[[mdl]]),
+           subtitle = sprintf("기전 × 구성, 경계 시나리오 각 %s회. 점선 = 5%%. 막대 아래 구성 이름으로 식별", format(oc$trials$reps_boundary, big.mark = ","))) +
+      theme_dupi() + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 7))
+    ggsave(file.path(fig_dir, sprintf("fig3B_boundary_type1_%s.png", mdl)), g, width = 12, height = 6, dpi = 120)
+  }
+}
+if (length(rs_models)) for (mdl in rs_models) {
+  bb <- rbindlist(bins_all)[model == mdl & config %in% c("P2", "F3A", "F3C", "G2") & n >= 20]
+  sm <- rbindlist(smooth_all)[model == mdl & config %in% c("P2", "F3A", "F3C", "G2")]
+  lab <- CFG_LABEL[c("P2", "F3A", "F3C", "G2")]; c4 <- setNames(c(VIZ$s1, VIZ$s2, VIZ$s3, "#eda100"), lab); l4 <- setNames(c("solid", "22", "42", "12"), lab); s4 <- setNames(c(16, 17, 15, 18), lab)
+  bb[, config := factor(config, levels = names(lab), labels = lab)]; sm[, config := factor(config, levels = names(lab), labels = lab)]
+  pd <- rbindlist(rs_prod_all)[model == mdl]
+  g1 <- ggplot(pd, aes(true_auc_ratio)) + geom_histogram(bins = 80, fill = VIZ$s1) + geom_vline(xintercept = bnd, colour = VIZ$ink, linetype = "22") +
+    scale_x_log10(limits = c(0.55, 1.8)) + labs(x = NULL, y = "제품 수", title = sprintf("그림 3-C. 무작위 제품 공간 — %s", MODEL_LABEL[[mdl]]),
+    subtitle = sprintf("라틴 하이퍼큐브 %s개 제품(기전별 로그 균등), 제품당 시험 1회. 위: 참 AUC0-inf 비 분포, 아래: 구간별 통과율(점)과 로지스틱 평활(선)", format(nrow(pd), big.mark = ","))) + theme_dupi()
+  g2 <- ggplot() + geom_vline(xintercept = bnd, colour = VIZ$muted) + geom_hline(yintercept = 5, colour = VIZ$muted, linetype = "22") +
+    geom_point(data = bb, aes(ratio, pass_pct, colour = config, shape = config), size = 1.6, alpha = 0.8) +
+    geom_line(data = sm, aes(ratio, pass_pct, colour = config, linetype = config), linewidth = 0.7) +
+    scale_x_log10(limits = c(0.55, 1.8)) + scale_colour_manual(values = c4, name = NULL) + scale_linetype_manual(values = l4, name = NULL) + scale_shape_manual(values = s4, name = NULL) +
+    labs(x = "참 AUC0-inf 비 (로그)", y = "통과율 (%)") + theme_dupi()
+  png(file.path(fig_dir, sprintf("fig3C_random_space_%s.png", mdl)), width = 10 * 120, height = 8 * 120, res = 120)
+  grid::grid.newpage(); grid::pushViewport(grid::viewport(layout = grid::grid.layout(5, 1)))
+  print(g1, vp = grid::viewport(layout.pos.row = 1:2, layout.pos.col = 1)); print(g2, vp = grid::viewport(layout.pos.row = 3:5, layout.pos.col = 1)); dev.off()
+}
+if (nrow(inv_all)) {
+  iv <- copy(inv_all)
+  iv[, mechanism := factor(mechanism, levels = MECH)]; iv[, model_l := MODEL_LABEL[model]]
+  g <- ggplot(iv[reachable == TRUE], aes(target, multiplier, colour = model_l, shape = model_l)) +
+    geom_hline(yintercept = 1, colour = VIZ$muted) + geom_vline(xintercept = bnd, colour = VIZ$muted, linetype = "22") +
+    geom_line(aes(group = interaction(model_l, direction)), linewidth = 0.5) + geom_point(size = 2) +
+    geom_point(data = iv[reachable == FALSE], aes(target, end_multiplier), shape = 4, size = 2.4, stroke = 0.9) +
+    scale_x_log10(breaks = c(0.7, 0.8, 0.9, 1, 1.11, 1.25, 1.43)) + scale_y_log10() +
+    scale_colour_manual(values = c(VIZ$s1, VIZ$s2), name = NULL) + scale_shape_manual(values = c(16, 17), name = NULL) + facet_wrap(~mechanism, ncol = 3, scales = "free_y") +
+    labs(x = "목표 참 AUC0-inf 비 (로그)", y = "필요한 시험군 배율 (로그)", title = "그림 3-D. 목표 참값 비에 필요한 기전별 배율",
+         subtitle = "×: 탐색 범위 끝에서도 도달 불가(표시 위치 = 범위 끝 배율). 200,000명 공통 난수, 이분법 ±0.1%") + theme_dupi()
+  ggsave(file.path(fig_dir, "fig3D_inversion_multipliers.png"), g, width = 11, height = 7, dpi = 120)
+}
+cat("summary written\n"); print(bnd_all[config %in% c("P2", "F3A", "F3C", "G2"), .(model, mechanism, direction, target, config, pass_pct, lo, hi)], digits = 3)

@@ -49,9 +49,15 @@ load_params <- function(model = c("k2016", "k2020"), variant = "base") {
 }
 
 # 시나리오 배율(시험군) 적용 — 고정효과에 곱한다
+# V2(말초 분포용적) 배율: 구획 간 청소율 Q = k12·Vc를 고정하고 k21을 배율로 나눈다(V2 = Vc·k12/k21; 검토 의견 2026-09-24 §3-2, D-040)
 apply_multipliers <- function(p, mult) {
   if (length(mult) == 0) return(p)
-  for (nm in names(mult)) { stopifnot(nm %in% names(p$theta)); p$theta[nm] <- p$theta[nm] * as.numeric(mult[[nm]]) }
+  for (nm in names(mult)) {
+    m <- as.numeric(mult[[nm]])
+    if (nm == "V2") { p$theta["k21"] <- p$theta["k21"] / m; next }
+    stopifnot(nm %in% names(p$theta)); p$theta[nm] <- p$theta[nm] * m
+  }
+  if (p$theta[["F"]] > 1 + 1e-12) stop(sprintf("시험군 F = %.4f > 1 (배율 적용 후)", p$theta[["F"]]))
   p
 }
 
