@@ -1,2 +1,2 @@
 variant,n_subjects,schedule,reliable_gain_pp,c_gain_boot_lo,c_gain_boot_hi,extrap_gt20_ratio,d_ratio_boot_lo,d_ratio_boot_hi,d_n_ref,d_n_sched,extrap_gt20_mcnemar_p,d_abs_change_per_arm,d_meets_point,d_fragile
-struct2020,200000,D3,1.3875,1.247,1.5225,0.706598334401025,0.683180275396877,0.729855161978992,1561,1103,4.69933320731448e-122,-0.26793,FALSE,FALSE
+struct2020,200000,D3,-2.0145,-2.2165125,-1.8014875,0.724619289340102,0.70102132940939,0.747976008460208,1576,1142,9.6106770920731e-110,-0.25389,FALSE,FALSE
