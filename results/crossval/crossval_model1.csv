@@ -3,7 +3,7 @@ condition,metric,ref,sim,rel_diff_pct,agree_3pct,note
 "2016 주 모델, 60–90 kg",AUClast_logcv,39.9,39.6050630983679,-0.739190229654507,TRUE,
 "2016 주 모델, 60–90 kg",AUClast_mean,587,584.610386266656,-0.40708922203474,TRUE,
 "2016 주 모델, 60–90 kg",Cmax_mean,38.2,38.2141169184207,0.0369552838237697,TRUE,
-"2016 주 모델, 60–90 kg",reliable_pct,86.2,81.31,-5.67285382830627,FALSE,
+"2016 주 모델, 60–90 kg",reliable_pct,86.2,86.535,0.388631090487235,TRUE,
 "Model 1, 60–90 kg",AUClast_geo,587,583.721364865041,-0.558540908851624,TRUE,
 "Model 1, 60–90 kg",AUClast_logcv,43.2,42.5228781076312,-1.56741178789069,TRUE,
 "Model 1, 60–90 kg",AUClast_mean,637,632.630270785272,-0.685985747994911,TRUE,
@@ -13,7 +13,7 @@ condition,metric,ref,sim,rel_diff_pct,agree_3pct,note
 "Model 1, 60–90 kg",extrap_nca_median,2.79,2.94382928760364,5.51359453776483,FALSE,작은 백분율 지표: 상대 차이는 참고
 "Model 1, 60–90 kg",extrap_true_median,0.61,0.650564763363426,6.649961207119,FALSE,작은 백분율 지표: 상대 차이는 참고
 "Model 1, 60–90 kg",extrap_true_p95,3.29,3.2768967479636,-0.398275137884629,TRUE,작은 백분율 지표: 상대 차이는 참고
-"Model 1, 60–90 kg",reliable_pct,91.4,84.035,-8.05798687089715,FALSE,
+"Model 1, 60–90 kg",reliable_pct,91.4,91.12,-0.30634573304158,TRUE,
 "Model 1, 60–90 kg",tlast_median,35,35,0,TRUE,경과일(연구일 − 1)
 "Model 1, 60–90 kg",tlast_p95,56,56,0,TRUE,경과일(연구일 − 1)
 "Model 1, 약 78 kg (N(78,11) 55–110)",AUClast_mean,610,609.395612195132,-0.099079968011162,TRUE,
