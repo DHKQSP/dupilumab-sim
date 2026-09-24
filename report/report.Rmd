@@ -1,6 +1,6 @@
 ---
 title: "듀필루맙 바이오시밀러 Phase 1 PK 시뮬레이션: Day 36–50 채혈 밀도와 AUC0-last 공동 1차 평가변수 근거"
-subtitle: "규제 제출용 보조 분석 (검토 의견 통합본 2026-09-24 반영)"
+subtitle: "규제 제출용 보조 분석 (검토 의견 2026-09-24 반영: WinNonlin 호환 NCA, 절벽 채혈 분석, 시나리오 설계 원칙과 경계 1종 오류)"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output:
   html_document:
@@ -18,13 +18,24 @@ gate <- read_cfg("gate_decision.yaml"); sdec <- read_cfg("schedule_decision.yaml
 REPORT_STEP2 <- isTRUE(gate$decision_option %in% c(1, 2))
 LABEL <- c(base = "Kovalenko 2016 (주)", struct2020 = "Kovalenko 2020 Model 1 (자체 IIV·잔차)")
 rd <- function(...) { fp <- proj_path("results", ...); if (file.exists(fp) || file.exists(paste0(fp, ".gz"))) read_raw(fp) else NULL }
-kt <- function(x, cap = NULL, digits = 3) if (!is.null(x) && nrow(x)) knitr::kable(x, caption = cap, digits = digits)
+kt <- function(x, cap = NULL, digits = 3) if (!is.null(x) && nrow(x)) knitr::kable(x, caption = cap, digits = digits) else structure(list(), class = "empty_kt")
+print.empty_kt <- function(x, ...) invisible(x); knit_print.empty_kt <- function(x, ...) invisible(NULL)
+registerS3method("knit_print", "empty_kt", knit_print.empty_kt, envir = asNamespace("knitr"))
 dec <- function(v) rd("trials", sprintf("schedule_decision_%s.csv", v))
 d200 <- function(v) rd("individual200k", sprintf("criterion_d_200k_%s.csv", v))
 ```
 
 # 요약
 
+## 결론 첫 문단: 공동 1차 평가변수 구성의 운용특성 (§3–4)
+`r oc_txt <- file.path("..", "results", "oc", "oc_conclusion_ko.md"); if (file.exists(oc_txt)) paste(readLines(oc_txt, warn = FALSE), collapse = "\n\n") else "(운용특성 결과 없음)"`
+
+설계는 결과 생성 전에 `config/oc_design.yaml`로 고정했다(커밋 `r pr <- rd("oc", "prereg.csv"); if (!is.null(pr)) substr(pr$prereg_commit, 1, 7) else "?"``r if (!is.null(pr) && isTRUE(pr$changed_since)) ", 이후 변경 있음" else ", 이후 변경 없음"`). 정답은 참 AUC0-inf 비(모델 적분, 200,000명 공통 난수)이며 AUClast가 아니다. P2 = AUClast + Cmax, F3-A/B/C = P2 + AUCinf(규칙 A/B/C), G2 = AUCinf(규칙 A) + Cmax.
+
+## 절벽 채혈 (§2)
+`r cl_txt <- file.path("..", "results", "cliff", "cliff_conclusion_ko.md"); if (file.exists(cl_txt)) paste(readLines(cl_txt, warn = FALSE), collapse = "\n\n") else "(절벽 분석 결과 없음)"`
+
+## 채혈 밀도
 **최종 권고: `r sdec$final_schedule` 유지 (Day 36–50 추가 채혈 불필요).** 판정 모델 `r sdec$governing_model`, `r sdec$decided_by`, `r sdec$decision_date`. 규칙 적용: `r sdec$rule_application`.
 
 ```{r headline}
@@ -56,11 +67,26 @@ kt(data.table::data.table(parameter = names(p20$omega2), k2016_omega2 = unname(p
 kt(data.table::data.table(model = c("k2016", "k2020"), prop = c(p$sigma[["prop"]], p20$sigma[["prop"]]), add_mg_L = c(p$sigma[["add"]], p20$sigma[["add"]])), "잔차")
 ```
 
+# NCA 엔진 (Phoenix WinNonlin 호환, 검토 의견 §1)
+규칙: BLQ 전처리 명시(첫 정량값 이전 0, 정량값 사이 결측, 마지막 정량값 이후 제외, 첫 정량 이후 BLQ 2회 연속이면 그 뒤 정량값 결측), Linear Up Log Down, λz Best Fit(Cmax 이후 마지막 3, 4, … 점, 기울기 > 0 창 제외 후 adjusted R² 최대, 차이 < 0.0001이면 점 수가 많은 창). 출력은 Phoenix 표기. 참조 구현 NonCompart 0.8.4, 보조 PKNCA 0.12.1(SPEC §6, D-039).
+```{r nca_engine}
+kt(rd("nca_engine", "engine_validation_summary.csv"), "세 구현 비교: λz 선택 점 일치 수와 파라미터 최대 상대 차이 (통과 기준: 전부 일치, ≤ 1e-6)", 3)
+kt(rd("nca_engine", "engine_validation_edge_case.csv")[, .(engine, Lambda_z, No_points_lambda_z, Lambda_z_lower, Lambda_z_upper, Rsq_adjusted, AUCINF_obs)], "알려진 구현 차이(합성 사례, 통과 판정 대상 아님): 말단 상승으로 adj R² 최대 창의 기울기가 양수 — PKNCA는 λz 미산출", 4)
+kt(rd("nca_engine", "engine_difference_individual_B0.csv"), "이전 엔진 대비 개인 수준 차이 (B0, 60–90 kg, 모델당 20,000명, 같은 관측치)", 3)
+kt(rd("nca_engine", "engine_difference_subject_changes.csv"), "대상자별 변화 유형 (%)", 3)
+kt(rd("nca_engine", "dropout_reasons_B0.csv"), "AUCinf 신뢰 기준 탈락 사유 (%, 중복 포함; B0, 20,000명)", 2)
+kt(rd("nca_engine", "dropout_reason_combinations_B0.csv"), "탈락 사유 조합 (%)", 3)
+kt(rd("nca_engine", "engine_difference_outputs.csv"), "이전 엔진 대비 산출물 차이 (재실행 결과)", 3)
+```
+신뢰 기준 충족률이 낮아진 것은 거의 전부 새 span ratio < 2 플래그 때문이다. 실제 시험에서는 약동학 담당자가 λz 점 선택을 검토·수정할 수 있으나 모의에는 반영하지 않았다.
+
 # 가정과 한계
 - **제형**: 기본 모델은 200 mg 1.14 mL(175 mg/mL) 제형의 빠른 흡수(관측 tmax 중앙값 3일 대 모델 7일)를 재현하지 않는다. 흡수를 관측 tmax에 맞추면 200 mg 노출 부족분의 약 1/3–1/2이 설명되고, 나머지(4개 arm 기준 약 9–11%)는 설명되지 않는다. 제형별 생체이용률 차이이거나 저노출 구간에서 표적 매개 소실을 과대 추정했을 가능성이 있다. 후자는 모집단 Vmax ×0.8 민감도 변형이 다룬다. 연구 제형(300 mg, 2 mL of 150 mg/mL)에서는 흡수 시점과 노출을 재현한다. 반대 자료: Clot 2021 중국인 200 mg(같은 175 mg/mL PFS) tmax 7.0일(3.0–10.0), n=8, Day 4 다음 채혈이 Day 8이라 해상도 낮음.
 - **예측 편향**: Cmax는 2016 모델이 관측보다 약 20% 높게, 2020 Model 1이 약 5% 높게 예측한다. AUClast는 2016 모델이 관측에 근접하고, 2020 Model 1이 약 12% 높다.
 - **Km 고정(0.01 mg/L)**: Km에 불확실성·개체간 변동이 없어 말단 산포가 과소평가될 수 있다. 곡선 모양 민감도(§7.2)로 대응한다. Km은 MM 근사 상수로 결합력과 정확히 같지 않다.
 - **잔차 민감 지표**: AUCinf 신뢰 충족률과 외삽 20% 초과 비율은 잔차 가정에 민감하므로 두 모델의 범위로 표기한다.
+- **λz 점 선택**: 자동 Best Fit만 모의했다. 실제 시험에서는 약동학 담당자가 λz 점 선택을 검토·수정할 수 있으나 반영하지 않았다.
+- **무작위 제품 공간의 참값**: 계산량 때문에 제품별 참값을 모든 제품에 공통인 1,000명(공통 난수)으로 계산했다(역산 시나리오는 200,000명). 제품별 참값의 MC 표준오차를 함께 보고한다(사전 고정).
 - 확정 전 가정 목록은 SPEC.md §8(Day 1 투여 후 시각 0.25일, 체중 분포, 층화 분할점, 채혈 허용창, pooled 구성 비율, Li 2020 arm 체중, BMI 중심값 26).
 
 # 단계 1 검증
@@ -97,6 +123,22 @@ kt(rbindlist(lapply(c("base", "struct2020", "vmax080_both"), function(v) d200(v)
 kt(rbindlist(lapply(c("iiv150", "resid12", "weight_alt", "ada10"), function(v) { d <- dec(v); if (is.null(d)) NULL else d[, .(variant = v, schedule, a_mean_width_rel_decrease, a_label, b_ke110_gain_pp, c_reliable_gain_pp, d_extrap20_ratio, recommend)] })), "기타 변형 (B0 대비 D2)", 4)
 ```
 
+# 절벽 채혈 분석 (검토 의견 §2)
+절벽 = tmax 이후 순간 반감기 ln2/(−d ln C/dt)가 처음 1일(민감도 2일) 미만이 되는 시점부터 참 농도가 정량한계(0.078 mg/L)에 닿을 때까지. d ln C/dt는 ODE 상태값으로 정확히 계산했다(D-041).
+`r if (file.exists(cl_txt)) paste(readLines(cl_txt, warn = FALSE), collapse = "\n\n") else ""`
+```{r cliff, fig.height=4.4}
+imgs <- function(paths) { paths <- paths[file.exists(paths)]; if (length(paths)) knitr::include_graphics(paths) }
+imgs(proj_path("results", "cliff", c("fig2_1_lloq_day.png", "fig2_2_points_in_cliff.png", "fig2_3_cliff_length.png", "fig2_4_representative.png")))
+```
+```{r cliff_tab}
+kt(rd("cliff", "cliff_summary.csv"), "절벽 요약: 모델 × 체중군 (20,000명/군). LLOQ 도달일은 연구일", 2)
+cp <- rd("cliff", "cliff_points.csv")
+if (!is.null(cp)) kt(cp[weight == "base", .(model, timing, definition_day, schedule_label, min_interval_day, pct_ge1, pct_ge2, pct_ge3, pct_ge1_cliff_in_day29_57, pct_ge2_cliff_in_day29_57, pct_ge3_cliff_in_day29_57)],
+                     "일정별로 절벽 구간에 1·2·3점 이상 찍힌 대상자 비율 (%, 60–90 kg, 20,000명). 오른쪽 세 열은 절벽이 Day 29–57 안에 있는 대상자만", 1)
+if (!is.null(cp)) kt(cp[weight != "base" & timing == "nominal" & definition_day == 1, .(model, weight, schedule_label, pct_ge1, pct_ge2, pct_ge3)], "비만 밴드 (명목일, 1일 정의)", 1)
+kt(rd("cliff", "cliff_reference_comparison.csv"), "독립 구현 기준값(10,000명, 명목일) 대비", 2)
+```
+
 # 결과: AUC0-last 근거 (2차 목적, B0·60–90 kg)
 ## Pillar 1 — 커버리지
 ```{r pillar1}
@@ -117,10 +159,10 @@ kt(rd("trials5000", "products5000_props_base.csv"), "5,000회 이상 결과의 �
 pc <- rd("pillar2_curvature", "pillar2_vmax080_per_endpoint.csv"); if (!is.null(pc)) kt(pc[endpoint %in% c("AUClast", "AUCinf_reliable", "AUCinf_true", "Cmax")], "곡률 견고성(§5-2): 모집단 Vmax ×0.8, 2,000회", 3)
 kt(rd("pillar2_curvature", "pillar2_vmax080_concordance.csv"), "곡률 견고성: 판정 일치 (2,000회)", 3)
 ```
-## 판정 불일치 분류·소비자 위험·fallback (§5-3–5-6, 5,000회 이상)
+## 판정 불일치 분류·fallback (예비 탐색: 임의 배율 시나리오, §5-3–5-6, 5,000회 이상)
 ```{r fallback}
 kt(rd("fallback", "discordance_classification.csv"), "AUClast 통과·AUCinf 불통과: 참값 비에 따른 분류", 3)
-kt(rd("fallback", "consumer_risk.csv"), "소비자 위험: 참값 비가 80–125% 밖인 시나리오", 3)
+kt(rd("fallback", "consumer_risk.csv"), "예비 탐색: 임의 배율 시나리오 중 참값 비가 80–125% 밖인 경우. 판정은 §3(역산·경계 1종 오류·무작위 공간)으로 대체", 3)
 kt(rd("fallback", "fallback_cost.csv"), "세 지표 공동 1차(fallback) 비용", 3)
 kt(rd("fallback", "aucinf_rules.csv"), "AUCinf 처리 규칙 비교 (A 신뢰군 제외, B 산출 가능 전체, C 미충족 시 AUClast 대입)", 3)
 kt(rd("fallback", "sample_size_logsd.csv"), "표본 수 교차점검: log-scale SD·CV", 3)
@@ -130,6 +172,47 @@ kt(rd("fallback", "empirical_power.csv"), "arm당 117명의 경험적 검정력"
 ```{r pillar3}
 kt(rd("rationale", "pillar3_km_B0.csv"), "Km ×0.5–×10 vs 동일 제품: 같은 500회 시험의 쌍대 변화와 95% 구간", 3)
 kt(rd("rationale", "pillar3_km_summary.csv"), "Pillar 3 요약", 3)
+```
+
+# 제품 차이 설계 원칙과 운용특성 (검토 의견 §3–4)
+**사전 고정**: `config/oc_design.yaml`(기전, 목표값, 탐색 범위, 반복 수, 시드, 구성)을 결과 생성 전에 커밋했다(`r if (!is.null(pr)) pr$prereg_commit else "?"`). **정답**: 시험약/대조약 모집단 기하평균비 — 모델 적분 AUC0-inf(잔차 없음), 같은 가상 대상자 200,000명에 두 제품 파라미터를 각각 적용(공통 난수, 60–90 kg). 범위 안/밖은 참 AUC0-inf 비로 판정(AUClast가 아님). 참 Cmax 비와 전체 참 동등성(둘 다 범위 안)도 병기. **기전**: F, ka, ke, Vmax, Km, V2(구획 간 청소율 고정, k21 ÷ 배율) 전부, 양방향. 목표 참값 비 0.70–1.43에 맞춰 로그 배율 이분법(±0.1%)으로 역산했다. 기존 임의 배율 시나리오(F ×0.85, Vmax ×1.50 등)의 "범위 밖" 판정은 예비 탐색으로 강등한다.
+
+`r if (file.exists(oc_txt)) paste(readLines(oc_txt, warn = FALSE), collapse = "\n\n") else ""`
+
+## 역산된 배율 (3-D)
+```{r oc_inv, fig.height=6.5}
+MEANING <- c(F = "흡수량(생체이용률)", ka = "흡수 속도", ke = "선형 소실(FcRn 경로)", Vmax = "표적 매개 소실 용량(내재화)", Km = "결합(MM 상수)", V2 = "말초 분포용적(Q 고정)")
+iv <- rd("oc", "inversion_all.csv")
+if (!is.null(iv)) { iv[, 의미 := MEANING[mechanism]]
+  kt(iv[, .(model, mechanism, 의미, direction, target, reachable, multiplier, auc_ratio, cmax_ratio, overall_true_equiv, end_multiplier, end_auc_ratio, end_cmax_ratio)],
+     "기전·방향·목표별 역산 배율과 200,000명 참값 비. 도달 불가는 탐색 범위 끝 배율의 참값 비", 4) |> print() }
+imgs(proj_path("results", "oc", "fig3D_inversion_multipliers.png"))
+```
+## 운용특성 곡선 (3-A)
+```{r oc_curves, fig.height=6.5}
+imgs(proj_path("results", "oc", sprintf("fig3A_oc_curves_%s.png", c("k2016", "k2020"))))
+```
+## 경계 1종 오류 (3-B)
+```{r oc_bnd, fig.height=6}
+bt <- rd("oc", "boundary_type1.csv")
+if (!is.null(bt)) print(kt(dcast(bt[config %in% c("P2", "F3A", "F3B", "F3C", "G2", "AUClast_only", "AUCinf_only")], model + mechanism + direction + target + auc_ratio + cmax_ratio + n_trials ~ config,
+                          value.var = "pass_pct"), "경계 1종 오류 (%): 기전 × 방향 × 구성 × 모델 (각 10,000회; 구간은 부록 B)", 2))
+imgs(proj_path("results", "oc", sprintf("fig3B_boundary_type1_%s.png", c("k2016", "k2020"))))
+```
+## 검정력과 구성 비교
+```{r oc_pow}
+pw <- rd("oc", "power.csv")
+if (!is.null(pw)) kt(dcast(pw[config %in% c("P2", "F3A", "F3B", "F3C", "G2")], model + scenario + target + auc_ratio + n_trials ~ config, value.var = "pass_pct"), "참값 1.00(동일 제품, 10,000회), 0.95, 1.05(기전별, 2,000회)에서의 통과율 (%)", 1)
+cc <- rd("oc", "config_comparison.csv")
+if (!is.null(cc)) kt(cc[, .(model, mechanism, direction, target, auc_ratio, region, n_trials, P2_minus_F3A, P2_minus_F3A_lo, P2_minus_F3A_hi, P2_minus_F3C, G2_minus_P2, G2_minus_P2_lo, G2_minus_P2_hi)][order(model, mechanism, target)],
+                     "세 구성 비교(같은 시험 쌍대 차이, %p): P2 − F3 = 경계·범위 밖에서 F3의 추가 보호, 범위 안에서 F3의 추가 탈락; G2 − P2", 2)
+```
+## 무작위 다변량 제품 공간 (3-C)
+```{r oc_rs, fig.height=8}
+print(kt(rd("oc", "random_space_truth_distribution.csv"), "무작위 공간 참값 비 분포: 범위(로그 균등 F 0.80–1.25, ka 0.67–1.50, ke 0.80–1.25, Vmax 0.67–1.50, Km 0.2–5, V2 0.90–1.11)는 참값 비가 두 경계를 모두 덮도록 설정", 2))
+rk <- rd("oc", "random_space_risks.csv")
+if (!is.null(rk)) print(kt(rk[config %in% c("P2", "F3A", "F3B", "F3C", "G2", "AUClast_only", "AUCinf_only")], "소비자·생산자 위험 (%, Wilson 95% 구간). 경계 근처: 소비자 0.75 ≤ 참값 < 0.80 또는 1.25 < 참값 ≤ 1.33, 생산자 0.80–0.85 또는 1.18–1.25", 2))
+imgs(proj_path("results", "oc", sprintf("fig3C_random_space_%s.png", c("k2016", "k2020"))))
 ```
 
 # 체중 일반화 (통합본 §6)
@@ -165,6 +248,11 @@ kt(rd("trials5000", "mc_consistency_500_vs_5000.csv"), "500회 추정치 대 독
 kt(rd("step1", "appendix_absorption_diagnostic.csv")[, .(condition, dose_mg, ka_multiplier, Cmax_sim_mean, tmax_sim_median, AUClast_sim_mean, AUClast_obs_nweighted, AUClast_ratio_nweighted, Cmax_ratio_nweighted)], "ka 배율별 (200 mg 조건만)", 3)
 kt(rd("step1", "appendix_dose_shape_observed.csv"), "관측 용량 형태 비", 3)
 kt(rd("step1", "appendix_dose_shape_model.csv"), "모델 용량 형태 비", 3)
+```
+
+# 부록 B. 운용특성 전체 결과 (모든 기전·구성)
+```{r appx_oc}
+kt(rd("oc", "oc_curves.csv")[order(model, mechanism, direction, target, config)], "시나리오 × 구성 통과율 (%)과 Wilson 95% 구간", 2)
 ```
 
 # 재현 방법

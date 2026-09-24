@@ -55,3 +55,28 @@ weight_bands_round5:
     "110-130": {extrap_true_median: 1.36, extrap_true_p95: 7.26, coverage_lt80_pct: 0, reliable_pct: 73.6, lambda_fail_pct: 7.69}
     "130-150": {extrap_true_median: 1.68, extrap_true_p95: 9.68, coverage_lt80_pct: 0.012, reliable_pct: 67.3, lambda_fail_pct: 10.81, AUClast_geo: 199}
   d_pooled_60_90: {extrap_true_median: 0.66, extrap_true_p95: 3.39, coverage_lt80_pct: 0, reliable_pct: 86.3, lambda_fail_pct: 1.32}
+# 검토 의견 2026-09-24 §2 독립 구현 기준값(2016 모델, 60-90 kg, 10,000명, 명목일). LLOQ 도달일은 연구일(Day = 경과일 + 1).
+cliff_round6:
+  source: "검토 의견 2026-09-24 §2 (독립 구현, 10,000명, 명목일)"
+  lloq_day_median: 38.4
+  lloq_day_p05: 27
+  lloq_day_p95: 55
+  after_day58_pct: 2.5
+  c_start_median: 0.87
+  len1_median: 1.38
+  len1_p05: 1.32
+  len1_p95: 1.42
+  len2_median: 2.94
+  points:
+    cur_1:    {schedule: current,          def: 1, pct: [19.6, 0, 0]}
+    d1_1:     {schedule: plus_39_46,       def: 1, pct: [29.2, 0, 0]}
+    d2_1:     {schedule: plus_39_46_53,    def: 1, pct: [30.6, 0, 0]}
+    d3_1:     {schedule: plus_32_39_46_53, def: 1, pct: [36.8, 0, 0]}
+    d4_1:     {schedule: plus_40_47,       def: 1, pct: [28.9, 0, 0]}
+    daily_1:  {schedule: daily_29_57,      def: 1, pct: [97.3, 36.6, 0]}
+    cur_2:    {schedule: current,          def: 2, pct: [42.8, 0, 0]}
+    d1_2:     {schedule: plus_39_46,       def: 2, pct: [62.5, 0, 0]}
+    d2_2:     {schedule: plus_39_46_53,    def: 2, pct: [65.2, 0, 0]}
+    d3_2:     {schedule: plus_32_39_46_53, def: 2, pct: [78.6, 0.1, 0]}
+    d4_2:     {schedule: plus_40_47,       def: 2, pct: [60.7, 0, 0]}
+    daily_2:  {schedule: daily_29_57,      def: 2, pct: [97.9, 97.1, 90.7]}

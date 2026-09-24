@@ -158,3 +158,60 @@ if (nrow(inv_all)) {
   ggsave(file.path(fig_dir, "fig3D_inversion_multipliers.png"), g, width = 11, height = 7, dpi = 120)
 }
 cat("summary written\n"); print(bnd_all[config %in% c("P2", "F3A", "F3C", "G2"), .(model, mechanism, direction, target, config, pass_pct, lo, hi)], digits = 3)
+
+# ----- 자동 결론 문구(한국어·영문). 고정 문구의 전제는 결과로 검사하고 어긋나면 중단한다(§4) ---------------------------------
+f1 <- function(x) formatC(x, format = "f", digits = 1); f2 <- function(x) formatC(x, format = "f", digits = 2)
+MECH_KO <- c(F = "F(흡수량)", ka = "ka(흡수 속도)", ke = "ke(선형 소실)", Vmax = "Vmax(표적 매개 소실)", Km = "Km(결합)", V2 = "V2(분포)")
+MECH_EN <- c(F = "bioavailability (F)", ka = "absorption rate (ka)", ke = "linear elimination (ke)", Vmax = "target-mediated elimination capacity (Vmax)", Km = "binding constant (Km)", V2 = "peripheral volume (V2)")
+ko <- c(); en <- c()
+if (nrow(bnd_all)) {
+  p2 <- bnd_all[config == "P2"]
+  ex <- p2[pass_pct > 5][order(-pass_pct)]
+  if (nrow(ex)) {
+    stopifnot(all(ex$pass_pct > 5))
+    ko <- c(ko, sprintf("**P2(AUClast + Cmax)의 경계 1종 오류가 5%%를 넘는 경우가 있다.** %s. 해당 기전·크기·구간은 3절 표와 그림 3-B에 있다.",
+                        paste(sprintf("%s %s, 참값 %.2f(배율 %.3g): %s%% [%s, %s]%s", MODEL_LABEL[ex$model], MECH_KO[ex$mechanism], ex$target, ex$multiplier, f1(ex$pass_pct), f1(ex$lo), f1(ex$hi),
+                                      fifelse(ex$lo > 5, " — 구간 하한도 5% 초과", "")), collapse = "; ")))
+    en <- c(en, sprintf("**The boundary type I error of P2 (AUClast + Cmax) exceeds 5%% in some cases.** %s.",
+                        paste(sprintf("%s, %s, true ratio %.2f (multiplier %.3g): %s%% (95%% CI %s to %s)%s", c(k2016 = "2016 model", k2020 = "Model 1")[ex$model], MECH_EN[ex$mechanism], ex$target, ex$multiplier,
+                                      f1(ex$pass_pct), f1(ex$lo), f1(ex$hi), fifelse(ex$lo > 5, ", lower bound also above 5%", "")), collapse = "; ")))
+  } else {
+    mx <- p2[which.max(pass_pct)]
+    stopifnot(max(p2$pass_pct) <= 5)
+    ko <- c(ko, sprintf("P2(AUClast + Cmax)의 경계 1종 오류는 모든 기전·방향·모델에서 5%% 이하다(%d개 경계 시나리오, 각 %s회). 최대 %s%% [%s, %s]: %s %s, 참값 %.2f.",
+                        nrow(p2), format(oc$trials$reps_boundary, big.mark = ","), f1(mx$pass_pct), f1(mx$lo), f1(mx$hi), MODEL_LABEL[[mx$model]], MECH_KO[[mx$mechanism]], mx$target))
+    en <- c(en, sprintf("The boundary type I error of P2 (AUClast + Cmax) is at most 5%% for every mechanism, direction and model (%d boundary scenarios, %s trials each); the largest is %s%% (95%% CI %s to %s) for %s, %s, true ratio %.2f.",
+                        nrow(p2), format(oc$trials$reps_boundary, big.mark = ","), f1(mx$pass_pct), f1(mx$lo), f1(mx$hi), c(k2016 = "the 2016 model", k2020 = "Model 1")[[mx$model]], MECH_EN[[mx$mechanism]], mx$target))
+  }
+  g2 <- bnd_all[config == "G2"]; exg <- g2[pass_pct > 5]
+  ko <- c(ko, sprintf("G2(AUCinf 규칙 A + Cmax)의 경계 1종 오류: 범위 %s–%s%%%s.", f1(min(g2$pass_pct)), f1(max(g2$pass_pct)),
+                      if (nrow(exg)) sprintf(", 5%% 초과 %d건(%s)", nrow(exg), paste(sprintf("%s %s %.2f: %s%%", c(k2016 = "2016", k2020 = "Model 1")[exg$model], exg$mechanism, exg$target, f1(exg$pass_pct)), collapse = "; ")) else ", 모두 5% 이하"))
+  en <- c(en, sprintf("G2 (AUCinf rule A + Cmax) boundary type I error ranges from %s%% to %s%%%s.", f1(min(g2$pass_pct)), f1(max(g2$pass_pct)),
+                      if (nrow(exg)) sprintf("; above 5%% in %d cases (%s)", nrow(exg), paste(sprintf("%s %s %.2f: %s%%", c(k2016 = "2016", k2020 = "Model 1")[exg$model], exg$mechanism, exg$target, f1(exg$pass_pct)), collapse = "; ")) else "; all at most 5%"))
+}
+if (nrow(comp_all)) {
+  cb <- comp_all[region == "경계"]; ci_ <- comp_all[region == "범위 안" & mechanism != "동일"]; co <- comp_all[region == "범위 밖"]
+  rng <- function(x, col) sprintf("%s–%s%%p", f2(min(x[[col]])), f2(max(x[[col]])))
+  ko <- c(ko, sprintf("F3 대 P2: 경계 시나리오에서 F3-A가 추가로 막는 비율(P2 통과·F3-A 불통과, 같은 시험 쌍대) %s, 범위 밖 %s; 범위 안(참값 0.85–1.18)에서 추가 탈락 %s. G2 대 P2: 경계에서 G2 − P2 통과율 차이 %s.",
+                      rng(cb, "P2_minus_F3A"), if (nrow(co)) rng(co, "P2_minus_F3A") else "해당 없음", rng(ci_, "P2_minus_F3A"), rng(cb, "G2_minus_P2")))
+  en <- c(en, sprintf("F3 versus P2: at the boundaries the additional protection of F3-A (P2 passes, F3-A fails; paired within trials) is %s, outside the limits %s; inside the limits (true ratio 0.85 to 1.18) the additional failure is %s. G2 versus P2 at the boundaries: pass-rate difference G2 minus P2 %s.",
+                      sub("%p", " percentage points", rng(cb, "P2_minus_F3A"), fixed = TRUE), if (nrow(co)) sub("%p", " percentage points", rng(co, "P2_minus_F3A"), fixed = TRUE) else "not applicable",
+                      sub("%p", " percentage points", rng(ci_, "P2_minus_F3A"), fixed = TRUE), sub("%p", " percentage points", rng(cb, "G2_minus_P2"), fixed = TRUE)))
+}
+if (nrow(pow_all)) {
+  s0 <- pow_all[scenario == "S00" & config %in% c("P2", "F3A", "F3C", "G2")]
+  ko <- c(ko, sprintf("검정력(참값 1.00, 동일 제품, 시험 %s회): %s.", format(max(s0$n_trials), big.mark = ","), paste(sprintf("%s %s: %s%% [%s, %s]", c(k2016 = "2016", k2020 = "Model 1")[s0$model], CFG_LABEL[s0$config], f1(s0$pass_pct), f1(s0$lo), f1(s0$hi)), collapse = "; ")))
+  en <- c(en, sprintf("Power at true ratio 1.00 (identical products, %s trials): %s.", format(max(s0$n_trials), big.mark = ","), paste(sprintf("%s %s: %s%% (%s to %s)", c(k2016 = "2016", k2020 = "Model 1")[s0$model], sub("단독", "only", CFG_LABEL[s0$config]), f1(s0$pass_pct), f1(s0$lo), f1(s0$hi)), collapse = "; ")))
+}
+if (length(rs_models)) {
+  rk <- rbindlist(risk_all)[truth == "AUC0-inf" & config %in% c("P2", "F3A", "F3C", "G2")]
+  for (mdl in rs_models) { x <- rk[model == mdl]
+    ko <- c(ko, sprintf("무작위 제품 공간(%s, %s개 제품): 소비자 위험 %s; 경계 근처 %s. 생산자 위험 %s; 경계 근처 %s.", MODEL_LABEL[[mdl]], format(oc$random_space$n_products, big.mark = ","),
+      paste(x[metric == "소비자 위험(범위 밖 통과)" & scope == "전체", sprintf("%s %s%%", CFG_LABEL[config], f2(pct))], collapse = ", "), paste(x[metric == "소비자 위험(범위 밖 통과)" & scope == "경계 근처", sprintf("%s %s%%", CFG_LABEL[config], f2(pct))], collapse = ", "),
+      paste(x[metric == "생산자 위험(범위 안 불통과)" & scope == "전체", sprintf("%s %s%%", CFG_LABEL[config], f1(pct))], collapse = ", "), paste(x[metric == "생산자 위험(범위 안 불통과)" & scope == "경계 근처", sprintf("%s %s%%", CFG_LABEL[config], f1(pct))], collapse = ", ")))
+    en <- c(en, sprintf("Random product space (%s, %s products): consumer risk %s; near the boundaries %s. Producer risk %s; near the boundaries %s.", c(k2016 = "2016 model", k2020 = "Model 1")[[mdl]], format(oc$random_space$n_products, big.mark = ","),
+      paste(x[metric == "소비자 위험(범위 밖 통과)" & scope == "전체", sprintf("%s %s%%", CFG_LABEL[config], f2(pct))], collapse = ", "), paste(x[metric == "소비자 위험(범위 밖 통과)" & scope == "경계 근처", sprintf("%s %s%%", CFG_LABEL[config], f2(pct))], collapse = ", "),
+      paste(x[metric == "생산자 위험(범위 안 불통과)" & scope == "전체", sprintf("%s %s%%", CFG_LABEL[config], f1(pct))], collapse = ", "), paste(x[metric == "생산자 위험(범위 안 불통과)" & scope == "경계 근처", sprintf("%s %s%%", CFG_LABEL[config], f1(pct))], collapse = ", "))) }
+}
+writeLines(ko, file.path(out_dir, "oc_conclusion_ko.md")); writeLines(en, file.path(out_dir, "oc_conclusion_en.md"))
+cat(ko, sep = "\n\n")
