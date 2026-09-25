@@ -1,3 +1,6 @@
 {
+  "ignored.packages": [
+    "xml2"
+  ],
   "snapshot.type": "implicit"
 }

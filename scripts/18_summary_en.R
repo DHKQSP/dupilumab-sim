@@ -407,6 +407,32 @@ add("## 8. Limitations", "",
     "- Only the automatic lambda-z Best Fit is simulated; in a real study a pharmacokineticist may review and adjust the lambda-z points.",
     sprintf("- The random product space is a secondary metric: its consumer and producer risks depend on the assumed distribution of virtual products (log-uniform multipliers %s). The truth of each product is computed from %s common virtual subjects (not 200,000) for computational reasons, as pre-specified; the Monte Carlo standard error of each product's truth is reported.",
             random_space_ranges_text(oc_cfg, " to "), format(oc_cfg$random_space$truth_subjects, big.mark = ",")), "")
+# 9. 재현성 점검(scripts/38_repro_check.R 로컬, 38b GitHub 기록): 결과 파일이 있을 때만
+rl_ <- R("repro", "repro_check.csv"); rgr_ <- R("repro", "repro_github_run.csv"); rgi_ <- R("repro", "repro_github_items.csv"); rlm_ <- R("repro", "repro_check_meta.csv")
+if (!is.null(rl_)) {
+  kv_ <- function(d, k) if (is.null(d)) NA_character_ else d$value[d$field == k]
+  lab_ <- c(a1 = "Exact regeneration of committed operating-characteristic trials (2016 model, trials 1 to 100, identical products and Vmax down 1.25): largest relative difference in GMR and 90% CI limits",
+            a2 = "Same regeneration: rows whose pass flag, missing status or arm sizes differ (of 1,200)",
+            a3_P2_pass_rate_S00_pct = "Same regeneration: P2 pass rate (%), identical products",
+            a3_P2_pass_rate_Vmax_down_125_pct = "Same regeneration: P2 pass rate (%), Vmax down 1.25 (boundary)",
+            b1 = "True AUC0-inf ratio at the Vmax inversion multiplier: first 20,000 of the 200,000 common virtual subjects",
+            b2 = "Inversion screening consistency on the same 20,000 subjects",
+            c1 = "Median true extrapolated share at B0 (%): 2,000 new subjects versus the committed 20,000")
+  g8 <- function(v) format(v, digits = 8)
+  lab_of <- function(it) ifelse(it %in% names(lab_), lab_[it], lab_[substr(it, 1, 2)])   # 전체 항목 이름 우선, 없으면 접두(a1, b1, ...)
+  tb_ <- data.table(Item = unname(lab_of(rl_$item)), Committed = vapply(rl_$committed, g8, ""), `Reproduced (local)` = vapply(rl_$reproduced, g8, ""),
+                    Tolerance = paste(vapply(rl_$tolerance, function(v) format(v, digits = 3), ""), rl_$tolerance_type), `Pass (local)` = ifelse(rl_$pass, "yes", "NO"))
+  if (anyNA(tb_$Item)) stop("repro_check.csv has an item without an English label: ", paste(rl_$item[is.na(tb_$Item)], collapse = ", "))
+  if (!is.null(rgi_)) { m_ <- match(rl_$item, rgi_$item); if (anyNA(m_)) stop("repro_github_items.csv does not cover every local item")
+    tb_[, `Reproduced (GitHub)` := vapply(rgi_$reproduced_github[m_], g8, "")][, `Pass (GitHub)` := ifelse(rgi_$pass_github[m_], "yes", "NO")] }
+  gh_txt <- if (!is.null(rgr_)) sprintf(" GitHub Actions run %s (commit %s, %s, %s, rxode2 %s, clean renv restore, %s cores; job %s s): %s of %s items pass; all %s reproduced values are %s to the local run at the 8 significant digits printed in the job log (%s).",
+      kv_(rgr_, "run_number"), substr(kv_(rgr_, "commit"), 1, 7), kv_(rgr_, "runner"), kv_(rgr_, "r_version"), kv_(rgr_, "rxode2_version"), kv_(rgr_, "cores_used"), kv_(rgr_, "job_duration_s"),
+      kv_(rgr_, "n_pass_github"), kv_(rgr_, "n_items"), kv_(rgr_, "n_items"), if (identical(kv_(rgr_, "all_identical_to_local_8sig"), "TRUE")) "identical" else "NOT all identical", kv_(rgr_, "url")) else " The GitHub Actions run has not been recorded yet."
+  add("## 9. Reproducibility check", "",
+      sprintf("Pre-specified tolerances (config/repro_check.yaml), script scripts/38_repro_check.R. Local run: commit %s, %s, rxode2 %s, %s of %s items pass.%s",
+              substr(kv_(rlm_, "commit"), 1, 7), kv_(rlm_, "r_version"), kv_(rlm_, "rxode2_version"), sum(rl_$pass), nrow(rl_), gh_txt), "",
+      md_table(tb_))
+}
 txt <- paste(out, collapse = "\n")
 if (grepl("—|–|\u2212", txt)) { bad <- regmatches(txt, gregexpr("[^\n]*(—|–|\u2212)[^\n]*", txt))[[1]]; stop("summary_en.md contains an em-dash, en-dash or minus sign (U+2212): ", paste(substr(head(bad, 3), 1, 160), collapse = " || ")) }
 if (grepl("[가-힣]", txt)) { bad <- regmatches(txt, gregexpr("[^\n]*[가-힣][^\n]*", txt))[[1]]; stop("summary_en.md contains Korean text: ", paste(head(bad, 3), collapse = " || ")) }

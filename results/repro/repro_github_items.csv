@@ -1,0 +1,8 @@
+item,committed,tolerance,tolerance_type,reproduced_github,reproduced_github_printed,pass_github,reproduced_local,reproduced_local_printed,pass_local,identical_to_local_8sig
+a1_oc_trials_GMR_CI_max_rel_diff,0,1e-06,relative,4.9389296e-07,4.9389296e-07,TRUE,4.93892959640974e-07,4.9389296e-07,TRUE,TRUE
+a2_oc_trials_pass_flag_mismatches,0,0,count,0,0,TRUE,0,0,TRUE,TRUE
+a3_P2_pass_rate_S00_pct,100,0,absolute (pct points),100,100,TRUE,100,100,TRUE,TRUE
+a3_P2_pass_rate_Vmax_down_125_pct,5,0,absolute (pct points),5,5,TRUE,5,5,TRUE,TRUE
+b1_true_AUCinf_ratio_Vmax_0.6602_first20000,1.25088393369916,0.00161626325953374,absolute log ratio,1.2501589,1.2501589,TRUE,1.25015892047195,1.2501589,TRUE,TRUE
+b2_screening_consistency_first20000,1.25,2e-04,relative,1.2501589,1.2501589,TRUE,1.25015892047195,1.2501589,TRUE,TRUE
+c1_extrap_true_median_B0_2000subjects,0.652050053461906,0.13,absolute (pct),0.68475085,0.68475085,TRUE,0.684750853532612,0.68475085,TRUE,TRUE

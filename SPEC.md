@@ -30,7 +30,7 @@
 | renv | 1.2.4 | `renv.lock`. 컨테이너에서는 시스템 라이브러리 우회 설정 사용(D-017, 최종본 전 정리) |
 | NCA·BE | R 직접 구현 (`R/nca.R`, `R/be_stats.R`) | BEmaster 바인딩 없음(D-010) |
 | 저장소 | `main` 없음 | PR 생성은 사용자 결정 대기. 현재 브랜치에 계속 커밋 |
-| CI | `.github/workflows/tests.yml` 빠른 범위(`DUPI_TEST_SCOPE=fast`), `repro.yml` 수동 재현성 점검 | 코드·테스트·config·scripts·renv·워크플로 변경 시에만 실행, 판정성 테스트는 보고 항목(D-045) |
+| CI | `.github/workflows/tests.yml` 빠른 범위(`DUPI_TEST_SCOPE=fast`), `repro.yml` 재현성 점검(수동 또는 `config/repro_request.yaml` 변경 push) | 코드·테스트·config·scripts·renv·워크플로 변경 시에만 실행, 판정성 테스트는 보고 항목(D-045, D-050, D-051) |
 
 **코딩 규칙(D-025)**: data.table `[` 안에서 함수 인자와 같은 이름의 열을 쓰지 않는다(지역 변수, `..var`, `x[["col"]]` 사용). YAML 키에 y/n/yes/no/on/off/true/false 금지. 둘 다 자동 테스트로 검사한다.
 
@@ -408,8 +408,9 @@ Km 근거: Kovalenko 2016에서 0.01 미만은 목적함수가 둔감했으므�
 
 ### 12.10 CI·재현성 (D-045; `results/ci/`, `results/repro/`)
 - 이전 GitHub Actions 71회 전부 실패, 테스트는 한 번도 실행되지 않았다(`ci/ci_failure_summary.csv`, `ci/ci_failures_before.csv`): #1(1회) 커밋에 renv.lock 없음 → `renv::restore()` 중단; #2–#71(70회) `scripts/run_tests.R`의 JunitReporter가 renv.lock에 없는 xml2를 요구 → 테스트 시작 전 중단(실행 시간 중앙값 221초). 테스트 실패·시간 초과·결과 파일 누락으로 인한 실패는 없고, CI는 저장소에 쓰지 않았으므로 로컬 결과 수치에 영향이 없다.
-- 수정 이후 `tests.yml` 실행 결과: 결과 파일에 기록 없음(실행 확인 후 기록).
+- 수정 이후 `tests.yml` 실행(`ci/ci_runs_after_fix.csv`, GitHub API 조회): #72(86d2fc6, W1)·#73(0f6bf72, W2)·#74(68be707, W3 코드)·#76(52f525b) 성공. #75(fd45b07, W4)는 40초 뒤 같은 브랜치에 52f525b가 push되어 동시 실행 취소(concurrency)로 중단했다; fd45b07의 코드는 52f525b에 그대로 들어 있어 #76에서 검사됐다. 잡 시간 #72 230초(renv 캐시 없음: 복원 158초, 성공 후 캐시 저장), #73·#74·#76 75–99초(복원 10–15초), 테스트 단계 14–20초. 수정 이후 커밋 9개 중 4개(b8a5351·bf9a5b1 결과 파일만, 64f53af `.gitignore`만, 2cae111 DECISIONS.md만)는 경로 필터로 실행하지 않았다.
 - 로컬 테스트(`ci/test_timing_local.csv`, 측정 시점의 테스트 파일 16개 기준): 빠른 범위 67개(판정성 4개 건너뜀), 코드 실패 0, CPU 50.0초; 전체 범위 67개, 실패 0, 판정성 미충족 0, CPU 191.4초(단계 1 테스트 파일 147.7초). 이후 추가된 테스트 파일(`test-extend.R`, `test-key-facts.R`, `test-p2-interpretation.R`, `test-rejudge.R`, `test-reliability-text.R`)은 이 표에 없다.
 - 사용 분 추정(`ci/ci_minutes_estimate.csv`; 관측 push 속도 38.3회/일 유지 가정): 이전 관측 4,612분/월(실패로 조기 종료), 설계대로였다면 21,830분/월 → 이후 1,214분/월(경로 필터로 push의 35.2%만 실행, 캐시 적중 45초 가정, 빠른 범위 50초, 동시 실행 취소). 감소 73.7%(관측 대비), 94.4%(설계 대비). 수동 재현성 실행은 약 252초(청구 5분).
 - 재현성 점검 로컬 결과(`repro/repro_check.csv`, `repro/repro_check_meta.csv`; 허용 오차는 `config/repro_check.yaml`에 사전 고정; 커밋 a4843b3(추적 파일 미커밋 변경 1개), 2코어 85.4초): 7개 항목 모두 통과. (a) OC 시험 1–100(S00, Vmax ↓ 1.25) 재생성: GMR·CI 최대 상대 차이 4.9e-07(허용 1e-6), 통과 여부 등 불일치 0/1,200행, P2 통과 100/100·5/100 동일. (b) 참 AUC0-inf 비(Vmax ×0.6602) 앞 20,000명 1.2502 대 200,000명 1.2509, |log 차이| 0.00058(허용 0.00162); 역산 선별 일관성 상대 차이 0.000127(허용 2e-4). (c) 개인 실제 외삽 중앙값 2,000명 0.685% 대 20,000명 0.652%, 차이 0.033(허용 0.13).
-- GitHub Actions 재현성 실행 결과: (실행 후 기록)
+- GitHub Actions 재현성 실행(`repro/repro_github_run.csv`, `repro/repro_github_items.csv`; 잡 로그 원문 `repro/repro_github_job_log_excerpt.txt`, 생성 `scripts/38b_repro_github_record.R`): repro #1(run 36091498464), 커밋 52f525b, `config/repro_request.yaml` 변경 push로 요청(D-050), ubuntu-24.04, R 4.3.3, rxode2 5.1.7, 깨끗한 renv 복원(캐시 적중), 4코어. 잡 143초(fast 테스트 21초: 87개, 실패 0, 예기치 않은 건너뜀 0; 재현성 점검 37초). 7개 항목 모두 통과했고, 재계산값 7개 모두 로컬 실행(커밋 a4843b3, 2코어)과 로그에 찍힌 8자리 유효숫자까지 같다. 산출물 zip은 이 세션의 외부 접속 정책(산출물 저장소 호스트 차단)으로 내려받지 못해 잡 로그 값을 썼다(산출물 id 10846042226, 30일 보존).
+- 이 실행의 로그에서 renv가 "project is out-of-sync"를 알렸다: patchwork(`scripts/39_reliability_flags.R`, W2 추가)가 renv.lock에 없고, xml2(`scripts/run_tests.R`의 선택적 JUnit 출력)를 참조한다. 테스트와 재현성 점검은 두 패키지를 불러오지 않으므로 위 결과에는 영향이 없다. 깨끗한 복원 환경에서 39가 실행되지 않는 공백이므로 renv.lock에 patchwork 1.2.0만 추가하고(다른 항목 변경 없음, 105개) xml2는 renv 무시 패키지로 지정했다(`renv/settings.json`, D-051). 로컬 `renv::status()` 일치.

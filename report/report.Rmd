@@ -429,13 +429,16 @@ if (!is.null(g2d)) kt(g2d[, .(model, scenario, target, contrast, a, b, flag_set,
 ```
 
 # 부록 C. 재현성 점검 (통합 지시 2026-09-25 §9)
-`scripts/38_repro_check.R`, 허용 오차는 `config/repro_check.yaml`에 사전 고정. 로컬 실행과 GitHub Actions 수동 실행(`.github/workflows/repro.yml`, 깨끗한 renv 복원)의 결과.
+`scripts/38_repro_check.R`, 허용 오차는 `config/repro_check.yaml`에 사전 고정. 로컬 실행과 GitHub Actions 실행(`.github/workflows/repro.yml`, 깨끗한 renv 복원; 수동 실행 권한이 없어 `config/repro_request.yaml` 변경 push로 요청, D-050)의 결과. GitHub 쪽 재계산값은 잡 로그에 찍힌 8자리 유효숫자이고(`results/repro/repro_github_job_log_excerpt.txt`, `scripts/38b_repro_github_record.R`), 로컬 재계산값을 같은 자릿수로 찍은 값과 비교한다(D-051).
 ```{r repro_appx, results="asis"}
 rl <- rd("repro", "repro_check.csv"); rm_ <- rd("repro", "repro_check_meta.csv"); rg <- rd("repro", "repro_github_run.csv"); rgi <- rd("repro", "repro_github_items.csv")
-if (!is.null(rl)) pkt(kt(rl, "로컬 재현성 점검 항목(커밋된 결과 대 재계산, 사전 고정 허용 오차)", 6))
+# 수치 열은 유효숫자 8자리 문자열로(고정 소수 자릿수로 찍으면 4.9e-07 같은 작은 값이 0처럼 보인다)
+g8c <- function(d) { d <- copy(d); for (cn in names(d)) if (is.numeric(d[[cn]])) set(d, j = cn, value = vapply(d[[cn]], function(v) format(v, digits = 8), "")); d }
+if (!is.null(rgi)) rgi <- rgi[, .(item, committed, tolerance, tolerance_type, reproduced_github, pass_github, reproduced_local, pass_local, identical_to_local_8sig)]
+if (!is.null(rl)) pkt(kt(g8c(rl), "로컬 재현성 점검 항목(커밋된 결과 대 재계산, 사전 고정 허용 오차)"))
 if (!is.null(rm_)) pkt(kt(rm_, "로컬 실행 정보", 3))
-if (!is.null(rg)) pkt(kt(rg, "GitHub Actions 재현성 실행(수동, workflow_dispatch)", 3)) else cat("\n\nGitHub Actions 재현성 실행 결과 없음(아직 실행 전).\n\n")
-if (!is.null(rgi)) pkt(kt(rgi, "GitHub Actions 실행의 점검 항목", 6))
+if (!is.null(rg)) pkt(kt(rg, "GitHub Actions 재현성 실행(커밋 요청 push)", 3)) else cat("\n\nGitHub Actions 재현성 실행 결과 없음(아직 실행 전).\n\n")
+if (!is.null(rgi)) pkt(kt(g8c(rgi), "GitHub Actions 실행의 점검 항목(GitHub 값은 잡 로그의 8자리 유효숫자; identical_to_local_8sig = 로컬 값을 같은 자릿수로 찍었을 때 같음)"))
 ```
 
 # 재현 방법

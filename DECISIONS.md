@@ -302,3 +302,9 @@
 
 ## D-050 | 2026-09-25 | 재현성 워크플로의 커밋 요청 경로 (D-045 보완)
 - 재현성 워크플로는 수동 실행 외에 `config/repro_request.yaml`을 바꾼 push로도 실행한다. 작업 세션의 GitHub 통합 도구에는 workflow_dispatch 권한이 없어(403 Resource not accessible by integration) 커밋으로 요청하는 경로를 둔다. 요청마다 날짜와 사유를 그 파일에 남긴다.
+
+## D-051 | 2026-09-25 | GitHub 재현성 실행 #1 결과와 renv.lock 보완 (D-045, D-050)
+- 실행: repro #1(run 36091498464), 커밋 52f525b, ubuntu-24.04, R 4.3.3, rxode2 5.1.7, 깨끗한 renv 복원, 4코어, 잡 143초(fast 테스트 21초, 재현성 점검 37초). fast 테스트 87개, 실패 0, 예기치 않은 건너뜀 0. 재현성 점검 7/7 통과. 재계산값 7개는 로컬 실행(커밋 a4843b3, 2코어)과 잡 로그에 찍힌 8자리 유효숫자까지 모두 같다.
+- 기록 방법: 산출물 zip은 이 세션의 외부 접속 정책(산출물 저장소 호스트 차단)으로 내려받지 못했다. GitHub API 메타데이터와 잡 로그 원문 줄을 `results/repro/repro_github_job_log_excerpt.txt`에 옮기고, `scripts/38b_repro_github_record.R`가 이를 파싱해 `repro_github_run.csv`·`repro_github_items.csv`를 만든다. 로컬 결과 파일의 committed 값과 로그의 committed 값이 다르면 중단한다. 보고서 부록 C와 `summary_en.md` 9절이 이 파일을 읽는다.
+- 발견: 실행 로그의 renv 알림 "project is out-of-sync". 원인은 두 가지다. (1) patchwork(`scripts/39_reliability_flags.R`, W2 추가)를 쓰지만 renv.lock에 없다. 깨끗한 renv 복원 환경에서 39가 실행되지 않는 재현성 공백이다. (2) xml2를 `scripts/run_tests.R`가 `requireNamespace`로 참조한다(D-045에서 JUnit은 xml2가 있을 때만). 두 패키지 모두 테스트와 `38_repro_check.R`에서는 불러오지 않으므로 이번 점검 결과에는 영향이 없다.
+- 조치: renv.lock에 patchwork 1.2.0(CRAN) 한 항목만 추가했다(의존 패키지 ggplot2·gtable·rlang·cli는 이미 기록, 다른 항목 변경 없음, 104 → 105개). `renv::lockfile_write()`는 기존 항목의 유니코드 이스케이프를 다시 써서 diff가 커지므로, renv가 만든 patchwork 블록만 알파벳 순서 위치에 넣고 JSON으로 다시 읽어 다른 항목이 같음을 확인했다. xml2는 renv 무시 패키지로 지정했다(`renv/settings.json` "ignored.packages"). 로컬 `renv::status()` 일치. renv.lock이 바뀌어 다음 tests.yml 실행은 캐시 없이 복원하며, 그 실행으로 patchwork 설치와 renv 알림 해소를 확인한다.

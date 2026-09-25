@@ -1,0 +1,30 @@
+field,value
+workflow,repro (.github/workflows/repro.yml)
+run_id,36091498464
+run_number,1
+run_attempt,1
+event,"push (commit changing config/repro_request.yaml; workflow_dispatch returned HTTP 403 for this integration, D-050)"
+commit,52f525b00184bc6a7253c7039d01ad2163899d9b
+branch,claude/epic-bardeen-axbreo
+conclusion,success
+url,https://github.com/DHKQSP/dupilumab-sim/actions/runs/36091498464
+runner,"ubuntu-24.04 (Ubuntu 24.04.5 LTS), GitHub-hosted"
+r_version,R version 4.3.3 (2024-02-29)
+rxode2_version,5.1.7
+testthat_version,3.2.1
+cores_used,4
+job_started_utc,2026-09-25T03:43:19Z
+job_completed_utc,2026-09-25T03:45:42Z
+job_duration_s,143
+step_tests_s,21
+step_repro_check_s,37
+tests,"87 tests, 0 failed (0 code, 0 judgment unmet), 0 errors, 5 skipped (0 unexpected); wall 17.5 s, cpu 18.5 s"
+renv_cache,hit (primary key)
+renv_status_note,"renv reported the project out-of-sync: patchwork (scripts/39_reliability_flags.R) and xml2 (optional JUnit output in scripts/run_tests.R) were used but not in renv.lock; neither is loaded by the tests or by scripts/38_repro_check.R. Fixed afterwards: patchwork 1.2.0 recorded in renv.lock, xml2 set as an ignored package (renv/settings.json)"
+artifact,"repro-results id 10846042226, zip SHA256 b59c4a76a6ecbaa59f936a9e5628abbdc0295fbd1f18118a6c4cf4d9c5505189, retention 30 days"
+values_source,job log printed values (8 significant digits); artifact download blocked by this session's egress policy
+n_items,7
+n_pass_github,7
+all_pass_github,TRUE
+n_identical_to_local_8sig,7
+all_identical_to_local_8sig,TRUE

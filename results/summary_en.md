@@ -935,3 +935,17 @@ Rationale: at the pre-specified 20,000-subject level, criterion (d) alone was me
 - Only the automatic lambda-z Best Fit is simulated; in a real study a pharmacokineticist may review and adjust the lambda-z points.
 - The random product space is a secondary metric: its consumer and producer risks depend on the assumed distribution of virtual products (log-uniform multipliers F 0.80 to 1.25, ka 0.67 to 1.50, ke 0.80 to 1.25, Vmax 0.67 to 1.50, Km 0.20 to 5, V2 0.90 to 1.11). The truth of each product is computed from 1,000 common virtual subjects (not 200,000) for computational reasons, as pre-specified; the Monte Carlo standard error of each product's truth is reported.
 
+## 9. Reproducibility check
+
+Pre-specified tolerances (config/repro_check.yaml), script scripts/38_repro_check.R. Local run: commit a4843b3, R version 4.3.3 (2024-02-29), rxode2 5.1.7, 7 of 7 items pass. GitHub Actions run 1 (commit 52f525b, ubuntu-24.04 (Ubuntu 24.04.5 LTS), GitHub-hosted, R version 4.3.3 (2024-02-29), rxode2 5.1.7, clean renv restore, 4 cores; job 143 s): 7 of 7 items pass; all 7 reproduced values are identical to the local run at the 8 significant digits printed in the job log (https://github.com/DHKQSP/dupilumab-sim/actions/runs/36091498464).
+
+| Item | Committed | Reproduced (local) | Tolerance | Pass (local) | Reproduced (GitHub) | Pass (GitHub) |
+|---|---|---|---|---|---|---|
+| Exact regeneration of committed operating-characteristic trials (2016 model, trials 1 to 100, identical products and Vmax down 1.25): largest relative difference in GMR and 90% CI limits | 0 | 4.9389296e-07 | 1e-06 relative | yes | 4.9389296e-07 | yes |
+| Same regeneration: rows whose pass flag, missing status or arm sizes differ (of 1,200) | 0 | 0 | 0 count | yes | 0 | yes |
+| Same regeneration: P2 pass rate (%), identical products | 100 | 100 | 0 absolute (pct points) | yes | 100 | yes |
+| Same regeneration: P2 pass rate (%), Vmax down 1.25 (boundary) | 5 | 5 | 0 absolute (pct points) | yes | 5 | yes |
+| True AUC0-inf ratio at the Vmax inversion multiplier: first 20,000 of the 200,000 common virtual subjects | 1.2508839 | 1.2501589 | 0.00162 absolute log ratio | yes | 1.2501589 | yes |
+| Inversion screening consistency on the same 20,000 subjects | 1.25 | 1.2501589 | 2e-04 relative | yes | 1.2501589 | yes |
+| Median true extrapolated share at B0 (%): 2,000 new subjects versus the committed 20,000 | 0.65205005 | 0.68475085 | 0.13 absolute (pct) | yes | 0.68475085 | yes |
+

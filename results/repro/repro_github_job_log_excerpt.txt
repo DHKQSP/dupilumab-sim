@@ -1,0 +1,34 @@
+# GitHub Actions reproducibility run: API metadata and verbatim job-log lines
+# Source: GitHub REST API (workflow run 36091498464, job 107934705528) read through the GitHub MCP tools on 2026-09-25.
+# The run artifact (repro-results, id 10846042226) could not be downloaded from this session (egress policy blocks the artifact blob host),
+# so the reproduced values below are the job log's printed values (8 significant digits).
+run_id: 36091498464
+run_number: 1
+run_attempt: 1
+workflow: repro (.github/workflows/repro.yml)
+event: push (commit changing config/repro_request.yaml; workflow_dispatch returned HTTP 403 for this integration, D-050)
+head_sha: 52f525b00184bc6a7253c7039d01ad2163899d9b
+head_branch: claude/epic-bardeen-axbreo
+conclusion: success
+html_url: https://github.com/DHKQSP/dupilumab-sim/actions/runs/36091498464
+runner: ubuntu-24.04 (Ubuntu 24.04.5 LTS), GitHub-hosted
+job_started_utc: 2026-09-25T03:43:19Z
+job_completed_utc: 2026-09-25T03:45:42Z
+step_setup_r: 2026-09-25T03:43:33Z 2026-09-25T03:44:16Z
+step_setup_renv: 2026-09-25T03:44:28Z 2026-09-25T03:44:42Z
+step_tests: 2026-09-25T03:44:42Z 2026-09-25T03:45:03Z
+step_repro: 2026-09-25T03:45:03Z 2026-09-25T03:45:40Z
+renv_cache: Cache hit occurred on the primary key Ubuntu 24.04.5 LTS-R version 4.3.3 (2024-02-29)-1-d3e1689ec04421e559614c69a7c74e8b9a1c5fabd17198ca56105ec16bf247f9, not saving cache.
+artifact: repro-results id 10846042226, zip SHA256 b59c4a76a6ecbaa59f936a9e5628abbdc0295fbd1f18118a6c4cf4d9c5505189, retention 30 days
+## verbatim log lines (timestamps stripped)
+[ FAIL 0 | WARN 0 | SKIP 5 | PASS 1423 ]
+rxode2: 5.1.7; testthat: 3.2.1; JUnit XML: no (xml2 not installed)
+TOTAL: 87 tests, 0 failed (0 code, 0 judgment unmet), 0 errors, 5 skipped (0 unexpected); wall 17.5 s, cpu 18.5 s
+- The project is out-of-sync -- use `renv::status()` for details.
+[03:45:24] a1_oc_trials_GMR_CI_max_rel_diff           committed 0              reproduced 4.9389296e-07  tol 1e-06     PASS
+[03:45:24] a2_oc_trials_pass_flag_mismatches          committed 0              reproduced 0              tol 0         PASS
+[03:45:25] a3_P2_pass_rate_S00_pct                    committed 100            reproduced 100            tol 0         PASS
+[03:45:25] a3_P2_pass_rate_Vmax_down_125_pct          committed 5              reproduced 5              tol 0         PASS
+[03:45:37] b1_true_AUCinf_ratio_Vmax_0.6602_first20000 committed 1.2508839      reproduced 1.2501589      tol 0.00162   PASS
+[03:45:37] b2_screening_consistency_first20000        committed 1.25           reproduced 1.2501589      tol 2e-04     PASS
+[03:45:40] c1_extrap_true_median_B0_2000subjects      committed 0.65205005     reproduced 0.68475085     tol 0.13      PASS
