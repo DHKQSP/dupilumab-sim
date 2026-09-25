@@ -19,17 +19,21 @@ cat(sprintf("source commit %s, tracked tree outside regulatory/ clean: %s\n", co
 sys.source(file.path(src_dir, "build_tables.R"), envir = new.env())
 
 # 2) documents
-docs <- c("MS_report", "FDA_questions")
-pars <- list(source_commit = commit, tree_clean = clean, version = "0.9 (draft for sponsor review)")
+docs <- c("MS_report", "FDA_questions", "SAP_text_proposals")
+out_name <- c(MS_report = "MS_report", FDA_questions = "FDA_questions", SAP_text_proposals = "sap_text_proposals_en")   # 출력 파일 이름
+doc_formats <- list(MS_report = c("html", "docx"), FDA_questions = c("html", "docx"), SAP_text_proposals = c("html", "md"))
+VERSION <- "1.0.1 (draft for sponsor review)"
+pars <- list(source_commit = commit, tree_clean = clean, version = VERSION)
 for (d in docs) {
-  for (fmt in c("html", "docx")) {
+  for (fmt in doc_formats[[d]]) {
     of <- switch(fmt, html = rmarkdown::html_document(toc = TRUE, toc_depth = 3, number_sections = FALSE, self_contained = TRUE),
-                 docx = rmarkdown::word_document(toc = TRUE, toc_depth = 3))
-    rmarkdown::render(file.path(src_dir, paste0(d, ".Rmd")), output_format = of, output_file = paste0(d, ".", fmt), output_dir = reg_dir,
+                 docx = rmarkdown::word_document(toc = TRUE, toc_depth = 3), md = rmarkdown::md_document(variant = "gfm", toc = TRUE, toc_depth = 2))
+    rmarkdown::render(file.path(src_dir, paste0(d, ".Rmd")), output_format = of, output_file = paste0(out_name[[d]], ".", fmt), output_dir = reg_dir,
                       intermediates_dir = src_dir, knit_root_dir = src_dir, envir = list2env(list(REG_PARAMS = pars)), quiet = TRUE)
   }
+  if ("md" %in% doc_formats[[d]]) check_english(file.path(reg_dir, paste0(out_name[[d]], ".md")))
   # English check on the rendered text (HTML without tags and embedded images)
-  h <- paste(readLines(file.path(reg_dir, paste0(d, ".html")), warn = FALSE, encoding = "UTF-8"), collapse = "\n")
+  h <- paste(readLines(file.path(reg_dir, paste0(out_name[[d]], ".html")), warn = FALSE, encoding = "UTF-8"), collapse = "\n")
   h <- gsub("data:[a-z/+]+;base64,[A-Za-z0-9+/=]+", "", h); h <- gsub("<script[^>]*>.*?</script>", "", h, perl = TRUE); h <- gsub("<style[^>]*>.*?</style>", "", h, perl = TRUE)
   tf <- tempfile(fileext = ".txt"); writeLines(gsub("<[^>]+>", " ", h), tf, useBytes = TRUE); check_english(tf)
   cat("rendered", d, "\n")
@@ -46,9 +50,10 @@ tf <- tempfile(fileext = ".csv"); fwrite(tr[, .(document, section, item, source_
 tracked <- git("ls-files")
 keep <- tracked[grepl("^(R|scripts|config|tests|regulatory)/", tracked) | tracked %in% c("renv.lock", "renv/settings.json", "renv/activate.R", ".Rprofile", "SPEC.md", "DECISIONS.md", "README.md")]
 cited <- unique(tr$source_file[file.exists(proj_path(tr$source_file))])
-files <- sort(unique(c(keep, cited, file.path("regulatory", c(paste0(docs, ".html"), paste0(docs, ".docx"), "traceability.csv")),
+rendered <- unlist(lapply(docs, function(d) paste0(out_name[[d]], ".", doc_formats[[d]])))
+files <- sort(unique(c(keep, cited, file.path("regulatory", c(rendered, "traceability.csv")),
                        file.path("regulatory", "tables", list.files(tab_dir)), file.path("regulatory", "figures", list.files(file.path(reg_dir, "figures"))))))
-files <- files[file.exists(proj_path(files)) & !grepl("^regulatory/(manifest_sha256\\.csv|README\\.md)$", files)]
+files <- files[file.exists(proj_path(files)) & !grepl("^regulatory/(manifest_sha256\\.csv|README\\.md|release_notes\\.md)$", files)]
 mf <- data.table(path = files, bytes = file.size(proj_path(files)), sha256 = vapply(files, function(f) digest::digest(file = proj_path(f), algo = "sha256"), ""),
                  git_tracked = files %in% tracked, role = fifelse(grepl("^regulatory/", files), "regulatory document", fifelse(grepl("^results/", files), "result cited in the documents",
                                                              fifelse(grepl("^(R|scripts)/", files), "program", fifelse(grepl("^config/", files), "configuration", fifelse(grepl("^tests/", files), "test", "project record"))))))
@@ -61,7 +66,7 @@ readme <- c(
   "",
   "Modeling and simulation supporting AUC0-last and Cmax as co-primary endpoints, and the sampling schedule, of a single-dose PK similarity study of a proposed dupilumab biosimilar.",
   "",
-  sprintf("Generated %s UTC from commit `%s` (tracked files outside regulatory/ unchanged: %s). Status: draft for sponsor review; not approved.", format(Sys.time(), "%Y-%m-%d %H:%M", tz = "UTC"), commit, if (clean) "yes" else "no"),
+  sprintf("Version %s. Generated %s UTC from commit `%s` (tracked files outside regulatory/ unchanged: %s). Status: draft for sponsor review; not approved.", sub(" .*$", "", VERSION), format(Sys.time(), "%Y-%m-%d %H:%M", tz = "UTC"), commit, if (clean) "yes" else "no"),
   "",
   "## Read in this order",
   "",
@@ -69,6 +74,8 @@ readme <- c(
   "|---|---|",
   "| `MS_report.docx` / `MS_report.html` | Modeling and Simulation Report (ICH M15 structure): question of interest, context of use, model risk, methods, credibility evidence, results, discussion, appendices A to H. |",
   "| `FDA_questions.docx` / `FDA_questions.html` | Anticipated FDA questions with evidence-based responses and pointers to the report. |",
+  "| `sap_text_proposals_en.md` | Proposed statistical analysis plan text for the PK analyses (primary endpoints and analysis model options, AUC0-inf as secondary endpoint, fallback, ADA, BLQ and AUC rules, sample size), with the supporting numbers. |",
+  "| `release_notes.md` | Changes in this version. |",
   "| `tables/assumptions_register.csv` | Assumptions, their impact and the actions required before submission. |",
   "| `tables/prespecification_register.csv` | What was fixed before results, what was added afterwards (dates and commits). |",
   "| `tables/verification_qc.csv` | Verification and QC activities, criteria, results and evidence. |",
@@ -102,3 +109,45 @@ readme <- c(
 writeLines(readme, file.path(reg_dir, "README.md"))
 check_english(file.path(reg_dir, "README.md"))
 cat(sprintf("regulatory package: %d traced values, %d files in the manifest\n", n_vals, nrow(mf)))
+
+# 6) release notes (regulatory/release_notes.md; the release workflow requires the first line "# v<version>")
+tag <- paste0("v", sub(" .*$", "", VERSION))
+t1 <- fread(proj_path("results", "oc_models", "type1_models.csv")); de <- fread(proj_path("results", "oc_models", "p2_decomposition_models.csv"))
+rv <- fread(proj_path("results", "oc_models", "m0_reverification.csv")); ex <- fread(proj_path("results", "oc_models", "expectations_check.csv"))
+nn <- fread(proj_path("results", "sample_size", "ss_table_n_needed.csv")); tp <- fread(proj_path("results", "sample_size", "ss_table_power.csv"))
+li <- fread(proj_path("results", "lloq", "lloq_individual_table.csv")); lt <- fread(proj_path("results", "lloq", "lloq_trial_type1.csv"))
+f1 <- function(x) formatC(round(x, 1) + 0, format = "f", digits = 1); f2 <- function(x) formatC(round(x, 2) + 0, format = "f", digits = 2)
+cls <- function(a) { x <- t1[analysis_model == a & config == "P2"]; sprintf("%d conservative, %d nominal, %d exceeding (%s%% to %s%%)", sum(x$class == "conservative"), sum(x$class == "nominal"), sum(x$class == "exceeding"), f2(min(x$pass_pct)), f2(max(x$pass_pct))) }
+ov <- de[p2_pct > 5]
+ov_l <- if (nrow(ov)) paste(sprintf("%s %s under %s: %s%% [%s, %s], %s, %s trials", ifelse(ov$pk_model == "k2016", "primary model", "2020 model"), ov$scenario, ov$analysis_model, f2(ov$p2_pct), f2(ov$lo), f2(ov$hi), ov$class, format(ov$n_trials, big.mark = ",")), collapse = "; ") else "none"
+p117 <- function(cv_, a) f1(tp[input_model == "k2016" & cv == cv_ & gmr == 0.95 & n == 117 & analysis_model == a, analytic_pct])
+nn_ <- function(cv_, a, tg) nn[cv == cv_ & gmr == 0.95 & analysis_model == a & target_pct == tg, n_evaluable_per_arm]
+lr <- function(a) { x <- lt[model == a & resid == "fixed" & config == "P2", pass_pct]; sprintf("%s%% to %s%%", f2(min(x)), f2(max(x))) }
+lk <- li[model == "k2016" & resid == "fixed"]
+rn <- c(
+  paste("#", tag), "",
+  sprintf("Regulatory package version %s, generated %s UTC from commit `%s`. Status: draft for sponsor review; not approved. Previous package: document version 0.9 (commit ed9e8ba, not tagged).",
+          sub(" .*$", "", VERSION), format(Sys.time(), "%Y-%m-%d %H:%M", tz = "UTC"), commit), "",
+  "## Pre-registration", "",
+  "- Analyses of this version were registered in `config/prereg_20260926.yaml` and committed before their results: analysis model (commit 521645a), numeric criteria for the expectation checks (c5b304b, before any result was read), LLOQ sensitivity and sample size (211e8ed).", "",
+  "## Results added", "",
+  sprintf("- Analysis model (report Section 5.9). Boundary type I error of AUC0-last + Cmax in 16 cells: pooled t-test (M0) %s; ANOVA with the randomization weight stratum (M1) %s. Cells above 5%% (point estimate): %s.", cls("M0"), cls("M1"), ov_l),
+  sprintf("- Expectations recorded before the results: %s.", paste(sprintf("%s (%s)", ex$expectation, ifelse(ex$consistent, "consistent", "not consistent")), collapse = "; ")),
+  sprintf("- LLOQ (report Section 5.10). The study LLOQ is set in `config/assay.yaml` (single source). Between 0.02 and 0.5 mg/L: true coverage of AUC0-last below 80%% in %s%% to %s%% of subjects; AUC0-inf reliability, criteria (i), %s%% (0.02 mg/L) to %s%% (0.5 mg/L); boundary type I error of AUC0-last + Cmax %s (M0) and %s (M1) in three boundary scenarios.",
+          f2(min(lk$coverage_lt80_pct)), f2(max(lk$coverage_lt80_pct)), f1(lk[abs(lloq - 0.02) < 1e-9, reliable_no_span_pct]), f1(lk[abs(lloq - 0.5) < 1e-9, reliable_no_span_pct]), lr("M0"), lr("M1")),
+  sprintf("- Sample size (report Section 5.11). At a true GMR of 0.95, 117 evaluable subjects per arm give P2 power %s%% (M0) and %s%% (M1) at CV 43%%, %s%% and %s%% at CV 50%%. Evaluable per arm for 90%% power: %d (M0) and %d (M1) at CV 43%%, %d and %d at CV 50%%.",
+          p117(43, "M0"), p117(43, "M1"), p117(50, "M0"), p117(50, "M1"), nn_(43, "M0", 90), nn_(43, "M1", 90), nn_(50, "M0", 90), nn_(50, "M1", 90)),
+  "- Proposed statistical analysis plan text for the PK analyses: `sap_text_proposals_en.md`.",
+  "- Anticipated FDA questions: Q1, Q7 and Q12 updated; Q17 (analysis model and stratification) and Q18 (assay LLOQ) added.", "",
+  "## Decisions", "",
+  "- Confirmed: AUC0-inf as a secondary endpoint (Best Fit lambda-z; adjusted R-squared at least 0.80 and extrapolation at most 20%, no span criterion; two analysis sets with excluded subjects and their body weight; substitution rule as sensitivity); disclosure of the boundary cell above 5%; fallback if AUC0-inf is required as co-primary (all subjects with an estimable lambda-z, flagged subjects listed; exclusion and substitution as sensitivity analyses); CV 43% as the base assumption and 50% as sensitivity.",
+  "- Pending (sponsor): primary analysis model (M0 or M1); LLOQ of the validated assay; target power and sample size.", "",
+  "## Verification", "",
+  sprintf("- The regenerated pooled t-test results equal the stored results in %s rows (results/oc_models/m0_reverification.csv). LLOQ re-censoring at 0.078 mg/L reproduces the stored individual, cliff and trial results. Automated tests pass.", format(sum(rv$n_rows), big.mark = ",")), "",
+  "## Release assets", "",
+  sprintf("- `dupilumab-sim-%s-source.tar.gz`: repository at the tag (git archive).", tag),
+  sprintf("- `dupilumab-sim-%s-regulatory.zip`: the regulatory/ folder.", tag),
+  sprintf("- `dupilumab-sim-%s-manifest_sha256.csv`: SHA-256 of every program, configuration, cited result and document.", tag),
+  "- `SHA256SUMS.txt`: SHA-256 of the release assets.")
+writeLines(rn, file.path(reg_dir, "release_notes.md")); check_english(file.path(reg_dir, "release_notes.md"))
+cat("release notes written for", tag, "\n")

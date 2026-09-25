@@ -193,3 +193,7 @@ tp <- function(cv, am) v(TPW, sprintf("input_model=='k2016' & cv==%s & gmr==0.95
 | Primary analysis model (M0 or M1) | pending (sponsor) |
 | LLOQ of the validated assay | pending (sponsor) |
 | Target power and sample size | pending (sponsor) |
+
+```{r trace, include=FALSE}
+reg_trace_write(file.path("..", "tables", "trace_SAP_text_proposals.csv"))
+```

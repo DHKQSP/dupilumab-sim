@@ -12,12 +12,12 @@ source("R/00_setup.R"); source_project()
 suppressPackageStartupMessages(library(ggplot2))
 pr <- read_cfg("prereg_20260926.yaml")$section2
 design <- read_cfg("trial_design.yaml")
-out_dir <- proj_path(pr$out_dir); L0 <- as.numeric(pr$reference_lloq_mg_L)
+out_dir <- Sys.getenv("DUPI_LLOQ_OUT", proj_path(pr$out_dir)); L0 <- as.numeric(pr$reference_lloq_mg_L)   # 환경변수는 시험용
 LL <- sort(as.numeric(unlist(pr$lloq_grid_mg_L))); RES <- unlist(pr$residual_variants)
 MODEL_EN <- c(k2016 = "2016 model", k2020 = "Model 1"); MODEL_KO <- c(k2016 = "2016 모델", k2020 = "Model 1")
 f1 <- function(x) formatC(round(x, 1) + 0, format = "f", digits = 1); f2 <- function(x) formatC(round(x, 2) + 0, format = "f", digits = 2)
 s1 <- function(x) sprintf("%+.1f", round(x, 1) + 0); s2 <- function(x) sprintf("%+.2f", round(x, 2) + 0)
-fl <- function(x) formatC(x, format = "fg", digits = 3)
+fl <- function(x) trimws(formatC(x, format = "fg", digits = 3))
 is0 <- function(x) abs(x - L0) < 1e-12
 
 # ---- 1) 개인 수준 -----------------------------------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ fwrite(CT, file.path(out_dir, "lloq_cliff_table.csv"))
 # ---- 3) 시험 수준 -------------------------------------------------------------------------------------------------------------
 tp <- pr$trial
 BE <- fread(file.path(out_dir, sprintf("lloq_trials_be_%s.csv.gz", tp$pk_model)))
-ntr <- uniqueN(BE$trial); stopifnot(identical(sort(unique(BE$trial)), seq(as.integer(tp$trials[[1]]), as.integer(tp$trials[[2]]))))
+ntr <- uniqueN(BE$trial); stopifnot(identical(sort(unique(BE$trial)), seq(as.integer(tp$trials[[1]]), as.integer(Sys.getenv("DUPI_LLOQ_TEST_N", tp$trials[[2]])))))   # 환경변수는 시험용
 CFG <- lapply(read_cfg("prereg_20260926.yaml")$section1$configuration_endpoints[unlist(tp$configurations)], unlist)
 W <- dcast(BE[, .(trial, lloq, resid, scenario, model, endpoint, ok = pass %in% TRUE)], trial + lloq + resid + scenario + model ~ endpoint, value.var = "ok")
 for (cf in names(CFG)) W[, (cf) := Reduce(`&`, .SD), .SDcols = CFG[[cf]]]
@@ -100,25 +100,27 @@ ggsave(file.path(out_dir, "fig_lloq_trial.png"), g2, width = 10, height = 6, dpi
 
 # ---- 5) 결론 문안 ---------------------------------------------------------------------------------------------------------------
 gi <- function(m, rv, L, col) ind[model == m & resid == rv & abs(lloq - L) < 1e-12][[col]]
-rng_l <- function(m, rv, col, f = f1) sprintf("%s (LLOQ %s) to %s (LLOQ %s)", f(gi(m, rv, min(LL), col)), fl(min(LL)), f(gi(m, rv, max(LL), col)), fl(max(LL)))
+rng_l <- function(m, rv, col, f = f1, u = "%") sprintf("%s%s (LLOQ %s) to %s%s (LLOQ %s)", f(gi(m, rv, min(LL), col)), u, fl(min(LL)), f(gi(m, rv, max(LL), col)), u, fl(max(LL)))
 ct <- function(m, L, tm = "nominal", dd = 1) CT[model == m & abs(lloq - L) < 1e-12 & timing == tm & definition_day == dd]
 p2r <- T1[config == "P2"]; g2a <- T1[config == "G2_Aii"]; g2b <- T1[config == "G2_B"]
 mx <- function(x) x[which.max(pass_pct)]
 cellname <- function(r) sprintf("%s %s", r$mechanism, r$direction)
 line_ind <- function(m, lang) {
-  if (lang == "en") sprintf("- %s: reliability under criteria (i) %s%% (fixed residual) [%s%% with the scaled residual]; criteria (ii) %s%%; lambda-z not estimable %s%%; true coverage below 80%% in %s%%; median true extrapolated share %s%%; median tlast %s days.",
+  if (lang == "en") sprintf("- %s: reliability under criteria (i) %s (residual as estimated) [%s with the scaled residual]; criteria (ii) %s; lambda-z not estimable %s; true coverage below 80%% in %s of subjects; median true extrapolated share %s; median tlast %s.",
                             MODEL_EN[[m]], rng_l(m, "fixed", "reliable_no_span_pct"), rng_l(m, "scaled", "reliable_no_span_pct"), rng_l(m, "fixed", "reliable_pct"), rng_l(m, "fixed", "lambda_fail_pct", f2),
-                            rng_l(m, "fixed", "coverage_lt80_pct", f2), rng_l(m, "fixed", "extrap_true_median", f2), rng_l(m, "fixed", "tlast_median"))
-  else sprintf("- %s: 신뢰 기준 (i) 충족 %s%%(고정 잔차) [잔차 비례 %s%%]; 기준 (ii) %s%%; λz 산출 불가 %s%%; 실제 커버리지 80%% 미만 %s%%; 실제 외삽 중앙값 %s%%; tlast 중앙값 %s일.",
+                            rng_l(m, "fixed", "coverage_lt80_pct", f2), rng_l(m, "fixed", "extrap_true_median", f2), rng_l(m, "fixed", "tlast_median", u = " days"))
+  else sprintf("- %s: 신뢰 기준 (i) 충족 %s(잔차 그대로) [잔차 비례 %s]; 기준 (ii) %s; λz 산출 불가 %s; 실제 커버리지 80%% 미만 %s; 실제 외삽 중앙값 %s; tlast 중앙값 %s.",
                MODEL_KO[[m]], rng_l(m, "fixed", "reliable_no_span_pct"), rng_l(m, "scaled", "reliable_no_span_pct"), rng_l(m, "fixed", "reliable_pct"), rng_l(m, "fixed", "lambda_fail_pct", f2),
-               rng_l(m, "fixed", "coverage_lt80_pct", f2), rng_l(m, "fixed", "extrap_true_median", f2), rng_l(m, "fixed", "tlast_median"))
+               rng_l(m, "fixed", "coverage_lt80_pct", f2), rng_l(m, "fixed", "extrap_true_median", f2), rng_l(m, "fixed", "tlast_median", u = "일"))
 }
 cliff_line <- function(m, lang) {
   a <- ct(m, min(LL)); b <- ct(m, L0); c_ <- ct(m, max(LL))
-  if (lang == "en") sprintf("- %s: the true concentration reaches the LLOQ at a median of study Day %s (LLOQ %s), %s (%s) and %s (%s); subjects with 2 or more samples in the cliff (1-day definition, nominal days): %s%%, %s%% and %s%%; 3 or more: %s%%, %s%%, %s%%.",
-                            MODEL_EN[[m]], f1(a$lloq_studyday_median), fl(min(LL)), f1(b$lloq_studyday_median), fl(L0), f1(c_$lloq_studyday_median), fl(max(LL)), f1(a$pct_ge2), f1(b$pct_ge2), f1(c_$pct_ge2), f1(a$pct_ge3), f1(b$pct_ge3), f1(c_$pct_ge3))
-  else sprintf("- %s: 참 농도가 LLOQ에 닿는 연구일 중앙값 Day %s(LLOQ %s), %s(%s), %s(%s); 절벽 구간 채혈점 2점 이상(1일 정의, 명목일) %s%%, %s%%, %s%%; 3점 이상 %s%%, %s%%, %s%%.",
-               MODEL_KO[[m]], f1(a$lloq_studyday_median), fl(min(LL)), f1(b$lloq_studyday_median), fl(L0), f1(c_$lloq_studyday_median), fl(max(LL)), f1(a$pct_ge2), f1(b$pct_ge2), f1(c_$pct_ge2), f1(a$pct_ge3), f1(b$pct_ge3), f1(c_$pct_ge3))
+  if (lang == "en") sprintf("- %s: the true concentration reaches the LLOQ at a median of study Day %s (LLOQ %s mg/L), %s (%s) and %s (%s); median cliff length %s, %s and %s days; subjects with 1 or more samples in the cliff (1-day definition, nominal days): %s%%, %s%% and %s%%; 2 or more: %s%%, %s%%, %s%%.",
+                            MODEL_EN[[m]], f1(a$lloq_studyday_median), fl(min(LL)), f1(b$lloq_studyday_median), fl(L0), f1(c_$lloq_studyday_median), fl(max(LL)), f2(a$len1_median), f2(b$len1_median), f2(c_$len1_median),
+                            f1(a$pct_ge1), f1(b$pct_ge1), f1(c_$pct_ge1), f1(a$pct_ge2), f1(b$pct_ge2), f1(c_$pct_ge2))
+  else sprintf("- %s: 참 농도가 LLOQ에 닿는 연구일 중앙값 Day %s(LLOQ %s mg/L), %s(%s), %s(%s); 절벽 길이 중앙값 %s, %s, %s일; 절벽 채혈점 1점 이상(1일 정의, 명목일) %s%%, %s%%, %s%%; 2점 이상 %s%%, %s%%, %s%%.",
+               MODEL_KO[[m]], f1(a$lloq_studyday_median), fl(min(LL)), f1(b$lloq_studyday_median), fl(L0), f1(c_$lloq_studyday_median), fl(max(LL)), f2(a$len1_median), f2(b$len1_median), f2(c_$len1_median),
+               f1(a$pct_ge1), f1(b$pct_ge1), f1(c_$pct_ge1), f1(a$pct_ge2), f1(b$pct_ge2), f1(c_$pct_ge2))
 }
 fam_line <- function(x, lab, lang) {
   x <- x[resid == "fixed"]

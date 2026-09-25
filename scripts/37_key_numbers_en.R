@@ -117,6 +117,39 @@ if (!is.null(p1)) { x <- p1[group == "전체"]
               f2(x[model == "k2016", extrap_true_median]), f2(x[model == "k2020", extrap_true_median]), f2(x[model == "k2016", extrap_true_p95]), f2(x[model == "k2020", extrap_true_p95]),
               x[model == "k2016", coverage_lt80_pct_ci], x[model == "k2020", coverage_lt80_pct_ci]), "") }
 
+# 추가 지시 2026-09-26(v1.0.1): 분석 모형, LLOQ, 표본 수 (config/prereg_20260926.yaml)
+t1 <- R("oc_models", "type1_models.csv"); pwm <- R("oc_models", "power_models.csv"); ssm <- R("oc_models", "sd_se_models.csv"); exm <- R("oc_models", "expectations_check.csv")
+if (!is.null(t1)) {
+  cls <- function(a, cf = "P2") { x <- t1[analysis_model == a & config == cf]; sprintf("%d conservative, %d nominal, %d exceeding; range %s%% to %s%%", sum(x$class == "conservative"), sum(x$class == "nominal"), sum(x$class == "exceeding"), f2(min(x$pass_pct)), f2(max(x$pass_pct))) }
+  top <- function(a) { x <- t1[analysis_model == a & config == "P2"][which.max(pass_pct)]; sprintf("%s %s: %s", ML[[x$pk_model]], x$scenario, ci(x$pass_pct, x$lo, x$hi, 2)) }
+  sd_ <- function(a) { x <- ssm[endpoint == "AUCinf_true" & analysis_model == a & !scenario %in% c("S00", "F097"), sd_se_ratio]; sprintf("%s to %s", f3(min(x)), f3(max(x))) }
+  pw_ <- function(m, sc, a) { x <- pwm[pk_model == m & scenario == sc & analysis_model == a & config == "P2"]; ci(x$pass_pct, x$lo, x$hi, 1) }
+  add("Analysis model: pooled t-test (M0) versus ANOVA with the weight stratum (M1) and ANCOVA with log weight (M2); 16 boundary cells",
+      sprintf("- AUClast + Cmax (P2): M0 %s; M1 %s; M2 %s (oc_models/type1_models.csv).", cls("M0"), cls("M1"), cls("M2")),
+      sprintf("- Highest P2 cell: M0 %s; M1 %s (oc_models/type1_models.csv).", top("M0"), top("M1")),
+      sprintf("- Between-trial SD of log GMR / median within-trial SE, true AUCinf endpoint: M0 %s, M1 %s, M2 %s (oc_models/sd_se_models.csv).", sd_("M0"), sd_("M1"), sd_("M2")),
+      sprintf("- P2 power, identical products: 2016 model M0 %s, M1 %s; Model 1 M0 %s, M1 %s (oc_models/power_models.csv).", pw_("k2016", "S00", "M0"), pw_("k2016", "S00", "M1"), pw_("k2020", "S00", "M0"), pw_("k2020", "S00", "M1")),
+      if (!is.null(exm)) sprintf("- Expectations recorded before the results: %s (oc_models/expectations_check.csv).", paste(sprintf("%s: %s", exm$expectation, ifelse(exm$consistent, "consistent", "not consistent")), collapse = "; ")), "")
+}
+lit <- R("lloq", "lloq_individual_table.csv"); ltt <- R("lloq", "lloq_trial_type1.csv")
+if (!is.null(lit) && !is.null(ltt)) {
+  g <- function(m, L, col, d = 1, rv = "fixed") fd(lit[model == m & resid == rv & abs(lloq - L) < 1e-9][[col]], d)
+  rr <- function(a) { x <- ltt[model == a & resid == "fixed" & config == "P2", pass_pct]; sprintf("%s%% to %s%%", f2(min(x)), f2(max(x))) }
+  add("Sensitivity to the study-assay LLOQ (0.02 to 0.5 mg/L; same subjects and residual draws; residual error as estimated unless stated)",
+      sprintf("- Reliability, flag set (i), 2016 model: %s%% (0.02), %s%% (0.078), %s%% (0.5); with the additive residual scaled to the LLOQ %s%% at 0.02 (lloq/lloq_individual_table.csv).", g("k2016", 0.02, "reliable_no_span_pct"), g("k2016", 0.078, "reliable_no_span_pct"), g("k2016", 0.5, "reliable_no_span_pct"), g("k2016", 0.02, "reliable_no_span_pct", rv = "scaled")),
+      sprintf("- True coverage below 80%%, 2016 model: %s%% (0.02) to %s%% (0.5); median true extrapolated share %s%% to %s%% (lloq/lloq_individual_table.csv).", g("k2016", 0.02, "coverage_lt80_pct", 2), g("k2016", 0.5, "coverage_lt80_pct", 2), g("k2016", 0.02, "extrap_true_median", 2), g("k2016", 0.5, "extrap_true_median", 2)),
+      sprintf("- P2 boundary type I error over six LLOQs and three boundary cells (2016 model): M0 %s, M1 %s (lloq/lloq_trial_type1.csv).", rr("M0"), rr("M1")), "")
+}
+nnt <- R("sample_size", "ss_table_n_needed.csv"); tpw <- R("sample_size", "ss_table_power.csv")
+if (!is.null(nnt) && !is.null(tpw)) {
+  n_ <- function(cv_, a, tg) { x <- nnt[cv == cv_ & gmr == 0.95 & analysis_model == a & target_pct == tg]; sprintf("%d (%d randomized)", x$n_evaluable_per_arm, x$n_randomized_per_arm) }
+  p_ <- function(cv_, a) f1(tpw[input_model == "k2016" & cv == cv_ & gmr == 0.95 & n == 117 & analysis_model == a, analytic_pct])
+  add("Sample size for P2 (true GMR 0.95 for both endpoints; Cmax CV and correlation from the 2016 model)",
+      sprintf("- Power with 117 evaluable per arm: CV 43%% %s%% (M0), %s%% (M1); CV 50%% %s%% (M0), %s%% (M1) (sample_size/ss_table_power.csv).", p_(43, "M0"), p_(43, "M1"), p_(50, "M0"), p_(50, "M1")),
+      sprintf("- Evaluable per arm for 90%% power: CV 43%% %s (M0), %s (M1); CV 50%% %s (M0), %s (M1); for 85%%: CV 43%% %s (M0), %s (M1) (sample_size/ss_table_n_needed.csv).",
+              n_(43, "M0", 90), n_(43, "M1", 90), n_(50, "M0", 90), n_(50, "M1", 90), n_(43, "M0", 85), n_(43, "M1", 85)), "")
+}
+
 txt <- paste(out, collapse = "\n")
 if (grepl("—|–|\u2212", txt)) stop("key_numbers_en.md contains an em-dash, en-dash or minus sign (U+2212)")
 if (grepl("[가-힣]", txt)) { bad <- regmatches(txt, gregexpr("[^\n]*[가-힣][^\n]*", txt))[[1]]; stop("key_numbers_en.md contains Korean text: ", paste(head(bad, 3), collapse = " || ")) }

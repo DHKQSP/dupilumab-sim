@@ -100,6 +100,53 @@ km_rng <- local({ r <- rows("oc/inversion_all.csv", "mechanism=='Km' & is.finite
   x <- range(c(r$end_auc_ratio, r2$auc_ratio)); .record("true AUC0-inf ratio range over Km x0.01 to x100 (range ends and reached rows)", "oc/inversion_all.csv", "mechanism=='Km' :: end_auc_ratio, auc_ratio", x, sprintf("%s to %s", fnum(x[1], 3), fnum(x[2], 3))) })
 km_reach <- local({ r <- rows("oc/inversion_all.csv", "mechanism=='Km' & reachable==TRUE"); premise(nrow(r) == 2 && all(abs(r$target - 1.05) < 1e-9), "the only reachable Km target is 1.05 in both models")
   sapply(M, function(m) v("oc/inversion_all.csv", sprintf("mechanism=='Km' & reachable==TRUE & model=='%s'", m), "multiplier", 0)) })
+
+# ---- version 1.0.1 analyses (config/prereg_20260926.yaml): analysis model, LLOQ, sample size ----
+sec("5.9 Analysis model")
+T1f <- "oc_models/type1_models.csv"; DEf <- "oc_models/p2_decomposition_models.csv"; PWf <- "oc_models/power_models.csv"; SSf <- "oc_models/sd_se_models.csv"
+EXf <- "oc_models/expectations_check.csv"; RVf <- "oc_models/m0_reverification.csv"; NEf <- "oc_models/not_estimable.csv"
+AMS <- c("M0", "M1", "M2"); AM_LAB <- c(M0 = "M0 (pooled t-test)", M1 = "M1 (ANOVA with weight stratum)", M2 = "M2 (ANCOVA with log weight)")
+am_cls <- function(am, cf = "P2") sapply(c("conservative", "nominal", "exceeding"), function(k) vcount(T1f, sprintf("analysis_model=='%s' & config=='%s' & class=='%s'", am, cf, k), sprintf("%s %s cells %s", am, cf, k)))
+CLS <- lapply(setNames(AMS, AMS), am_cls)
+am_rng <- function(am, cf = "P2") vrange(T1f, sprintf("analysis_model=='%s' & config=='%s'", am, cf), "pass_pct", 2, item = sprintf("%s %s boundary range", am, cf), unit = "%")
+am_over <- function(am, cf) vcount(T1f, sprintf("analysis_model=='%s' & config=='%s' & pass_pct > 5", am, cf), sprintf("%s %s cells above 5%% (point)", am, cf))
+am_lo5 <- function(am, cf) vcount(T1f, sprintf("analysis_model=='%s' & config=='%s' & lo > 5", am, cf), sprintf("%s %s cells with lower bound above 5%%", am, cf))
+am_max <- function(am, cf) { r <- rows(T1f, sprintf("analysis_model=='%s' & config=='%s'", am, cf)); premise(nrow(r) == 16, "16 boundary cells"); rr <- r[which.max(pass_pct)]
+  list(text = vci(T1f, sprintf("analysis_model=='%s' & config=='%s' & pk_model=='%s' & scenario=='%s'", am, cf, rr$pk_model, rr$scenario), item = sprintf("%s %s largest", am, cf)), row = rr) }
+MECH_EN <- c(F = "bioavailability (F)", ka = "absorption rate (ka)", ke = "linear elimination (ke)", Vmax = "target-mediated elimination capacity (Vmax)", Km = "binding constant (Km)", V2 = "peripheral volume (V2)")
+MOD_EN <- c(k2016 = "primary model", k2020 = "2020 model")
+cellname <- function(r) sprintf("%s, %s %s (multiplier %s)", MOD_EN[[r$pk_model]], MECH_EN[[r$mechanism]], r$direction, fnum(r$multiplier, 2))
+OV <- rows(DEf, "p2_pct > 5"); OVc <- unique(OV[, .(pk_model, scenario)])
+over_txt <- function() {
+  if (!nrow(OVc)) return("No boundary cell has a point estimate above 5% for AUC0-last + Cmax under any analysis model.")
+  paste(vapply(seq_len(nrow(OVc)), function(i) {
+    w0 <- sprintf("pk_model=='%s' & scenario=='%s'", OVc$pk_model[i], OVc$scenario[i]); r1 <- row1(DEf, sprintf("%s & analysis_model=='M0'", w0))
+    by_am <- paste(vapply(AMS, function(a) sprintf("%s %s, %s", a, vci(DEf, sprintf("%s & analysis_model=='%s'", w0, a), "p2_pct", "lo", "hi", item = sprintf("P2 %s %s", a, OVc$scenario[i])),
+                                                   vtxt(DEf, sprintf("%s & analysis_model=='%s'", w0, a), "class", item = sprintf("class %s", a))), ""), collapse = "; ")
+    ov <- rows(DEf, sprintf("%s & p2_pct > 5", w0))
+    cause <- paste(vapply(ov$analysis_model, function(a) { w <- sprintf("%s & analysis_model=='%s'", w0, a)
+      sprintf("under %s the AUC0-last GMR is biased by %s%% relative to the true AUC0-inf ratio (toward 1), which moves the pass rate from %s%% for the unbiased reference to %s%% for AUC0-last alone; Cmax failures change it by %s percentage points",
+              a, v(DEf, w, "auclast_bias_pct", 2, item = "AUC0-last bias"), v(DEf, w, "ref_pct", 2, item = "unbiased reference"), v(DEf, w, "auclast_pct", 2, item = "AUC0-last alone"), v(DEf, w, "p2_minus_auclast_pp", 2, item = "Cmax term")) }, ""), collapse = "; ")
+    sprintf("%s, true AUC0-inf ratio %s: %s. Quantitative cause: %s.", cellname(r1), fnum(r1$auc_ratio, 4), by_am, cause)
+  }, ""), collapse = " ")
+}
+ov_txt <- over_txt()
+v2m <- rows(DEf, "mechanism=='V2' & analysis_model=='M0'")
+v2_mult <- sapply(M, function(m) v(DEf, sprintf("pk_model=='%s' & mechanism=='V2' & analysis_model=='M0'", m), "multiplier", 2, item = sprintf("V2 multiplier %s", m)))
+sdse <- function(am, ep = "AUCinf_true") vrange(SSf, sprintf("endpoint=='%s' & analysis_model=='%s' & !scenario %%in%% c('S00','F097')", ep, am), "sd_se_ratio", 3, item = sprintf("SD/SE %s %s", ep, am))
+pwr <- function(m, sc, am, cf = "P2") vci(PWf, sprintf("pk_model=='%s' & scenario=='%s' & analysis_model=='%s' & config=='%s'", m, sc, am, cf), d = 1, item = sprintf("power %s %s %s %s", m, sc, am, cf))
+rv_total <- { r <- rows(RVf, "TRUE"); premise(all(r$ok), "M0 re-verification passed"); .record("regenerated M0 rows matching stored results", RVf, "sum(n_rows)", sum(r$n_rows), fint(sum(r$n_rows))) }
+sec("5.10 LLOQ")
+LIf <- "lloq/lloq_individual_table.csv"; LCf <- "lloq/lloq_cliff_table.csv"; LTf <- "lloq/lloq_trial_type1.csv"; LPf <- "lloq/lloq_trial_power.csv"
+lli <- function(m, L, col, d = 1, rv = "fixed") v(LIf, sprintf("model=='%s' & resid=='%s' & abs(lloq - %s) < 1e-9", m, rv, L), col, d, item = sprintf("LLOQ %s %s %s %s", L, rv, m, col))
+llc <- function(m, L, col, d = 1) v(LCf, sprintf("model=='%s' & abs(lloq - %s) < 1e-9 & timing=='nominal' & definition_day==1", m, L), col, d, item = sprintf("cliff LLOQ %s %s %s", L, m, col))
+llt <- function(am, cf) vrange(LTf, sprintf("model=='%s' & resid=='fixed' & config=='%s'", am, cf), "pass_pct", 2, item = sprintf("LLOQ grid %s %s range", am, cf), unit = "%")
+llt_lo5 <- function(am, cf, rv = "fixed") vcount(LTf, sprintf("model=='%s' & resid=='%s' & config=='%s' & lo > 5", am, rv, cf), sprintf("LLOQ grid %s %s %s cells lower bound above 5%%", am, rv, cf))
+llt_n <- vi(LTf, "model=='M0' & resid=='fixed' & config=='P2' & scenario=='F_down_080' & abs(lloq - 0.078) < 1e-9", "n_trials", "LLOQ trials per cell")
+sec("5.11 Sample size")
+NNf <- "sample_size/ss_table_n_needed.csv"; TPf <- "sample_size/ss_table_power.csv"; PKf <- "sample_size/ss_pk_check.csv"; SIf <- "sample_size/ss_inputs.csv"
+nn <- function(cv, g, am, tg, col = "n_evaluable_per_arm") vi(NNf, sprintf("cv==%s & gmr==%s & analysis_model=='%s' & target_pct==%s", cv, g, am, tg), col, item = sprintf("n %s CV %s GMR %s target %s", am, cv, g, tg))
+p117 <- function(cv, am, g = 0.95) v(TPf, sprintf("input_model=='k2016' & cv==%s & gmr==%s & n==117 & analysis_model=='%s'", cv, g, am), "analytic_pct", 1, item = sprintf("P2 power n 117 CV %s GMR %s %s", cv, g, am))
 ```
 
 # Synopsis {-}
@@ -112,20 +159,25 @@ km_reach <- local({ r <- rows("oc/inversion_all.csv", "mechanism=='Km' & reachab
 
 **Results.**
 
+- **Boundary scenarios in which AUC0-last + Cmax exceeds 5% (point estimate).** `r ov_txt`
 - AUC0-last captures essentially all of the exposure. The true extrapolated fraction beyond the last quantifiable sample has a median of `r ext_med["k2016"]`% (95th percentile `r ext_p95["k2016"]`%) in the primary model and `r ext_med["k2020"]`% (`r ext_p95["k2020"]`%) in the 2020 model. The share of subjects in whom AUC0-last covers less than 80% of total exposure is `r cov80["k2016"]` in the primary model and `r cov80["k2020"]` in the 2020 model.
 - NCA AUC0-inf fails the standard reliability criteria (adjusted R-squared at least 0.80 and extrapolation at most 20%) in `r fail_i_txt`% of subjects across the two models, and in `r fail_ii_txt`% if a span ratio of at least 2 is also required. The failures are not random: heavier subjects fail more often.
-- AUC0-last + Cmax (proposed) keeps the boundary type I error at or below the nominal 5% in all `r p2_n_all` boundary scenarios: `r p2_n_cons` are conservative, `r p2_n_nom` is nominal and `r p2_n_exc` exceed 5% (Wilson 95% interval versus 5%). The largest value is `r p2_max$k2020$text` (`r nom_n` trials) for a `r nom_mult`-fold peripheral volume in the 2020 model. In the primary model the largest value is `r p2_max$k2016$text`.
+- With the pooled t-test (M0), AUC0-last + Cmax (proposed) is conservative in `r p2_n_cons`, nominal in `r p2_n_nom` and exceeding in `r p2_n_exc` of the `r p2_n_all` boundary scenarios (Wilson 95% interval versus 5%). The largest value is `r p2_max$k2020$text` (`r nom_n` trials) for a `r nom_mult`-fold peripheral volume in the 2020 model. In the primary model the largest value is `r p2_max$k2016$text`.
+- The randomization is stratified by body weight. With the stratum in the analysis model (M1, ANOVA), AUC0-last + Cmax is conservative in `r CLS$M1[["conservative"]]`, nominal in `r CLS$M1[["nominal"]]` and exceeding in `r CLS$M1[["exceeding"]]` scenarios (`r am_rng("M1")`). M0 ignores the stratum, so its standard error overstates the sampling variability (between-trial SD / within-trial SE of the unbiased reference `r sdse("M0")` under M0 and `r sdse("M1")` under M1).
 - AUC0-inf + Cmax analysed in subjects meeting the reliability criteria (the pre-specified guidance-default configuration) exceeds 5% in `r G$G2_Aii$n_pt` of 16 boundary scenarios, with the Wilson lower bound above 5% in all `r G$G2_Aii$n_lo`. The largest value is `r G$G2_Aii$mx$text`. Including every subject with an estimable lambda-z still exceeds 5% in `r G$G2_B$n_pt` of 16 scenarios (largest `r G$G2_B$mx$text`). Only substituting AUC0-last for subjects failing the criteria restores control (largest `r G$G2_Cii$mx$text`).
 - The inflation has two sources. First, NCA AUC0-inf is biased toward a ratio of 1, because the pre-cliff lambda-z overstates the unobserved tail equally in both arms. Second, excluding subjects who fail the criteria selects a non-random subset.
 - Power for identical products is `r pw$k2016` (primary model) and `r pw$k2020` (2020 model) for AUC0-last + Cmax.
 - Changing the target-binding constant (Km) from 0.01-fold to 100-fold moves the true AUC0-inf ratio only within `r km_rng`. A binding difference is therefore not detectable by any AUC endpoint and must be addressed by the comparative analytical assessment.
+- Between assay LLOQs of 0.02 and 0.5 mg/L, the share of subjects in whom AUC0-last covers less than 80% of total exposure stays within `r lli("k2016", 0.02, "coverage_lt80_pct", 2)`% to `r lli("k2016", 0.5, "coverage_lt80_pct", 2)`% (primary model), and the boundary type I error of AUC0-last + Cmax within `r llt("M0", "P2")` (M0) in the three scenarios examined.
+- At the protocol CV of 43% and a true GMR of 0.95, `r cfgv("trial_design.yaml", "n_per_arm")` evaluable subjects per arm give P2 power of `r p117(43, "M0")`% (M0) and `r p117(43, "M1")`% (M1); 90% power needs `r nn(43, 0.95, "M0", 90)` (M0) or `r nn(43, 0.95, "M1", 90)` (M1) evaluable per arm, and at a CV of 50% `r nn(50, 0.95, "M0", 90)` or `r nn(50, 0.95, "M1", 90)`.
 - The pre-specified criteria for adding samples were not met in either model. In one sensitivity variant (Vmax x0.8 in both arms), one criterion was met at 20,000 subjects but not on re-evaluation in 200,000 subjects. The cliff is shorter than any feasible visit interval, and denser late sampling does not improve AUC0-inf reliability. The planned schedule is retained, including Day 50.
 
-**Conclusion.** AUC0-last and Cmax quantify total exposure and control the boundary type I error at or below the nominal level across six mechanisms, both directions and two structural models. Configurations that rely on NCA AUC0-inf, as commonly analysed, do not. The sponsor proposes:
+**Conclusion.** AUC0-last and Cmax quantify total exposure. Their boundary type I error is at or near the nominal 5% across six mechanisms, both directions and two structural models, with the exceptions stated first in the results above. Configurations that rely on NCA AUC0-inf, as commonly analysed, exceed 5% in many scenarios. The sponsor proposes:
 
 - AUC0-last and Cmax as co-primary endpoints;
 - AUC0-inf as a secondary endpoint, reported with pre-specified lambda-z criteria;
-- the planned `r n_samp`-sample schedule to Day 57.
+- the planned `r n_samp`-sample schedule to Day 57;
+- the primary analysis model (pooled t-test or ANOVA with the randomization stratum), the assay LLOQ and the target power to be fixed by the sponsor (proposed SAP text: regulatory/sap_text_proposals_en.md).
 
 **Principal limitations.**
 
@@ -273,7 +325,7 @@ Each of the three rules defines an endpoint that could be pre-specified in a sta
 
 - **Primary analysis:** log-transformed endpoints are compared with a pooled two-sample t-test (degrees of freedom `r as.numeric(cfgv("trial_design.yaml", "n_per_arm")) * 2 - 2`). The 90% CI of the GMR must lie within 80.00% to 125.00%.
 - **Configurations:** a configuration passes if every endpoint in it passes.
-- **Sensitivity analysis:** ANCOVA with body weight.
+- **Analysis models (version 1.0.1, pre-registered):** the randomization is stratified 1:1 within two body-weight strata (60 to 75 kg, above 75 to 90 kg). Three analyses of each log-transformed endpoint are compared on the same trials: M0, the pooled two-sample t-test above (the stratum is not in the model); M1, ANOVA with treatment and weight stratum (degrees of freedom n - 3); M2, ANCOVA with treatment and log body weight (n - 3). M1 follows ICH E9 section 5.7 (factors used to stratify the randomization are accounted for in the analysis). Results are in Section 5.9.
 
 ## 3.6 True values (estimands)
 
@@ -326,6 +378,14 @@ The instantaneous half-life after tmax is ln 2 / (-d ln C / dt), computed exactl
 - **Intervals:** proportions carry Wilson 95% intervals; mean GMRs carry Monte Carlo standard error intervals; comparisons carry paired intervals within the same virtual trials or subjects.
 - **Seeds:** every run derives its seeds deterministically from a master seed (`r cfgv("oc_design.yaml", c("trials", "master_seed"))` for the trials) and records them in its log.
 - **Software:** R `r R.version$major`.`r R.version$minor` and rxode2 `r as.character(packageVersion("rxode2"))`, with the package versions locked in renv.lock (Appendix E).
+
+## 3.12 Analyses added in version 1.0.1 (pre-registered)
+
+The following analyses were registered in `config/prereg_20260926.yaml` and committed before any of their results were generated (Appendix D):
+
+- **Analysis model (Section 5.9).** The trials of the 16 boundary scenarios, identical products (S00) and a test product with bioavailability x0.97 (F097) were regenerated at subject level with the seeds of the operating-characteristic runs, `r fint(as.numeric(cfgv("oc_design.yaml", c("trials", "reps_boundary"))))` per scenario and model, and analysed with M0, M1 and M2. The regenerated M0 results equal the stored results in `r rv_total` trial-scenario-endpoint rows. The rule for extending a boundary scenario to 20,000 trials (Section 3.7) was applied to M0 and to M1.
+- **LLOQ (Section 5.10).** The study LLOQ is set in a single configuration file (`config/assay.yaml`). The same subjects, sampling times and residual draws were re-censored at LLOQs of 0.02, 0.05, 0.078, 0.1, 0.2 and 0.5 mg/L, with the residual error as estimated (primary) and with the additive residual scaled by the LLOQ (secondary). At 0.078 mg/L every result equals the stored result.
+- **Sample size (Section 5.11).** P2 power over a grid of AUC0-last coefficient of variation (CV), true GMR and evaluable subjects per arm, by an analytic approximation and by simulation, for M0 and M1, checked against PK-model trials.
 
 # 4. Model credibility
 
@@ -664,7 +724,7 @@ kt(t56, caption = "Table 5-6. AUC0-last + Cmax at each boundary scenario, with t
   - the AUC0-last effect: `r dec_last` points;
   - the Cmax effect: `r dec_cmax` points.
 - The value at the pre-specified `r nom_pre_n` trials was `r nom_pre`, which was also nominal.
-- Section 6.2 discusses plausibility.
+- Section 6.2 states the facts relevant to the plausibility of this mechanism.
 
 ### Why configurations based on NCA AUC0-inf exceed 5%
 
@@ -803,6 +863,91 @@ Across uniform body-weight bands from 40 to 150 kg (primary model, 20,000 subjec
 
 Reliability of AUC0-inf declines with body weight (Section 5.3). The body-weight ranges of the models' development data are not reported, so results above 130 kg may be extrapolations.
 
+## 5.9 Analysis model: pooled t-test versus stratified ANOVA
+
+```{r t-am}
+sec("5.9 Analysis model")
+cfs <- c(P2 = "AUC0-last + Cmax (P2, proposed)", AUCinf_true_only = "true AUC0-inf alone (unbiased reference)", AUClast_only = "AUC0-last alone", G2_Aii = "AUC0-inf rule A (ii) + Cmax",
+         G2_Ai = "AUC0-inf rule A (i) + Cmax", G2_B = "AUC0-inf rule B + Cmax", G2_Cii = "AUC0-inf rule C (ii) + Cmax", G2_Ci = "AUC0-inf rule C (i) + Cmax", F3A = "AUC0-last + AUC0-inf rule A + Cmax",
+         F3B = "AUC0-last + AUC0-inf rule B + Cmax", F3C = "AUC0-last + AUC0-inf rule C + Cmax")
+tab_src("Table 5-9", c(T1f))
+tb <- rbindlist(lapply(names(cfs), function(cf) rbindlist(lapply(AMS, function(a) { r <- rows(T1f, sprintf("analysis_model=='%s' & config=='%s'", a, cf)); rr <- r[which.max(pass_pct)]
+  data.table(Configuration = cfs[[cf]], Model = a, `Range (%)` = sprintf("%s to %s", fnum(min(r$pass_pct), 2), fnum(max(r$pass_pct), 2)),
+             `Conservative / nominal / exceeding` = sprintf("%d / %d / %d", sum(r$class == "conservative"), sum(r$class == "nominal"), sum(r$class == "exceeding")),
+             `Above 5% (point)` = sum(r$pass_pct > 5), `Largest (95% CI)` = sprintf("%s [%s, %s], %s %s %s", fnum(rr$pass_pct, 2), fnum(rr$lo, 2), fnum(rr$hi, 2), c(k2016 = "2016", k2020 = "2020")[[rr$pk_model]], rr$mechanism, rr$direction)) }))))
+kt(tb, caption = "Table 5-9. Boundary type I error in the 16 boundary scenarios by analysis model (Wilson 95% intervals; classification versus 5%).")
+```
+
+- **Classification of P2.** M0: `r CLS$M0[["conservative"]]` conservative, `r CLS$M0[["nominal"]]` nominal, `r CLS$M0[["exceeding"]]` exceeding (`r am_rng("M0")`). M1: `r CLS$M1[["conservative"]]`, `r CLS$M1[["nominal"]]`, `r CLS$M1[["exceeding"]]` (`r am_rng("M1")`). M2: `r CLS$M2[["conservative"]]`, `r CLS$M2[["nominal"]]`, `r CLS$M2[["exceeding"]]` (`r am_rng("M2")`).
+- **Cells above 5%.** `r ov_txt`
+- **Why the models differ.** The randomization balances the arms within the weight strata, so the treatment difference in means is free of the between-stratum variance. The pooled t-test nevertheless includes that variance in its standard error. The between-trial SD of the log GMR divided by the median within-trial SE of the unbiased reference is `r sdse("M0")` under M0, `r sdse("M1")` under M1 and `r sdse("M2")` under M2; for AUC0-last it is `r sdse("M0", "AUClast")`, `r sdse("M1", "AUClast")` and `r sdse("M2", "AUClast")`. With an SE that matches the sampling variability, the unbiased reference passes in `r am_rng("M1", "AUCinf_true_only")` of trials under M1 (theoretical value at a true ratio at the limit: just below 5%), against `r am_rng("M0", "AUCinf_true_only")` under M0.
+- **Power of P2.** Identical products: `r pwr("k2016", "S00", "M0")` (M0) and `r pwr("k2016", "S00", "M1")` (M1) in the primary model, `r pwr("k2020", "S00", "M0")` and `r pwr("k2020", "S00", "M1")` in the 2020 model. Bioavailability x0.97: `r pwr("k2016", "F097", "M0")` and `r pwr("k2016", "F097", "M1")`; `r pwr("k2020", "F097", "M0")` and `r pwr("k2020", "F097", "M1")`.
+
+```{r fig-am, fig.cap = "Figure 5-9. Boundary type I error of AUC0-last + Cmax and of the unbiased reference by analysis model, 16 boundary scenarios (Wilson 95% intervals). Analysis figure results/oc_models/fig_type1_models.png."}
+fig("oc_models/fig_type1_models.png", "Figure 5-9")
+```
+
+```{r t-exp}
+tab_src("Table 5-10", c(EXf))
+ex <- rows(EXf, "TRUE")
+kt(ex[, .(Expectation = expectation, `Criterion (registered before results)` = criterion, Observed = observed, Consistent = ifelse(consistent, "yes", "no"))],
+   caption = "Table 5-10. Expectations of the sponsor's clinical pharmacology recorded before the results, with the numeric criteria registered before any result was read.")
+```
+
+Note to Table 5-10: in `r vcount(T1f, "analysis_model=='M1' & config=='P2' & n_pass==0", "P2 cells with no passing trial under M1")` boundary cells (absorption rate down), Cmax fails in every trial, so AUC0-last + Cmax passes in no trial under any analysis model and cannot rise; the registered criterion counts these cells as not rising.
+
+## 5.10 Sensitivity to the assay LLOQ
+
+```{r t-lloq}
+sec("5.10 LLOQ")
+tab_src("Table 5-11", c(LIf, LCf))
+li <- rows(LIf, "resid=='fixed'"); lc <- rows(LCf, "timing=='nominal' & definition_day==1")
+tl <- merge(li, lc[, .(model, lloq, lloq_studyday_median, pct_ge2, pct_ge3)], by = c("model", "lloq"))
+kt(tl[order(model, lloq), .(Model = c(k2016 = "2016", k2020 = "2020")[model], `LLOQ (mg/L)` = format(lloq), `Reliable (i) (%)` = fnum(reliable_no_span_pct, 1), `Reliable (ii) (%)` = fnum(reliable_pct, 1),
+                        `Lambda-z not estimable (%)` = fnum(lambda_fail_pct, 2), `True coverage below 80% (%)` = fnum(coverage_lt80_pct, 2), `True extrapolation, median (%)` = fnum(extrap_true_median, 2),
+                        `tlast, median (days)` = fnum(tlast_median, 1), `LLOQ reached, study day` = fnum(lloq_studyday_median, 1), `2 or more cliff samples (%)` = fnum(pct_ge2, 1))],
+   caption = "Table 5-11. Individual-level metrics by LLOQ (planned schedule, 60 to 90 kg, 20,000 subjects per model, same subjects and residual draws; residual error as estimated). Cliff columns: cliff populations, nominal days, 1-day definition.")
+```
+
+```{r t-lloq2}
+tab_src("Table 5-12", c(LTf))
+lt <- rows(LTf, "resid=='fixed' & config %in% c('P2','G2_Aii','G2_B')")
+lt[, cfg := c(P2 = "P2", G2_Aii = "AUC0-inf A (ii) + Cmax", G2_B = "AUC0-inf B + Cmax")[config]]
+w_ <- dcast(lt, scenario + model + cfg ~ lloq, value.var = "pass_pct", fun.aggregate = function(x) x[1])
+for (cn in setdiff(names(w_), c("scenario", "model", "cfg"))) set(w_, j = cn, value = fnum(w_[[cn]], 2))
+setnames(w_, c("scenario", "model", "cfg"), c("Scenario", "Model", "Configuration"))
+kt(w_, caption = sprintf("Table 5-12. Boundary type I error (%%) by LLOQ (columns, mg/L), primary PK model, %s trials per cell, residual error as estimated.", llt_n))
+```
+
+- With the residual error as estimated, lowering the LLOQ below 0.078 mg/L lets measurement noise near zero become quantifiable (additive SD 0.03 mg/L): reliability under criteria (i) is `r lli("k2016", 0.02, "reliable_no_span_pct")`% at 0.02 mg/L against `r lli("k2016", 0.078, "reliable_no_span_pct")`% at 0.078 mg/L in the primary model. With the additive error scaled with the LLOQ (constant precision at the LLOQ) it is `r lli("k2016", 0.02, "reliable_no_span_pct", rv = "scaled")`%.
+- Coverage of total exposure by AUC0-last does not depend materially on the LLOQ in this range: true coverage below 80% in `r lli("k2016", 0.02, "coverage_lt80_pct", 2)`% (0.02 mg/L) to `r lli("k2016", 0.5, "coverage_lt80_pct", 2)`% (0.5 mg/L) of subjects, median true extrapolation `r lli("k2016", 0.02, "extrap_true_median", 2)`% to `r lli("k2016", 0.5, "extrap_true_median", 2)`%, because the true concentration falls through the whole range within the cliff (LLOQ reached at a median of study Day `r llc("k2016", 0.02, "lloq_studyday_median")` at 0.02 mg/L and Day `r llc("k2016", 0.5, "lloq_studyday_median")` at 0.5 mg/L).
+- Boundary type I error of P2 across the LLOQs: `r llt("M0", "P2")` (M0) and `r llt("M1", "P2")` (M1); AUC0-inf (rule A, criteria (ii)) + Cmax `r llt("M0", "G2_Aii")` and `r llt("M1", "G2_Aii")`; rule B + Cmax `r llt("M0", "G2_B")` and `r llt("M1", "G2_B")`.
+
+```{r fig-lloq, fig.cap = "Figure 5-10. Individual-level metrics by LLOQ, both models, residual error as estimated and scaled. Analysis figure results/lloq/fig_lloq_individual.png."}
+fig("lloq/fig_lloq_individual.png", "Figure 5-10")
+```
+
+## 5.11 Sample size
+
+```{r t-ss}
+sec("5.11 Sample size")
+tab_src("Table 5-13", c(NNf, SIf))
+ns <- rows(NNf, "gmr==0.95")
+w_ <- dcast(ns, cv ~ analysis_model + target_pct, value.var = c("n_evaluable_per_arm", "n_randomized_per_arm"))
+kt(w_[, .(`AUC0-last CV (%)` = cv, `90%, M0` = sprintf("%d (%d)", n_evaluable_per_arm_M0_90, n_randomized_per_arm_M0_90), `90%, M1` = sprintf("%d (%d)", n_evaluable_per_arm_M1_90, n_randomized_per_arm_M1_90),
+          `85%, M0` = sprintf("%d (%d)", n_evaluable_per_arm_M0_85, n_randomized_per_arm_M0_85), `85%, M1` = sprintf("%d (%d)", n_evaluable_per_arm_M1_85, n_randomized_per_arm_M1_85))],
+   caption = "Table 5-13. Evaluable subjects per arm (randomized per arm, 117/130 evaluable) for 90% and 85% P2 power at a true GMR of 0.95 for both endpoints; Cmax CV and correlation from the primary model.")
+```
+
+- Inputs from the primary model (planned schedule, 60 to 90 kg): Cmax log-scale CV `r v(SIf, "input_model=='k2016'", "cv_cmax_pct", 1)`%, correlation of log AUC0-last and log Cmax `r v(SIf, "input_model=='k2016'", "rho_total", 2)`, the weight stratum explaining `r v(SIf, "input_model=='k2016'", "r2_stratum_auc", 1, scale = 100)`% of the AUC0-last variance.
+- With 117 evaluable subjects per arm, P2 power at GMR 0.95 is `r p117(43, "M0")`% (M0) and `r p117(43, "M1")`% (M1) at CV 43%, and `r p117(50, "M0")`% and `r p117(50, "M1")`% at CV 50%.
+- The analytic approximation was checked against simulation of every grid cell and against PK-model trials at the models' own CV (results/sample_size/ss_power_mc.csv, ss_pk_check.csv).
+- CV sources: Li 2020 (Table 3, 300 mg arms, SD/mean 35% to 51%), Cohen 2022 (about 52%; 200 mg, a different presentation, device comparison), the PK models (40% and 43%).
+
+```{r fig-ss, fig.cap = "Figure 5-11. P2 power at a true GMR of 0.95 by evaluable subjects per arm and AUC0-last CV, M0 and M1 (lines analytic, points simulation). Analysis figure results/sample_size/fig_ss_power.png."}
+fig("sample_size/fig_ss_power.png", "Figure 5-11")
+```
+
 # 6. Discussion
 
 ## 6.1 The estimand and the choice of AUC0-last
@@ -813,15 +958,11 @@ NCA AUC0-inf, by contrast, estimates a quantity that is not observed. Its extrap
 
 AUC0-inf is therefore not a better measure of total exposure than AUC0-last for this product. Used as the primary endpoint, it fails to control the probability of concluding similarity at the equivalence limits in `r g_rng_txt` of the 16 boundary scenarios, under the handling rules that are usual in practice (rule A under either criteria set, or rule B).
 
-## 6.2 The nominal cell
+## 6.2 Boundary cells above 5%
 
-The only boundary cell in which the point estimate for AUC0-last + Cmax exceeds 5% requires a `r nom_mult`-fold peripheral volume in the 2020 model (`r nom_mult16`-fold in the primary model) at an unchanged absorption and clearance.
+`r ov_txt`
 
-A proposed biosimilar has the same amino-acid sequence as the reference. Plausible differences act through glycosylation, charge variants or formulation, that is, through clearance or absorption. A two- to three-fold difference in the peripheral distribution volume of an IgG antibody is not plausible.
-
-Even in that cell, the Wilson interval includes 5%. The excess of `r dec_gap` percentage points is explained quantitatively by a small bias of AUC0-last toward 1 in that mechanism (`r dec_bias`%), and the pre-specified 10,000-trial value was also nominal.
-
-The sponsor reports both values. The 20,000-trial extension was decided after the 10,000-trial result was known (Appendix D).
+Facts relevant to the plausibility of this mechanism: a proposed biosimilar has the same amino-acid sequence as the reference IgG4 antibody; the cell corresponds to a peripheral volume of distribution `r v2_mult["k2020"]` times that of the reference in the 2020 model (`r v2_mult["k2016"]` times in the primary model for the same true AUC0-inf ratio), with absorption and clearance unchanged. Under M0, the Wilson interval at the pre-specified 10,000 trials was `r nom_pre`; the 20,000-trial extension was decided after that result was known (Appendix D). Both values are reported.
 
 ## 6.3 AUC0-inf as a secondary endpoint
 
@@ -849,7 +990,8 @@ The planned `r n_samp`-sample schedule to Day 57 is retained. No added-sampling 
 - **Unobservable terminal curve.** The terminal curve below the LLOQ cannot be observed, and Km is fixed in both models without between-subject variability. The Km and Vmax sensitivity analyses in both arms, and the Km inversion in the test arm, show that coverage and the operating characteristics do not depend on these assumptions within ranges consistent with the observed data.
 - **Cmax.** Cmax is over-predicted (Section 4.2). The operating characteristics of Cmax itself are not the subject of this report.
 - **200 mg presentation.** The faster absorption of the 200 mg (175 mg/mL) presentation is not reproduced. The study uses the 300 mg (150 mg/mL, 2 mL) presentation, whose absorption timing and exposure are reproduced.
-- **Design placeholders.** Several study-design inputs are placeholders pending confirmation (Appendix B), in particular the bioanalytical LLOQ of the sponsor's assay, the Day 1 post-dose sampling time, the visit windows, the weight distribution and the stratification.
+- **Design placeholders.** Several study-design inputs are placeholders pending confirmation (Appendix B), in particular the bioanalytical LLOQ of the sponsor's assay (its effect between 0.02 and 0.5 mg/L is shown in Section 5.10, and the value is set in one configuration file for regeneration), the Day 1 post-dose sampling time, the visit windows, the weight distribution and the stratification.
+- **Analysis model.** The primary analysis model (pooled t-test or ANOVA with the randomization stratum) is not yet selected; both are reported (Section 5.9).
 - **Manual lambda-z review.** The automated Best Fit is simulated. In the study, a pharmacokineticist may review the lambda-z windows; this is not simulated.
 - **Dropout.** Dropout is not simulated: `r cfgv("trial_design.yaml", "n_per_arm")` evaluable subjects per arm are assumed.
 - **Immunogenicity.** Anti-drug antibodies are represented only by an ADA-like subgroup sensitivity analysis, not in the operating characteristics.
@@ -857,12 +999,14 @@ The planned `r n_samp`-sample schedule to Day 57 is retained. No added-sampling 
 
 # 7. Conclusions
 
-1. Under the planned schedule, AUC0-last captures essentially all of the total exposure to dupilumab after a 300 mg subcutaneous dose (median true extrapolation `r ext_med["k2016"]`% and `r ext_med["k2020"]`% in the two models).
-2. AUC0-last + Cmax keeps the boundary type I error at or below the nominal 5% across six mechanisms of product difference, both directions and two structural models: `r p2_n_cons` conservative and `r p2_n_nom` nominal of `r p2_n_all` cells, none exceeding. Its power for identical products is about 99%.
-3. Configurations based on NCA AUC0-inf exceed 5% in `r g_rng_txt` of 16 boundary scenarios under the usual handling rules, because of extrapolation and selection bias. They add little protection at the limits and cause additional failures of similar products.
-4. Target-binding differences do not change exposure enough to be detected by any PK endpoint.
-5. Additional samples between Day 36 and Day 50 are not justified. The planned schedule, including Day 50, is retained.
-6. The sponsor proposes AUC0-last and Cmax as co-primary endpoints, with AUC0-inf as a secondary endpoint with pre-specified lambda-z criteria.
+1. Boundary scenarios in which AUC0-last + Cmax exceeds 5% (point estimate) under any analysis model: `r ov_txt` Facts relevant to plausibility are stated in Section 6.2.
+2. Under the planned schedule, AUC0-last captures essentially all of the total exposure to dupilumab after a 300 mg subcutaneous dose (median true extrapolation `r ext_med["k2016"]`% and `r ext_med["k2020"]`% in the two models), and this holds for assay LLOQs between 0.02 and 0.5 mg/L.
+3. With the pooled t-test (M0), AUC0-last + Cmax is `r p2_n_cons` conservative, `r p2_n_nom` nominal and `r p2_n_exc` exceeding of `r p2_n_all` boundary cells; with the weight stratum in the model (M1), `r CLS$M1[["conservative"]]`, `r CLS$M1[["nominal"]]` and `r CLS$M1[["exceeding"]]`. M1 corrects the standard error of M0, which ignores the stratified randomization. Power for identical products is `r pwr("k2016", "S00", "M0")` (M0) and `r pwr("k2016", "S00", "M1")` (M1) in the primary model.
+4. Configurations based on NCA AUC0-inf exceed 5% in `r g_rng_txt` of 16 boundary scenarios under the usual handling rules, because of extrapolation and selection bias. They add little protection at the limits and cause additional failures of similar products.
+5. Target-binding differences do not change exposure enough to be detected by any PK endpoint.
+6. Additional samples between Day 36 and Day 50 are not justified. The planned schedule, including Day 50, is retained.
+7. At the protocol CV of 43%, `r cfgv("trial_design.yaml", "n_per_arm")` evaluable subjects per arm give P2 power of `r p117(43, "M0")`% (M0) and `r p117(43, "M1")`% (M1) at a true GMR of 0.95; at a CV of 50% power is `r p117(50, "M0")`% and `r p117(50, "M1")`%.
+8. The sponsor proposes AUC0-last and Cmax as co-primary endpoints, with AUC0-inf as a secondary endpoint with pre-specified lambda-z criteria. The primary analysis model, the assay LLOQ and the target power remain sponsor decisions.
 
 # 8. References
 

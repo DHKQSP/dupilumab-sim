@@ -18,7 +18,7 @@ LL <- study_lloq_grid(); L0 <- as.numeric(pr$reference_lloq_mg_L)
 if (!isTRUE(all.equal(LL, sort(as.numeric(unlist(pr$lloq_grid_mg_L)))))) stop("config/assay.yaml 격자와 사전 등록 격자가 다릅니다")
 if (!isTRUE(all.equal(study_lloq(), L0))) stop("연구 LLOQ가 사전 등록 기준 LLOQ와 다릅니다(민감도는 기준 LLOQ에서 저장본을 재현해야 함)")
 RES <- unlist(pr$residual_variants); stopifnot(identical(RES, c("fixed", "scaled")))
-out_dir <- proj_path(pr$out_dir); dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+out_dir <- Sys.getenv("DUPI_LLOQ_OUT", proj_path(pr$out_dir)); dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)   # 환경변수는 시험용
 MASTER_SEED <- 20260923L
 rel_eq <- function(a, b, tol) (is.na(a) & is.na(b)) | (!is.na(a) & !is.na(b) & (a == b | abs(a / b - 1) <= tol))
 

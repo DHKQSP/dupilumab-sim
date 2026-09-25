@@ -50,6 +50,39 @@ ada <- function(g, col, d = 2) v("individual/individual_ada10_by_subgroup.csv", 
 wb <- rows("weight_generalization/weight_bands_B0_abcd.csv", "model=='a'"); tab_src("weight bands", "weight_generalization/weight_bands_B0_abcd.csv")
 ```
 
+```{r facts101, include=FALSE}
+sec("facts 1.0.1")
+T1f <- "oc_models/type1_models.csv"; DEf <- "oc_models/p2_decomposition_models.csv"; SSf <- "oc_models/sd_se_models.csv"; PWf <- "oc_models/power_models.csv"
+am_cls <- function(am, cf = "P2") sapply(c("conservative", "nominal", "exceeding"), function(k) vcount(T1f, sprintf("analysis_model=='%s' & config=='%s' & class=='%s'", am, cf, k), sprintf("%s %s %s", am, cf, k)))
+C0 <- am_cls("M0"); C1 <- am_cls("M1")
+am_rng <- function(am, cf = "P2") vrange(T1f, sprintf("analysis_model=='%s' & config=='%s'", am, cf), "pass_pct", 2, item = sprintf("%s %s range", am, cf), unit = "%")
+sdse <- function(am) vrange(SSf, sprintf("endpoint=='AUCinf_true' & analysis_model=='%s' & !scenario %%in%% c('S00','F097')", am), "sd_se_ratio", 3, item = sprintf("SD/SE %s", am))
+v2w <- function(am) sprintf("pk_model=='k2020' & mechanism=='V2' & analysis_model=='%s'", am)
+v2 <- lapply(c(M0 = "M0", M1 = "M1", M2 = "M2"), function(a) vci(DEf, v2w(a), "p2_pct", "lo", "hi", item = sprintf("2020 V2 cell P2 %s", a)))
+v2cls <- lapply(c(M0 = "M0", M1 = "M1", M2 = "M2"), function(a) vtxt(DEf, v2w(a), "class", item = sprintf("2020 V2 cell class %s", a)))
+v2n <- lapply(c(M0 = "M0", M1 = "M1"), function(a) vi(DEf, v2w(a), "n_trials", item = sprintf("2020 V2 cell trials %s", a)))
+v2bias <- v(DEf, v2w("M1"), "auclast_bias_pct", 2, item = "2020 V2 AUC0-last bias M1"); v2ref <- v(DEf, v2w("M1"), "ref_pct", 2, item = "2020 V2 unbiased reference M1")
+v2al <- v(DEf, v2w("M1"), "auclast_pct", 2, item = "2020 V2 AUC0-last alone M1"); v2cm <- v(DEf, v2w("M1"), "p2_minus_auclast_pp", 2, item = "2020 V2 Cmax term M1")
+pwr <- function(m, sc, am, cf = "P2") vci(PWf, sprintf("pk_model=='%s' & scenario=='%s' & analysis_model=='%s' & config=='%s'", m, sc, am, cf), d = 1, item = sprintf("power %s %s %s", m, sc, am))
+NNf <- "sample_size/ss_table_n_needed.csv"; TPf <- "sample_size/ss_table_power.csv"
+nn <- function(cv, am, tg, g = 0.95) vi(NNf, sprintf("cv==%s & gmr==%s & analysis_model=='%s' & target_pct==%s", cv, g, am, tg), "n_evaluable_per_arm", item = sprintf("n %s CV %s %s", am, cv, tg))
+nnr <- function(cv, am, tg, g = 0.95) vi(NNf, sprintf("cv==%s & gmr==%s & analysis_model=='%s' & target_pct==%s", cv, g, am, tg), "n_randomized_per_arm", item = sprintf("n randomized %s CV %s %s", am, cv, tg))
+p117 <- function(cv, am) v(TPf, sprintf("input_model=='k2016' & cv==%s & gmr==0.95 & n==117 & analysis_model=='%s'", cv, am), "analytic_pct", 1, item = sprintf("power n117 CV %s %s", cv, am))
+LIf <- "lloq/lloq_individual_table.csv"; LTf <- "lloq/lloq_trial_type1.csv"; LCf <- "lloq/lloq_cliff_table.csv"
+lli <- function(m, L, col, d = 1, rv = "fixed") v(LIf, sprintf("model=='%s' & resid=='%s' & abs(lloq - %s) < 1e-9", m, rv, L), col, d, item = sprintf("LLOQ %s %s %s %s", L, rv, m, col))
+llt <- function(am, cf) vrange(LTf, sprintf("model=='%s' & resid=='fixed' & config=='%s'", am, cf), "pass_pct", 2, item = sprintf("LLOQ %s %s range", am, cf), unit = "%")
+llc <- function(m, L, col, d = 1) v(LCf, sprintf("model=='%s' & abs(lloq - %s) < 1e-9 & timing=='nominal' & definition_day==1", m, L), col, d, item = sprintf("cliff %s %s %s", L, m, col))
+lloq_val <- cfgv("assay.yaml", c("lloq_mg_L", "value"))
+PCf <- "oc_models/type1_paired_change.csv"
+pc_rng <- vrange(PCf, "comparison=='M1 minus M0' & config=='P2'", "diff_pp", 2, item = "P2 M1 minus M0, range (points)")
+pc_mean <- { r <- rows(PCf, "comparison=='M1 minus M0' & config=='P2'"); premise(nrow(r) == 16, "16 paired changes"); .record("P2 M1 minus M0, mean (points)", PCf, "comparison=='M1 minus M0' & config=='P2' :: mean(diff_pp)", mean(r$diff_pp), fnum(mean(r$diff_pp), 2)) }
+pw_d <- v(PWf, "pk_model=='k2016' & scenario=='S00' & analysis_model=='M1' & config=='P2'", "diff_vs_M0_pp", 2, item = "power change M1 minus M0, S00")
+MECH_EN <- c(F = "bioavailability", ka = "absorption rate", ke = "linear elimination", Vmax = "target-mediated elimination capacity", Km = "binding constant", V2 = "peripheral volume")
+top_txt <- function(am) { r <- rows(T1f, sprintf("analysis_model=='%s' & config=='P2'", am)); rr <- r[which.max(pass_pct)]
+  sprintf("the %s cell with %s %s (multiplier %s), %s", c(k2016 = "primary-model", k2020 = "2020-model")[[rr$pk_model]], MECH_EN[[rr$mechanism]], rr$direction, fnum(rr$multiplier, 2),
+          vci(T1f, sprintf("analysis_model=='%s' & config=='P2' & pk_model=='%s' & scenario=='%s'", am, rr$pk_model, rr$scenario), item = sprintf("highest P2 %s", am))) }
+```
+
 ## Q1. The 2016 FDA guidance names AUC0-inf and Cmax as the primary parameters of a single-dose PK similarity study. Why do you propose AUC0-last?
 
 **Short answer.** For dupilumab, the NCA estimate of AUC0-inf does not measure total exposure better than AUC0-last, and using it as a primary endpoint inflates the probability of concluding similarity at the equivalence limits.
@@ -62,7 +95,7 @@ wb <- rows("weight_generalization/weight_bands_B0_abcd.csv", "model=='a'"); tab_
 
 **Operating characteristics at the equivalence limits** (the pre-specified primary metric, report Section 5.4):
 
-- **Proposed configuration.** AUC0-last + Cmax is at or below 5% in all 16 boundary scenarios: `r p2_cons` conservative, `r p2_nom` nominal, `r p2_exc` exceeding.
+- **Proposed configuration.** With the pooled t-test (M0), AUC0-last + Cmax is `r p2_cons` conservative, `r p2_nom` nominal and `r p2_exc` exceeding of 16 boundary scenarios; with the weight stratum in the model (M1), `r C1[["conservative"]]`, `r C1[["nominal"]]` and `r C1[["exceeding"]]` (Q7, Q17).
 - **Guidance-default configuration.** AUC0-inf (reliable subjects) + Cmax exceeds 5% in `r G$G2_Aii$n` of 16 scenarios. The largest value is `r G$G2_Aii$mx`.
 
 **Consistency with the originator's own practice.**
@@ -135,20 +168,19 @@ wb <- rows("weight_generalization/weight_bands_B0_abcd.csv", "model=='a'"); tab_
 
 ## Q7. What is the boundary type I error of the proposed endpoints, and why is one value above 5%?
 
-**Short answer.** All 16 boundary cells are at or below the nominal level; one point estimate slightly exceeds 5%, but its interval includes 5% and the mechanism is not plausible for a biosimilar.
+**Short answer.** With the pooled t-test (M0), `r C0[["conservative"]]` of 16 boundary cells are conservative, `r C0[["nominal"]]` nominal and `r C0[["exceeding"]]` exceeding. With the weight stratum in the model (M1), they are `r C1[["conservative"]]`, `r C1[["nominal"]]` and `r C1[["exceeding"]]`. The highest cell is `r top_txt("M0")` under M0 and `r top_txt("M1")` under M1.
 
-**Overall result.** `r p2_cons` of 16 boundary cells are conservative and `r p2_nom` is nominal.
+**Overall result** (report Sections 5.4 and 5.9):
 
-- Primary model maximum: `r p2max$k2016$text`.
-- 2020 model maximum: `r p2max$k2020$text`, reached when the peripheral volume increases `r nom_mult`-fold (`r nom_mult16`-fold in the primary model).
+- M0: `r am_rng("M0")`; primary model maximum `r p2max$k2016$text`, 2020 model maximum `r p2max$k2020$text`.
+- M1: `r am_rng("M1")`.
 
-**Why that cell is slightly above 5%** (report Sections 5.4 and 6.2):
+**The highest cell** (2020 model, peripheral volume x`r nom_mult`; x`r nom_mult16` in the primary model for the same true ratio):
 
-- The Wilson interval includes 5%, so the cell is classified as nominal.
-- At the pre-specified 10,000 trials the value was `r nom_pre`.
-- The small excess is explained by a bias of AUC0-last toward 1 of `r dec_bias`% in that mechanism.
-
-**Why the mechanism is implausible.** A two- to three-fold difference in peripheral distribution volume is not expected for a product with the same amino-acid sequence.
+- M0: `r v2$M0` (`r v2n$M0` trials), `r v2cls$M0`; at the pre-specified 10,000 trials the value was `r nom_pre`.
+- M1: `r v2$M1` (`r v2n$M1` trials), `r v2cls$M1`. M2: `r v2$M2`, `r v2cls$M2`.
+- Cause (M1): the AUC0-last GMR is biased by `r v2bias`% relative to the true AUC0-inf ratio, toward 1. This moves the pass rate from `r v2ref`% for the unbiased reference to `r v2al`% for AUC0-last alone; Cmax failures change it by `r v2cm` percentage points.
+- Facts relevant to plausibility: a proposed biosimilar has the same amino-acid sequence as the reference IgG4 antibody; this cell requires its peripheral volume of distribution to be `r nom_mult` times (2020 model) or `r nom_mult16` times (primary model) that of the reference, with absorption and clearance unchanged.
 
 ## Q8. Why would AUC0-inf inflate the type I error? Is it not the more complete measure?
 
@@ -205,17 +237,21 @@ AUC0-inf will not be used for the equivalence decision.
 
 ## Q12. Is the study adequately powered?
 
-**Short answer.** Yes. Simulated power is about 99% for identical products.
+**Short answer.** At the protocol CV of 43% and a true GMR of 0.95, `r cfgv("trial_design.yaml", "n_per_arm")` evaluable subjects per arm give P2 power of `r p117(43, "M0")`% (M0) and `r p117(43, "M1")`% (M1). At a CV of 50%, power falls to `r p117(50, "M0")`% and `r p117(50, "M1")`%.
 
 **Variability assumptions.**
 
-- The simulated log-scale CV of AUC0-last is `r ss("base", "AUClast_logcv")`% (primary model) and `r ss("struct2020", "AUClast_logcv")`% (2020 model).
-- The sample-size assumption is `r ss("Syneos", "AUClast_logcv")`%.
-- The AUC0-last CI reported for a 200 mg device comparison implies about `r ss("Cohen", "AUClast_logcv")`%. That was a different presentation and a heavier population, with a possible device effect.
+- The simulated log-scale CV of AUC0-last is `r ss("base", "AUClast_logcv")`% (primary model) and `r ss("struct2020", "AUClast_logcv")`% (2020 model); the protocol assumes `r ss("Syneos", "AUClast_logcv")`%.
+- Li 2020 (Table 3, 300 mg arms) reports SD/mean of 35% to 51%. The AUC0-last CI of a 200 mg device comparison implies about `r ss("Cohen", "AUClast_logcv")`% (Cohen 2022; different presentation, heavier population, possible device effect).
 
-**Power at `r cfgv("trial_design.yaml", "n_per_arm")` evaluable subjects per arm, identical products:** `r pw$k2016` (primary model) and `r pw$k2020` (2020 model).
+**Evaluable subjects per arm for P2 at GMR 0.95** (report Section 5.11; randomized per arm in parentheses, 117/130 evaluable):
 
-**If the Cohen-like variability applied** (a sponsor decision), the sample size should be re-checked.
+- 90% power: CV 43% `r nn(43, "M0", 90)` (`r nnr(43, "M0", 90)`) with M0, `r nn(43, "M1", 90)` (`r nnr(43, "M1", 90)`) with M1; CV 50% `r nn(50, "M0", 90)` (`r nnr(50, "M0", 90)`) and `r nn(50, "M1", 90)` (`r nnr(50, "M1", 90)`).
+- 85% power: CV 43% `r nn(43, "M0", 85)` and `r nn(43, "M1", 85)`; CV 50% `r nn(50, "M0", 85)` and `r nn(50, "M1", 85)`.
+
+**Identical products,** PK-model trials with `r cfgv("trial_design.yaml", "n_per_arm")` per arm: `r pw$k2016` (primary model) and `r pw$k2020` (2020 model) with M0.
+
+**The target power and the sample size are sponsor decisions.**
 
 ## Q13. Were the analyses pre-specified? What changed after results were seen?
 
@@ -268,6 +304,27 @@ AUC0-inf will not be used for the equivalence decision.
 - AUC0-inf reliability falls from `r fnum(wb[which.min(as.numeric(sub("-.*", "", band)))]$reliable_rsq_extrap_pct, 1)`% to `r fnum(wb[which.max(as.numeric(sub("-.*", "", band)))]$reliable_rsq_extrap_pct, 1)`% across the bands.
 
 **Implication.** An analysis restricted to reliable subjects would under-represent heavier subjects.
+
+## Q17. The randomization is stratified by body weight. Why is the stratum not in the analysis model?
+
+**Short answer.** Both analyses were evaluated on the same simulated trials, and the choice is left to the sponsor's SAP. ICH E9 (section 5.7) states that factors used to stratify the randomization should be accounted for in the analysis, and the FDA guidance on covariate adjustment (2023) states that an adjustment model should generally include the strata variables. Including the stratum (M1) makes the standard error match the sampling variability. On the same trials, this changes the boundary type I error of AUC0-last + Cmax by `r pc_rng` percentage points (mean `r pc_mean`) and the power for identical products by `r pw_d` percentage points (primary model).
+
+**Evidence** (report Section 5.9):
+
+- Between-trial SD of the log GMR divided by the median within-trial SE, unbiased reference: `r sdse("M0")` (M0) and `r sdse("M1")` (M1).
+- AUC0-last + Cmax: M0 `r C0[["conservative"]]` conservative, `r C0[["nominal"]]` nominal, `r C0[["exceeding"]]` exceeding (`r am_rng("M0")`); M1 `r C1[["conservative"]]`, `r C1[["nominal"]]`, `r C1[["exceeding"]]` (`r am_rng("M1")`).
+- Power, identical products: `r pwr("k2016", "S00", "M0")` (M0) and `r pwr("k2016", "S00", "M1")` (M1), primary model.
+- Sample size at CV 43%, 90% power: `r nn(43, "M0", 90)` (M0) and `r nn(43, "M1", 90)` (M1) evaluable per arm. The stratum explains only a small part of the variance, so the gain in precision is small.
+
+## Q18. The LLOQ of the sponsor's assay may differ from the originator's. Do the conclusions depend on it?
+
+**Short answer.** Coverage of total exposure by AUC0-last and the boundary type I error of AUC0-last + Cmax change little between 0.02 and 0.5 mg/L. A lower LLOQ with the same assay noise makes AUC0-inf less reliable, not more. The LLOQ is set in one configuration file, and all results can be regenerated with the validated value.
+
+**Evidence** (report Section 5.10; same subjects and residual draws re-censored at each LLOQ; simulations used `r lloq_val` mg/L):
+
+- True coverage of AUC0-last below 80%: `r lli("k2016", 0.02, "coverage_lt80_pct", 2)`% of subjects at 0.02 mg/L to `r lli("k2016", 0.5, "coverage_lt80_pct", 2)`% at 0.5 mg/L (primary model). The true concentration reaches 0.02 mg/L and 0.5 mg/L within about `r llc("k2016", 0.02, "lloq_studyday_median")` and `r llc("k2016", 0.5, "lloq_studyday_median")` study days (medians), inside the cliff.
+- AUC0-inf reliability (criteria (i)): `r lli("k2016", 0.02, "reliable_no_span_pct")`% at 0.02 mg/L, `r lli("k2016", 0.078, "reliable_no_span_pct")`% at 0.078 mg/L and `r lli("k2016", 0.5, "reliable_no_span_pct")`% at 0.5 mg/L with the residual error as estimated; `r lli("k2016", 0.02, "reliable_no_span_pct", rv = "scaled")`% at 0.02 mg/L if the assay noise scales with the LLOQ.
+- Boundary type I error of AUC0-last + Cmax over the six LLOQs (three boundary scenarios, primary model): `r llt("M0", "P2")` (M0) and `r llt("M1", "P2")` (M1).
 
 ```{r trace, include=FALSE}
 reg_trace_write(file.path("..", "tables", "trace_FDA_questions.csv"))

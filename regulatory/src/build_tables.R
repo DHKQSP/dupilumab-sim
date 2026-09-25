@@ -44,6 +44,20 @@ pp[, Parameter := gsub("^k12$", "k12 (k23 in Kovalenko 2016; kcp in 2020)", Para
 pp[, Value := as.character(Value)]
 fwrite(pp, file.path(out, "parameter_provenance.csv"))
 
+# ---- version 1.0.1 facts (analysis model, LLOQ, sample size) used in the registers below ----
+lt_ <- rd("results/lloq/lloq_individual_table.csv")[model == "k2016" & resid == "fixed"]; ltt_ <- rd("results/lloq/lloq_trial_type1.csv")[resid == "fixed" & config == "P2"]
+t1_ <- rd("results/oc_models/type1_models.csv"); ss_ <- rd("results/oc_models/sd_se_models.csv")[endpoint == "AUCinf_true" & !scenario %in% c("S00", "F097")]
+pp_ <- rd("results/sample_size/ss_table_power.csv")[input_model == "k2016" & gmr == 0.95 & n == 117]
+f1_ <- function(x) formatC(round(x, 1) + 0, format = "f", digits = 1); f2_ <- function(x) formatC(round(x, 2) + 0, format = "f", digits = 2); f3_ <- function(x) formatC(round(x, 3) + 0, format = "f", digits = 3)
+rg_ <- function(x, f = f2_) sprintf("%s to %s", f(min(x)), f(max(x)))
+cls_ <- function(a) { x <- t1_[analysis_model == a & config == "P2"]; sprintf("%d conservative, %d nominal, %d exceeding", sum(x$class == "conservative"), sum(x$class == "nominal"), sum(x$class == "exceeding")) }
+lloq_impact <- sprintf("Simulated at 0.02 to 0.5 mg/L with the same subjects (Section 5.10): true coverage of AUC0-last below 80%% in %s%% of subjects; reliability under criteria (i) %s%% (0.02 mg/L) to %s%% (0.5 mg/L); boundary type I error of AUC0-last + Cmax %s%% (M0) and %s%% (M1) in three boundary scenarios.",
+                       rg_(lt_$coverage_lt80_pct), f1_(lt_[abs(lloq - 0.02) < 1e-9, reliable_no_span_pct]), f1_(lt_[abs(lloq - 0.5) < 1e-9, reliable_no_span_pct]), rg_(ltt_[model == "M0", pass_pct]), rg_(ltt_[model == "M1", pass_pct]))
+strat_impact <- sprintf("The pooled t-test (M0) does not model the stratum: between-trial SD / within-trial SE of the unbiased reference %s (M0) against %s with the stratum in the model (M1). AUC0-last + Cmax: M0 %s; M1 %s (Section 5.9).",
+                        rg_(ss_[analysis_model == "M0", sd_se_ratio], f3_), rg_(ss_[analysis_model == "M1", sd_se_ratio], f3_), cls_("M0"), cls_("M1"))
+n_impact <- sprintf("P2 power with 117 evaluable per arm at a true GMR of 0.95: %s%% (M0) and %s%% (M1) at CV 43%%, %s%% and %s%% at CV 50%% (Section 5.11).",
+                    f1_(pp_[cv == 43 & analysis_model == "M0", analytic_pct]), f1_(pp_[cv == 43 & analysis_model == "M1", analytic_pct]), f1_(pp_[cv == 50 & analysis_model == "M0", analytic_pct]), f1_(pp_[cv == 50 & analysis_model == "M1", analytic_pct]))
+
 # ---- B. assumptions register (curated) ----
 td <- yaml::read_yaml(proj_path("config", "trial_design.yaml"))
 ab <- data.table(
@@ -61,17 +75,17 @@ ab <- data.table(
   Basis = c("Clot 2021 (originator's assay)", "placeholder; protocol not final", "placeholder; typical protocol windows", "placeholder based on the inclusion range 60 to 90 kg",
             "placeholder", "sample-size assumption of the protocol", "as published (Km determined by likelihood profiling; the objective function was insensitive below 0.01 mg/L)", "parameter estimation uncertainty was not propagated",
             "as published", "no ADA model in the published PK models", "standard NCA practice", "study design", "study design", "weights not reported in Li 2020", "phase 3 mean BMI 25.4 to 27.3 (Kamal 2022)"),
-  `Impact evidence` = c("The cliff starts at a median of about 0.9 mg/L and lasts about 1.4 days, so a different LLOQ below that level is expected to move tlast by at most about the cliff length and to change coverage little; not simulated.",
+  `Impact evidence` = c(lloq_impact,
                         "Affects Cmax sampling only; terminal-phase results unaffected.", "Simulated in all trial-level analyses; cliff analysis with and without windows.",
                         "Alternative distribution (mean 72, SD 10, 50 to 90 kg) and weight bands 40 to 150 kg: coverage preserved; schedule recommendation unchanged.",
-                        "Candidate cause of the between-trial SD / within-trial SE ratio below 1 (conservative).", "Operating characteristics computed at the evaluable number; power about 99% for identical products.",
+                        strat_impact, n_impact,
                         "Km x0.5 to x10 in both arms and Km x0.01 to x100 in the test arm: coverage and conclusions unchanged.", "Two structural models, variance x1.5 and curve-shape sensitivity; conclusions unchanged.",
                         "Reliability rates depend on the residual error (reported as two-model ranges; proportional 12% sensitivity); operating-characteristic conclusions identical in both models.",
                         "In the ADA-like subgroup coverage is preserved and the schedule recommendation unchanged.", "Manual review could change lambda-z windows and AUC0-inf; AUC0-last and Cmax unaffected.",
                         "The 200 mg 175 mg/mL presentation (faster absorption) is not reproduced; not relevant if both products use the 300 mg 150 mg/mL presentation.", "Results apply to healthy adults 60 to 90 kg.",
                         "External-only validation result depends on it (Section 4.2); not used in any analysis of the proposal.", "Used only for the weight generalization sensitivity."),
-  `Action before submission` = c("Confirm the LLOQ of the validated assay; if it differs by more than about 2-fold, rerun coverage and reliability at the actual LLOQ.", "Set to the protocol time.", "Align with the protocol.",
-                                 "Confirm expected enrolment; rerun only if materially different.", "Confirm the randomization plan and whether the analysis model includes the stratum.", "Confirm the sample-size justification (log-scale CV assumption).",
+  `Action before submission` = c("Set the LLOQ of the validated assay in config/assay.yaml and regenerate all results (scripts/run_all.sh).", "Set to the protocol time.", "Align with the protocol.",
+                                 "Confirm expected enrolment; rerun only if materially different.", "Confirm the randomization plan; select the primary analysis model (M0 or M1) in the SAP.", "Select the target power (90% or 85%) and the sample size (Section 5.11).",
                                  "None; state as limitation.", "None; state as limitation.", "None; report residual-sensitive metrics as two-model ranges.", "Consider the ADA incidence reported for the reference product in healthy subjects; describe ADA handling in the SAP.",
                                  "Pre-specify lambda-z rules in the SAP and document any manual changes.", "Confirm presentations of both products.", "None.", "None.", "None."))
 fwrite(ab, file.path(out, "assumptions_register.csv"))
@@ -89,16 +103,20 @@ qc <- data.table(
                "NCA engine against reference implementations", "Equivalence statistics", "Scenario multipliers act on the test arm only", "Configuration schema and coding rules",
                "Deterministic seeds", "Independent re-implementation (Model 1)", "Independent re-implementation (curve shape and weight bands)", "Trial regeneration identity",
                "Monte Carlo consistency", "Regeneration for post hoc rules (same seeds)", "Reproducibility in a clean environment", "Continuous integration",
-               "Premise checks of generated conclusions", "Independent human QC of this report"),
+               "Premise checks of generated conclusions", "Analysis models M1 and M2 (closed form)", "Regeneration for the analysis-model re-judgement (same seeds)",
+               "LLOQ re-censoring at the current LLOQ", "Sample-size analytic approximation", "Independent human QC of this report"),
   Method = c("Automated test: linear limit (Vmax = 0) against the closed-form two-compartment solution", "Automated tests", "Automated tests (linear-up log-down AUC, lambda-z windows, BLQ rules, ties)",
              "Theoph, Indometh and 1,000 simulated profiles: this engine, NonCompart 0.8.4, PKNCA 0.12.1", "Automated tests against t.test (var.equal) and lm/confint", "Automated tests over all product scenarios",
              "Automated tests (YAML boolean keys, types, data.table scoping lint)", "Automated tests", "Reviewer's Python implementation, 20,000 subjects", "Reviewer's Python implementation, 8,000 subjects per condition",
              "5,000-trial set versus the earlier 500-trial run (trials 1 to 500)", "500-trial estimates versus the independent later trials", "Regenerated boundary trials versus stored rows (6 original endpoints)",
              "Pre-specified tolerances (config/repro_check.yaml); GitHub-hosted runner with a fresh renv restore", "Fast-scope tests on every commit that changes code, configuration or dependencies",
-             "Generated conclusion texts stop with an error if a stated premise is contradicted by the results", "Line-by-line check of every number against regulatory/traceability.csv and of the text against the results"),
+             "Generated conclusion texts stop with an error if a stated premise is contradicted by the results", "Automated tests against lm/confint, including unequal arms and a singular design",
+             "Regenerated M0 versus stored rows of the operating-characteristic and product runs", "Individual, cliff and trial results at 0.078 mg/L versus the stored results; rescaled residual at scale 1 versus the stored residual",
+             "Simulation of every grid cell (5,000 trials) and PK-model trials at n = 117", "Line-by-line check of every number against regulatory/traceability.csv and of the text against the results"),
   `Acceptance criterion` = c("Relative difference below tolerance", "As specified in the tests", "As specified in the tests", "Identical lambda-z windows; relative difference at most 1e-6", "Identical to base R", "Reference arm unchanged; test arm shifted by the multiplier",
                              "No violation", "Same inputs give same seeds", "Within 3% (small percentages: absolute difference)", "Within 10% (non-rare metrics)", "Maximum difference 0", "Differences within Monte Carlo error",
-                             "Relative 1e-6 and identical pass flags", "All items within tolerance", "No failure", "No premise violated", "No discrepancy"),
+                             "Relative 1e-6 and identical pass flags", "All items within tolerance", "No failure", "No premise violated", "Relative difference at most 1e-10",
+                             "Relative 1e-6 (1e-12 for product runs) and identical pass flags", "Identical (tolerance 0) or relative 1e-9", "Analytic value inside the Wilson 95% interval", "No discrepancy"),
   Result = c("Pass", "Pass", "Pass",
              sprintf("Pass: %s of %s window comparisons identical; largest relative difference %s", format(sum(ev$lz_points_identical), big.mark = ","), format(sum(ev$lz_points_identical + ev$lz_points_mismatch), big.mark = ","), format(signif(max(ev$max_rel_diff), 2))),
              "Pass", "Pass", "Pass", "Pass", sprintf("%d of %d metrics within 3%%; the others are small percentages that differ by fractions of a percentage point", sum(cv1$agree_3pct, na.rm = TRUE), sum(!is.na(cv1$agree_3pct))),
@@ -106,29 +124,43 @@ qc <- data.table(
              sprintf("%d of %d comparisons outside Monte Carlo error", sum(mc5$outside_mc), nrow(mc5)), sprintf("%s stored rows matched (%s per model)", format(sum(rj_n), big.mark = ","), format(rj_n[1], big.mark = ",")),
              sprintf("Local %d of %d; clean runner %s of %s, identical to the local values to 8 significant digits", sum(rl$pass), nrow(rl), gv("n_pass_github"), gv("n_items")),
              sprintf("%d successful runs after the fix; latest code commit %s: %s", sum(ci$workflow == "tests" & ci$conclusion == "success"), ci[workflow == "tests"][.N, commit], ci[workflow == "tests"][.N, conclusion]),
-             "Pass (all generated texts produced)", "PENDING (sponsor)"),
+             "Pass (all generated texts produced)", "Pass",
+             { rv <- rd("results/oc_models/m0_reverification.csv"); premise(all(rv$ok), "M0 re-verification"); sprintf("Pass: %s rows", format(sum(rv$n_rows), big.mark = ",")) },
+             { ck <- rbind(rd("results/lloq/lloq_individual_check_k2016.csv"), rd("results/lloq/lloq_individual_check_k2020.csv"), rd("results/lloq/lloq_cliff_check.csv"), fill = TRUE); premise(all(ck$pass), "LLOQ checks"); sprintf("Pass: %d checks", nrow(ck)) },
+             { mc <- rd("results/sample_size/ss_power_mc.csv"); pk <- rd("results/sample_size/ss_pk_check.csv")[analysis_model != "M2"]
+               sprintf("Analytic inside the interval in %d of %d grid cells (largest difference %s points); PK-model trials: %d of %d", sum(mc$analytic_in_ci), nrow(mc), f2_(max(abs(mc$diff_pp))), sum(pk$analytic_in_ci), nrow(pk)) },
+             "PENDING (sponsor)"),
   Evidence = c("tests/testthat/test-model-structure.R", "tests/testthat/test-model-structure.R", "tests/testthat/test-nca.R, test-nca-wnl.R", "results/nca_engine/engine_validation_summary.csv",
                "tests/testthat/test-be-stats.R", "tests/testthat/test-scenario-propagation.R", "tests/testthat/test-config-schema.R, test-lint-datatable-scope.R", "tests/testthat/test-seeds.R",
                "results/crossval/crossval_model1.csv", "results/crossval/reviewer_reference_round5.csv", "results/trials5000/mc_consistency_identity.csv", "results/trials5000/mc_consistency_500_vs_5000.csv",
                "logs/oc_rejudge_k2016.out, logs/oc_rejudge_k2020.out", "results/repro/repro_check.csv, results/repro/repro_github_items.csv, results/repro/repro_github_run.csv",
-               "results/ci/ci_runs_after_fix.csv", "scripts/33_oc_summary.R, 36_cliff_conclusion.R, 39_reliability_flags.R, 43_p2_interpretation.R", "signature page of the report"))
+               "results/ci/ci_runs_after_fix.csv", "scripts/33_oc_summary.R, 36_cliff_conclusion.R, 39_reliability_flags.R, 43_p2_interpretation.R", "tests/testthat/test-oc-models.R",
+               "results/oc_models/m0_reverification.csv, logs/oc_models_k2016.out, logs/oc_models_k2020.out", "results/lloq/lloq_individual_check_k2016.csv, lloq_individual_check_k2020.csv, lloq_cliff_check.csv, logs/lloq_trials.out",
+               "results/sample_size/ss_power_mc.csv, results/sample_size/ss_pk_check.csv", "signature page of the report"))
 fwrite(qc, file.path(out, "verification_qc.csv"))
 
 # ---- D. pre-specification and post hoc register (dates from git) ----
+fcommit <- function(path) { h <- suppressWarnings(system2("git", shQuote(c("-C", PROJ_ROOT, "log", "--diff-filter=A", "--format=%h", "--", path)), stdout = TRUE, stderr = FALSE))
+  premise(length(h) >= 1 && nzchar(h[length(h)]), paste("result file committed:", path)); cdate(h[length(h)]) }
 dd <- data.table(
   Item = c("Models and parameter values", "Model validation criteria", "Scope of model validation restricted to the study presentation", "Sampling-schedule decision rule (criteria a to d)",
            "NCA engine replaced by a Phoenix-compatible engine", "Operating-characteristic design (mechanisms, targets, trials, configurations, seeds, truth definition)", "Cliff analysis design",
            "Reliability criteria set (i) (without the span ratio)", "AUC0-inf + Cmax under rules B and C, and rules A and C under criteria set (i)", "Extension to 20,000 trials of a boundary scenario whose Wilson interval included 5%",
-           "Interpretation of AUC0-last + Cmax at the boundaries (unbiased baseline, classification, decomposition)", "Random product space reported as a secondary metric"),
+           "Interpretation of AUC0-last + Cmax at the boundaries (unbiased baseline, classification, decomposition)", "Random product space reported as a secondary metric",
+           "Analysis-model re-judgement: M0, M1, M2 on regenerated trials; extension rule per model; expectations and reporting rule (version 1.0.1)",
+           "Numeric criteria for the expectation checks", "Single study-LLOQ source and LLOQ sensitivity, including the scaled additive residual variant", "Sample-size table (analytic, simulation, PK-model check)"),
   Status = c("pre-specified", "pre-specified", "post hoc (after the first validation results)", "specified after the first schedule simulations were run, before any result was reported",
-             "change after initial results; all dependent outputs regenerated", "pre-specified", "pre-specified", "post hoc", "post hoc", "post hoc (data-dependent)", "post hoc", "post hoc reporting priority; the analysis itself was pre-specified"),
-  `Date (evidence)` = c(cdate("8d69d82"), cdate("8d69d82"), cdate("c018729"), cdate("c018729"), cdate("d26f169"), cdate("779e068"), cdate("779e068"), cdate("0f6bf72"), cdate("0f6bf72"), cdate("68be707"), cdate("68be707"), cdate("68be707")),
+             "change after initial results; all dependent outputs regenerated", "pre-specified", "pre-specified", "post hoc", "post hoc", "post hoc (data-dependent)", "post hoc", "post hoc reporting priority; the analysis itself was pre-specified",
+             "pre-registered (config/prereg_20260926.yaml section1)", "registered amendment: after the runs started, before any result was read", "pre-registered (section2); the scaled residual variant was added by the analyst, not requested", "pre-registered (section3)"),
+  `Date (evidence)` = c(cdate("8d69d82"), cdate("8d69d82"), cdate("c018729"), cdate("c018729"), cdate("d26f169"), cdate("779e068"), cdate("779e068"), cdate("0f6bf72"), cdate("0f6bf72"), cdate("68be707"), cdate("68be707"), cdate("68be707"),
+                        cdate("521645a"), cdate("c5b304b"), cdate("211e8ed"), cdate("211e8ed")),
   `First results` = c(cdate("d2592d7"), cdate("d2592d7"), "same commit as the decision", "first schedule simulations: see Date of the models row; results withheld until validation was accepted",
-                      "outputs regenerated before the operating characteristics were run", cdate("b8a5351"), cdate("5f972bd"), cdate("0f6bf72"), cdate("bf9a5b1"), cdate("bf9a5b1"), cdate("bf9a5b1"), cdate("b8a5351")),
+                      "outputs regenerated before the operating characteristics were run", cdate("b8a5351"), cdate("5f972bd"), cdate("0f6bf72"), cdate("bf9a5b1"), cdate("bf9a5b1"), cdate("bf9a5b1"), cdate("b8a5351"),
+                      fcommit("results/oc_models/type1_models.csv"), fcommit("results/oc_models/expectations_check.csv"), fcommit("results/lloq/lloq_trial_type1.csv"), fcommit("results/sample_size/ss_table_n_needed.csv")),
   `How reported` = c("Appendix A", "Section 4.2", "200 mg data sets reported as external checks with their ratios; re-judgement on fully external data reported", "Section 5.7; recommendation unchanged in every variant",
                      "Previous versus new engine differences tabulated (results/nca_engine/); conclusions unchanged", "Primary metric; every mechanism and configuration reported (Appendix F)", "Section 5.1",
                      "Reported first, with set (ii) alongside (set (ii) is the pre-specified definition)", "Labelled post hoc in Table 5-5; same trials regenerated with the same seeds", "Both the pre-specified 10,000-trial value and the 20,000-trial value are reported",
-                     "Section 5.4", "Section 5.5"))
+                     "Section 5.4", "Section 5.5", "Section 5.9; M0 and M1 side by side; primary model left to the sponsor", "Table 5-10", "Section 5.10 (residual as estimated first, scaled variant alongside)", "Section 5.11"))
 fwrite(dd, file.path(out, "prespecification_register.csv"))
 
 # ---- E. software environment (renv.lock) ----
