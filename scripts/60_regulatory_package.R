@@ -47,7 +47,7 @@ tracked <- git("ls-files")
 keep <- tracked[grepl("^(R|scripts|config|tests|regulatory)/", tracked) | tracked %in% c("renv.lock", "renv/settings.json", "renv/activate.R", ".Rprofile", "SPEC.md", "DECISIONS.md", "README.md")]
 cited <- unique(tr$source_file[file.exists(proj_path(tr$source_file))])
 files <- sort(unique(c(keep, cited, file.path("regulatory", c(paste0(docs, ".html"), paste0(docs, ".docx"), "traceability.csv")),
-                       file.path("regulatory", "tables", list.files(tab_dir)))))
+                       file.path("regulatory", "tables", list.files(tab_dir)), file.path("regulatory", "figures", list.files(file.path(reg_dir, "figures"))))))
 files <- files[file.exists(proj_path(files)) & !grepl("^regulatory/(manifest_sha256\\.csv|README\\.md)$", files)]
 mf <- data.table(path = files, bytes = file.size(proj_path(files)), sha256 = vapply(files, function(f) digest::digest(file = proj_path(f), algo = "sha256"), ""),
                  git_tracked = files %in% tracked, role = fifelse(grepl("^regulatory/", files), "regulatory document", fifelse(grepl("^results/", files), "result cited in the documents",
