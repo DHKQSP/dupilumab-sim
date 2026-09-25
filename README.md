@@ -14,6 +14,7 @@ tests/testthat/               단계 1 자동 테스트 등
 scripts/                      run_tests.R, 02* 단계 1, 10–13 시뮬레이션, 14 후처리, 15–27 요약·추가 분석, 28–29 NCA 엔진 검증,
                               30–33 운용특성, 34–36 절벽 분석, 37 핵심 수치(영문), 38 재현성 점검, 05_report.R, run_all.sh, 회차별 드라이버
 report/report.Rmd             보고서
+regulatory/                   FDA 제출·실사용 영문 패키지(M&S 보고서, 예상 질의응답, 추적표, SHA-256 목록; scripts/60_regulatory_package.R, SPEC §13)
 results/ , logs/              결과(개발 규모는 CSV 커밋), 실행 로그(시드·세션 정보·config 해시)
 renv.lock                     패키지 버전 잠금
 ```

@@ -1,0 +1,274 @@
+---
+title: "Anticipated FDA Questions and Evidence-Based Responses"
+subtitle: "PK similarity study of a proposed dupilumab biosimilar: AUC0-last and Cmax as co-primary endpoints and the sampling schedule"
+date: "`r format(Sys.time(), '%Y-%m-%d', tz = 'UTC')`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+source(file.path("..", "..", "R", "00_setup.R"))
+source(file.path("..", "src", "reg_helpers.R"))
+# document-control values passed by scripts/60_regulatory_package.R (not YAML params, which would make renv infer shiny)
+P <- get0("REG_PARAMS", ifnotfound = list(source_commit = "not recorded", tree_clean = NA, version = "0.9 (draft for sponsor review)"))
+reg_init("FDA_questions")
+M <- c("k2016", "k2020")
+```
+
+This briefing aid prepares the sponsor for review questions from FDA clinical pharmacology, pharmacometrics and biostatistics reviewers. Each response gives the short answer, the supporting numbers and the section of the Modeling and Simulation Report (the "report") that contains the evidence.
+
+- **Source commit:** `r P$source_commit`.
+- **Status:** `r P$version`.
+- **Numbers:** read from the result files at generation time and traced in regulatory/traceability.csv.
+
+```{r facts, include=FALSE}
+sec("facts")
+p2max <- lapply(M, function(m) vci_ext("oc/p2_interpretation.csv", sprintf("model=='%s' & config=='P2'", m))); names(p2max) <- M
+p2_cons <- vcount("oc/p2_interpretation.csv", "config=='P2' & class=='conservative'"); p2_nom <- vcount("oc/p2_interpretation.csv", "config=='P2' & class=='nominal'"); p2_exc <- vcount("oc/p2_interpretation.csv", "config=='P2' & class=='exceeding'")
+premise(as.integer(p2_exc) == 0, "no exceeding P2 cell")
+nom_mult <- v("oc/p2_interpretation.csv", "model=='k2020' & scenario=='V2_up_080' & config=='P2'", "multiplier", 2)
+nom_mult16 <- v("oc/p2_interpretation.csv", "model=='k2016' & scenario=='V2_up_080' & config=='P2'", "multiplier", 2)
+nom_pre <- vci("oc/p2_interpretation.csv", "model=='k2020' & scenario=='V2_up_080' & config=='P2'", "pass_pct_prereg", "lo_prereg", "hi_prereg")
+dec_bias <- v("oc/p2_interpretation.csv", "model=='k2020' & scenario=='V2_up_080' & config=='P2'", "bias_pct", 2)
+g2 <- function(cfg) list(n = vcount("oc/g2_rules_flags.csv", sprintf("region=='boundary' & config=='%s' & gt5_point==TRUE", cfg)),
+                         nlo = vcount("oc/g2_rules_flags.csv", sprintf("region=='boundary' & config=='%s' & gt5_lower==TRUE", cfg)),
+                         mx = vci_ext("oc/g2_rules_flags.csv", sprintf("region=='boundary' & config=='%s'", cfg))$text)
+G <- lapply(c(G2_Aii = "G2_Aii", G2_Ai = "G2_Ai", G2_B = "G2_B", G2_Cii = "G2_Cii", G2_Ci = "G2_Ci"), g2)
+pw <- lapply(M, function(m) vci("oc/power.csv", sprintf("model=='%s' & scenario=='S00' & config=='P2'", m), d = 1)); names(pw) <- M
+cov <- function(m, col, d = 2) v("rationale/pillar1_coverage_B0.csv", sprintf("model=='%s' & group=='all'", m), col, d)
+cl <- function(m, col, d = 1) v("cliff/cliff_summary.csv", sprintf("model=='%s' & weight=='base'", m), col, d)
+km_rng <- local({ r <- rows("oc/inversion_all.csv", "mechanism=='Km' & is.finite(end_auc_ratio)"); r2 <- rows("oc/inversion_all.csv", "mechanism=='Km' & reachable==TRUE"); x <- range(c(r$end_auc_ratio, r2$auc_ratio))
+  .record("true AUC0-inf ratio range over Km x0.01 to x100", "oc/inversion_all.csv", "mechanism=='Km' :: end_auc_ratio, auc_ratio", x, sprintf("%s to %s", fnum(x[1], 3), fnum(x[2], 3))) })
+recd0 <- rbindlist(lapply(c("base", "struct2020", "vmax080_both", "vmax125_both", "iiv150", "resid12", "weight_alt", "ada10"), function(k) { x <- rows(sprintf("trials/schedule_decision_%s.csv", k)); x[, variant := k] }), fill = TRUE)[recommend %in% TRUE]
+premise(nrow(recd0) == 1 && recd0$variant == "vmax080_both" && isTRUE(recd0$crit_d) && !isTRUE(recd0$crit_c), "the only cell where the schedule rule recommended added samples is Vmax x0.8 (both arms), on criterion (d) alone (text)")
+d200v <- rows("individual200k/criterion_d_200k_vmax080_both.csv"); premise(!any(d200v$d_meets_point), "criterion (d) not met at 200,000 subjects for Vmax x0.8 (text)")
+pi_ <- rows("oc/p2_interpretation.csv", "config=='P2'")
+bmax <- .record("largest absolute AUC0-last bias at the boundaries (%)", "oc/p2_interpretation.csv", "config=='P2' :: max(abs(bias_pct_AUClast))", max(abs(pi_$bias_pct_AUClast)), fnum(max(abs(pi_$bias_pct_AUClast)), 1))
+b_away <- vcount("oc/p2_interpretation.csv", "config=='P2' & bias_dir=='away_from_1'")
+rel <- function(variant, col) v("reliability/reliability_two_flag_sets_summary.csv", sprintf("variant=='%s'", variant), col, 1)
+ss <- function(pfx, col) v("fallback/sample_size_logsd.csv", sprintf("startsWith(variant, '%s')", pfx), col, 0)
+ada <- function(g, col, d = 2) v("individual/individual_ada10_by_subgroup.csv", sprintf("ada==%d & schedule=='B0'", g), col, d)
+wb <- rows("weight_generalization/weight_bands_B0_abcd.csv", "model=='a'"); tab_src("weight bands", "weight_generalization/weight_bands_B0_abcd.csv")
+```
+
+## Q1. The 2016 FDA guidance names AUC0-inf and Cmax as the primary parameters of a single-dose PK similarity study. Why do you propose AUC0-last?
+
+**Short answer.** For dupilumab, the NCA estimate of AUC0-inf does not measure total exposure better than AUC0-last, and using it as a primary endpoint inflates the probability of concluding similarity at the equivalence limits.
+
+**Why AUC0-inf from NCA is not the better measure here.**
+
+- **The true tail is negligible.** AUC0-last already contains all but a median of `r cov("k2016", "extrap_true_median")`% of total exposure (95th percentile `r cov("k2016", "extrap_true_p95")`%) under the planned schedule (report Section 5.2).
+- **The NCA tail is overstated.** NCA estimates the tail with a lambda-z fitted before the terminal cliff and overstates it: the median NCA extrapolation is `r cov("k2016", "extrap_nca_median", 1)`%.
+- **The tail estimate is unreliable in many subjects.** It fails standard reliability criteria in `r fnum(100 - as.numeric(rel("base", "reliable_i_pct")), 1)`% of subjects in the primary model.
+
+**Operating characteristics at the equivalence limits** (the pre-specified primary metric, report Section 5.4):
+
+- **Proposed configuration.** AUC0-last + Cmax is at or below 5% in all 16 boundary scenarios: `r p2_cons` conservative, `r p2_nom` nominal, `r p2_exc` exceeding.
+- **Guidance-default configuration.** AUC0-inf (reliable subjects) + Cmax exceeds 5% in `r G$G2_Aii$n` of 16 scenarios. The largest value is `r G$G2_Aii$mx`.
+
+**Consistency with the originator's own practice.**
+
+- Its population PK analysis concluded that a meaningful terminal half-life cannot be calculated (Kovalenko 2020).
+- A published device study did not calculate AUC0-inf for this reason (Cohen 2022).
+
+**What the sponsor proposes.** AUC0-inf will be reported as a secondary endpoint (Q11).
+
+## Q2. AUC0-last depends on each subject's last quantifiable time. Could it be biased when the products differ?
+
+**Short answer.** A product with faster elimination reaches the LLOQ earlier and has a smaller AUC0-last, so tlast differences are part of the exposure difference that AUC0-last measures.
+
+**Evidence.**
+
+- The true comparison is the ratio of model-integrated AUC0-inf (Q7).
+- Against that ratio, the AUC0-last ratio is biased by at most `r bmax`% across the 16 boundary scenarios.
+- In `r b_away` of the 16 scenarios the bias points away from 1, which makes the test conservative (report Table 5-6).
+
+## Q3. Why not extend sampling beyond Day 57 so that AUC0-inf becomes reliable?
+
+**Short answer.** Later samples would almost all be below the LLOQ, and the problem with AUC0-inf is the shape of the decline, not the sampling duration.
+
+**When concentrations reach the LLOQ** (report Section 5.1):
+
+- The true concentration reaches the LLOQ at a median of study Day `r cl("k2016", "lloq_studyday_median")` in the primary model (Day `r cl("k2020", "lloq_studyday_median")` in the 2020 model).
+- Only `r cl("k2016", "lloq_after_day58_pct")`% (`r cl("k2020", "lloq_after_day58_pct")`%) of subjects remain above the LLOQ after Day 58.
+
+**Why AUC0-inf stays unreliable.** The decline accelerates before the LLOQ is reached, so lambda-z is always estimated before the cliff, however long sampling continues. Extending sampling would add visits without improving either endpoint.
+
+## Q4. Why not add samples in the terminal phase to improve lambda-z?
+
+**Short answer.** The accelerating decline is shorter than any feasible visit interval, and denser late sampling makes AUC0-inf less reliable, not more.
+
+**The cliff cannot be sampled** (report Sections 5.1, 5.3 and 5.7):
+
+- The cliff (instantaneous half-life below 1 day, until the LLOQ) lasts a median of `r cl("k2016", "len1_median", 2)` days.
+- Even daily sampling from Day 29 to Day 57 places three samples on it in `r v("cliff/cliff_points.csv", "model=='k2016' & weight=='base' & timing=='nominal' & definition_day==1 & schedule=='daily_29_57'", "pct_ge3", 1)`% of subjects (nominal days).
+
+**Added samples reduce reliability.** They make Best Fit choose a shorter, later window, and a span ratio of at least 2 then fails more often.
+
+**The pre-specified decision rule was not met.** None of the four criteria for adding samples between Day 36 and Day 50 was met in either model. In one sensitivity variant (Vmax x0.8 in both arms), one criterion was met at 20,000 subjects but not on re-evaluation in 200,000 subjects.
+
+## Q5. The terminal phase lies below the LLOQ. How credible are published models for it?
+
+**Short answer.** The conclusions do not depend on the unobservable curve shape within any range consistent with the observed data.
+
+**How the models were built.** The primary model was estimated with below-LLOQ observations (M3 method), because the steep target-mediated phase could not be characterised otherwise.
+
+**How the uncertainty was tested:**
+
+- Two structural models were used.
+- Km (x0.5 to x10) and Vmax (x0.8, x1.25, and a x0.5 stress test) were varied in both arms.
+- Km was varied from x0.01 to x100 in the test arm.
+
+**Results** (report Sections 4 and 5.2):
+
+- AUC0-last coverage is preserved in every variant.
+- The operating-characteristic conclusions are the same in both models.
+
+## Q6. The models over-predict Cmax and do not reproduce the 200 mg presentation. Does this undermine the conclusions?
+
+**Short answer.** No. Neither issue affects the terminal-phase or AUC conclusions for the 300 mg study presentation.
+
+**Study presentation (300 mg, 2 mL of 150 mg/mL).** Simulated/observed AUC0-last is `r vrange("step1/step1b_quant_gate.csv", "gate_role=='gate'", "AUClast_ratio", 2)` (primary model) across the five data sets of this presentation.
+
+**Cmax over-prediction.** Simulated/observed Cmax is `r vrange("step1/step1b_quant_gate.csv", "gate_role=='gate'", "Cmax_ratio", 2)`. This is listed as a limitation. It concerns the absorption phase, not the terminal phase.
+
+**200 mg presentation (1.14 mL of 175 mg/mL).** It is absorbed faster (median tmax 3 days, against 7 days). It is not the study presentation, and its data sets are reported as external checks (report Section 4.2 and Appendix D).
+
+## Q7. What is the boundary type I error of the proposed endpoints, and why is one value above 5%?
+
+**Short answer.** All 16 boundary cells are at or below the nominal level; one point estimate slightly exceeds 5%, but its interval includes 5% and the mechanism is not plausible for a biosimilar.
+
+**Overall result.** `r p2_cons` of 16 boundary cells are conservative and `r p2_nom` is nominal.
+
+- Primary model maximum: `r p2max$k2016$text`.
+- 2020 model maximum: `r p2max$k2020$text`, reached when the peripheral volume increases `r nom_mult`-fold (`r nom_mult16`-fold in the primary model).
+
+**Why that cell is slightly above 5%** (report Sections 5.4 and 6.2):
+
+- The Wilson interval includes 5%, so the cell is classified as nominal.
+- At the pre-specified 10,000 trials the value was `r nom_pre`.
+- The small excess is explained by a bias of AUC0-last toward 1 of `r dec_bias`% in that mechanism.
+
+**Why the mechanism is implausible.** A two- to three-fold difference in peripheral distribution volume is not expected for a product with the same amino-acid sequence.
+
+## Q8. Why would AUC0-inf inflate the type I error? Is it not the more complete measure?
+
+**Short answer.** NCA AUC0-inf is not the true AUC0-inf. Two biases push the test and reference ratio toward 1 (report Section 5.4, Table 5-7).
+
+**Two sources of bias.**
+
+- **Extrapolation bias.** The extrapolated tail is estimated with a lambda-z that is too small in both arms and dilutes differences toward 1.
+- **Selection bias.** Excluding subjects who fail the reliability criteria removes a subset that depends on the product difference.
+
+**Resulting type I error** (reliable subjects, criteria as pre-specified):
+
+- AUC0-inf + Cmax exceeds 5% in `r G$G2_Aii$n` of 16 boundary scenarios.
+- The Wilson lower bound is above 5% in `r G$G2_Aii$nlo` of them.
+- The largest value is `r G$G2_Aii$mx`.
+
+## Q9. What if AUC0-inf were analysed in all subjects with a lambda-z, or with AUC0-last substituted for unreliable subjects?
+
+**Short answer.** Including all subjects with a lambda-z still inflates the type I error; substituting AUC0-last controls it but is no longer a pure AUC0-inf analysis.
+
+- **All subjects with an estimable lambda-z (rule B).** Exceeds 5% in `r G$G2_B$n` of 16 scenarios (largest `r G$G2_B$mx`), because the extrapolation bias remains.
+- **AUC0-last substituted for subjects failing the criteria (rule C).** Controls the type I error: largest `r G$G2_Cii$mx` with the span criterion and `r G$G2_Ci$mx` without it.
+
+**Proposal.** Rule C mixes two endpoints, so the sponsor proposes it only as a sensitivity analysis of the secondary endpoint.
+
+## Q10. Could a product that differs in target binding pass on AUC0-last but differ in AUC0-inf?
+
+**Short answer.** No AUC endpoint can detect target-binding differences in this product, so binding is addressed analytically rather than through the choice of AUC endpoint.
+
+**Evidence.**
+
+- Varying Km from 0.01-fold to 100-fold in the test arm moves the true AUC0-inf ratio only within `r km_rng` (report Section 5.6).
+- AUC0-inf offers no more sensitivity to binding than AUC0-last.
+
+**Where binding similarity is shown.** In the comparative analytical assessment (binding kinetics and functional assays).
+
+## Q11. How will AUC0-inf be reported?
+
+**Short answer.** As a secondary endpoint.
+
+**Pre-specified methods:**
+
+- lambda-z by Best Fit;
+- reliability criteria of adjusted R-squared at least 0.80 and extrapolation at most 20% (no span-ratio criterion).
+
+**Reporting:**
+
+- the GMR and 90% CI, both in all subjects with an estimable lambda-z and in subjects meeting the criteria;
+- the number, arm and body weight of the excluded subjects;
+- a listing of the individual lambda-z windows;
+- substitution of AUC0-last (rule C) as a sensitivity analysis.
+
+AUC0-inf will not be used for the equivalence decision.
+
+## Q12. Is the study adequately powered?
+
+**Short answer.** Yes. Simulated power is about 99% for identical products.
+
+**Variability assumptions.**
+
+- The simulated log-scale CV of AUC0-last is `r ss("base", "AUClast_logcv")`% (primary model) and `r ss("struct2020", "AUClast_logcv")`% (2020 model).
+- The sample-size assumption is `r ss("Syneos", "AUClast_logcv")`%.
+- The AUC0-last CI reported for a 200 mg device comparison implies about `r ss("Cohen", "AUClast_logcv")`%. That was a different presentation and a heavier population, with a possible device effect.
+
+**Power at `r cfgv("trial_design.yaml", "n_per_arm")` evaluable subjects per arm, identical products:** `r pw$k2016` (primary model) and `r pw$k2020` (2020 model).
+
+**If the Cohen-like variability applied** (a sponsor decision), the sample size should be re-checked.
+
+## Q13. Were the analyses pre-specified? What changed after results were seen?
+
+**Short answer.** The operating-characteristic design was committed before any result; everything added or changed afterwards is listed and reported alongside the pre-specified analyses.
+
+**Pre-specified.** The design (mechanisms, targets, trials, configurations, seeds and the definition of truth) was committed before any result was generated: commit `r substr(vtxt("oc/prereg.csv", "TRUE", "prereg_commit"), 1, 7)`, unchanged since.
+
+**Added or changed afterwards**, with dates and commits in report Appendix D:
+
+- the reliability criteria set without the span ratio;
+- rules B and C for AUC0-inf + Cmax;
+- the extension to 20,000 trials of one scenario;
+- restricting the model validation to the study presentation;
+- replacing the NCA engine by a Phoenix-compatible engine, with all outputs regenerated.
+
+**Reporting.** Pre-specified values are always reported alongside.
+
+## Q14. How was the software verified, and can FDA reproduce the results?
+
+**Verification** (report Section 4.1 and Appendices C and E):
+
+- automated tests against analytical solutions and hand calculations;
+- identical lambda-z windows and parameters compared with NonCompart and PKNCA;
+- an independent re-implementation by a reviewer.
+
+**Reproducing the results.**
+
+- The locked package versions (renv.lock), the configuration files, the seeds and the run logs allow every result to be regenerated with one command.
+- A clean-environment rerun reproduced the committed values within pre-specified tolerances and identical to 8 significant digits.
+- The code, configuration files and results can be provided with the submission; programs can be supplied as text files per the FDA Study Data Technical Conformance Guide.
+
+## Q15. Anti-drug antibodies can accelerate late clearance. Does that affect AUC0-last?
+
+**Short answer.** In an ADA-like sensitivity subgroup, AUC0-last still captured essentially all exposure.
+
+**Evidence** (report Section 5.2; the subgroup's linear clearance doubles after Day 14 in 10% of subjects):
+
+- The median true extrapolation was `r ada(1L, "extrap_true_median")`% (`r ada(0L, "extrap_true_median")`% in the other subjects).
+- The median tlast was `r ada(1L, "tlast_median", 1)` days (`r ada(0L, "tlast_median", 1)` days in the other subjects).
+
+**In the study,** immunogenicity will be assessed descriptively, and the SAP will specify an analysis by ADA status. ADA is not part of the operating-characteristic simulations; this is stated as a limitation.
+
+## Q16. Do the results hold for heavier subjects?
+
+**Short answer.** Coverage by AUC0-last holds across 40 to 150 kg, but the reliability of AUC0-inf declines with weight.
+
+**Evidence** (report Sections 5.3 and 5.8; weight bands of 20,000 subjects each):
+
+- The median true extrapolation ranges from `r sprintf("%s to %s", fnum(min(wb$extrap_true_median), 2), fnum(max(wb$extrap_true_median), 2))`%.
+- AUC0-inf reliability falls from `r fnum(wb[which.min(as.numeric(sub("-.*", "", band)))]$reliable_rsq_extrap_pct, 1)`% to `r fnum(wb[which.max(as.numeric(sub("-.*", "", band)))]$reliable_rsq_extrap_pct, 1)`% across the bands.
+
+**Implication.** An analysis restricted to reliable subjects would under-represent heavier subjects.
+
+```{r trace, include=FALSE}
+reg_trace_write(file.path("..", "tables", "trace_FDA_questions.csv"))
+```
