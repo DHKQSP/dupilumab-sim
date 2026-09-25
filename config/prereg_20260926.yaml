@@ -1,0 +1,76 @@
+# 추가 지시 2026-09-26(임상약리 결정 반영과 잔여 분석)의 사전 등록 (D-053).
+# 동결 규칙: 결과를 바꾸는 항목은 이 파일에 적고 커밋한 뒤에 실행한다. 절마다 그 절의 결과를 만들기 전에 커밋하며,
+# 절별 등록 시점은 이 파일의 git 이력(git log -p config/prereg_20260926.yaml)으로 확인한다. 등록 뒤 바꾼 항목은 이 파일에 "변경"으로 남긴다.
+# 기존 사전 고정 파일(config/oc_design.yaml, 커밋 779e068)은 바꾸지 않는다. 시드 규칙·역산 배율·평가변수 정의는 그 파일과 같다.
+version: 1
+registered_on: "2026-09-25"   # 실제 등록일(git 커밋 시각 기준). 지시문 표기일은 2026-09-26
+directive: "추가 지시 2026-09-26"
+release_after_completion: v1.0.1
+
+# ---------------------------------------------------------------------------------------------------------------------
+# §1 분석 모형 재판정 (근거: ICH E9 5.7 층화 무작위배정 인자를 분석에서 고려, FDA 2023 공변량 보정 가이던스)
+section1:
+  question: "log 척도 pooled t(M0)와 체중 층 보정 ANOVA(M1)·log 체중 ANCOVA(M2)에서 경계 1종 오류, 분류, 시험 간 SD / 시험 안 SE, 검정력이 어떻게 달라지는가"
+  analysis_models_run: [M0, M1, M2]
+  analysis_models:
+    M0: {label: "pooled two-sample t on the log scale (current)", formula: "log(Y) ~ treatment", df: "n_R + n_T - 2", role: "current analysis; reference"}
+    M1: {label: "log-scale ANOVA with treatment and body-weight stratum", formula: "log(Y) ~ treatment + stratum",
+         stratum: "randomization stratum recorded at allocation: 60-75 kg and >75-90 kg (trial_design.yaml stratification.split_kg = 75; right-closed)",
+         df: "n_R + n_T - 3", role: "primary-analysis candidate (stratification factor of the randomization in the model)"}
+    M2: {label: "log-scale ANCOVA with treatment and log body weight", formula: "log(Y) ~ treatment + log(WT)", df: "n_R + n_T - 3", role: "sensitivity"}
+  common:
+    ci: "90% two-sided t interval for the treatment effect on the log scale, back-transformed; pass = interval within 80.00-125.00%"
+    subjects: "per endpoint the same evaluable subjects as M0 (rule A excludes flagged subjects; the models are fitted to the subjects with a positive value)"
+    no_interaction: "no treatment x stratum or treatment x weight interaction"
+    not_estimable: "if the design matrix is singular (for example a stratum empty within an endpoint's evaluable set) the model is not estimable and the endpoint counts as not passing, as for M0 with fewer than 2 subjects per arm; the count is reported"
+    implementation: "closed-form normal equations (R/oc_models.R be_models_fast), checked against lm/confint in tests/testthat/test-oc-models.R"
+  pk_models: [k2016, k2020]
+  master_seed: 20260923            # oc_design.yaml trials$master_seed (같은 값이어야 한다; scripts/44가 검사)
+  scenarios:
+    identity: S00
+    boundary: "the 8 boundary cells per PK model: results/oc/inversion_<model>_*.csv reachable rows at targets 0.80 and 1.25 (same multipliers as scripts/31, 40, 42)"
+    products:
+      F097: {F: 0.97}              # config/scenarios.yaml F097(시험군 F × 0.97)
+  trials: [1, 10000]               # 모든 시나리오 시험 1-10,000 (oc_design.yaml reps_boundary)
+  extension:
+    config: P2
+    threshold_pct: 5
+    analysis_models: [M0, M1]
+    to: 20000
+    rule: "D-048 rule applied per analysis model: if the Wilson 95% interval of the P2 boundary type I error at the pre-fixed 10,000 trials includes 5% (lo <= 5 <= hi) under M0 or under M1, the boundary cell is extended to trials 10,001-20,000 (single-cell scenario list, same seeds); all three analysis models are then reported at 20,000 trials, with the 10,000-trial values alongside"
+  verification:
+    - "M0 regenerated for S00 and the 8 boundary cells equals results/oc/oc_rejudge_be_<model>.csv.gz for all 8 endpoints and trials 1-10,000 (relative difference <= 1e-6 on GMR and CI because the stored file has 7 significant digits; pass, n_R, n_T identical)"
+    - "M0 of an extended cell equals results/oc/oc_trials_ext_be_<model>.csv.gz where that file has the cell (k2020 V2_up_080, trials 10,001-20,000); otherwise trial 10,000 regenerated with the single-cell list equals the stored row"
+    - "M0 of F097 equals the stored product runs for the 6 original endpoints: k2016 results/trials5000/products5000_be_raw_base.csv.gz trials 1-5,000; k2020 results/trials/products_be_raw_struct2020.csv.gz trials 1-500 (relative difference <= 1e-12)"
+    - "any mismatch stops the run before writing"
+  configurations: [P2, G2_Aii, G2_Ai, G2_B, G2_Cii, G2_Ci, F3A, F3B, F3C, AUClast_only, AUCinf_true_only]
+  configuration_endpoints:
+    P2: [AUClast, Cmax]
+    G2_Aii: [AUCinf_A, Cmax]
+    G2_Ai: [AUCinf_Ai, Cmax]
+    G2_B: [AUCinf_B, Cmax]
+    G2_Cii: [AUCinf_C, Cmax]
+    G2_Ci: [AUCinf_Ci, Cmax]
+    F3A: [AUClast, Cmax, AUCinf_A]
+    F3B: [AUClast, Cmax, AUCinf_B]
+    F3C: [AUClast, Cmax, AUCinf_C]
+    AUClast_only: [AUClast]
+    AUCinf_true_only: [AUCinf_true]
+  outputs:
+    type1: "boundary type I error = pass % at the 16 boundary cells, per analysis model and configuration, Wilson 95% interval"
+    classification: "Wilson 95% interval versus 5%: upper < 5 conservative, lower > 5 exceeding, otherwise nominal (R/oc_interpret.R classify_type1)"
+    paired_change: "M1 minus M0 and M2 minus M0 in pass % on the same trials, paired 95% interval"
+    sd_se: "between-trial SD of the log GMR / median within-trial SE, per cell, endpoint and analysis model (se taken directly from the fit)"
+    power: "pass % in S00 (identical products) and F097, per configuration and analysis model, Wilson 95% interval; paired change versus M0"
+    decomposition: "P2 - 5 = (AUCinf_true only - 5) + (AUClast only - AUCinf_true only) + (P2 - AUClast only), percentage points, per cell and analysis model"
+    bias: "mean log GMR minus log true ratio (AUC endpoints versus the true AUC0-inf ratio, Cmax versus the true Cmax ratio), Monte Carlo 95% interval"
+  expectations_recorded_before_results:   # 사용자 예상(지시문), 결과 전에 기록. 결과와 대조해 보고한다
+    - "under M1 the unbiased reference (AUCinf_true only) is close to 5% and the SD/SE ratio is close to 1"
+    - "P2 rises slightly under M1 compared with M0"
+    - "the Model 1 (k2020) V2 x2.28 cell may reach about 5.6% under M1 (exceeding)"
+  reporting_rule: "if any P2 cell has a point estimate above 5% under any analysis model, the first paragraph of the conclusions states for each such cell: mechanism and direction, multiplier, size (pass %), Wilson 95% interval, analysis model, and the quantitative cause (bias of the AUClast GMR toward 1 in % and the decomposition terms in percentage points); plausibility is stated as facts only (the mechanism requires a peripheral volume of distribution at least about 2-fold that of the reference for an IgG4 antibody with the same amino acid sequence)"
+  decision_owner: "the choice of the primary analysis model is the sponsor's; the report shows M0 and M1 side by side"
+  out_dir: results/oc_models
+  scripts: [scripts/44_oc_models.R, scripts/45_oc_models_summary.R]
+
+# §2 LLOQ 범위 민감도, §3 표본 수 표: 각 절의 결과를 만들기 전에 이 파일에 추가하고 커밋한다.
