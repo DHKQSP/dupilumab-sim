@@ -1,0 +1,15 @@
+Software,Version,Role
+R,4.3.3,Computing environment
+rxode2,5.1.7,ODE solution of the PK models
+data.table,1.14.10,Data handling
+NonCompart,0.8.4,Reference NCA implementation (verification)
+PKNCA,0.12.1,Second reference NCA implementation (verification)
+digest,0.6.34,Seed derivation and SHA-256
+yaml,2.3.8,Configuration files
+ggplot2,3.4.4,Figures
+patchwork,1.2.0,Figure layout
+knitr,1.45,Report generation
+rmarkdown,2.25,Report generation
+testthat,3.2.1,Automated tests
+renv,1.2.4,Package version locking
+Own code,this repository,"Virtual population, sampling, NCA (Phoenix WinNonlin-compatible rules), equivalence statistics, operating characteristics (R/, scripts/)"

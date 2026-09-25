@@ -1,0 +1,17 @@
+label_in_result_file,english_code
+생산자 위험(범위 안 불통과),producer
+소비자 위험(범위 밖 통과),consumer
+경계 근처,near_boundary
+전체,all
+AUC0-inf·Cmax 모두,AUC0-inf and Cmax
+동일,identical
+경계,boundary
+범위 밖,outside
+범위 안,inside
+체중 60-75,weight 60-75
+체중 >75-90,weight >75-90
+Theoph (12명),Theoph (12 profiles)
+"Indometh (6명, 혈관외 규칙)","Indometh (6 profiles, extravascular rules)"
+"두필루맙 모의 1,000개 (2016 500 + Model 1 500)","simulated dupilumab (1,000 profiles: 500 per model)"
+자체 vs NonCompart,this engine vs NonCompart
+자체 vs PKNCA,this engine vs PKNCA
