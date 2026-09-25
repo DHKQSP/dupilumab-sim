@@ -1,0 +1,5 @@
+expectation,criterion,observed,consistent
+M1: unbiased reference (AUCinf_true only) close to 5%,pooled 16-cell Wilson 95% interval includes 5% and every cell within 4-6%,"pooled 5.01% [4.90, 5.11]; cells 4.53 to 5.83% (M0 4.12 to 5.43%)",TRUE
+M1: between-trial SD / within-trial SE close to 1,every cell within 0.97-1.03 (AUCinf_true),M1 0.991 to 1.020 (M0 0.961 to 0.993),TRUE
+P2 rises slightly under M1,M1 minus M0 > 0 in at least 14 of 16 cells and mean rise above 0 and at most 1.5 points,M1 minus M0 > 0 in 14 of 16 cells; mean +0.30 points (range +0.00 to +0.45),TRUE
+Model 1 V2 x2.28 cell about 5.6% under M1 (exceeding),point estimate within 5.6 +/- 0.3%,"5.63% [5.31, 5.95], exceeding, 20,000 trials (M0 5.18% [4.88, 5.50], nominal)",TRUE

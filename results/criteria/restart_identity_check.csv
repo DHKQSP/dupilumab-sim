@@ -1,0 +1,3 @@
+pk_model,trials_compared,rows_run1,rows_matched,identical_rows,ok
+k2016,5000,1200000,1200000,1200000,TRUE
+k2020,3500,840000,840000,840000,TRUE

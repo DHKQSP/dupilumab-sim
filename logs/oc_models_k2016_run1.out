@@ -1,0 +1,12 @@
+run log: /home/user/dupilumab-sim/logs/oc_models_k2016_20260925T100042.log
+k2016 main: 10 scenarios (S00,F_down_080,F_up_125,ka_down_080,ke_down_125,ke_up_080,V2_up_080,Vmax_down_125,Vmax_up_080,F097), trials 1-10000, cores 2, output /home/user/dupilumab-sim/results/oc_models/oc_models_be_k2016.csv.gz 
+trials 1-500 (10 scenarios x 8 endpoints x 3 models) done in 4.740886 mins; M0 matched the stored rows (oc_rejudge_be, F097 products trials 1-500) 
+trials 501-1000 (10 scenarios x 8 endpoints x 3 models) done in 4.831169 mins; M0 matched the stored rows (oc_rejudge_be, F097 products trials 501-1000) 
+trials 1001-1500 (10 scenarios x 8 endpoints x 3 models) done in 5.304384 mins; M0 matched the stored rows (oc_rejudge_be, F097 products trials 1001-1500) 
+trials 1501-2000 (10 scenarios x 8 endpoints x 3 models) done in 4.739468 mins; M0 matched the stored rows (oc_rejudge_be, F097 products trials 1501-2000) 
+trials 2001-2500 (10 scenarios x 8 endpoints x 3 models) done in 4.873626 mins; M0 matched the stored rows (oc_rejudge_be, F097 products trials 2001-2500) 
+trials 2501-3000 (10 scenarios x 8 endpoints x 3 models) done in 5.983698 mins; M0 matched the stored rows (oc_rejudge_be, F097 products trials 2501-3000) 
+trials 3001-3500 (10 scenarios x 8 endpoints x 3 models) done in 6.335819 mins; M0 matched the stored rows (oc_rejudge_be, F097 products trials 3001-3500) 
+trials 3501-4000 (10 scenarios x 8 endpoints x 3 models) done in 6.29682 mins; M0 matched the stored rows (oc_rejudge_be, F097 products trials 3501-4000) 
+trials 4001-4500 (10 scenarios x 8 endpoints x 3 models) done in 8.033325 mins; M0 matched the stored rows (oc_rejudge_be, F097 products trials 4001-4500) 
+trials 4501-5000 (10 scenarios x 8 endpoints x 3 models) done in 7.185796 mins; M0 matched the stored rows (oc_rejudge_be, F097 products trials 4501-5000) 

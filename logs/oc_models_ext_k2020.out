@@ -1,0 +1,39 @@
+run log: /home/user/dupilumab-sim/logs/oc_models_ext_k2020_20260925T143819.log
+k2020 F_down_080 M0: P2 3.70% [3.35, 4.09] at 10000 trials -> rule not met 
+k2020 F_down_080 M1: P2 4.10% [3.73, 4.51] at 10000 trials -> rule not met 
+k2020 F_up_125 M0: P2 3.41% [3.07, 3.78] at 10000 trials -> rule not met 
+k2020 F_up_125 M1: P2 3.79% [3.43, 4.18] at 10000 trials -> rule not met 
+k2020 V2_up_080 M0: P2 5.32% [4.90, 5.78] at 10000 trials -> rule met 
+k2020 V2_up_080 M1: P2 5.74% [5.30, 6.21] at 10000 trials -> rule not met 
+k2020 Vmax_down_125 M0: P2 2.72% [2.42, 3.06] at 10000 trials -> rule not met 
+k2020 Vmax_down_125 M1: P2 3.01% [2.69, 3.36] at 10000 trials -> rule not met 
+k2020 Vmax_up_080 M0: P2 2.76% [2.46, 3.10] at 10000 trials -> rule not met 
+k2020 Vmax_up_080 M1: P2 2.96% [2.65, 3.31] at 10000 trials -> rule not met 
+k2020 ka_down_080 M0: P2 0.00% [0.00, 0.04] at 10000 trials -> rule not met 
+k2020 ka_down_080 M1: P2 0.00% [0.00, 0.04] at 10000 trials -> rule not met 
+k2020 ke_down_125 M0: P2 3.68% [3.33, 4.07] at 10000 trials -> rule not met 
+k2020 ke_down_125 M1: P2 4.05% [3.68, 4.45] at 10000 trials -> rule not met 
+k2020 ke_up_080 M0: P2 3.77% [3.41, 4.16] at 10000 trials -> rule not met 
+k2020 ke_up_080 M1: P2 4.10% [3.73, 4.51] at 10000 trials -> rule not met 
+k2020 V2_up_080: trial 10000 reproduced; extending trials 10001-20000 (M0 checked against oc_trials_ext_be_k2020.csv.gz, stored trials 10001-20000) 
+k2020 V2_up_080: trials 10001-10500 done in 3.815254 mins; M0 matched the stored extension rows 
+k2020 V2_up_080: trials 10501-11000 done in 3.711332 mins; M0 matched the stored extension rows 
+k2020 V2_up_080: trials 11001-11500 done in 3.724479 mins; M0 matched the stored extension rows 
+k2020 V2_up_080: trials 11501-12000 done in 3.510899 mins; M0 matched the stored extension rows 
+k2020 V2_up_080: trials 12001-12500 done in 2.631398 mins; M0 matched the stored extension rows 
+k2020 V2_up_080: trials 12501-13000 done in 2.589086 mins; M0 matched the stored extension rows 
+k2020 V2_up_080: trials 13001-13500 done in 2.648303 mins; M0 matched the stored extension rows 
+k2020 V2_up_080: trials 13501-14000 done in 2.647264 mins; M0 matched the stored extension rows 
+k2020 V2_up_080: trials 14001-14500 done in 2.602565 mins; M0 matched the stored extension rows 
+k2020 V2_up_080: trials 14501-15000 done in 2.494663 mins; M0 matched the stored extension rows 
+k2020 V2_up_080: trials 15001-15500 done in 2.527075 mins; M0 matched the stored extension rows 
+k2020 V2_up_080: trials 15501-16000 done in 2.340545 mins; M0 matched the stored extension rows 
+k2020 V2_up_080: trials 16001-16500 done in 1.862125 mins; M0 matched the stored extension rows 
+k2020 V2_up_080: trials 16501-17000 done in 1.844586 mins; M0 matched the stored extension rows 
+k2020 V2_up_080: trials 17001-17500 done in 1.833856 mins; M0 matched the stored extension rows 
+k2020 V2_up_080: trials 17501-18000 done in 1.865152 mins; M0 matched the stored extension rows 
+k2020 V2_up_080: trials 18001-18500 done in 1.822967 mins; M0 matched the stored extension rows 
+k2020 V2_up_080: trials 18501-19000 done in 1.82386 mins; M0 matched the stored extension rows 
+k2020 V2_up_080: trials 19001-19500 done in 1.834727 mins; M0 matched the stored extension rows 
+k2020 V2_up_080: trials 19501-20000 done in 1.83827 mins; M0 matched the stored extension rows 
+done: extension output /home/user/dupilumab-sim/results/oc_models/oc_models_ext_be_k2020.csv.gz 

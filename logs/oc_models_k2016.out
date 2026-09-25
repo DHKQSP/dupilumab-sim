@@ -1,0 +1,23 @@
+run log: /home/user/dupilumab-sim/logs/oc_models_k2016_20260925T110531.log
+k2016 main: 10 scenarios (S00,F_down_080,F_up_125,ka_down_080,ke_down_125,ke_up_080,V2_up_080,Vmax_down_125,Vmax_up_080,F097), trials 1-10000, cores 2, output /home/user/dupilumab-sim/results/oc_models/oc_models_be_k2016.csv.gz 
+trials 1-500 (10 scenarios x 8 endpoints x 3 models; criteria sets iii-iv in the crit file) done in 9.141189 mins; M0 matched the stored rows (oc_rejudge_be, F097 products trials 1-500) 
+trials 501-1000 (10 scenarios x 8 endpoints x 3 models; criteria sets iii-iv in the crit file) done in 13.61819 mins; M0 matched the stored rows (oc_rejudge_be, F097 products trials 501-1000) 
+trials 1001-1500 (10 scenarios x 8 endpoints x 3 models; criteria sets iii-iv in the crit file) done in 10.6675 mins; M0 matched the stored rows (oc_rejudge_be, F097 products trials 1001-1500) 
+trials 1501-2000 (10 scenarios x 8 endpoints x 3 models; criteria sets iii-iv in the crit file) done in 10.68541 mins; M0 matched the stored rows (oc_rejudge_be, F097 products trials 1501-2000) 
+trials 2001-2500 (10 scenarios x 8 endpoints x 3 models; criteria sets iii-iv in the crit file) done in 9.242852 mins; M0 matched the stored rows (oc_rejudge_be, F097 products trials 2001-2500) 
+trials 2501-3000 (10 scenarios x 8 endpoints x 3 models; criteria sets iii-iv in the crit file) done in 6.54431 mins; M0 matched the stored rows (oc_rejudge_be, F097 products trials 2501-3000) 
+trials 3001-3500 (10 scenarios x 8 endpoints x 3 models; criteria sets iii-iv in the crit file) done in 6.037951 mins; M0 matched the stored rows (oc_rejudge_be, F097 products trials 3001-3500) 
+trials 3501-4000 (10 scenarios x 8 endpoints x 3 models; criteria sets iii-iv in the crit file) done in 5.346226 mins; M0 matched the stored rows (oc_rejudge_be, F097 products trials 3501-4000) 
+trials 4001-4500 (10 scenarios x 8 endpoints x 3 models; criteria sets iii-iv in the crit file) done in 4.78848 mins; M0 matched the stored rows (oc_rejudge_be, F097 products trials 4001-4500) 
+trials 4501-5000 (10 scenarios x 8 endpoints x 3 models; criteria sets iii-iv in the crit file) done in 4.743227 mins; M0 matched the stored rows (oc_rejudge_be, F097 products trials 4501-5000) 
+trials 5001-5500 (10 scenarios x 8 endpoints x 3 models; criteria sets iii-iv in the crit file) done in 4.757525 mins; M0 matched the stored rows (oc_rejudge_be) 
+trials 5501-6000 (10 scenarios x 8 endpoints x 3 models; criteria sets iii-iv in the crit file) done in 4.733037 mins; M0 matched the stored rows (oc_rejudge_be) 
+trials 6001-6500 (10 scenarios x 8 endpoints x 3 models; criteria sets iii-iv in the crit file) done in 4.745698 mins; M0 matched the stored rows (oc_rejudge_be) 
+trials 6501-7000 (10 scenarios x 8 endpoints x 3 models; criteria sets iii-iv in the crit file) done in 4.931702 mins; M0 matched the stored rows (oc_rejudge_be) 
+trials 7001-7500 (10 scenarios x 8 endpoints x 3 models; criteria sets iii-iv in the crit file) done in 9.737426 mins; M0 matched the stored rows (oc_rejudge_be) 
+trials 7501-8000 (10 scenarios x 8 endpoints x 3 models; criteria sets iii-iv in the crit file) done in 9.603993 mins; M0 matched the stored rows (oc_rejudge_be) 
+trials 8001-8500 (10 scenarios x 8 endpoints x 3 models; criteria sets iii-iv in the crit file) done in 9.38775 mins; M0 matched the stored rows (oc_rejudge_be) 
+trials 8501-9000 (10 scenarios x 8 endpoints x 3 models; criteria sets iii-iv in the crit file) done in 9.619377 mins; M0 matched the stored rows (oc_rejudge_be) 
+trials 9001-9500 (10 scenarios x 8 endpoints x 3 models; criteria sets iii-iv in the crit file) done in 9.484923 mins; M0 matched the stored rows (oc_rejudge_be) 
+trials 9501-10000 (10 scenarios x 8 endpoints x 3 models; criteria sets iii-iv in the crit file) done in 9.471418 mins; M0 matched the stored rows (oc_rejudge_be) 
+done: M0 matched 720000 stored oc_rejudge_be rows and 30000 stored F097 product rows; output /home/user/dupilumab-sim/results/oc_models/oc_models_be_k2016.csv.gz 

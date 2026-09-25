@@ -1,0 +1,112 @@
+   model n_scen n_pre_min n_pre_max complete has_ext        ext_scen
+1: k2016      8     10000     10000     TRUE   FALSE                
+2: k2020      8     10000     10000     TRUE    TRUE V2_up_080:10000
+   n_incomplete_main n_incomplete_ext
+1:                 0                0
+2:                 0                0
+    model      scenario           config n_trials pass_pct   lo   hi
+ 1: k2016    F_down_080               P2    10000     3.71 3.36 4.10
+ 2: k2016    F_down_080     AUClast_only    10000     3.80 3.44 4.19
+ 3: k2016    F_down_080 AUCinf_true_only    10000     4.48 4.09 4.90
+ 4: k2016     V2_up_080               P2    10000     3.97 3.60 4.37
+ 5: k2016     V2_up_080     AUClast_only    10000     3.97 3.60 4.37
+ 6: k2016     V2_up_080 AUCinf_true_only    10000     4.39 4.01 4.81
+ 7: k2016   Vmax_up_080               P2    10000     2.25 1.98 2.56
+ 8: k2016   Vmax_up_080     AUClast_only    10000     2.25 1.98 2.56
+ 9: k2016   Vmax_up_080 AUCinf_true_only    10000     4.64 4.24 5.07
+10: k2016   ka_down_080               P2    10000     0.00 0.00 0.04
+11: k2016   ka_down_080     AUClast_only    10000     4.74 4.34 5.17
+12: k2016   ka_down_080 AUCinf_true_only    10000     5.11 4.70 5.56
+13: k2016     ke_up_080               P2    10000     3.67 3.32 4.06
+14: k2016     ke_up_080     AUClast_only    10000     3.67 3.32 4.06
+15: k2016     ke_up_080 AUCinf_true_only    10000     4.62 4.23 5.05
+16: k2016      F_up_125               P2    10000     3.24 2.91 3.61
+17: k2016      F_up_125     AUClast_only    10000     3.34 3.01 3.71
+18: k2016      F_up_125 AUCinf_true_only    10000     4.33 3.95 4.75
+19: k2016 Vmax_down_125               P2    10000     2.67 2.37 3.00
+20: k2016 Vmax_down_125     AUClast_only    10000     2.67 2.37 3.00
+21: k2016 Vmax_down_125 AUCinf_true_only    10000     4.12 3.75 4.53
+22: k2016   ke_down_125               P2    10000     3.37 3.03 3.74
+23: k2016   ke_down_125     AUClast_only    10000     3.37 3.03 3.74
+24: k2016   ke_down_125 AUCinf_true_only    10000     4.55 4.16 4.98
+25: k2020    F_down_080               P2    10000     3.70 3.35 4.09
+26: k2020    F_down_080     AUClast_only    10000     3.74 3.39 4.13
+27: k2020    F_down_080 AUCinf_true_only    10000     4.61 4.22 5.04
+28: k2020     V2_up_080               P2    20000     5.18 4.88 5.50
+29: k2020     V2_up_080     AUClast_only    20000     5.20 4.90 5.51
+30: k2020     V2_up_080 AUCinf_true_only    20000     4.58 4.30 4.88
+31: k2020   Vmax_up_080               P2    10000     2.76 2.46 3.10
+32: k2020   Vmax_up_080     AUClast_only    10000     2.76 2.46 3.10
+33: k2020   Vmax_up_080 AUCinf_true_only    10000     4.75 4.35 5.18
+34: k2020   ka_down_080               P2    10000     0.00 0.00 0.04
+35: k2020   ka_down_080     AUClast_only    10000     5.07 4.66 5.52
+36: k2020   ka_down_080 AUCinf_true_only    10000     5.43 5.00 5.89
+37: k2020     ke_up_080               P2    10000     3.77 3.41 4.16
+38: k2020     ke_up_080     AUClast_only    10000     3.77 3.41 4.16
+39: k2020     ke_up_080 AUCinf_true_only    10000     4.67 4.27 5.10
+40: k2020      F_up_125               P2    10000     3.41 3.07 3.78
+41: k2020      F_up_125     AUClast_only    10000     3.43 3.09 3.80
+42: k2020      F_up_125 AUCinf_true_only    10000     4.32 3.94 4.74
+43: k2020 Vmax_down_125               P2    10000     2.72 2.42 3.06
+44: k2020 Vmax_down_125     AUClast_only    10000     2.72 2.42 3.06
+45: k2020 Vmax_down_125 AUCinf_true_only    10000     4.24 3.86 4.65
+46: k2020   ke_down_125               P2    10000     3.68 3.33 4.07
+47: k2020   ke_down_125     AUClast_only    10000     3.68 3.33 4.07
+48: k2020   ke_down_125 AUCinf_true_only    10000     4.42 4.03 4.84
+    model      scenario           config n_trials pass_pct   lo   hi
+           class bias_pct    bias_dir
+ 1: conservative   -0.506 away_from_1
+ 2: conservative   -0.506 away_from_1
+ 3: conservative    0.015        none
+ 4: conservative   -0.304 away_from_1
+ 5: conservative   -0.304 away_from_1
+ 6: conservative    0.017        none
+ 7: conservative   -1.502 away_from_1
+ 8: conservative   -1.502 away_from_1
+ 9:      nominal    0.020        none
+10: conservative   -0.228 away_from_1
+11:      nominal   -0.228 away_from_1
+12:      nominal    0.015        none
+13: conservative   -0.571 away_from_1
+14: conservative   -0.571 away_from_1
+15:      nominal    0.007        none
+16: conservative    0.483 away_from_1
+17: conservative    0.483 away_from_1
+18: conservative    0.008        none
+19: conservative    0.915 away_from_1
+20: conservative    0.915 away_from_1
+21: conservative    0.004        none
+22: conservative    0.498 away_from_1
+23: conservative    0.498 away_from_1
+24: conservative    0.017        none
+25: conservative   -0.462 away_from_1
+26: conservative   -0.462 away_from_1
+27:      nominal    0.009        none
+28:      nominal    0.412    toward_1
+29:      nominal    0.412    toward_1
+30: conservative    0.017        none
+31: conservative   -1.336 away_from_1
+32: conservative   -1.336 away_from_1
+33:      nominal    0.020        none
+34: conservative   -0.242 away_from_1
+35:      nominal   -0.242 away_from_1
+36:    exceeding    0.033        none
+37: conservative   -0.548 away_from_1
+38: conservative   -0.548 away_from_1
+39:      nominal   -0.007        none
+40: conservative    0.400 away_from_1
+41: conservative    0.400 away_from_1
+42: conservative   -0.003        none
+43: conservative    0.733 away_from_1
+44: conservative    0.733 away_from_1
+45: conservative   -0.013        none
+46: conservative    0.342 away_from_1
+47: conservative    0.342 away_from_1
+48: conservative    0.016        none
+           class bias_pct    bias_dir
+theory at boundary: 4.9999922 - 5.0000000  far max 7.8e-08 
+scripts/33 check: checked final 
+written:
+  /home/user/dupilumab-sim/results/oc/p2_interpretation.csv
+  /home/user/dupilumab-sim/results/oc/p2_interpretation_ko.md
+  /home/user/dupilumab-sim/results/oc/p2_interpretation_en.md

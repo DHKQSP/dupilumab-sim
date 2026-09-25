@@ -1,0 +1,109 @@
+run_name: oc_models_ext_k2020
+started_utc: 2026-09-25 14:38:19
+run_mode: final
+master_seed: 20260923
+seed_rule_version: 1
+git_sha: 80a3431a7b8b769d955acc288592524b3d0c6258
+git_code_clean: TRUE
+R_version: R version 4.3.3 (2024-02-29)
+rxode2: 5.1.7
+BEmaster: not installed
+config_sha256:
+  assay.yaml: 13bb4e6e5a604962f3e30a9f31dffb53fcfcaa71272e41d6a12413c1cec26604
+  crossval_reference.yaml: 4a8ee97a00c6c0ecc2c42373c8d21099adbfc833d3b6e4b1abfbf714653549de
+  design_clot2021.yaml: 4b3ddc374dfbf3f451d3fe3d6a865645b0b5d93b0ea7eea9a3f24cd8d2f05da5
+  gate_decision.yaml: fec8e5a4376e78560e2945be2c69db22e63e6b6731a2413101efa1ac58cb1838
+  nca_rules.yaml: 0f53d9e003bf1df504df24201f06301cabe423babd1078def5c5a4b3b2c1db94
+  oc_design.yaml: 629011b264fbc4c3f03f8a3989bac1f2711d49959f3268f5e8f758c80f93ea0a
+  params_k2020_model1.yaml: b6e3816238f158ab76cda1edfc4ce9ae49b53fdd4836de8be36bd64664dca96f
+  params_typical.yaml: 0661b248227771273d5c58c86c61f35ef655fdeecebe3f188868fd61cff4b801
+  params_variability.yaml: b849a4cc3acc6d47f9833392ac4f47ebacc6ad9fa79fcc5848628fd4b5aa99a9
+  population_atopic.yaml: a5e5356587a4727996496d247df2f1b007adb6fe7e7a9f98ce81388040495abb
+  prereg_20260926.yaml: dc2c9f1bd4d62e13ad9f5f551dcf97eb7ee1359ba13aaa3af8efc063dfc6303e
+  repro_check.yaml: a5e8401417d3dd780a21876356e654a5c6b270f9d50eb47de942105cb34d2756
+  repro_request.yaml: 0e85501d9e970a1b51dfa4f347f196c7fbd38b3908c4e629ce54451938094eb3
+  scenarios.yaml: 7243c4f34f21614eccae4c143ba05b8a9eb9183a76770cfce7153ef30a5dc17c
+  schedule_decision.yaml: de62d815c54d33e4016ed7fdb535ede38ae9c0a6350ef8e7e0a26cb5dd9572b2
+  trial_design.yaml: 553eceab74155a3497fef1ab587f3b8d2be1319704e17ae1f0e177601726e84f
+extra:
+  model: k2020
+  mode: ext
+  rule: D-048 rule applied per analysis model: if the Wilson 95% interval of the P2 boundary type I error at the pre-fixed 10,000 trials includes 5% (lo <= 5 <= hi) under M0 or under M1, the boundary cell is extended to trials 10,001-20,000 (single-cell scenario list, same seeds); all three analysis models are then reported at 20,000 trials, with the 10,000-trial values alongside
+  selected: V2_up_080
+  trial_from: 10001
+  trial_to: 20000
+  cores: 2
+session_info:
+  R version 4.3.3 (2024-02-29)
+  Platform: x86_64-pc-linux-gnu (64-bit)
+  Running under: Ubuntu 24.04.4 LTS
+  
+  Matrix products: default
+  BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+  LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0
+  
+  locale:
+   [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       
+   [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   
+   [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          
+  [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   
+  
+  time zone: Etc/UTC
+  tzcode source: system (glibc)
+  
+  attached base packages:
+  [1] stats     graphics  grDevices datasets  utils     methods   base     
+  
+  other attached packages:
+  [1] digest_0.6.34      data.table_1.14.10 yaml_2.3.8        
+  
+  loaded via a namespace (and not attached):
+   [1] gtable_0.3.4       dplyr_1.1.4        compiler_4.3.3     renv_1.2.4        
+   [5] crayon_1.5.2       tidyselect_1.2.0   Rcpp_1.1.2         scales_1.3.0      
+   [9] fastmap_1.1.1      ggplot2_3.4.4      R6_2.5.1           generics_0.1.3    
+  [13] knitr_1.45         backports_1.4.1    checkmate_2.3.1    tibble_3.2.1      
+  [17] munsell_0.5.0      pillar_1.9.0       R.utils_2.12.3     rlang_1.1.3       
+  [21] utf8_1.2.4         cachem_1.0.8       xfun_0.41          sys_3.4.2         
+  [25] RcppParallel_6.2.1 memoise_2.0.1      cli_3.6.2          magrittr_2.0.3    
+  [29] grid_4.3.3         rxode2ll_2.0.18    lotri_1.0.5        lifecycle_1.0.4   
+  [33] dparser_1.3.1-13   R.oo_1.26.0        R.methodsS3_1.8.2  vctrs_0.6.5       
+  [37] glue_1.7.0         rxode2_5.1.7       PreciseSums_0.7    fansi_1.0.5       
+  [41] colorspace_2.1-0   tools_4.3.3        pkgconfig_2.0.3   
+[14:38:19] k2020 F_down_080 M0: P2 3.70% [3.35, 4.09] at 10000 trials -> rule not met
+[14:38:19] k2020 F_down_080 M1: P2 4.10% [3.73, 4.51] at 10000 trials -> rule not met
+[14:38:19] k2020 F_up_125 M0: P2 3.41% [3.07, 3.78] at 10000 trials -> rule not met
+[14:38:19] k2020 F_up_125 M1: P2 3.79% [3.43, 4.18] at 10000 trials -> rule not met
+[14:38:19] k2020 V2_up_080 M0: P2 5.32% [4.90, 5.78] at 10000 trials -> rule met
+[14:38:19] k2020 V2_up_080 M1: P2 5.74% [5.30, 6.21] at 10000 trials -> rule not met
+[14:38:19] k2020 Vmax_down_125 M0: P2 2.72% [2.42, 3.06] at 10000 trials -> rule not met
+[14:38:19] k2020 Vmax_down_125 M1: P2 3.01% [2.69, 3.36] at 10000 trials -> rule not met
+[14:38:19] k2020 Vmax_up_080 M0: P2 2.76% [2.46, 3.10] at 10000 trials -> rule not met
+[14:38:19] k2020 Vmax_up_080 M1: P2 2.96% [2.65, 3.31] at 10000 trials -> rule not met
+[14:38:19] k2020 ka_down_080 M0: P2 0.00% [0.00, 0.04] at 10000 trials -> rule not met
+[14:38:19] k2020 ka_down_080 M1: P2 0.00% [0.00, 0.04] at 10000 trials -> rule not met
+[14:38:19] k2020 ke_down_125 M0: P2 3.68% [3.33, 4.07] at 10000 trials -> rule not met
+[14:38:19] k2020 ke_down_125 M1: P2 4.05% [3.68, 4.45] at 10000 trials -> rule not met
+[14:38:19] k2020 ke_up_080 M0: P2 3.77% [3.41, 4.16] at 10000 trials -> rule not met
+[14:38:19] k2020 ke_up_080 M1: P2 4.10% [3.73, 4.51] at 10000 trials -> rule not met
+[14:38:23] k2020 V2_up_080: trial 10000 reproduced; extending trials 10001-20000 (M0 checked against oc_trials_ext_be_k2020.csv.gz, stored trials 10001-20000)
+[14:42:12] k2020 V2_up_080: trials 10001-10500 done in 3.815254 mins; M0 matched the stored extension rows
+[14:45:54] k2020 V2_up_080: trials 10501-11000 done in 3.711332 mins; M0 matched the stored extension rows
+[14:49:38] k2020 V2_up_080: trials 11001-11500 done in 3.724479 mins; M0 matched the stored extension rows
+[14:53:09] k2020 V2_up_080: trials 11501-12000 done in 3.510899 mins; M0 matched the stored extension rows
+[14:55:46] k2020 V2_up_080: trials 12001-12500 done in 2.631398 mins; M0 matched the stored extension rows
+[14:58:22] k2020 V2_up_080: trials 12501-13000 done in 2.589086 mins; M0 matched the stored extension rows
+[15:01:01] k2020 V2_up_080: trials 13001-13500 done in 2.648303 mins; M0 matched the stored extension rows
+[15:03:40] k2020 V2_up_080: trials 13501-14000 done in 2.647264 mins; M0 matched the stored extension rows
+[15:06:16] k2020 V2_up_080: trials 14001-14500 done in 2.602565 mins; M0 matched the stored extension rows
+[15:08:45] k2020 V2_up_080: trials 14501-15000 done in 2.494663 mins; M0 matched the stored extension rows
+[15:11:17] k2020 V2_up_080: trials 15001-15500 done in 2.527075 mins; M0 matched the stored extension rows
+[15:13:37] k2020 V2_up_080: trials 15501-16000 done in 2.340545 mins; M0 matched the stored extension rows
+[15:15:29] k2020 V2_up_080: trials 16001-16500 done in 1.862125 mins; M0 matched the stored extension rows
+[15:17:20] k2020 V2_up_080: trials 16501-17000 done in 1.844586 mins; M0 matched the stored extension rows
+[15:19:10] k2020 V2_up_080: trials 17001-17500 done in 1.833856 mins; M0 matched the stored extension rows
+[15:21:02] k2020 V2_up_080: trials 17501-18000 done in 1.865152 mins; M0 matched the stored extension rows
+[15:22:51] k2020 V2_up_080: trials 18001-18500 done in 1.822967 mins; M0 matched the stored extension rows
+[15:24:41] k2020 V2_up_080: trials 18501-19000 done in 1.82386 mins; M0 matched the stored extension rows
+[15:26:31] k2020 V2_up_080: trials 19001-19500 done in 1.834727 mins; M0 matched the stored extension rows
+[15:28:21] k2020 V2_up_080: trials 19501-20000 done in 1.83827 mins; M0 matched the stored extension rows
+[15:28:21] done: extension output /home/user/dupilumab-sim/results/oc_models/oc_models_ext_be_k2020.csv.gz

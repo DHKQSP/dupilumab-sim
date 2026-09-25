@@ -1,0 +1,9 @@
+run log: /home/user/dupilumab-sim/logs/oc_models_k2020_20260925T100041.log
+k2020 main: 10 scenarios (S00,F_down_080,F_up_125,ka_down_080,ke_down_125,ke_up_080,V2_up_080,Vmax_down_125,Vmax_up_080,F097), trials 1-10000, cores 2, output /home/user/dupilumab-sim/results/oc_models/oc_models_be_k2020.csv.gz 
+trials 1-500 (10 scenarios x 8 endpoints x 3 models) done in 6.83874 mins; M0 matched the stored rows (oc_rejudge_be, F097 products trials 1-500) 
+trials 501-1000 (10 scenarios x 8 endpoints x 3 models) done in 6.987472 mins; M0 matched the stored rows (oc_rejudge_be) 
+trials 1001-1500 (10 scenarios x 8 endpoints x 3 models) done in 6.944856 mins; M0 matched the stored rows (oc_rejudge_be) 
+trials 1501-2000 (10 scenarios x 8 endpoints x 3 models) done in 7.682455 mins; M0 matched the stored rows (oc_rejudge_be) 
+trials 2001-2500 (10 scenarios x 8 endpoints x 3 models) done in 8.949269 mins; M0 matched the stored rows (oc_rejudge_be) 
+trials 2501-3000 (10 scenarios x 8 endpoints x 3 models) done in 9.082202 mins; M0 matched the stored rows (oc_rejudge_be) 
+trials 3001-3500 (10 scenarios x 8 endpoints x 3 models) done in 11.32927 mins; M0 matched the stored rows (oc_rejudge_be) 

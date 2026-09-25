@@ -116,7 +116,7 @@ t1 <- fread(proj_path("results", "oc_models", "type1_models.csv")); de <- fread(
 rv <- fread(proj_path("results", "oc_models", "m0_reverification.csv")); ex <- fread(proj_path("results", "oc_models", "expectations_check.csv"))
 nn <- fread(proj_path("results", "sample_size", "ss_table_n_needed.csv")); tp <- fread(proj_path("results", "sample_size", "ss_table_power.csv"))
 li <- fread(proj_path("results", "lloq", "lloq_individual_table.csv")); lt <- fread(proj_path("results", "lloq", "lloq_trial_type1.csv"))
-f1 <- function(x) formatC(round(x, 1) + 0, format = "f", digits = 1); f2 <- function(x) formatC(round(x, 2) + 0, format = "f", digits = 2)
+f1 <- function(x) formatC(round(x + sign(x) * 1e-9, 1) + 0, format = "f", digits = 1); f2 <- function(x) formatC(round(x + sign(x) * 1e-9, 2) + 0, format = "f", digits = 2)
 cls <- function(a) { x <- t1[analysis_model == a & config == "P2"]; sprintf("%d conservative, %d nominal, %d exceeding (%s%% to %s%%)", sum(x$class == "conservative"), sum(x$class == "nominal"), sum(x$class == "exceeding"), f2(min(x$pass_pct)), f2(max(x$pass_pct))) }
 ov <- de[p2_pct > 5]
 ov_l <- if (nrow(ov)) paste(sprintf("%s %s under %s: %s%% [%s, %s], %s, %s trials", ifelse(ov$pk_model == "k2016", "primary model", "2020 model"), ov$scenario, ov$analysis_model, f2(ov$p2_pct), f2(ov$lo), f2(ov$hi), ov$class, format(ov$n_trials, big.mark = ",")), collapse = "; ") else "none"

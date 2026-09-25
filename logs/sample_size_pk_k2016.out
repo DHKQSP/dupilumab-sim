@@ -1,0 +1,14 @@
+run log: /home/user/dupilumab-sim/logs/sample_size_pk_k2016_20260925T104127.log
+k2016 trials 1-500 done in 3.772013 mins; M0 matched oc_trials_be for trials 1-500 
+k2016 trials 501-1000 done in 4.213914 mins; M0 matched oc_trials_be for trials 501-1000 
+k2016 trials 1001-1500 done in 4.42081 mins; M0 matched oc_trials_be for trials 1001-1500 
+k2016 trials 1501-2000 done in 3.881903 mins; M0 matched oc_trials_be for trials 1501-2000 
+k2016 trials 2001-2500 done in 3.817849 mins 
+k2016 trials 2501-3000 done in 3.918683 mins 
+k2016 trials 3001-3500 done in 4.031045 mins 
+k2016 trials 3501-4000 done in 4.723011 mins 
+k2016 trials 4001-4500 done in 5.371628 mins 
+k2016 trials 4501-5000 done in 7.881149 mins 
+done: /home/user/dupilumab-sim/results/sample_size/ss_pk_trials_k2016.csv.gz 
+Error: unexpected ')' in "ppend(be_f, tmp))"
+Execution halted

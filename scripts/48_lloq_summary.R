@@ -15,8 +15,8 @@ design <- read_cfg("trial_design.yaml")
 out_dir <- Sys.getenv("DUPI_LLOQ_OUT", proj_path(pr$out_dir)); L0 <- as.numeric(pr$reference_lloq_mg_L)   # 환경변수는 시험용
 LL <- sort(as.numeric(unlist(pr$lloq_grid_mg_L))); RES <- unlist(pr$residual_variants)
 MODEL_EN <- c(k2016 = "2016 model", k2020 = "Model 1"); MODEL_KO <- c(k2016 = "2016 모델", k2020 = "Model 1")
-f1 <- function(x) formatC(round(x, 1) + 0, format = "f", digits = 1); f2 <- function(x) formatC(round(x, 2) + 0, format = "f", digits = 2)
-s1 <- function(x) sprintf("%+.1f", round(x, 1) + 0); s2 <- function(x) sprintf("%+.2f", round(x, 2) + 0)
+f1 <- function(x) formatC(round(x + sign(x) * 1e-9, 1) + 0, format = "f", digits = 1); f2 <- function(x) formatC(round(x + sign(x) * 1e-9, 2) + 0, format = "f", digits = 2)
+s1 <- function(x) sprintf("%+.1f", round(x + sign(x) * 1e-9, 1) + 0); s2 <- function(x) sprintf("%+.2f", round(x + sign(x) * 1e-9, 2) + 0)
 fl <- function(x) trimws(formatC(x, format = "fg", digits = 3))
 is0 <- function(x) abs(x - L0) < 1e-12
 

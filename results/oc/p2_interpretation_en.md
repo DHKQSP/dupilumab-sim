@@ -17,7 +17,7 @@ Data: saved trial-level results (`results/oc/oc_trials_be_<model>.csv.gz`, scrip
   - AUClast only: Kovalenko 2016 (primary) ka_down_080 4.74% (95% CI 4.34 to 5.17; nominal, 10,000 trials); Kovalenko 2020 Model 1 V2_up_080 5.20% (95% CI 4.90 to 5.51; nominal, 20,000 trials); Kovalenko 2020 Model 1 ka_down_080 5.07% (95% CI 4.66 to 5.52; nominal, 10,000 trials).
   - AUCinf_true only: Kovalenko 2016 (primary) Vmax_up_080 4.64% (95% CI 4.24 to 5.07; nominal, 10,000 trials); Kovalenko 2016 (primary) ka_down_080 5.11% (95% CI 4.70 to 5.56; nominal, 10,000 trials); Kovalenko 2016 (primary) ke_up_080 4.62% (95% CI 4.23 to 5.05; nominal, 10,000 trials); Kovalenko 2020 Model 1 F_down_080 4.61% (95% CI 4.22 to 5.04; nominal, 10,000 trials); Kovalenko 2020 Model 1 Vmax_up_080 4.75% (95% CI 4.35 to 5.18; nominal, 10,000 trials); Kovalenko 2020 Model 1 ka_down_080 5.43% (95% CI 5.003 to 5.89; exceeding, 10,000 trials); Kovalenko 2020 Model 1 ke_up_080 4.67% (95% CI 4.27 to 5.10; nominal, 10,000 trials).
 - Causes (P2, largest component per cell): the AUClast effect (AUClast only minus AUCinf_true) in 13, Cmax failures in 2, the gap between the unbiased reference and 5% in 1. Cells where Cmax failures dominate: Kovalenko 2016 (primary) ka_down_080 (Cmax pass 0.00%, P2 0.00%), Kovalenko 2020 Model 1 ka_down_080 (Cmax pass 0.00%, P2 0.00%).
-  - P2 cells that are not conservative: Kovalenko 2020 Model 1 V2_up_080: AUClast bias toward 1 (bias +0.41%; AUClast only minus AUCinf_true +0.61 points) + the unbiased reference is itself below 5% (AUCinf_true 4.58%, -0.41 points); hence P2 5.18%: point estimate above 5% with the Wilson interval including 5% (nominal)
+  - P2 cells that are not conservative: Kovalenko 2020 Model 1 V2_up_080: AUClast bias toward 1 (bias +0.41%; AUClast only minus AUCinf_true +0.61 points) + the unbiased reference is itself below 5% (AUCinf_true 4.59%, -0.42 points); hence P2 5.18%: point estimate above 5% with the Wilson interval including 5% (nominal)
 - Where the final point estimate of P2 exceeds 5%: Kovalenko 2020 Model 1, peripheral volume (V2), up (multiplier x2.28), true ratio 0.80: 5.18% (95% CI 4.88 to 5.50), 20,000 trials (the Wilson interval includes 5%, so classified nominal); prespecified 10,000-trial value 5.32% (95% CI 4.90 to 5.78). The first paragraph of the scripts/33 conclusion (`oc_conclusion_ko.md` and `oc_conclusion_en.md`) and the P2 and AUClast-only values in `boundary_type1.csv` agree with the final values here (cases, multipliers, pass rates and intervals compared at the precision printed by scripts/33, and trial counts when printed; stopifnot).
 
 ## 1. Baseline: boundary type I error of an unbiased estimator
@@ -42,7 +42,7 @@ Data: saved trial-level results (`results/oc/oc_trials_be_<model>.csv.gz`, scrip
 | Boundary scenario | True AUC0-inf ratio | se AUClast / AUCinf_true | Far-limit probability AUClast / AUCinf_true | Theory (actual truth) AUClast / AUCinf_true % | AUCinf_true pass % [Wilson] | AUCinf_true bias % (MC SE) | SD / SE | Normal approx. % |
 |---|---|---|---|---|---|---|---|---|
 | F_down_080 (true 0.80, x0.871) | 0.7996 | 0.0547 / 0.0528 | 2.4e-10 / 4.3e-11 | 4.91 / 4.91 | 4.61 [4.22 to 5.04] nominal | +0.01 (0.05) | 0.967 | 4.32 |
-| V2_up_080 (true 0.80, x2.28) | 0.7998 | 0.0540 / 0.0524 | 1.3e-10 / 3.1e-11 | 4.95 / 4.95 | 4.58 [4.30 to 4.88] conservative | +0.02 (0.04) | 0.971 | 4.43 |
+| V2_up_080 (true 0.80, x2.28) | 0.7998 | 0.0540 / 0.0524 | 1.3e-10 / 3.1e-11 | 4.95 / 4.95 | 4.59 [4.30 to 4.88] conservative | +0.02 (0.04) | 0.971 | 4.43 |
 | Vmax_up_080 (true 0.80, x1.4) | 0.8001 | 0.0567 / 0.0546 | 1.2e-09 / 2.1e-10 | 5.02 / 5.02 | 4.75 [4.35 to 5.18] nominal | +0.02 (0.05) | 0.970 | 4.49 |
 | ka_down_080 (true 0.80, x0.424) | 0.8006 | 0.0632 / 0.0614 | 7.8e-08 / 2.7e-08 | 5.12 / 5.12 | 5.43 [5.003 to 5.89] exceeding | +0.03 (0.06) | 0.993 | 4.99 |
 | ke_up_080 (true 0.80, x1.46) | 0.8002 | 0.0532 / 0.0513 | 6.2e-11 / 1.0e-11 | 5.05 / 5.05 | 4.67 [4.27 to 5.10] nominal | -0.01 (0.05) | 0.967 | 4.42 |
@@ -70,7 +70,7 @@ Data: saved trial-level results (`results/oc/oc_trials_be_<model>.csv.gz`, scrip
 | Boundary scenario | P2 | AUClast only | AUCinf_true only |
 |---|---|---|---|
 | F_down_080 (true 0.80, x0.871) | 3.70 [3.35 to 4.09] conservative | 3.74 [3.39 to 4.13] conservative | 4.61 [4.22 to 5.04] nominal |
-| V2_up_080 (true 0.80, x2.28) | 5.18 [4.88 to 5.50] nominal | 5.20 [4.90 to 5.51] nominal | 4.58 [4.30 to 4.88] conservative |
+| V2_up_080 (true 0.80, x2.28) | 5.18 [4.88 to 5.50] nominal | 5.20 [4.90 to 5.51] nominal | 4.59 [4.30 to 4.88] conservative |
 | Vmax_up_080 (true 0.80, x1.4) | 2.76 [2.46 to 3.10] conservative | 2.76 [2.46 to 3.10] conservative | 4.75 [4.35 to 5.18] nominal |
 | ka_down_080 (true 0.80, x0.424) | 0.00 [0.00 to 0.04] conservative | 5.07 [4.66 to 5.52] nominal | 5.43 [5.003 to 5.89] exceeding |
 | ke_up_080 (true 0.80, x1.46) | 3.77 [3.41 to 4.16] conservative | 3.77 [3.41 to 4.16] conservative | 4.67 [4.27 to 5.10] nominal |
@@ -124,7 +124,7 @@ AUClast only:
 | Boundary scenario | P2 % | P2 minus 5 | = reference minus 5 | + AUClast only minus AUCinf_true [95%] | + P2 minus AUClast only [95%] | Cmax pass % | AUClast bias % (MC SE) | Cmax bias % (MC SE) |
 |---|---|---|---|---|---|---|---|---|
 | F_down_080 (true 0.80, x0.871) | 3.70 | -1.30 | -0.39 | -0.87 [-1.09 to -0.65] | -0.04 [-0.08 to +0.00] | 40.31 | -0.46 (0.05) | -0.14 (0.04) |
-| V2_up_080 (true 0.80, x2.28) | 5.18 | +0.18 | -0.41 | +0.61 [+0.46 to +0.76] | -0.02 [-0.03 to +0.00] | 65.30 | +0.41 (0.04) | -1.74 (0.03) |
+| V2_up_080 (true 0.80, x2.28) | 5.18 | +0.18 | -0.42 | +0.61 [+0.46 to +0.76] | -0.02 [-0.03 to +0.00] | 65.30 | +0.41 (0.04) | -1.74 (0.03) |
 | Vmax_up_080 (true 0.80, x1.4) | 2.76 | -2.24 | -0.25 | -1.99 [-2.27 to -1.71] | +0.00 [+0.00 to +0.00] | 96.75 | -1.34 (0.06) | -0.45 (0.04) |
 | ka_down_080 (true 0.80, x0.424) | 0.00 | -5.00 | +0.43 | -0.36 [-0.57 to -0.15] | -5.07 [-5.50 to -4.64] | 0.00 | -0.24 (0.06) | +0.67 (0.05) |
 | ke_up_080 (true 0.80, x1.46) | 3.77 | -1.23 | -0.33 | -0.90 [-1.12 to -0.68] | +0.00 [+0.00 to +0.00] | 95.96 | -0.55 (0.05) | -0.67 (0.04) |
@@ -135,7 +135,7 @@ AUClast only:
 One-line cause (P2; only components whose 95% CI excludes 0 or 5%, largest first):
 
 - F_down_080: AUClast bias away from 1 (bias -0.46%; AUClast only minus AUCinf_true -0.87 points) + Cmax failures (Cmax pass 40.31%; P2 minus AUClast only -0.04 points); hence P2 3.70%: conservative
-- V2_up_080: AUClast bias toward 1 (bias +0.41%; AUClast only minus AUCinf_true +0.61 points) + the unbiased reference is itself below 5% (AUCinf_true 4.58%, -0.41 points); hence P2 5.18%: point estimate above 5% with the Wilson interval including 5% (nominal)
+- V2_up_080: AUClast bias toward 1 (bias +0.41%; AUClast only minus AUCinf_true +0.61 points) + the unbiased reference is itself below 5% (AUCinf_true 4.59%, -0.42 points); hence P2 5.18%: point estimate above 5% with the Wilson interval including 5% (nominal)
 - Vmax_up_080: AUClast bias away from 1 (bias -1.34%; AUClast only minus AUCinf_true -1.99 points); hence P2 2.76%: conservative
 - ka_down_080: Cmax failures dominate (Cmax pass 0.00%; P2 minus AUClast only -5.07 points) + the unbiased reference is itself above 5% (AUCinf_true 5.43%, +0.43 points) + AUClast bias away from 1 (bias -0.24%; AUClast only minus AUCinf_true -0.36 points); hence P2 0.00%: conservative
 - ke_up_080: AUClast bias away from 1 (bias -0.55%; AUClast only minus AUCinf_true -0.90 points); hence P2 3.77%: conservative
@@ -146,7 +146,7 @@ One-line cause (P2; only components whose 95% CI excludes 0 or 5%, largest first
 AUClast only:
 
 - F_down_080: AUClast bias away from 1 (bias -0.46%; AUClast only minus AUCinf_true -0.87 points); hence AUClast only 3.74%: conservative
-- V2_up_080: AUClast bias toward 1 (bias +0.41%; AUClast only minus AUCinf_true +0.61 points) + the unbiased reference is itself below 5% (AUCinf_true 4.58%, -0.41 points); hence AUClast only 5.20%: point estimate above 5% with the Wilson interval including 5% (nominal)
+- V2_up_080: AUClast bias toward 1 (bias +0.41%; AUClast only minus AUCinf_true +0.61 points) + the unbiased reference is itself below 5% (AUCinf_true 4.59%, -0.42 points); hence AUClast only 5.20%: point estimate above 5% with the Wilson interval including 5% (nominal)
 - Vmax_up_080: AUClast bias away from 1 (bias -1.34%; AUClast only minus AUCinf_true -1.99 points); hence AUClast only 2.76%: conservative
 - ka_down_080: the unbiased reference is itself above 5% (AUCinf_true 5.43%, +0.43 points) + AUClast bias away from 1 (bias -0.24%; AUClast only minus AUCinf_true -0.36 points); hence AUClast only 5.07%: point estimate above 5% with the Wilson interval including 5% (nominal)
 - ke_up_080: AUClast bias away from 1 (bias -0.55%; AUClast only minus AUCinf_true -0.90 points); hence AUClast only 3.77%: conservative

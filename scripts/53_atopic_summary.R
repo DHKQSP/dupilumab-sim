@@ -24,7 +24,7 @@ MODEL_EN <- c(base = "2016 model", struct2020 = "Model 1", k2016_bmi_vc0817 = "2
 DIST_EN <- c(primary = "primary (78/19 kg)", sens_nct03389893 = "sensitivity (80/19 kg)", sens_75_18 = "sensitivity (75/18 kg)")
 BAND_EN <- c(all = "all", "below 60" = "below 60 kg", "60-90" = "60 to 90 kg", "above 90-100" = "above 90 to 100 kg", "above 100" = "above 100 kg", "above 90" = "above 90 kg")
 BANDS <- names(BAND_EN)
-f0 <- function(x) formatC(round(x) + 0, format = "f", digits = 0); f1 <- function(x) formatC(round(x, 1) + 0, format = "f", digits = 1); f2 <- function(x) formatC(round(x, 2) + 0, format = "f", digits = 2); f3 <- function(x) formatC(round(x + sign(x) * 1e-9, 3) + 0, format = "f", digits = 3)
+f0 <- function(x) formatC(round(x + sign(x) * 1e-9) + 0, format = "f", digits = 0); f1 <- function(x) formatC(round(x + sign(x) * 1e-9, 1) + 0, format = "f", digits = 1); f2 <- function(x) formatC(round(x + sign(x) * 1e-9, 2) + 0, format = "f", digits = 2); f3 <- function(x) formatC(round(x + sign(x) * 1e-9, 3) + 0, format = "f", digits = 3)
 rg <- function(x, f = f1, u = "%", sep = " to ") if (identical(f(min(x)), f(max(x)))) sprintf("%s%s", f(min(x)), u) else sprintf("%s%s%s%s%s", f(min(x)), u, sep, f(max(x)), u)
 lnp <- function(m, s) { sl <- sqrt(log(1 + (s / m)^2)); c(ml = log(m) - sl^2 / 2, sl = sl) }
 rds_of <- function(v, d) readRDS(file.path(in_dir, sprintf("atopic_nca_%s_%s.rds", v, d)))

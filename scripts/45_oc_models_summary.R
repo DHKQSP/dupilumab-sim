@@ -35,8 +35,8 @@ AM_EN <- c(M0 = "M0 (pooled t)", M1 = "M1 (ANOVA, weight stratum)", M2 = "M2 (AN
 CFG_EN <- c(P2 = "P2", G2_Aii = "G2-A(ii)", G2_Ai = "G2-A(i)", G2_B = "G2-B", G2_Cii = "G2-C(ii)", G2_Ci = "G2-C(i)", F3A = "F3-A", F3B = "F3-B", F3C = "F3-C",
             AUClast_only = "AUClast only", AUCinf_true_only = "AUCinf_true only")
 CLASS_KO <- c(conservative = "보수적", nominal = "명목", exceeding = "초과")
-f2 <- function(x) formatC(round(x, 2) + 0, format = "f", digits = 2); s2 <- function(x) sprintf("%+.2f", round(x, 2) + 0)
-f3 <- function(x) formatC(round(x, 3) + 0, format = "f", digits = 3); f4 <- function(x) formatC(round(x, 4) + 0, format = "f", digits = 4)
+f2 <- function(x) formatC(round(x + sign(x) * 1e-9, 2) + 0, format = "f", digits = 2); s2 <- function(x) sprintf("%+.2f", round(x + sign(x) * 1e-9, 2) + 0)
+f3 <- function(x) formatC(round(x + sign(x) * 1e-9, 3) + 0, format = "f", digits = 3); f4 <- function(x) formatC(round(x + sign(x) * 1e-9, 4) + 0, format = "f", digits = 4)
 fint <- function(x) format(as.integer(x), big.mark = ",", trim = TRUE)
 rng <- function(x, f = f2, sep = " to ") if (length(x)) paste0(f(min(x)), sep, f(max(x))) else "none"
 

@@ -20,7 +20,7 @@ for (s_ in names(CRIT_SETS)) { a <- CRIT_SETS[[s_]]; b <- p4$criteria_sets[[s_]]
   stopifnot(isTRUE(all.equal(a$adj_r2_min, b$adj_r2_min)), isTRUE(all.equal(a$extrap_max_pct, as.numeric(b$extrap_max_pct))), identical(is.na(a$span_ratio_min), is.null(b$span_ratio_min))) }
 SETS <- names(CRIT_SETS); PK <- c("k2016", "k2020"); n_bnd <- as.integer(oc$trials$reps_boundary)
 MODEL_EN <- c(k2016 = "2016 model", k2020 = "Model 1", base = "2016 model", struct2020 = "Model 1", k2016_bmi_vc0817 = "2016 model + BMI and weight covariates")
-f1 <- function(x) formatC(round(x, 1) + 0, format = "f", digits = 1); f2 <- function(x) formatC(round(x, 2) + 0, format = "f", digits = 2); f3 <- function(x) formatC(round(x, 3) + 0, format = "f", digits = 3)
+f1 <- function(x) formatC(round(x + sign(x) * 1e-9, 1) + 0, format = "f", digits = 1); f2 <- function(x) formatC(round(x + sign(x) * 1e-9, 2) + 0, format = "f", digits = 2); f3 <- function(x) formatC(round(x + sign(x) * 1e-9, 3) + 0, format = "f", digits = 3)
 rg <- function(x, f = f1, u = "%", sep = " to ") sprintf("%s%s%s%s%s", f(min(x)), u, sep, f(max(x)), u)
 mm <- function(x) sprintf("a median of %s%% and up to %s%%", f1(median(x)), f1(max(x))); mmk <- function(x) sprintf("%s%%/%s%%", f1(median(x)), f1(max(x)))
 
@@ -124,11 +124,11 @@ en <- c("# Sensitivity to the conventional lambda-z reliability criteria", "",
   "## Subjects without a reliable AUC0-inf (planned schedule, 300 mg, 20,000 subjects per model)", "",
   sprintf("- Study population (60 to 90 kg, 2016 model and Model 1): set (i) %s; set (ii) %s; set (iii) %s; set (iv) %s. Per arm of 117 subjects: %s under set (i) and %s under set (iii).",
           fs(c6, "i"), fs(c6, "ii"), fs(c6, "iii"), fs(c6, "iv"), rg(c6[set == "i", fail_per_arm], f1, ""), rg(c6[set == "iii", fail_per_arm], f1, "")),
-  sprintf("- Adult atopic dermatitis population (primary weight distribution, three model variants): set (i) %s; set (iii) %s; set (iv) %s.", fs(ca, "i"), fs(ca, "iii"), fs(ca, "iv")),
-  sprintf("- The failure share under set (i) is therefore the lower end of the conventional range; under the commonly used 0.90 it is %s in the study population and %s in the atopic population.", fs(c6, "iii"), fs(ca, "iii")),
+  sprintf("- The failure share under set (i) is therefore the lower end of the conventional range; under the commonly used 0.90 it is %s in the study population.", fs(c6, "iii")),
   sprintf("- Lambda-z itself is not estimable in %s of subjects (study population); the rest of the failures have an estimable lambda-z that does not meet the criteria.", rg(c6[set == "i", lz_fail_pct], f2)),
-  sprintf("- Failing subjects differ from retained subjects (study population, set (i)): body weight %s kg higher, geometric mean AUClast ratio %s. In failing subjects AUClast covers a median of %s of the true AUC0-inf (5th percentile %s).",
-          rg(c6[set == "i", wt_diff], f2, ""), rg(c6[set == "i", auclast_gm_ratio_fail_to_retained], f3, ""), rg(100 * c6[set == "i", auclast_over_true_fail_median], f1), rg(100 * c6[set == "i", auclast_over_true_fail_p05], f1)), "",
+  sprintf("- Failing subjects differ from retained subjects (study population, set (i)): body weight %s kg higher, geometric mean AUClast ratio %s. In failing subjects the observed-to-true ratio of AUClast (observed AUClast / true AUC0-inf) has a median of %s (5th percentile %s).",
+          rg(c6[set == "i", wt_diff], f2, ""), rg(c6[set == "i", auclast_gm_ratio_fail_to_retained], f3, ""), rg(100 * c6[set == "i", auclast_over_true_fail_median], f1), rg(100 * c6[set == "i", auclast_over_true_fail_p05], f1)),
+  sprintf("- Robustness check only (report Appendix I; not evidence for the endpoint choice): with an adult atopic dermatitis body-weight distribution (placeholder from published summaries) and three model variants, set (i) %s; set (iii) %s; set (iv) %s.", fs(ca, "i"), fs(ca, "iii"), fs(ca, "iv")), "",
   "## Boundary type I error of AUC0-inf + Cmax by rule and criteria set (16 boundary scenarios)", "",
   sprintf("- M0: %s.", g2line("M0")), sprintf("- M1: %s.", g2line("M1")), "",
   "## Decision instability (same trials, only the rule or criteria set changed; 16 boundary scenarios, M0)", "",
@@ -140,10 +140,10 @@ ko <- c("# λz 신뢰 기준 관행값 민감도", "",
   "## 신뢰할 수 있는 AUC0-inf를 얻지 못하는 대상자 (B0, 300 mg, 모델당 20,000명)", "",
   sprintf("- 연구 모집단(60–90 kg, 2016·Model 1): 세트 (i) %s; (ii) %s; (iii) %s; (iv) %s. arm당 117명 기준 (i) %s명, (iii) %s명.", fs(c6, "i"), fs(c6, "ii"), fs(c6, "iii"), fs(c6, "iv"),
           rg(c6[set == "i", fail_per_arm], f1, ""), rg(c6[set == "iii", fail_per_arm], f1, "")),
-  sprintf("- 아토피 성인(주 체중 분포, 모델 변형 3개): (i) %s; (iii) %s; (iv) %s.", fs(ca, "i"), fs(ca, "iii"), fs(ca, "iv")),
-  sprintf("- 따라서 0.80 기준의 탈락률은 관행 범위의 하한이며, 통상 쓰이는 0.90에서는 연구 모집단 %s, 아토피 모집단 %s로 커진다.", fs(c6, "iii"), fs(ca, "iii")),
-  sprintf("- 미달자는 잔류자보다 체중 %s kg 높고 AUClast 기하평균비 %s(연구 모집단, 세트 (i)). 미달자에서 AUClast/참 AUC0-inf 중앙값 %s(5백분위 %s).",
-          rg(c6[set == "i", wt_diff], f2, "", " ~ "), rg(c6[set == "i", auclast_gm_ratio_fail_to_retained], f3, "", " ~ "), rg(100 * c6[set == "i", auclast_over_true_fail_median], f1, "%", " ~ "), rg(100 * c6[set == "i", auclast_over_true_fail_p05], f1, "%", " ~ ")), "",
+  sprintf("- 따라서 0.80 기준의 탈락률은 관행 범위의 하한이며, 통상 쓰이는 0.90에서는 연구 모집단 %s로 커진다.", fs(c6, "iii")),
+  sprintf("- 미달자는 잔류자보다 체중 %s kg 높고 AUClast 기하평균비 %s(연구 모집단, 세트 (i)). 미달자에서 관측 대 참 비(관측 AUClast / 참 AUC0-inf) 중앙값 %s(5백분위 %s).",
+          rg(c6[set == "i", wt_diff], f2, "", " ~ "), rg(c6[set == "i", auclast_gm_ratio_fail_to_retained], f3, "", " ~ "), rg(100 * c6[set == "i", auclast_over_true_fail_median], f1, "%", " ~ "), rg(100 * c6[set == "i", auclast_over_true_fail_p05], f1, "%", " ~ ")),
+  sprintf("- 견고성 확인만(보고서 부록 I, 평가변수 선택의 근거 아님): 아토피 성인 체중 분포(공개 요약 기반 자리표시자), 모델 변형 3개에서 (i) %s; (iii) %s; (iv) %s.", fs(ca, "i"), fs(ca, "iii"), fs(ca, "iv")), "",
   "## 규칙·세트별 G2 경계 1종 오류(16칸)", "", sprintf("- M0: %s.", g2line("M0")), sprintf("- M1: %s.", g2line("M1")), "",
   sprintf("## 판정 불안정성(M0, 칸별 중앙값/최대): 9개 변형 전체 %s, 세트 (i)에서 규칙만 %s, (iii)에서 %s, 규칙 A에서 세트만 %s, 규칙 C에서 %s.", mmk(ins$inst_all), mmk(ins$inst_rules_i), mmk(ins$inst_rules_iii),
           mmk(ins$inst_sets_A), mmk(ins$inst_sets_C)))

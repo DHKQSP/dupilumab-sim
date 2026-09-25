@@ -15,7 +15,7 @@ out_dir <- proj_path(p3$out_dir); CL <- design$be$ci_level; LIMS <- as.numeric(u
 CVS <- as.numeric(unlist(p3$grid$auclast_cv_pct)); GMRS <- as.numeric(unlist(p3$grid$true_gmr)); NS <- as.integer(unlist(p3$grid$n_evaluable_per_arm))
 BASE_CV <- as.numeric(p3$base_cv_pct); SENS_CV <- as.numeric(p3$sensitivity_cv_pct)
 EVAL_FRAC <- as.numeric(design$n_per_arm) / as.numeric(design$n_randomized_per_arm)
-f1 <- function(x) formatC(round(x, 1) + 0, format = "f", digits = 1); f2 <- function(x) formatC(round(x, 2) + 0, format = "f", digits = 2); s2 <- function(x) sprintf("%+.2f", round(x, 2) + 0)
+f1 <- function(x) formatC(round(x + sign(x) * 1e-9, 1) + 0, format = "f", digits = 1); f2 <- function(x) formatC(round(x + sign(x) * 1e-9, 2) + 0, format = "f", digits = 2); s2 <- function(x) sprintf("%+.2f", round(x + sign(x) * 1e-9, 2) + 0)
 MODEL_EN <- c(k2016 = "2016 model", k2020 = "Model 1"); MODEL_KO <- c(k2016 = "2016 모델", k2020 = "Model 1")
 
 INP <- fread(file.path(out_dir, "ss_inputs.csv")); WM <- fread(file.path(out_dir, "ss_weight_moments.csv"))

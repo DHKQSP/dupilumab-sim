@@ -1,0 +1,6 @@
+pk_model,stored_file,n_rows,n_expected,max_rel_diff,n_pass_differ,n_n_differ,tolerance,note,ok
+k2016,results/oc/oc_rejudge_be_k2016.csv.gz,720000,720000,5.01044410072815e-07,0,0,1e-06,"est and se stored at 8 significant digits, stored file at 7",TRUE
+k2016,results/trials5000/products5000_be_raw_base.csv.gz,30000,30000,5.78329828471169e-09,0,0,1e-06,"F097, trials 1-5000, 6 original endpoints",TRUE
+k2020,results/oc/oc_rejudge_be_k2020.csv.gz,720000,720000,5.00558985039312e-07,0,0,1e-06,"est and se stored at 8 significant digits, stored file at 7",TRUE
+k2020,results/oc/oc_trials_ext_be_k2020.csv.gz,80000,80000,4.96272322458857e-07,0,0,1e-06,extension trials,TRUE
+k2020,results/trials/products_be_raw_struct2020.csv.gz,3000,3000,5.71082370282028e-09,0,0,1e-06,"F097, trials 1-500, 6 original endpoints",TRUE
