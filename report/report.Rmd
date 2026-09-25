@@ -23,6 +23,71 @@ print.empty_kt <- function(x, ...) invisible(x); knit_print.empty_kt <- function
 registerS3method("knit_print", "empty_kt", knit_print.empty_kt, envir = asNamespace("knitr"))
 dec <- function(v) rd("trials", sprintf("schedule_decision_%s.csv", v))
 d200 <- function(v) rd("individual200k", sprintf("criterion_d_200k_%s.csv", v))
+imgs <- function(paths) { paths <- paths[file.exists(paths)]; if (length(paths)) knitr::include_graphics(paths) }
+# 결과 .md를 본문에 넣는다(results="asis" 청크): 첫 줄 제목(# ...)을 빼고 제목 수준을 shift만큼 낮추며, 번호 붙은 제목의 "N. "는 지운다(본문 자동 번호와 중복)
+md_inc <- function(path, shift = 0) { if (!file.exists(path)) return(invisible(NULL)); x <- readLines(path, warn = FALSE, encoding = "UTF-8")
+  if (length(x) && startsWith(x[1], "# ")) x <- x[-1]
+  cat(sub("^(#+) ([0-9]+\\. )?", paste0("\\1", strrep("#", shift), " "), x), sep = "\n"); cat("\n") }
+tdz <- read_cfg("trial_design.yaml")
+RF <- reliability_facts()   # 신뢰 충족률·탈락률 문구의 수치와 전제 검사(검토 의견 W2 §1; 어긋나면 중단, 39 결과 없으면 NULL)
+fr <- function(x, d = 1) fmt_num(x, d); FP <- function(i, ii, d = 1, unit = "%", sep = "–", signed = FALSE, each = FALSE) fmt_flag_pair(i, ii, d, unit, sep, signed, each)
+```
+
+```{r premises, include=FALSE}
+# 고정 문구의 수치는 결과 파일에서 만들고, 정성 주장은 결과로 검사한다(어긋나면 보고서 생성 중단). 신뢰 충족률·탈락률은 플래그 세트 (i) 주값, (ii) 병기
+premise <- function(ok, msg) if (!isTRUE(all(ok))) stop("보고서 문구의 전제가 결과와 다르다: ", msg, call. = FALSE)
+ML2 <- c(k2016 = "2016", k2020 = "Model 1")
+REL_DEF <- "플래그 세트 (i) = λz 산출 가능 & adj R² ≥ 0.80 & AUC_%Extrap_obs ≤ 20%, (ii) = (i) & span ratio ≥ 2"
+REL_CONV <- "span ratio ≥ 2는 일부 통계분석계획만 쓰는 관행이다(Phoenix 기능 아님, D-039)"
+REL_NONE <- "(신뢰 플래그 결과 없음: scripts/39_reliability_flags.R 실행 필요)"
+if (!is.null(RF)) {
+  d3r <- RF$dense$d3; flp <- RF$flips
+  rel_fail_txt <- FP(RF$rng$fail_i, RF$rng$fail_ii); rel_rate_txt <- FP(RF$rng$rel_i, RF$rng$rel_ii)
+  rel_changes_txt <- sprintf("이 기준 때문에 바뀌는 수치: B0 신뢰 충족률 %s(span 단독 손실 %s–%s%%p), 추가 채혈에 따른 신뢰 충족 증감(기준 (c) 값; D3 %s; 부호가 바뀌는 칸 %s), 규칙 A·C를 쓰는 AUCinf 분석군과 구성(G2, F3-A, F3-C)의 통과율, 신뢰군 탈락률과 탈락자 체중. 바뀌지 않는 것: 기준 (d)(외삽 20%% 초과 비), AUClast·Cmax, 규칙 B, 채혈 일정 권고(두 세트의 권고가 다른 칸 없음)",
+    rel_rate_txt, fr(RF$rng$span_loss[1]), fr(RF$rng$span_loss[2]), paste(sprintf("%s %s", ML2[d3r$model], FP(d3r$gain_i_pp, d3r$gain_ii_pp, 2, "%p", signed = TRUE, each = TRUE)), collapse = ", "),
+    if (nrow(flp)) paste(sprintf("%s %s", ML2[flp$model], flp$schedule), collapse = ", ") else "없음")
+  eng_txt <- if (!is.null(RF$eng)) sprintf("신뢰 기준 충족률이 낮아진 것은 거의 전부 새 span ratio < 2 플래그 때문이다: 이전 엔진 대비 %s이며, 하락분 중 span 단독 탈락이 %s다(같은 관측치, 엔진 비교용 B0 단독 표본이라 본 분석 표본과 값이 조금 다르다).",
+    paste(sprintf("%s %s%% → %s", ML2[RF$eng$model], fr(RF$eng$old), FP(RF$eng$new_i, RF$eng$new_ii, each = TRUE)), collapse = ", "), paste(sprintf("%s %s%%", ML2[RF$eng$model], fr(RF$eng$span_share_pct)), collapse = ", ")) else REL_NONE
+  resid_txt <- if (!is.null(RF$resid)) sprintf("(잔차 비례 12%% 변형: 신뢰 충족 %s, 외삽 20%% 초과 %s%%; 2016 모델 %s, %s%%)", FP(RF$resid$rel_i, RF$resid$rel_ii), fr(RF$resid$gt20, 2),
+    FP(RF$b0[model == "k2016", rel_i], RF$b0[model == "k2016", rel_ii]), fr(RF$resid$gt20_base, 2)) else ""
+  resid_rng_txt <- sprintf(": 신뢰 충족 %s%s", rel_rate_txt, if (!is.null(RF$rng$gt20)) sprintf(", 외삽 20%% 초과 %s–%s%%", fr(RF$rng$gt20[1], 2), fr(RF$rng$gt20[2], 2)) else "")
+} else rel_fail_txt <- rel_rate_txt <- rel_changes_txt <- eng_txt <- REL_NONE
+if (is.null(RF)) resid_txt <- resid_rng_txt <- ""
+# 규칙 C(미충족 시 AUClast 대입): 분석군 손실 없음, 규칙 A보다 참값 대비 편향이 작다
+ar <- rd("fallback", "aucinf_rules.csv"); ruleC_txt <- "(규칙 비교 결과 없음)"
+if (!is.null(ar)) { rc <- ar[rule == "C"]; ra <- ar[rule == "A"]; rl <- ar[startsWith(rule, "Reference")]
+  premise(nrow(rc) == 1 && abs(rc$n_R_mean - tdz$n_per_arm) < 1e-9 && abs(rc$n_T_mean - tdz$n_per_arm) < 1e-9 && abs(rl$n_R_mean - tdz$n_per_arm) < 1e-9, "규칙 C 분석군 손실 없음(arm당 n = 설계 n)")
+  premise(abs(rc$bias_VM125_pct) < abs(ra$bias_VM125_pct) && abs(rc$bias_F090_pct) < abs(ra$bias_F090_pct), "규칙 C의 참값 대비 편향 < 규칙 A")
+  ruleC_txt <- sprintf("분석군 손실 없음(arm당 %d명 전원), 참값 대비 편향 %s%%(Vmax ×1.25)·%s%%(F ×0.90; 규칙 A %s%%·%s%%), AUClast와 판정 일치 %s%%·%s%%(플래그 세트 (ii) 기준)",
+    tdz$n_per_arm, fmt_num(rc$bias_VM125_pct, 2, TRUE), fmt_num(rc$bias_F090_pct, 2, TRUE), fmt_num(ra$bias_VM125_pct, 2, TRUE), fmt_num(ra$bias_F090_pct, 2, TRUE), fr(rc$agree_VM125), fr(rc$agree_F090)) }
+# 체중: 실제 외삽률·커버리지 상한, 무거운 대상자가 신뢰군에서 더 많이 빠진다(두 세트)
+wbz <- NULL; for (f in list.files(proj_path("results", "weight_generalization"), pattern = "^weight_bands_B0_[a-d]+\\.csv$", full.names = TRUE)) wbz <- rbind(wbz, fread(f))
+odz <- NULL; for (mk in c("a", "b", "d")) { f <- proj_path("results", "weight_generalization", sprintf("obese_trials_dropout_%s.csv", mk)); if (file.exists(f)) odz <- rbind(odz, fread(f)) }
+wt_txt <- "(체중 일반화 결과 없음)"
+if (!is.null(wbz) && !is.null(odz)) { whi <- wbz[band == "130-150"]; wlo <- wbz[band == "60-75"]; wm <- merge(whi, wlo, by = "model")
+  premise(nrow(wm) > 0 && wm[, all(reliable_rsq_extrap_pct.x < reliable_rsq_extrap_pct.y & reliable_pct.x < reliable_pct.y)], "130–150 kg 밴드의 신뢰 기준 미충족 > 60–75 kg(모든 모델, 두 세트)")
+  premise(odz$wt_dropout_mean > odz$wt_retained_mean, "비만 모집단 시험에서 신뢰군 탈락자의 평균 체중 > 잔류자")
+  wt_txt <- sprintf("체중 150 kg까지 실제 외삽률 중앙값 ≤ %s%%, 커버리지 80%% 미만 ≤ %s%%로 AUClast의 총노출 포착은 체중 전 범위에서 유지된다. 비만 비중이 높은 모집단에서도 AUClast GMR은 참값을 따르고, 신뢰군 분석은 무거운 대상자를 선택적으로 뺀다(신뢰 기준 미충족 130–150 kg %s 대 60–75 kg %s, 체중 밴드별 20,000명·모델 %d개; 비만 모집단 시험의 탈락자 평균 체중 %s–%s kg 대 잔류자 %s–%s kg, 세트 (ii))",
+    formatC(ceiling(10 * max(wbz$extrap_true_median)) / 10, format = "f", digits = 1), formatC(ceiling(100 * max(wbz$coverage_lt80_pct)) / 100, format = "f", digits = 2),
+    FP(100 - whi$reliable_rsq_extrap_pct, 100 - whi$reliable_pct), FP(100 - wlo$reliable_rsq_extrap_pct, 100 - wlo$reliable_pct), uniqueN(wbz$model),
+    fr(min(odz$wt_dropout_mean)), fr(max(odz$wt_dropout_mean)), fr(min(odz$wt_retained_mean)), fr(max(odz$wt_retained_mean))) }
+# 실제 외삽률·커버리지(Pillar 1)
+p1z <- rd("rationale", "pillar1_coverage_B0.csv")
+p1_txt <- if (!is.null(p1z)) { x <- p1z[group == "전체"]; sprintf("실제 외삽률 중앙값 %s–%s%%, 커버리지 80%% 미만 %s%%", fr(min(x$extrap_true_median), 2), fr(max(x$extrap_true_median), 2), paste(unique(sub(" .*$", "", x$coverage_lt80_pct_ci)), collapse = "·")) } else "(Pillar 1 결과 없음)"
+# 제형 흡수(부록 A)와 예측 편향(단계 1 gate 데이터셋)
+so <- rd("step1", "appendix_dose_shape_observed.csv"); sh <- rd("step1", "appendix_dose_shape_model.csv"); abs_txt <- "약 1/3–1/2이 설명되고, 나머지는"
+if (!is.null(so) && !is.null(sh)) { s1 <- sh[ka_multiplier == 1, ratio_per_mg]; sk <- sh[ka_multiplier %in% c(1.5, 2), ratio_per_mg]; ob <- so$ratio_per_mg[1]
+  closed <- 100 * (sk - s1) / (ob - s1); remain <- 100 * (1 - sk / ob)
+  premise(length(sk) == 2 && all(closed >= 25 & closed <= 60), "흡수 보정(ka ×1.5–2)이 200 mg 노출 부족분의 약 1/3–1/2을 설명")
+  abs_txt <- sprintf("약 1/3–1/2(%s–%s%%, ka ×1.5–2)이 설명되고, 나머지(4개 arm 기준 %s–%s%%)는", fr(min(closed), 0), fr(max(closed), 0), fr(min(remain), 0), fr(max(remain), 0)) }
+# 요약의 gate 문구: 두 모델 gate 종합 PASS, 완전 외부 데이터셋만의 재판정 미달은 Li 2020 단일 arm뿐
+for (m_ in c("step1", "step1_k2020")) { st_ <- rd(m_, "step1_status.csv"); ex_ <- rd(m_, "step1h_external_only_gate.csv")
+  if (!is.null(st_)) premise(identical(st_[check == "gate 종합", status], "PASS"), paste0(m_, ": 단계 1 gate 종합 PASS"))
+  if (!is.null(ex_)) premise(ex_[pass_mean %in% FALSE, all(type == "Li 2020 arm")], paste0(m_, ": 완전 외부 재판정 미달은 Li 2020 단일 arm뿐")) }
+q16 <- rd("step1", "step1b_quant_gate.csv"); q20 <- rd("step1_k2020", "step1b_quant_gate.csv"); predbias_txt <- "(단계 1 결과 없음)"
+if (!is.null(q16) && !is.null(q20)) { g16 <- q16[gate_role == "gate"]; g20 <- q20[gate_role == "gate"]; r2 <- function(x) sprintf("%s–%s", fr(min(x), 2), fr(max(x), 2))
+  premise(mean(abs(g16$AUClast_ratio - 1)) < mean(abs(g20$AUClast_ratio - 1)), "AUClast는 2016 모델이 Model 1보다 관측에 가깝다(gate 데이터셋 평균 |비 − 1|)")
+  predbias_txt <- sprintf("연구 제형 gate 데이터셋 %d개의 모의/관측 비: Cmax 2016 모델 %s, 2020 Model 1 %s. AUClast는 2016 모델 %s로 관측에 근접하고, 2020 Model 1 %s다.", nrow(g16), r2(g16$Cmax_ratio), r2(g20$Cmax_ratio), r2(g16$AUClast_ratio), r2(g20$AUClast_ratio)) }
 ```
 
 # 요약
@@ -48,16 +113,33 @@ hl <- rbindlist(lapply(names(vv), function(v) { d <- dec(v); if (is.null(d)) ret
   d3 <- d[schedule == "D3"]
   d20k <- if (nrow(d3)) sprintf("%.3f [%.3f, %.3f], arm당 %.2f명 감소 — %s", d3$d_extrap20_ratio, d3$d_ratio_boot_lo, d3$d_ratio_boot_hi, -d3$d_abs_change_per_arm, frag(d3$d_extrap20_ratio, d3$d_ratio_boot_lo, d3$d_ratio_boot_hi)) else ""
   d200k <- if (!is.null(k3) && nrow(k3)) sprintf("%.3f [%.3f, %.3f], arm당 %.2f명 감소 — %s", k3$extrap_gt20_ratio, k3$d_ratio_boot_lo, k3$d_ratio_boot_hi, -k3$d_abs_change_per_arm, frag(k3$extrap_gt20_ratio, k3$d_ratio_boot_lo, k3$d_ratio_boot_hi)) else "해당 없음(20만 명 재평가 대상 아님)"
-  data.table(변형 = vv[[v]], `규칙 결과 (20,000명)` = rule, `D3 기준 (d) 비 (20,000명)` = d20k, `D3 기준 (d) 비 (200,000명)` = d200k, `최종 권고` = "B0", 주석 = if (nrow(r)) "결론 불변(§1 근거: (a)(b)(c) 미충족, 절대 감소 arm당 1명 미만, 폭·검정력 개선 없음, 추가 방문 1,040회)" else "") }))
-kt(hl, "채혈 밀도 최종 권고 (전 변형 B0). 기준 (d) 비는 B0 대비 D3의 외삽 20% 초과 비율 비와 부트스트랩 95% 구간(20,000명: 2,000회, 200,000명: 4,000회). 규칙 판정은 사전 명시대로 20,000명 점추정")
+  # 주석의 근거 문구는 규칙상 권고된 행의 값으로 만들고 전제((a)(b)(c) 미충족, 절대 감소 arm당 1명 미만)를 검사한다. 기준 (c) 증감은 세트 (i) 주값, (ii) 병기
+  note <- if (nrow(r)) { dr_ <- tdz$decision_rule
+    premise(!(r$crit_a %in% TRUE) & !(r$crit_b %in% TRUE) & !(r$crit_c %in% TRUE) & abs(r$d_abs_change_per_arm) < 1, sprintf("%s: 규칙상 권고는 기준 (d) 단독, 절대 감소 arm당 1명 미만", v))
+    paste(vapply(seq_len(nrow(r)), function(i) { ri <- r[i]; pv <- if (!is.null(RF)) RF$all[RF$all$variant == v & RF$all$schedule == ri$schedule] else NULL
+      sprintf("결론 불변(§1 근거: %s 기준 (a) CI 폭 감소 %s%%(기준 %s%%), (b) 통과율 변화 %s%%p(기준 %s%%p), (c) 신뢰 충족 증감 %s(기준 %s%%p) 모두 미충족; 절대 감소 arm당 %s명(1명 미만); 추가 방문 %s회)",
+              ri$schedule, fr(100 * ri$a_mean_width_rel_decrease, 2), fr(100 * dr_$ci_width_mean_rel_decrease_min, 0), fmt_num(ri$b_ke110_gain_pp, 1, TRUE), fr(dr_$ke110_pass_gain_pp_min, 0),
+              if (!is.null(pv) && nrow(pv) == 1) FP(pv$gain_i_pp, pv$gain_ii_pp, 2, "%p", signed = TRUE) else sprintf("(ii) %s%%p", fmt_num(ri$c_reliable_gain_pp, 2, TRUE)), fr(dr_$reliability_gain_pp_min, 0),
+              fr(abs(ri$d_abs_change_per_arm), 2), format(ri$added_visits_total, big.mark = ",")) }, ""), collapse = "; ") } else ""
+  data.table(변형 = vv[[v]], `규칙 결과 (20,000명)` = rule, `D3 기준 (d) 비 (20,000명)` = d20k, `D3 기준 (d) 비 (200,000명)` = d200k, `최종 권고` = "B0", 주석 = note) }))
+kt(hl, "채혈 밀도 최종 권고 (전 변형 B0). 기준 (d) 비는 B0 대비 D3의 외삽 20% 초과 비율 비와 부트스트랩 95% 구간(20,000명: 2,000회, 200,000명: 4,000회). 규칙 판정은 사전 명시대로 20,000명 점추정. 기준 (c) 증감은 플래그 세트 (i) 주값, [(ii)] 병기")
+# 요약 문구의 전제: 주 모델에서 어떤 추가 일정도 AUClast CI 폭·ke ×1.10 통과율을 개선하지 않는다, Model 1은 규칙상 B0, 규칙상 D3는 곡률 Vmax ×0.8 하나, 20만 명 재평가 세 변형 모두 (d) 미충족
+db_ <- dec("base"); ds_ <- dec("struct2020")
+if (!is.null(db_)) premise(db_[schedule %in% c("D1", "D2", "D3", "D4"), all(a_mean_width_rel_decrease <= 0 & b_ke110_gain_pp <= 0)], "주 모델 D1–D4에서 AUClast CI 폭(감소 ≤ 0)과 ke ×1.10 통과율(변화 ≤ 0) 개선 없음")
+if (!is.null(ds_)) premise(!any(ds_$recommend %in% TRUE), "Model 1(자체 IIV·잔차)은 사전 규칙상 B0")
+rec_v <- names(vv)[vapply(names(vv), function(v) { d <- dec(v); !is.null(d) && any(d$recommend %in% TRUE) }, logical(1))]
+premise(identical(rec_v, "vmax080_both") && identical(dec("vmax080_both")[recommend %in% TRUE, schedule], "D3"), "규칙상 D3가 남은 변형은 곡률 Vmax ×0.8 하나")
+k_lo_ <- vapply(c("base", "struct2020", "vmax080_both"), function(v) { k <- d200(v); if (is.null(k)) NA_real_ else k[schedule == "D3", d_ratio_boot_lo] }, numeric(1))
+premise(!anyNA(k_lo_) && all(k_lo_ > tdz$decision_rule$extrap_gt20_ratio_max), "20만 명 재평가 세 변형 모두 기준 (d) 미충족(부트스트랩 하한 > 0.5)")
 ```
 
 - 단계 1 gate(연구 제형): 두 모델 모두 PASS. 완전 외부 데이터셋만의 재판정은 체중 미보고 Li 2020 단일 arm에서 미달이 있으며 가정 체중에 의존한다(§4).
 - 1차 평가변수 AUClast의 90% CI 폭과 검정력은 어떤 추가 채혈 일정에서도 개선되지 않는다(§6).
-- AUClast는 실제 AUC0-inf의 대부분을 포착하며(실제 외삽률 중앙값 약 0.6%, 커버리지 80% 미만 0%), 비구획 AUCinf보다 참값 GMR에 가깝다(§7).
+- AUClast는 실제 AUC0-inf의 대부분을 포착하며(`r p1_txt`, 두 모델), 비구획 AUCinf보다 참값 GMR에 가깝다(§7).
 - 2020 Model 1을 자체 개체간 변동·잔차로 재실행하면 사전 규칙 자체가 B0를 가리킨다. 규칙상 D3가 남은 변형은 곡률 Vmax ×0.8 하나(20,000명 점추정)이며, 20만 명 재평가에서는 세 변형 모두 기준 (d) 미충족이다.
-- AUC0-inf가 강제되면 채혈 추가가 아니라 통계분석계획 규칙(신뢰 기준 미충족 시 AUClast 대입, 규칙 C)으로 대응할 수 있다: 분석군 손실 없음, 참값 대비 편향 −0.5%, AUClast와 판정 일치 95%(§7.4).
-- 체중 150 kg까지 실제 외삽률 중앙값 ≤ 1.8%, 커버리지 80% 미만 ≤ 0.02%로 AUClast의 총노출 포착은 체중 전 범위에서 유지된다. 비만 비중이 높은 모집단에서도 AUClast GMR은 참값을 따르고, 신뢰군 분석은 무거운 대상자를 선택적으로 뺀다(§8).
+- AUCinf 신뢰 기준 미충족(B0, 모델당 20,000명, 두 모델 범위)은 `r rel_fail_txt`이다(`r REL_DEF`). `r REL_CONV`. `r rel_changes_txt`(신뢰 플래그 두 세트 절).
+- AUC0-inf가 강제되면 채혈 추가가 아니라 통계분석계획 규칙(신뢰 기준 미충족 시 AUClast 대입, 규칙 C)으로 대응할 수 있다: `r ruleC_txt`(§7.4).
+- `r wt_txt`(§8).
 
 # 모델과 출처
 기본 모델은 Kovalenko 2016(CPT:PSP 5(11):617–624) Table 2 "BLQ data included" 열. 구조 민감도는 Kovalenko 2020 Model 1(Table 1, Supplementary Table 2)로 자체 개체간 변동과 잔차를 쓴다. Model 2–4를 쓰지 않는 사유와 모든 값의 출처는 SPEC.md §3.
@@ -74,17 +156,46 @@ kt(rd("nca_engine", "engine_validation_summary.csv"), "세 구현 비교: λz �
 ee <- rd("nca_engine", "engine_validation_edge_case.csv"); if (!is.null(ee)) kt(ee[, .(engine, Lambda_z, No_points_lambda_z, Lambda_z_lower, Lambda_z_upper, Rsq_adjusted, AUCINF_obs)], "알려진 구현 차이(합성 사례, 통과 판정 대상 아님): 말단 상승으로 adj R² 최대 창의 기울기가 양수 — PKNCA는 λz 미산출", 4)
 kt(rd("nca_engine", "engine_difference_individual_B0.csv"), "이전 엔진 대비 개인 수준 차이 (B0, 60–90 kg, 모델당 20,000명, 같은 관측치)", 3)
 kt(rd("nca_engine", "engine_difference_subject_changes.csv"), "대상자별 변화 유형 (%)", 3)
-kt(rd("nca_engine", "dropout_reasons_B0.csv"), "AUCinf 신뢰 기준 탈락 사유 (%, 중복 포함; B0, 20,000명)", 2)
-kt(rd("nca_engine", "dropout_reason_combinations_B0.csv"), "탈락 사유 조합 (%)", 3)
+kt(rd("nca_engine", "dropout_reasons_B0.csv"), "AUCinf 신뢰 기준 탈락 사유 (%, 중복 포함; B0, 20,000명; 엔진 비교용 B0 단독 표본, 플래그 세트 (ii)). 본 분석 표본의 두 세트 값은 신뢰 플래그 두 세트 절", 2)
+kt(rd("nca_engine", "dropout_reason_combinations_B0.csv"), "탈락 사유 조합 (%, 엔진 비교용 B0 단독 표본)", 3)
 kt(rd("nca_engine", "engine_difference_outputs.csv"), "이전 엔진 대비 산출물 차이 (재실행 결과)", 3)
 ```
-신뢰 기준 충족률이 낮아진 것은 거의 전부 새 span ratio < 2 플래그 때문이다. 실제 시험에서는 약동학 담당자가 λz 점 선택을 검토·수정할 수 있으나 모의에는 반영하지 않았다.
+`r eng_txt` `r REL_CONV`. 실제 시험에서는 약동학 담당자가 λz 점 선택을 검토·수정할 수 있으나 모의에는 반영하지 않았다.
+
+# 신뢰 플래그 두 세트와 촘촘한 후기 채혈 (검토 의견 W2 §1)
+`r REL_DEF`. `r REL_CONV`. 신뢰 충족률·탈락률과 그 증감은 (i)을 주값으로, (ii)를 [ ] 안에 병기한다. B0 신뢰 기준 미충족(두 모델 범위) `r rel_fail_txt`. `r rel_changes_txt`. 자료는 저장된 개인 수준 NCA(모델당 20,000명, B0 조건: 60–90 kg, 채혈 허용창, 잔차, BLQ)이며 새 모의는 없다(`scripts/39_reliability_flags.R`).
+```{r reliability, fig.height=4.2}
+MV <- c("base", "struct2020", "vmax080_both", "vmax125_both")
+imgs(proj_path("results", "reliability", "fig_reliability_mechanism.png"))
+rts <- rd("reliability", "reliability_two_flag_sets_summary.csv")
+if (!is.null(rts)) kt(rts[, .(변형 = model_label, n, lambda_ok_pct, reliable_i_pct, reliable_i_lo, reliable_i_hi, reliable_ii_pct, reliable_ii_lo, reliable_ii_hi, span_only_loss_pct)],
+                      "B0 신뢰 충족률 (%): 플래그 세트 (i)·(ii), Wilson 95% 구간, span 단독 손실 = (i) − (ii) (변형별 20,000명)", 2)
+rbs <- rd("reliability", "reliability_by_schedule.csv")
+if (!is.null(rbs)) kt(rbs[variant %in% MV, .(변형 = model_label, schedule, n_points, lambda_ok_pct, reliable_i_pct, reliable_i_lo, reliable_i_hi, reliable_ii_pct, reliable_ii_lo, reliable_ii_hi, span_only_loss_pct, flag_span_pct)],
+                      "일정별 신뢰 충족률 (%): 세트 (i)·(ii), Wilson 95% 구간 (기전 변형 4개, 20,000명)", 2)
+rpd <- rd("reliability", "reliability_paired_vs_B0.csv")
+if (!is.null(rpd)) kt(rpd[, .(변형 = model_label, schedule, added_points, gain_i_pp, gain_i_lo, gain_i_hi, gain_ii_pp, gain_ii_lo, gain_ii_hi, span_only_loss_B0_pct, span_only_loss_pct, n_reliable_to_span, n_span_to_reliable, crit_c_i, crit_c_ii, crit_d, recommend_i, recommend_ii)],
+                      "B0 대비 신뢰 충족 증감 (%p, 같은 대상자 쌍대 95% 구간)과 세트별 기준 (c)·권고. 기준 (d)는 플래그와 무관. n_reliable_to_span = B0 (ii) 충족 → span 플래그, n_span_to_reliable = 반대 방향", 3)
+rdr <- rd("reliability", "dropout_reasons_by_schedule.csv")
+if (!is.null(rdr)) kt(rdr[variant %in% MV, .(변형 = model_label, schedule, lambda_fail_pct, flag_rsq_pct, flag_extrap_pct, flag_span_pct, any_flag_or_fail_pct, excl_reliable_pct, excl_rsq_pct, excl_span_pct, excl_rsq_span_pct, excl_extrap_span_pct, excl_rsq_extrap_span_pct)],
+                      "탈락 사유 (%): lambda_fail–any_flag_or_fail은 중복 포함(세트 (ii)), excl_*는 배타적 조합(excl_span = span 플래그만 있는 대상자 = span 단독 손실)", 3)
+rlz <- rd("reliability", "reliability_lz_window_by_schedule.csv")
+if (!is.null(rlz)) kt(rlz[, .(변형 = model_label, schedule, n_lambda_ok, min_3pt_nominal_window_days, window_median, npts3_pct, HL_median, span_median, span_flag_pct_of_lambda_ok, rsq_median)],
+                      "λz 창 구조 (λz 산출 가능 대상자): Day 22 이후 명목일 최단 3점 창(일), 창 폭·반감기 중앙값(일), 3점 창 비율, span ratio < 2 비율 (%)", 2)
+rsw <- rd("reliability", "reliability_short_window_conversion.csv")
+if (!is.null(rsw)) kt(rsw[, .(변형 = model_label, schedule, min3_window_days, n_B0_reliable, n_short, short_pct_of_B0_reliable, span_flag_pct, HL_B0_median, HL_median, n_lost, lost_in_short_pct)],
+                      "반증 검사: B0 (ii) 충족자 중 추가 일정에서 최단 명목 3점 창(Day 22 이후)으로 바뀐 대상자(n_short)와 그중 span 플래그 비율 (%), 같은 대상자의 반감기 중앙값 B0 창 → 새 창(일), 손실 대상자 중 비율 (%)", 2)
+```
+```{r reliability_md, results="asis"}
+md_inc(proj_path("results", "reliability", "mechanism_summary_ko.md"))
+```
 
 # 가정과 한계
-- **제형**: 기본 모델은 200 mg 1.14 mL(175 mg/mL) 제형의 빠른 흡수(관측 tmax 중앙값 3일 대 모델 7일)를 재현하지 않는다. 흡수를 관측 tmax에 맞추면 200 mg 노출 부족분의 약 1/3–1/2이 설명되고, 나머지(4개 arm 기준 약 9–11%)는 설명되지 않는다. 제형별 생체이용률 차이이거나 저노출 구간에서 표적 매개 소실을 과대 추정했을 가능성이 있다. 후자는 모집단 Vmax ×0.8 민감도 변형이 다룬다. 연구 제형(300 mg, 2 mL of 150 mg/mL)에서는 흡수 시점과 노출을 재현한다. 반대 자료: Clot 2021 중국인 200 mg(같은 175 mg/mL PFS) tmax 7.0일(3.0–10.0), n=8, Day 4 다음 채혈이 Day 8이라 해상도 낮음.
-- **예측 편향**: Cmax는 2016 모델이 관측보다 약 20% 높게, 2020 Model 1이 약 5% 높게 예측한다. AUClast는 2016 모델이 관측에 근접하고, 2020 Model 1이 약 12% 높다.
+- **제형**: 기본 모델은 200 mg 1.14 mL(175 mg/mL) 제형의 빠른 흡수(관측 tmax 중앙값 3일 대 모델 7일)를 재현하지 않는다. 흡수를 관측 tmax에 맞추면 200 mg 노출 부족분의 `r abs_txt` 설명되지 않는다. 제형별 생체이용률 차이이거나 저노출 구간에서 표적 매개 소실을 과대 추정했을 가능성이 있다. 후자는 모집단 Vmax ×0.8 민감도 변형이 다룬다. 연구 제형(300 mg, 2 mL of 150 mg/mL)에서는 흡수 시점과 노출을 재현한다. 반대 자료: Clot 2021 중국인 200 mg(같은 175 mg/mL PFS) tmax 7.0일(3.0–10.0), n=8, Day 4 다음 채혈이 Day 8이라 해상도 낮음.
+- **예측 편향**: `r predbias_txt`
 - **Km 고정(0.01 mg/L)**: Km에 불확실성·개체간 변동이 없어 말단 산포가 과소평가될 수 있다. 곡선 모양 민감도(§7.2)로 대응한다. Km은 MM 근사 상수로 결합력과 정확히 같지 않다.
-- **잔차 민감 지표**: AUCinf 신뢰 충족률과 외삽 20% 초과 비율은 잔차 가정에 민감하므로 두 모델의 범위로 표기한다.
+- **잔차 민감 지표**: AUCinf 신뢰 충족률과 외삽 20% 초과 비율은 잔차 가정에 민감하므로`r resid_txt` 두 모델의 범위로 표기한다`r resid_rng_txt`.
+- **span ratio 플래그**: `r REL_CONV`. `r rel_changes_txt`.
 - **λz 점 선택**: 자동 Best Fit만 모의했다. 실제 시험에서는 약동학 담당자가 λz 점 선택을 검토·수정할 수 있으나 반영하지 않았다.
 - **무작위 제품 공간의 참값**: 계산량 때문에 제품별 참값을 모든 제품에 공통인 1,000명(공통 난수)으로 계산했다(역산 시나리오는 200,000명). 제품별 참값의 MC 표준오차를 함께 보고한다(사전 고정).
 - 확정 전 가정 목록은 SPEC.md §8(Day 1 투여 후 시각 0.25일, 체중 분포, 층화 분할점, 채혈 허용창, pooled 구성 비율, Li 2020 arm 체중, BMI 중심값 26).
@@ -115,9 +226,10 @@ kt(rd("crossval", "crossval_trial_compare.csv"), "2016 시험 수준 (이전 일
 ```{r sched_dec}
 cols <- c("schedule", "added_points", "added_visits_total", "a_mean_width_rel_decrease", "a_paired_lo", "a_paired_hi", "a_label", "b_ke110_gain_pp", "b_paired_lo", "b_paired_hi",
           "c_reliable_gain_pp", "c_gain_boot_lo", "c_gain_boot_hi", "d_extrap20_B0", "d_extrap20", "d_extrap20_ratio", "d_ratio_boot_lo", "d_ratio_boot_hi", "d_abs_change_per_arm", "crit_a", "crit_b", "crit_c", "crit_d", "recommend")
-for (v in c("base", "struct2020", "vmax080_both", "vmax125_both")) { d <- dec(v); if (!is.null(d)) print(kt(d[, intersect(cols, names(d)), with = FALSE], paste0("판정 규칙 (500회 쌍대, 개체 20,000명): ", v), 4)) }
+for (v in c("base", "struct2020", "vmax080_both", "vmax125_both")) { d <- dec(v); if (!is.null(d)) print(kt(d[, intersect(cols, names(d)), with = FALSE], paste0("판정 규칙 (500회 쌍대, 개체 20,000명): ", v, ". 기준 (c) 증감(c_reliable_gain_pp)은 플래그 세트 (ii); 세트 (i) 값은 신뢰 플래그 두 세트 절"), 4)) }
 print(fig_width_by_schedule(list(`Kovalenko 2016 (주)` = dec("base"), `Kovalenko 2020 Model 1` = dec("struct2020"))))
-kt(rd("trials", "bminus_explicit.csv"), "B− (Day 50 삭제) 명시: 폭, 신뢰 충족률, 외삽 20% 초과 비율")
+kt(rd("trials", "bminus_explicit.csv"), "B− (Day 50 삭제) 명시: 폭, 신뢰 충족률(플래그 세트 (ii)), 외삽 20% 초과 비율")
+if (!is.null(RF)) kt(RF$dense$bminus[, .(모델 = ML2[model], gain_i_pp, gain_i_lo, gain_i_hi, gain_ii_pp, gain_ii_lo, gain_ii_hi)], "B− 신뢰 충족 증감 (%p): 세트 (i) 주값, (ii) 병기 (reliability_paired_vs_B0.csv)", 3)
 kt(rd("trials", "width_decomposition.csv"), "AUClast CI 폭 확대의 원인 분해: 잔차 없는 참 농도로 같은 일정 재계산", 5)
 kt(rbindlist(lapply(c("base", "struct2020", "vmax080_both"), function(v) d200(v))), "기준 (d) 재평가: 개체 200,000명, B0 대비 D3 (부트스트랩 4,000회)", 4)
 kt(rbindlist(lapply(c("iiv150", "resid12", "weight_alt", "ada10"), function(v) { d <- dec(v); if (is.null(d)) NULL else d[, .(variant = v, schedule, a_mean_width_rel_decrease, a_label, b_ke110_gain_pp, c_reliable_gain_pp, d_extrap20_ratio, recommend)] })), "기타 변형 (B0 대비 D2)", 4)
@@ -127,7 +239,6 @@ kt(rbindlist(lapply(c("iiv150", "resid12", "weight_alt", "ada10"), function(v) {
 절벽 = tmax 이후 순간 반감기 ln2/(−d ln C/dt)가 처음 1일(민감도 2일) 미만이 되는 시점부터 참 농도가 정량한계(0.078 mg/L)에 닿을 때까지. d ln C/dt는 ODE 상태값으로 정확히 계산했다(D-041).
 `r if (file.exists(cl_txt)) paste(readLines(cl_txt, warn = FALSE), collapse = "\n\n") else ""`
 ```{r cliff, fig.height=4.4}
-imgs <- function(paths) { paths <- paths[file.exists(paths)]; if (length(paths)) knitr::include_graphics(paths) }
 imgs(proj_path("results", "cliff", c("fig2_1_lloq_day.png", "fig2_2_points_in_cliff.png", "fig2_3_cliff_length.png", "fig2_4_representative.png")))
 ```
 ```{r cliff_tab}
@@ -142,12 +253,13 @@ kt(rd("cliff", "cliff_reference_comparison.csv"), "독립 구현 기준값(10,00
 # 결과: AUC0-last 근거 (2차 목적, B0·60–90 kg)
 ## Pillar 1 — 커버리지
 ```{r pillar1}
-kt(rd("rationale", "pillar1_coverage_B0.csv"), "Pillar 1: 20,000명/모델, 비율은 Wilson 95% 구간", 2)
-kt(rd("rationale", "pillar1_two_model_range.csv"), "잔차 민감 지표의 두 모델 범위 (%)", 2)
+kt(rd("rationale", "pillar1_coverage_B0.csv"), "Pillar 1: 20,000명/모델, 비율은 Wilson 95% 구간. 신뢰 충족(reliable_pct)은 플래그 세트 (ii); 세트 (i)은 아래 표와 신뢰 플래그 두 세트 절", 2)
+kt(rd("rationale", "pillar1_two_model_range.csv"), "잔차 민감 지표의 두 모델 범위 (%; reliable_min·max는 플래그 세트 (ii))", 2)
+if (!is.null(RF)) kt(RF$b0[, .(모델 = ML2[model], reliable_i = rel_i, reliable_i_lo = rel_i_lo, reliable_i_hi = rel_i_hi, reliable_ii = rel_ii, reliable_ii_lo = rel_ii_lo, reliable_ii_hi = rel_ii_hi, span_only_loss = span_loss)], "AUCinf 신뢰 충족 (%, B0, 20,000명/모델): 세트 (i) 주값, (ii) 병기 (reliability_two_flag_sets_summary.csv)", 2)
 ```
 ## 곡선 모양·곡률 민감도 (통합본 §5-1)
 ```{r curve}
-kt(rd("curve_shape", "curve_shape_B0.csv")[, .(variant, n, extrap_true_median, extrap_true_p95, extrap_true_max, coverage_lt80_pct, extrap_nca_median, extrap_gt20_pct, reliable_pct, lambda_fail_pct, tlast_median, AUClast_geo, AUClast_ratio_vs_obs544, gate_note, ref_note)], "양 군 공통 배율, 20,000명/변형. Vmax ×0.5는 스트레스 테스트", 3)
+kt(rd("curve_shape", "curve_shape_B0.csv")[, .(variant, n, extrap_true_median, extrap_true_p95, extrap_true_max, coverage_lt80_pct, extrap_nca_median, extrap_gt20_pct, reliable_rsq_extrap_pct, reliable_pct, lambda_fail_pct, tlast_median, AUClast_geo, AUClast_ratio_vs_obs544, gate_note, ref_note)], "양 군 공통 배율, 20,000명/변형. Vmax ×0.5는 스트레스 테스트. 신뢰 충족: reliable_rsq_extrap_pct = 플래그 세트 (i), reliable_pct = 세트 (ii)", 3)
 ```
 Kovalenko 2020은 정량한계 미만 값을 제외하면 모델이 덜 가파른 표적 매개 구간을 예측하며 Vm과 Km이 함께 커진다고 보고했다. Km 상향 민감도의 근거다.
 
@@ -164,7 +276,7 @@ kt(rd("pillar2_curvature", "pillar2_vmax080_concordance.csv"), "곡률 견고성
 kt(rd("fallback", "discordance_classification.csv"), "AUClast 통과·AUCinf 불통과: 참값 비에 따른 분류", 3)
 kt(rd("fallback", "consumer_risk.csv"), "예비 탐색: 임의 배율 시나리오 중 참값 비가 80–125% 밖인 경우. 판정은 §3(역산·경계 1종 오류·무작위 공간)으로 대체", 3)
 kt(rd("fallback", "fallback_cost.csv"), "세 지표 공동 1차(fallback) 비용", 3)
-kt(rd("fallback", "aucinf_rules.csv"), "AUCinf 처리 규칙 비교 (A 신뢰군 제외, B 산출 가능 전체, C 미충족 시 AUClast 대입)", 3)
+kt(rd("fallback", "aucinf_rules.csv"), "AUCinf 처리 규칙 비교 (A 신뢰군 제외, B 산출 가능 전체, C 미충족 시 AUClast 대입; A·C의 신뢰 기준은 플래그 세트 (ii))", 3)
 kt(rd("fallback", "sample_size_logsd.csv"), "표본 수 교차점검: log-scale SD·CV", 3)
 kt(rd("fallback", "empirical_power.csv"), "arm당 117명의 경험적 검정력", 2)
 ```
@@ -202,6 +314,16 @@ gb <- rd("oc", "gmr_by_endpoint.csv")
 if (!is.null(gb)) print(kt(dcast(gb[endpoint %in% c("AUClast", "AUCinf_A", "AUCinf_B", "AUCinf_C", "Cmax")], model + mechanism + direction + target + auc_ratio + cmax_ratio ~ endpoint, value.var = "rel_bias_pct")[order(model, mechanism, target)],
                           "평가변수별 시험 GMR 기하평균의 참값 대비 상대 치우침(%). AUC 계열은 참 AUC0-inf 비, Cmax는 참 Cmax 비 기준. 규칙 A = 추정 + 선택(플래그 제외), 규칙 B = 추정만, 규칙 C = 플래그 대상 AUClast 대입", 2))
 ```
+## 경계 1종 오류: AUCinf 처리 규칙 × 플래그 세트 (검토 의견 W2 §2)
+저장된 시험 수준 결과로 G2를 AUCinf 처리 규칙(A, B, C)과 플래그 세트((i), (ii))별로 다시 판정했다(`scripts/41_oc_rules_flags.R`, 새 모의 없음). `r REL_CONV`. 전체 표는 부록 B.
+```{r g2_rules_md, results="asis"}
+md_inc(proj_path("results", "oc", "g2_rules_conclusion_ko.md"), shift = 1)
+```
+```{r g2_bias}
+pbz <- rd("oc", "p2_bias_boundary.csv")
+if (!is.null(pbz)) kt(dcast(pbz, model + scenario + target + true_ratio + n_trials ~ endpoint, value.var = "bias_pct")[order(model, target, scenario)],
+                      "경계 시나리오의 시험 GMR 기하평균의 참값 대비 상대 치우침 (%): AUC 계열은 참 AUC0-inf 비, Cmax는 참 Cmax 비 기준. AUCinf_A·C = 플래그 세트 (ii), AUCinf_Ai·Ci = 세트 (i)(재판정 파일이 없으면 NA), AUCinf_true = 시험 대상자의 개인 모델 AUC0-inf(참고) (p2_bias_boundary.csv)", 2)
+```
 ## 검정력과 구성 비교
 ```{r oc_pow}
 pw <- rd("oc", "power.csv")
@@ -222,7 +344,7 @@ imgs(proj_path("results", "oc", sprintf("fig3C_random_space_%s.png", c("k2016", 
 모델 개발 자료의 체중 범위는 본문·보충자료에 보고되지 않았다. Kovalenko 2016: 197명, 평균 체중 76 kg. Kovalenko 2020: 2,041명 분석, 성인 BMI SD 5.47 kg/m²(Kovalenko 2021), 3상 평균 체중 74.0–80.6 kg(Kamal 2022). 130 kg 초과 밴드는 "개발 자료 범위 확인 불가, 외삽 가능성". ke~EASI, ke~인종, Vc~알부민은 건강인에 적용 불가로 제외.
 ```{r weight}
 wb <- NULL; for (f in list.files(proj_path("results", "weight_generalization"), pattern = "^weight_bands_B0_[a-d]+\\.csv$", full.names = TRUE)) wb <- rbind(wb, fread(f))
-kt(wb, "개체 수준: 체중 밴드 × 모델 (20,000명/밴드, 채혈 허용창 편차 포함)", 3)
+kt(wb, "개체 수준: 체중 밴드 × 모델 (20,000명/밴드, 채혈 허용창 편차 포함). 신뢰 충족: reliable_rsq_extrap_pct = 플래그 세트 (i), reliable_pct = 세트 (ii)", 3)
 kt(rd("crossval", "reviewer_reference_round5.csv"), "독립 구현 기준값(8,000명) 대비 (§5-1, §6-1). 편차 없는 재계산 열은 (a) 일부 밴드만. 서술용", 3)
 ow <- NULL; od <- NULL; oc <- NULL
 for (mk in c("a", "b", "d")) { f <- proj_path("results", "weight_generalization", sprintf("obese_trials_per_endpoint_%s.csv", mk)); if (file.exists(f)) ow <- rbind(ow, fread(f))
@@ -230,7 +352,7 @@ for (mk in c("a", "b", "d")) { f <- proj_path("results", "weight_generalization"
   f <- proj_path("results", "weight_generalization", sprintf("obese_trials_concordance_%s.csv", mk)); if (file.exists(f)) oc <- rbind(oc, fread(f)) }
 kt(ow[endpoint %in% c("AUClast", "AUCinf_reliable", "AUCinf_true", "Cmax")], "시험 수준(체중 N(100, 20) 60–150 kg, 2,000회): 평가변수별", 3)
 kt(oc, "시험 수준: 판정 일치와 동시 통과", 3)
-kt(od, "탈락자(신뢰 기준 미충족)와 잔류자의 체중", 2)
+kt(od, "탈락자(신뢰 기준 미충족, 플래그 세트 (ii))와 잔류자의 체중", 2)
 ```
 
 # 문헌 정합성 (통합본 §8)
@@ -256,6 +378,12 @@ kt(rd("step1", "appendix_dose_shape_model.csv"), "모델 용량 형태 비", 3)
 # 부록 B. 운용특성 전체 결과 (모든 기전·구성)
 ```{r appx_oc}
 occ <- rd("oc", "oc_curves.csv"); if (!is.null(occ)) kt(occ[order(model, mechanism, direction, target, config)], "시나리오 × 구성 통과율 (%)과 Wilson 95% 구간", 2)
+g2f <- rd("oc", "g2_rules_flags.csv")
+if (!is.null(g2f)) kt(g2f[, .(model, scenario, region, target, auc_ratio, cmax_ratio, label, rule, flag_set, n_trials, pass_pct, lo, hi, gt5_point, gt5_lower, note)][order(model, scenario, label)],
+                      "G2·AUCinf 단독: 처리 규칙 × 플래그 세트별 통과율 (%)과 Wilson 95% 구간 (g2_rules_flags.csv)", 2)
+g2d <- rd("oc", "g2_decomposition.csv")
+if (!is.null(g2d)) kt(g2d[, .(model, scenario, target, contrast, a, b, flag_set, meaning, n_trials, pct_a, pct_b, est, lo, hi, note)][order(model, scenario, contrast)],
+                      "G2 분해: 같은 시험의 쌍대 차이 (%p)와 95% 구간. 외삽 효과 = 규칙 B − P2, 선택 효과 = 규칙 B − 규칙 A (g2_decomposition.csv)", 2)
 ```
 
 # 재현 방법

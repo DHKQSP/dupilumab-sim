@@ -4,7 +4,8 @@
 # trial-level proportions cited only from runs with >= 5,000 trials (with 95% intervals); two-model ranges for residual-sensitive metrics.
 source("R/00_setup.R"); source_project()
 R <- function(...) { f <- proj_path("results", ...); if (file.exists(f) || file.exists(paste0(f, ".gz"))) read_raw(f) else NULL }
-f1 <- function(x, d = 1) formatC(x, format = "f", digits = d); f2 <- function(x) f1(x, 2); f3 <- function(x) f1(x, 3)
+# 반올림은 fmt_num과 같은 round_half_away(0에서 먼 쪽): 20,000명 비율(0.005의 배수)이 표와 본문(reliability_facts, mechanism_summary)에서 같게 찍히도록
+f1 <- function(x, d = 1) formatC(round_half_away(x, d), format = "f", digits = d); f2 <- function(x) f1(x, 2); f3 <- function(x) f1(x, 3)
 ci <- function(e, lo, hi, d = 1) sprintf("%s (%s to %s)", f1(e, d), f1(lo, d), f1(hi, d))
 md_table <- function(dt) { h <- paste0("| ", paste(names(dt), collapse = " | "), " |"); s <- paste0("|", paste(rep("---", ncol(dt)), collapse = "|"), "|")
   b <- apply(dt, 1, function(r) paste0("| ", paste(r, collapse = " | "), " |")); c(h, s, b, "") }
@@ -15,6 +16,21 @@ fig <- function(rel, caption) { if (file.exists(proj_path("results", rel))) add(
 oc_cfg <- read_cfg("oc_design.yaml"); nb_ <- format(oc_cfg$trials$reps_boundary, big.mark = ","); no_ <- format(oc_cfg$trials$reps_other, big.mark = ",")
 MLF <- c(k2016 = "Kovalenko 2016 (primary)", k2020 = "Kovalenko 2020 Model 1")
 gate <- read_cfg("gate_decision.yaml"); sdec <- read_cfg("schedule_decision.yaml"); design <- read_cfg("trial_design.yaml")
+# 신뢰 충족률·탈락률과 그 증감: 결과 파일에서 만들고 전제를 검사한다(reliability_facts, 어긋나면 중단). 플래그 세트 (i) 주값, (ii) 대괄호 병기
+RF <- reliability_facts()
+FPe <- function(i, ii, d = 1, unit = "%", signed = FALSE, each = FALSE) fmt_flag_pair(i, ii, d, unit, " to ", signed, each)
+cie <- function(e, lo, hi, d = 2) sprintf("%s (%s to %s)", fmt_num(e, d), fmt_num(lo, d), fmt_num(hi, d))   # 신뢰 충족 증감: 39 문구와 같은 반올림
+premise <- function(ok, msg) if (!isTRUE(all(ok))) stop("summary_en.md premise not met: ", msg, call. = FALSE)
+REL_DEF_EN <- "flag set (i): lambda-z estimable, adjusted R-squared at least 0.80 and extrapolated AUC at most 20%; flag set (ii): (i) plus span ratio at least 2"
+REL_CONV_EN <- "A span ratio of at least 2 is a convention used only by some statistical analysis plans (not a Phoenix feature, D-039)"
+ML2e <- c(k2016 = "2016 model", k2020 = "Model 1")
+rel_changes_en <- if (!is.null(RF)) sprintf("Numbers that change because of the span ratio criterion: reliability at B0, %s (loss from the span ratio alone %s to %s percentage points); the change in reliability with added sampling (the criterion (c) quantity; D3: %s; sign reversed in %s); the analysis set and pass rates of configurations that use rules A or C (G2, F3-A, F3-C); dropout rates and the weight of dropouts. Unchanged: criterion (d) (extrapolation above 20%%), AUClast, Cmax, rule B and the schedule recommendation (no cell where the two flag sets recommend differently).",
+    FPe(RF$rng$rel_i, RF$rng$rel_ii), fmt_num(RF$rng$span_loss[1]), fmt_num(RF$rng$span_loss[2]),
+    paste(sprintf("%s %s", ML2e[RF$dense$d3$model], FPe(RF$dense$d3$gain_i_pp, RF$dense$d3$gain_ii_pp, 2, " points", TRUE, TRUE)), collapse = ", "),
+    if (nrow(RF$flips)) paste(sprintf("%s %s", ML2e[RF$flips$model], RF$flips$schedule), collapse = ", ") else "no cell") else ""
+# 결과 .md를 이 문서에 넣는다: 첫 줄 제목(# ...)을 빼고 제목 수준을 shift만큼 낮춘다
+md_body <- function(path, shift = 1) { if (!file.exists(path)) return(character(0)); x <- readLines(path, warn = FALSE, encoding = "UTF-8")
+  if (length(x) && startsWith(x[1], "# ")) x <- x[-1]; c(sub("^(#+) ", paste0("\\1", strrep("#", shift), " "), x), "") }
 
 add("# Dupilumab biosimilar Phase 1 pharmacokinetic simulation: summary for regulatory briefing", "",
     sprintf("Generated %s from repository results (branch claude/epic-bardeen-axbreo). Every number below is read from the result files used by the full report.", format(Sys.Date())), "",
@@ -44,13 +60,33 @@ if (file.exists(clen)) { add("## Key conclusion: sampling on the terminal cliff"
 ev <- R("nca_engine", "engine_validation_summary.csv"); dr <- R("nca_engine", "dropout_reasons_B0.csv"); edif <- R("nca_engine", "engine_difference_individual_B0.csv")
 if (!is.null(ev)) {
   add("## NCA engine: Phoenix WinNonlin-compatible rules", "",
-      "Rules: BLQ handled explicitly before NCA (zero before the first quantifiable value, missing between quantifiable values, excluded after the last one, and quantifiable values after two consecutive BLQ set to missing); linear-up log-down AUC; lambda-z Best Fit (last 3, 4, 5, ... positive concentrations after Cmax, windows with positive slope excluded, largest adjusted R-squared, ties within 0.0001 resolved to more points). Reliability flags (statistical analysis plan convention, not a Phoenix feature): adjusted R-squared below 0.80, extrapolated AUC above 20%, span ratio below 2. AUCinf handling rules: A excludes flagged subjects, B includes all subjects with lambda-z, C substitutes AUClast for flagged subjects.",
+      "Rules: BLQ handled explicitly before NCA (zero before the first quantifiable value, missing between quantifiable values, excluded after the last one, and quantifiable values after two consecutive BLQ set to missing); linear-up log-down AUC; lambda-z Best Fit (last 3, 4, 5, ... positive concentrations after Cmax, windows with positive slope excluded, largest adjusted R-squared, ties within 0.0001 resolved to more points). Reliability flags (statistical analysis plan conventions, not Phoenix features): adjusted R-squared below 0.80, extrapolated AUC above 20% and, in flag set (ii) only, span ratio below 2. AUCinf handling rules: A excludes flagged subjects, B includes all subjects with lambda-z, C substitutes AUClast for flagged subjects. Reliability and dropout rates are cited for flag set (i) with flag set (ii) in brackets.",
       sprintf("Validation against the reference implementation NonCompart 0.8.4 and PKNCA 0.12.1 on Theoph (12 profiles), Indometh (6) and %s simulated dupilumab profiles: lambda-z points identical in every profile and every pair of implementations; largest relative difference in any parameter %s (criterion 1e-6).",
               format(max(ev$n_profiles), big.mark = ","), formatC(max(ev$max_rel_diff), format = "e", digits = 1)), "")
-  if (!is.null(dr)) { x <- dr[model %in% c("base", "struct2020")]
-    add(sprintf("Subjects failing the reliability criteria at B0 (20,000 per model, flags overlap): %s%% to %s%% in total; lambda-z not estimable %s%% to %s%%, adjusted R-squared below 0.80 %s%% to %s%%, extrapolation above 20%% %s%% to %s%%, span ratio below 2 %s%% to %s%% (two-model ranges).",
-                f1(min(x$any_flag_or_fail_pct)), f1(max(x$any_flag_or_fail_pct)), f1(min(x$lambda_fail_pct)), f1(max(x$lambda_fail_pct)), f1(min(x$flag_rsq_pct)), f1(max(x$flag_rsq_pct)),
-                f1(min(x$flag_extrap_pct)), f1(max(x$flag_extrap_pct)), f1(min(x$flag_span_pct)), f1(max(x$flag_span_pct))), "") }
+  if (!is.null(RF)) { x <- RF$b0; rg <- function(v) sprintf("%s%% to %s%%", fmt_num(min(v)), fmt_num(max(v)))
+    add(sprintf("Subjects failing the reliability criteria at B0 (20,000 per model, two-model ranges): %s. By reason (flags overlap): lambda-z not estimable %s, adjusted R-squared below 0.80 %s, extrapolation above 20%% %s, span ratio below 2 %s (counted in flag set (ii) only; the span ratio alone removes %s). %s.",
+                FPe(RF$rng$fail_i, RF$rng$fail_ii), rg(x$lambda_fail), rg(x$flag_rsq), rg(x$flag_extrap), rg(x$flag_span), rg(x$span_loss), REL_CONV_EN), "")
+    if (!is.null(RF$eng)) add(sprintf("Previous engine (D-010) versus the new engine on the same observations (a separate B0-only draw, so the values differ slightly from the main analysis sample): reliability %s; the span ratio flag alone accounts for %s of the drop.",
+                                      paste(sprintf("%s%% to %s (%s)", fmt_num(RF$eng$old), FPe(RF$eng$new_i, RF$eng$new_ii, each = TRUE), ML2e[RF$eng$model]), collapse = " and "), paste(sprintf("%s%%", fmt_num(RF$eng$span_share_pct)), collapse = " and ")), "")
+  } else if (!is.null(dr)) { x <- dr[model %in% c("base", "struct2020")]
+    add(sprintf("Subjects failing the reliability criteria at B0, flag set (ii) (20,000 per model, separate B0-only draw of the engine comparison, flags overlap): %s%% to %s%% in total; span ratio below 2 %s%% to %s%%. %s.",
+                f1(min(x$any_flag_or_fail_pct)), f1(max(x$any_flag_or_fail_pct)), f1(min(x$flag_span_pct)), f1(max(x$flag_span_pct)), REL_CONV_EN), "") }
+}
+
+# 0c. 신뢰 플래그 두 세트와 촘촘한 후기 채혈(검토 의견 W2 §1): scripts/39 결과
+rbs <- R("reliability", "reliability_by_schedule.csv")
+if (!is.null(RF) && !is.null(rbs)) {
+  add("## AUCinf reliability: two flag sets and denser late sampling (review W2, section 1)", "",
+      sprintf("Definitions: %s. %s. %s", REL_DEF_EN, REL_CONV_EN, rel_changes_en), "",
+      sprintf("Structure: after Day 22 the shortest 3-point lambda-z window allowed by the nominal days is %s days at B0 and %s days with added sampling (D1 to D4), so a 3-point window reaches span ratio 2 only if the half-life is at most %s and %s days. Saved subject-level NCA of 20,000 virtual subjects per model under B0 conditions; no new simulation (scripts/39_reliability_flags.R).",
+              RF$lz_min[["B0"]], RF$lz_min[["dense"]], fmt_num(RF$lz_min[["B0"]] / 2), fmt_num(RF$lz_min[["dense"]] / 2)), "")
+  x <- merge(rbs[variant %in% c("base", "struct2020")], RF$paired[, .(variant, schedule, gain_i_pp, gain_ii_pp)], by = c("variant", "schedule"), all.x = TRUE)
+  x <- x[order(match(variant, c("base", "struct2020")), match(schedule, c("B0", "Bminus", "D1", "D2", "D3", "D4")))]
+  add(md_table(x[, .(Model = ML2e[c(base = "k2016", struct2020 = "k2020")[variant]], Schedule = schedule, Samples = n_points,
+                     `Reliable, flag set (i) (%, 95% CI)` = ci(reliable_i_pct, reliable_i_lo, reliable_i_hi, 2), `Reliable, flag set (ii) (%, 95% CI)` = ci(reliable_ii_pct, reliable_ii_lo, reliable_ii_hi, 2),
+                     `Change vs B0, (i) [(ii)] (pp)` = ifelse(is.na(gain_i_pp), "", FPe(gain_i_pp, gain_ii_pp, 2, "", TRUE, TRUE)), `Loss from span ratio alone (pp)` = f2(span_only_loss_pct))]))
+  fig("reliability/fig_reliability_mechanism_en.png", "Figure R-1. Why denser late sampling adds span flags: lambda-z window length and span ratio by schedule (top) and, for subjects reliable at B0 and span-flagged with added sampling, the change in median window length and half-life (bottom). Kovalenko 2016 and Model 1, 20,000 virtual subjects per model, B0 conditions (60 to 90 kg, visit windows, residual error, BLQ).")
+  add(md_body(proj_path("results", "reliability", "mechanism_summary_en.md"), 1))
 }
 
 # 1. Model qualification
@@ -84,9 +120,12 @@ if (!is.null(e16) && !is.null(e20)) {
 }
 ab <- R("step1", "appendix_absorption_diagnostic.csv"); sh <- R("step1", "appendix_dose_shape_model.csv"); so <- R("step1", "appendix_dose_shape_observed.csv")
 if (!is.null(ab)) {
+  s1_ <- sh[ka_multiplier == 1, ratio_per_mg]; sk_ <- sh[ka_multiplier %in% c(1.5, 2), ratio_per_mg]; closed_ <- 100 * (sk_ - s1_) / (so[1, ratio_per_mg] - s1_); remain_ <- 100 * (1 - sk_ / so[1, ratio_per_mg])
+  premise(length(sk_) == 2 && all(closed_ >= 25 & closed_ <= 60), "absorption matching closes about one third to one half of the 200 mg shortfall")
   add("200 mg external checks and absorption (diagnostic only, not adopted): the 2016 model does not reproduce the fast absorption of the 200 mg 1.14 mL (175 mg/mL) presentation (observed median time to Cmax 3 days versus 7 days simulated).",
-      sprintf("Matching absorption to the observed time to Cmax closes about one third to one half of the 200 mg exposure shortfall: the dose-normalized 200:300 mg AUClast ratio is %s observed (four-arm, n-weighted; %s for the PKM14271 test arm alone) versus %s simulated, and %s to %s with the absorption rate constant multiplied by 1.5 to 2 for 200 mg only. The remainder (about 9%% to 11%% on the four-arm basis) is unexplained: a presentation-specific bioavailability difference or over-estimated TMDD at low exposure are possible; the latter is covered by the population maximum elimination rate (Vmax) x0.8 sensitivity variant. For the study presentation (300 mg, 2 mL of 150 mg/mL) the model reproduces both absorption timing and exposure.",
-              f2(so[1, ratio_per_mg]), f2(so[2, ratio_per_mg]), f2(sh[ka_multiplier == 1, ratio_per_mg]), f2(sh[ka_multiplier == 1.5, ratio_per_mg]), f2(sh[ka_multiplier == 2, ratio_per_mg])), "")
+      sprintf("Matching absorption to the observed time to Cmax closes about one third to one half (%s%% to %s%%) of the 200 mg exposure shortfall: the dose-normalized 200:300 mg AUClast ratio is %s observed (four-arm, n-weighted; %s for the PKM14271 test arm alone) versus %s simulated, and %s to %s with the absorption rate constant multiplied by 1.5 to 2 for 200 mg only. The remainder (%s%% to %s%% on the four-arm basis) is unexplained: a presentation-specific bioavailability difference or over-estimated TMDD at low exposure are possible; the latter is covered by the population maximum elimination rate (Vmax) x0.8 sensitivity variant. For the study presentation (300 mg, 2 mL of 150 mg/mL) the model reproduces both absorption timing and exposure.",
+              fmt_num(min(closed_), 0), fmt_num(max(closed_), 0), f2(so[1, ratio_per_mg]), f2(so[2, ratio_per_mg]), f2(sh[ka_multiplier == 1, ratio_per_mg]), f2(sh[ka_multiplier == 1.5, ratio_per_mg]), f2(sh[ka_multiplier == 2, ratio_per_mg]),
+              fmt_num(min(remain_), 0), fmt_num(max(remain_), 0)), "")
 }
 xv <- R("crossval", "crossval_model1.csv")
 if (!is.null(xv)) { off <- xv[agree_3pct %in% FALSE]
@@ -103,11 +142,18 @@ add("## 2. Pillar 1: coverage of total exposure by AUClast (B0, 60 to 90 kg, 20,
 p1 <- R("rationale", "pillar1_coverage_B0.csv")
 if (!is.null(p1)) {
   p1e <- p1[group == "전체"]
+  # (i)·(ii) 모두 reliability_facts 값에서 같은 반올림(f2)으로: pillar1 CSV의 미리 만든 문자열(%.2f)은 80.735 → 80.73으로 본문(80.74)과 달라진다.
+  # (ii)는 pillar1과 같은 표본임을 reliability_facts가 0.01 이내로 검사한다
+  if (!is.null(RF)) {
+    rb <- RF$b0[match(p1e$model, RF$b0$model)]
+    p1e[, `:=`(rel_i_ci = sprintf("%s [%s, %s]", f2(rb$rel_i), f2(rb$rel_i_lo), f2(rb$rel_i_hi)), reliable_pct_ci = sprintf("%s [%s, %s]", f2(rb$rel_ii), f2(rb$rel_ii_lo), f2(rb$rel_ii_hi)))]
+  } else p1e[, rel_i_ci := "not available"]
   add(md_table(p1e[, .(Model = fifelse(model == "k2016", "2016 (primary)", "Model 1"), `True extrapolated %: median` = f2(extrap_true_median), `95th percentile` = f2(extrap_true_p95), Max = f2(extrap_true_max),
                        `True coverage below 80% (%, 95% CI)` = coverage_lt80_pct_ci, `NCA extrapolated %: median` = f2(extrap_nca_median), `NCA extrapolation above 20% (%, 95% CI)` = extrap_nca_gt20_pct_ci,
-                       `AUCinf reliability met (%, 95% CI)` = reliable_pct_ci)]))
-  add(sprintf("Residual-sensitive metrics are stated as the two-model range: AUCinf reliability criteria (adjusted R-squared at least 0.80 and extrapolation at most 20%%) are not met in %s%% to %s%% of subjects; NCA extrapolation above 20%% occurs in %s%% to %s%%. True extrapolation (model integral beyond the last quantifiable time) is essentially the same in both models.",
-              f1(100 - max(p1e$reliable_pct)), f1(100 - min(p1e$reliable_pct)), f2(min(p1e$extrap_gt20_pct)), f2(max(p1e$extrap_gt20_pct))), "")
+                       `AUCinf reliability met, flag set (i) (%, 95% CI)` = rel_i_ci, `AUCinf reliability met, flag set (ii) (%, 95% CI)` = reliable_pct_ci)]))
+  add(sprintf("Residual-sensitive metrics are stated as the two-model range: AUCinf reliability criteria are not met in %s of subjects (%s); NCA extrapolation above 20%% occurs in %s%% to %s%%. True extrapolation (model integral beyond the last quantifiable time) is essentially the same in both models.",
+              if (!is.null(RF)) FPe(RF$rng$fail_i, RF$rng$fail_ii) else sprintf("[(ii) %s%% to %s%%]", f1(100 - max(p1e$reliable_pct)), f1(100 - min(p1e$reliable_pct))), REL_DEF_EN,
+              f2(min(p1e$extrap_gt20_pct)), f2(max(p1e$extrap_gt20_pct))), "")
 }
 cs <- R("curve_shape", "curve_shape_B0.csv")
 if (!is.null(cs)) {
@@ -115,7 +161,7 @@ if (!is.null(cs)) {
   cs[, v := vl[variant]]; cs <- cs[match(names(vl), variant)][!is.na(variant)]
   add("Curve shape below the LLOQ cannot be observed; sensitivity to Km and Vmax (both arms, 20,000 subjects each):", "",
       md_table(cs[, .(Variant = v, `True extrapolated %: median` = f2(extrap_true_median), `95th pct` = f2(extrap_true_p95), Max = f2(extrap_true_max), `Coverage below 80% (%)` = f2(coverage_lt80_pct),
-                      `NCA extrap. median (%)` = f2(extrap_nca_median), `NCA extrap. >20% (%)` = f2(extrap_gt20_pct), `AUCinf reliable (%)` = f1(reliable_pct), `Lambda-z not estimable (%)` = f2(lambda_fail_pct),
+                      `NCA extrap. median (%)` = f2(extrap_nca_median), `NCA extrap. >20% (%)` = f2(extrap_gt20_pct), `AUCinf reliable, (i) [(ii)] (%)` = sprintf("%s [%s]", f1(reliable_rsq_extrap_pct), f1(reliable_pct)), `Lambda-z not estimable (%)` = f2(lambda_fail_pct),
                       `Median last quantifiable day` = f1(tlast_median), `AUClast geometric mean` = f1(AUClast_geo, 0), `300 mg ~78 kg AUClast vs observed 544` = f2(AUClast_ratio_vs_obs544))]),
       "Kovalenko 2020 reported that excluding below-LLOQ values makes the model predict a less steep TMDD phase with Vm and Km increasing together; this motivates the Km-increase sensitivity.", "")
 }
@@ -156,7 +202,7 @@ if (!is.null(cr) && nrow(cr)) add("Preliminary exploration only (arbitrary multi
 if (!is.null(fc)) add("Cost of a three-endpoint fallback (joint pass rates, >= 5,000 trials):", "",
   md_table(fc[, .(Scenario = scenario, `AUClast + Cmax (%)` = ci(i_last_cmax, i_lo, i_hi), `+ AUCinf reliable (%)` = ci(ii_plus_inf_rel, ii_lo, ii_hi), `+ AUCinf all estimable (%)` = ci(iii_plus_inf_all, iii_lo, iii_hi),
                   `Loss with reliable set (pp)` = ci(cost_ii_pp, cost_ii_lo, cost_ii_hi, 2), `Loss with all estimable (pp)` = ci(cost_iii_pp, cost_iii_lo, cost_iii_hi, 2))]))
-if (!is.null(rr)) add("AUCinf handling rules if AUCinf were mandated (A: exclude subjects failing reliability, B: include all estimable, C: substitute AUClast when reliability fails):", "",
+if (!is.null(rr)) add("AUCinf handling rules if AUCinf were mandated (A: exclude subjects failing reliability, B: include all estimable, C: substitute AUClast when reliability fails; reliability under flag set (ii)):", "",
   md_table(rr[, .(Rule = rule, `Analysis n per arm` = f1((n_R_mean + n_T_mean) / 2), `Pass, identical products (%)` = ci(pass_S00, pass_S00_lo, pass_S00_hi),
                   `GMR bias vs truth, Vmax x1.25 (%)` = f2(bias_VM125_pct), `GMR bias vs truth, F x0.90 (%)` = f2(bias_F090_pct), `Agreement with AUClast, Vmax x1.25 (%)` = ifelse(startsWith(rule, "Reference"), "", f1(agree_VM125)))]))
 
@@ -167,7 +213,9 @@ if (!is.null(sd) && !is.null(pw)) {
       sprintf("- Log-scale SD (CV) at B0, 60 to 90 kg, 20,000 subjects: AUClast %s (%s%%) for the 2016 model and %s (%s%%) for Model 1; Cmax %s (%s%%) and %s (%s%%).",
               f3(g("base", "AUClast_logsd")), f1(g("base", "AUClast_logcv")), f3(g("struct2020", "AUClast_logsd")), f1(g("struct2020", "AUClast_logcv")),
               f3(g("base", "Cmax_logsd")), f1(g("base", "Cmax_logcv")), f3(g("struct2020", "Cmax_logsd")), f1(g("struct2020", "Cmax_logcv"))),
-      sprintf("- The AUClast 90%% CI reported by Cohen 2022 (0.96 to 1.28, n 62 and 63) implies a log-scale SD of about 0.49 (CV about 52%%), above both models (%s%% and %s%%). The proposed 43%% lies between the models and the Cohen estimate.", f1(g("base", "AUClast_logcv")), f1(g("struct2020", "AUClast_logcv"))))
+      { cv_m <- c(g("base", "AUClast_logcv"), g("struct2020", "AUClast_logcv")); cv_c <- sd[startsWith(variant, "Cohen"), AUClast_logcv]; cv_s <- sd[!startsWith(variant, "Cohen") & !variant %in% c("base", "struct2020"), AUClast_logcv]
+        premise(length(cv_c) == 1 && length(cv_s) == 1 && max(cv_m) < cv_s && cv_s < cv_c, "the proposed CV lies between the models and the Cohen 2022 estimate")
+        sprintf("- The AUClast 90%% CI reported by Cohen 2022 (0.96 to 1.28, n 62 and 63) implies a log-scale SD of about 0.49 (CV about %s%%), above both models (%s%% and %s%%). The proposed %s%% lies between the models and the Cohen estimate.", fmt_num(cv_c, 0), f1(cv_m[1]), f1(cv_m[2]), fmt_num(cv_s, 0)) })
   x <- pw[model == "k2016"]
   add(sprintf("- Empirical power with 117 per arm (2016 model, %s trials): identical products %s%% for AUClast and Cmax jointly and %s%% with AUCinf (reliable set) added; test bioavailability x0.97 (true AUC ratio about 0.95) %s%% and %s%%.",
               format(x$n_trials[1], big.mark = ","), ci(x[scenario == "S00", power_last_cmax], x[scenario == "S00", lo], x[scenario == "S00", hi]), ci(x[scenario == "S00", power_3], x[scenario == "S00", lo3], x[scenario == "S00", hi3]),
@@ -178,11 +226,12 @@ if (!is.null(sd) && !is.null(pw)) {
 bt <- R("oc", "boundary_type1.csv"); ivv <- R("oc", "inversion_all.csv"); rk <- R("oc", "random_space_risks.csv"); pw_oc <- R("oc", "power.csv")
 if (!is.null(bt)) {
   ml <- c(k2016 = "2016", k2020 = "Model 1")
-  add("## Operating characteristics: boundary type I error (true AUC0-inf ratio 0.80 or 1.25, 10,000 trials each)", "",
+  ntr_ <- if ("n_trials" %in% names(bt)) paste(unique(format(range(bt$n_trials), big.mark = ",", trim = TRUE)), collapse = " to ") else nb_   # 반복 수는 결과 파일에서(부분 실행이면 설계값보다 적다)
+  add(sprintf("## Operating characteristics: boundary type I error (true AUC0-inf ratio 0.80 or 1.25, %s trials each)", ntr_), "",
       md_table(dcast(bt[config %in% c("P2", "F3A", "F3C", "G2")], model + mechanism + direction + target + auc_ratio + cmax_ratio ~ config, value.var = "pass_pct")[
         , .(Model = ml[model], Mechanism = mechanism, Direction = direction, `Target` = f2(target), `True AUC0-inf ratio` = f3(auc_ratio), `True Cmax ratio` = f3(cmax_ratio),
             `P2 (%)` = f2(P2), `F3-A (%)` = f2(F3A), `F3-C (%)` = f2(F3C), `G2 (%)` = f2(G2))]),
-      "Wilson 95% intervals are in the full report (Appendix B); each rate is based on 10,000 trials.", "")
+      sprintf("Wilson 95%% intervals are in the full report (Appendix B); each rate is based on %s trials.", ntr_), "")
 }
 gb <- R("oc", "gmr_by_endpoint.csv")
 if (!is.null(gb)) {
@@ -190,6 +239,17 @@ if (!is.null(gb)) {
   add("Relative bias (%) of the geometric mean of trial GMRs against the truth at the boundaries (AUC endpoints against the true AUC0-inf ratio, Cmax against the true Cmax ratio). Rule A combines estimation and selection (flagged subjects excluded), rule B is estimation only, rule C substitutes AUClast for flagged subjects:", "",
       md_table(x[order(model, mechanism, target), .(Model = c(k2016 = "2016", k2020 = "Model 1")[model], Mechanism = mechanism, Direction = direction, Target = f2(target), `AUClast` = f1(AUClast), `AUCinf rule A` = f1(AUCinf_A),
                                                     `AUCinf rule B` = f1(AUCinf_B), `AUCinf rule C` = f1(AUCinf_C), `Cmax` = f1(Cmax))]))
+}
+# G2: AUCinf 처리 규칙 × 플래그 세트(검토 의견 W2 §2, scripts/41 결과)
+g2en <- proj_path("results", "oc", "g2_rules_conclusion_en.md"); pbz <- R("oc", "p2_bias_boundary.csv")
+if (file.exists(g2en)) {
+  add("## G2 boundary type I error by AUCinf handling rule and flag set (review W2, section 2)", "",
+      sprintf("G2 (AUCinf + Cmax) re-judged from the saved trial-level results under rules A, B and C and flag sets (i) and (ii) (scripts/41_oc_rules_flags.R; no new simulation). %s; rule B does not depend on the flags. Full tables: oc/g2_rules_flags.csv and oc/g2_decomposition.csv.", REL_CONV_EN), "",
+      md_body(g2en, 1))
+  if (!is.null(pbz)) { x <- dcast(pbz, model + scenario + target ~ endpoint, value.var = "bias_pct")
+    add("Relative bias (%) of the geometric mean of trial GMRs against the truth in the boundary scenarios (AUC endpoints against the true AUC0-inf ratio, Cmax against the true Cmax ratio; AUCinf rules A and C under flag set (ii); AUCinf true = individual model AUC0-inf of the trial subjects, reference; oc/p2_bias_boundary.csv):", "",
+        md_table(x[order(model, target, scenario), .(Model = c(k2016 = "2016", k2020 = "Model 1")[model], Scenario = scenario, Target = f2(target), AUClast = f2(AUClast), `AUCinf rule A` = f2(AUCinf_A), `AUCinf rule B` = f2(AUCinf_B),
+                        `AUCinf rule C` = f2(AUCinf_C), `AUCinf rule A, set (i)` = ifelse(is.na(AUCinf_Ai), "NA", f2(AUCinf_Ai)), `AUCinf rule C, set (i)` = ifelse(is.na(AUCinf_Ci), "NA", f2(AUCinf_Ci)), `AUCinf true` = f2(AUCinf_true), Cmax = f2(Cmax))])) }
 }
 if (!is.null(ivv)) {
   x <- ivv[abs(target - 0.8) < 1e-9 | abs(target - 1.25) < 1e-9]
@@ -220,7 +280,7 @@ if (!is.null(wb)) {
   add("## 5. Body weight generalization (300 mg, B0, 20,000 subjects per uniform weight band)", "",
       "Covariate variants (c) and (d) use the adult coefficients of Kovalenko 2020 Model 4 (elimination rate constant ke proportional to (BMI/26)^0.368, central volume exponent 0.817); the BMI reference of 26 is a placeholder based on phase 3 mean BMI 25.4 to 27.3 (Kamal 2022). Height is simulated as normal (mean 170 cm, SD 9, truncated 150 to 195 cm). Development-data weight ranges are not reported in the source publications; bands above 130 kg are flagged as possible extrapolation.", "",
       md_table(wb[, .(Model = ml[model], `Band (kg)` = band, `Median BMI` = f1(BMI_median), `True extrap. median (%)` = f2(extrap_true_median), `95th pct` = f2(extrap_true_p95), `Coverage <80% (%)` = f3(coverage_lt80_pct),
-                      `AUCinf reliable (%)` = f1(reliable_pct), `Lambda-z not estimable (%)` = f2(lambda_fail_pct), `AUClast geometric mean` = f1(AUClast_geo, 0), Note = ifelse(dev_range_note == "", "", "outside confirmed development range"))]))
+                      `AUCinf reliable, (i) [(ii)] (%)` = sprintf("%s [%s]", f1(reliable_rsq_extrap_pct), f1(reliable_pct)), `Lambda-z not estimable (%)` = f2(lambda_fail_pct), `AUClast geometric mean` = f1(AUClast_geo, 0), Note = ifelse(dev_range_note == "", "", "outside confirmed development range"))]))
 }
 ow <- NULL; for (mk in c("a", "b", "d")) { f <- proj_path("results", "weight_generalization", sprintf("obese_trials_per_endpoint_%s.csv", mk)); if (file.exists(f)) ow <- rbind(ow, fread(f)) }
 od <- NULL; for (mk in c("a", "b", "d")) { f <- proj_path("results", "weight_generalization", sprintf("obese_trials_dropout_%s.csv", mk)); if (file.exists(f)) od <- rbind(od, fread(f)) }
@@ -230,7 +290,7 @@ if (!is.null(ow)) {
   x <- merge(x, d, by = c("model", "scenario"))
   add("Trial level in a population with many obese subjects (weight normal mean 100 kg, SD 20, truncated 60 to 150 kg; 2,000 trials per scenario; mean GMR and dropout weights only):", "",
       md_table(x[, .(Model = ml[model], Scenario = scenario, `GMR AUClast` = f3(AUClast), `GMR true AUCinf` = f3(AUCinf_true), `GMR NCA AUCinf reliable` = f3(AUCinf_reliable),
-                     `Subjects failing AUCinf reliability (%)` = f1(dropout_pct), `Mean weight retained (kg)` = f1(retained), `Mean weight failing (kg)` = f1(dropped))]))
+                     `Subjects failing AUCinf reliability, flag set (ii) (%)` = f1(dropout_pct), `Mean weight retained (kg)` = f1(retained), `Mean weight failing (kg)` = f1(dropped))]))
 }
 
 # 6. Literature
@@ -257,7 +317,8 @@ rows <- rbindlist(lapply(names(vv), function(v) { d <- R("trials", sprintf("sche
   d3 <- d[schedule == "D3"]; k <- R("individual200k", sprintf("criterion_d_200k_%s.csv", v)); k3 <- if (!is.null(k)) k[schedule == "D3"] else NULL
   data.table(Variant = vv[[v]], `Rule result` = if (any(d$recommend)) paste0("D3 by criterion ", paste(c("a", "b", "c", "d")[unlist(d3[, .(crit_a %in% TRUE, crit_b %in% TRUE, crit_c %in% TRUE, crit_d %in% TRUE)])], collapse = ","), " only") else "no schedule meets any criterion",
              `D3: AUClast CI width change (%, positive = wider)` = sprintf("%s (%s to %s)", f2(-100 * d3$a_mean_width_rel_decrease), f2(-100 * d3$a_paired_hi), f2(-100 * d3$a_paired_lo)),
-             `D3: reliability gain (pp)` = f2(d3$c_reliable_gain_pp),
+             `D3: reliability gain, (i) [(ii)] (pp)` = { pv <- if (!is.null(RF)) RF$all[RF$all$variant == v & RF$all$schedule == "D3"] else NULL
+               if (!is.null(pv) && nrow(pv) == 1) FPe(pv$gain_i_pp, pv$gain_ii_pp, 2, "", TRUE) else sprintf("[(ii) %s]", f2(d3$c_reliable_gain_pp)) },
              `D3: extrapolation >20% ratio, 20,000 subjects` = sprintf("%s (%s to %s)", f2(d3$d_extrap20_ratio), f2(d3$d_ratio_boot_lo), f2(d3$d_ratio_boot_hi)),
              `D3: same ratio, 200,000 subjects` = if (!is.null(k3) && nrow(k3)) sprintf("%s (%s to %s), %s fewer subjects per arm; %s", f2(k3$extrap_gt20_ratio), f2(k3$d_ratio_boot_lo), f2(k3$d_ratio_boot_hi), f2(-k3$d_abs_change_per_arm),
                if (k3$d_ratio_boot_lo <= 0.5 && k3$d_ratio_boot_hi >= 0.5) "fragile (interval includes 0.5)" else if (k3$d_ratio_boot_lo > 0.5) "not met (interval above 0.5)" else "met (interval below 0.5)") else "not re-evaluated",
@@ -267,22 +328,41 @@ bm <- R("trials", "bminus_explicit.csv"); wd <- R("trials", "width_decomposition
 if (!is.null(wd)) { w <- wd[schedule %in% c("D1", "D2", "D4")]
   add(sprintf("AUClast CI width: D1, D2 and D4 widen the mean AUClast 90%% CI by %s%% to %s%% (paired intervals exclude zero; D3 %s%%). Recomputed with true concentrations and no residual error, the widening remains (%s%% to %s%%), so it reflects heterogeneity of the added tail area as the last quantifiable time is extended, not measurement error at the added low points.",
               f2(-100 * max(w$base)), f2(-100 * min(w$base)), f2(-100 * wd[schedule == "D3", base]), f2(-100 * max(w$noresid)), f2(-100 * min(w$noresid))), "") }
-if (!is.null(bm)) add(sprintf("Removing Day 50 (B-): AUClast CI width %s%% (negative = narrower), AUCinf reliability change %s percentage points, share with NCA extrapolation above 20%% multiplied by %s. Not recommended, to keep a terminal sample for AUC0-inf as a secondary endpoint and for a fallback analysis.",
-                      f2(-100 * bm$a_mean_width_rel_decrease), ci(bm$c_reliable_gain_pp, bm$c_gain_boot_lo, bm$c_gain_boot_hi, 2), ci(bm$d_extrap20_ratio, bm$d_ratio_boot_lo, bm$d_ratio_boot_hi, 2)), "")
+if (!is.null(bm)) { bmr <- if (!is.null(RF)) RF$dense$bminus[model == "k2016"] else NULL
+  add(sprintf("Removing Day 50 (B-): AUClast CI width %s%% (negative = narrower), AUCinf reliability change %s percentage points (2016 model, paired 95%% CI), share with NCA extrapolation above 20%% multiplied by %s. Not recommended, to keep a terminal sample for AUC0-inf as a secondary endpoint and for a fallback analysis.",
+              f2(-100 * bm$a_mean_width_rel_decrease),
+              if (!is.null(bmr) && nrow(bmr) == 1) sprintf("(i) %s [(ii) %s]", cie(bmr$gain_i_pp, bmr$gain_i_lo, bmr$gain_i_hi), cie(bmr$gain_ii_pp, bmr$gain_ii_lo, bmr$gain_ii_hi)) else sprintf("[(ii) %s]", ci(bm$c_reliable_gain_pp, bm$c_gain_boot_lo, bm$c_gain_boot_hi, 2)),
+              ci(bm$d_extrap20_ratio, bm$d_ratio_boot_lo, bm$d_ratio_boot_hi, 2)), "") }
 trig <- if (nrow(rows)) rows[startsWith(`Rule result`, "D3"), Variant] else character(0)
 abc_any <- any(unlist(lapply(c(names(vv), "iiv150", "resid12", "weight_alt", "ada10"), function(v) { d <- R("trials", sprintf("schedule_decision_%s.csv", v)); if (is.null(d)) FALSE else d[, any(crit_a %in% TRUE | crit_b %in% TRUE | crit_c %in% TRUE)] })))
 k_lo <- unlist(lapply(c("base", "struct2020", "vmax080_both"), function(v) { k <- R("individual200k", sprintf("criterion_d_200k_%s.csv", v)); if (is.null(k)) NA_real_ else k[schedule == "D3", d_ratio_boot_lo] }))
 if (abc_any) stop("criterion (a), (b) or (c) met in some variant: rationale text must be revised")
 if (anyNA(k_lo) || any(k_lo <= 0.5)) stop("200,000-subject criterion (d) interval reaches 0.5 in some variant: rationale text must be revised")
-add(sprintf("Rationale: %s; criteria (a), (b) and (c) were not met in any variant; re-evaluated with 200,000 subjects (4,000 bootstrap resamples), the D3 ratio for criterion (d) is above 0.5 with its whole interval in every re-evaluated variant; the absolute reduction is below one subject per arm; neither the AUClast CI width nor power improves; the cost is 1,040 additional visits. Removing the Day 50 sample (B-) is not recommended because it preserves a terminal point for AUC0-inf as a secondary endpoint and for a fallback analysis. Lesson recorded: a relative-reduction criterion for a rare event needs an absolute floor (for example at least one subject per arm); not applied retroactively.",
-            if (length(trig)) sprintf("at the pre-specified 20,000-subject level, criterion (d) alone was met in %s", paste(trig, collapse = " and ")) else "no variant met any criterion at the pre-specified 20,000-subject level"), "")
+# 전제: 절대 감소 arm당 1명 미만(규칙상 권고 행과 20만 명 재평가), 주 모델 D1–D4에서 AUClast CI 폭·ke ×1.10 통과율 개선 없음. 추가 방문 수는 판정표에서
+dd_ <- rbindlist(lapply(names(vv), function(v) { d <- R("trials", sprintf("schedule_decision_%s.csv", v)); if (is.null(d)) NULL else d[recommend %in% TRUE] }), fill = TRUE)
+k_abs <- unlist(lapply(c("base", "struct2020", "vmax080_both"), function(v) { k <- R("individual200k", sprintf("criterion_d_200k_%s.csv", v)); if (is.null(k)) NA_real_ else k[schedule == "D3", d_abs_change_per_arm] }))
+premise(abs(c(dd_$d_abs_change_per_arm, k_abs)) < 1, "absolute reduction below one subject per arm")
+db_ <- R("trials", "schedule_decision_base.csv")
+premise(db_[schedule %in% c("D1", "D2", "D3", "D4"), all(a_mean_width_rel_decrease <= 0 & b_ke110_gain_pp <= 0)], "neither the AUClast CI width nor the ke x1.10 pass rate improves in the primary model")
+if (!is.null(RF)) premise(!(RF$all$crit_c_i %in% TRUE) & !(RF$all$crit_c_ii %in% TRUE), "criterion (c) not met under either flag set")
+add(sprintf("Rationale: %s; criteria (a), (b) and (c) were not met in any variant (criterion (c) under neither reliability flag set); re-evaluated with 200,000 subjects (4,000 bootstrap resamples), the D3 ratio for criterion (d) is above 0.5 with its whole interval in every re-evaluated variant; the absolute reduction is below one subject per arm; in the primary model neither the AUClast CI width nor power improves with any added schedule; the cost of D3 is %s additional visits. Removing the Day 50 sample (B-) is not recommended because it preserves a terminal point for AUC0-inf as a secondary endpoint and for a fallback analysis. Lesson recorded: a relative-reduction criterion for a rare event needs an absolute floor (for example at least one subject per arm); not applied retroactively.",
+            if (length(trig)) sprintf("at the pre-specified 20,000-subject level, criterion (d) alone was met in %s", paste(trig, collapse = " and ")) else "no variant met any criterion at the pre-specified 20,000-subject level",
+            format(db_[schedule == "D3", added_visits_total], big.mark = ",")), "")
 
 # 8. Limitations
+# 예측 편향: 연구 제형 gate 데이터셋의 모의/관측 비(전제: AUClast는 2016 모델이 Model 1보다 관측에 가깝다)
+pb_txt <- if (!is.null(g16) && !is.null(g20)) { a16 <- g16[gate_role == "gate"]; a20 <- g20[gate_role == "gate"]; r2 <- function(x) sprintf("%s to %s", f2(min(x)), f2(max(x)))
+  premise(mean(abs(a16$AUClast_ratio - 1)) < mean(abs(a20$AUClast_ratio - 1)), "AUClast of the 2016 model is closer to observed than Model 1")
+  sprintf("- Simulated/observed ratios over the %d study-presentation gate datasets: Cmax %s (2016 model) and %s (Model 1); AUClast %s (2016 model, close to observed) and %s (Model 1).", nrow(a16), r2(a16$Cmax_ratio), r2(a20$Cmax_ratio), r2(a16$AUClast_ratio), r2(a20$AUClast_ratio)) } else character(0)
+resid_en <- if (!is.null(RF) && !is.null(RF$resid)) sprintf(" (proportional residual 12%%: reliability %s, extrapolation above 20%% %s%%; 2016 model %s and %s%%); two-model ranges: reliability %s, extrapolation above 20%% %s%% to %s%%",
+  FPe(RF$resid$rel_i, RF$resid$rel_ii), f2(RF$resid$gt20), FPe(RF$b0[model == "k2016", rel_i], RF$b0[model == "k2016", rel_ii]), f2(RF$resid$gt20_base), FPe(RF$rng$rel_i, RF$rng$rel_ii),
+  f2(RF$rng$gt20[1]), f2(RF$rng$gt20[2])) else ""
 add("## 8. Limitations", "",
     "- The primary model does not reproduce the faster absorption of the 200 mg 1.14 mL (175 mg/mL) presentation; about one third to one half of the 200 mg shortfall is explained by absorption, the remainder is unexplained. Clot 2021 Chinese 200 mg data (same 175 mg/mL prefilled syringe) showed median time to Cmax 7.0 days (range 3.0 to 10.0), but with n=8 and no sample between Day 4 and Day 8 the resolution is low.",
-    "- Cmax: the 2016 model predicts about 20% above observed and Model 1 about 5% above; AUClast: the 2016 model is close to observed and Model 1 about 12% above.",
+    pb_txt,
     "- Km is fixed at 0.01 mg/L in both models; with no uncertainty or IIV on Km, terminal-phase variability may be underestimated. Km and Vmax sensitivity analyses address this.",
-    "- The AUCinf reliability rate and the share with NCA extrapolation above 20% depend on the residual error model and are reported as two-model ranges.",
+    sprintf("- The AUCinf reliability rate and the share with NCA extrapolation above 20%% depend on the residual error model and are reported as two-model ranges%s.", resid_en),
+    if (!is.null(RF)) sprintf("- %s. %s", REL_CONV_EN, rel_changes_en),
     "- Placeholders not yet confirmed: Day 1 post-dose sampling time (0.25 day), weight distribution and stratification split, sampling windows, BMI reference of 26, body weights of the Li 2020 single-arm studies.",
     "- Development-data body weight ranges are not reported; results above 130 kg are extrapolations.",
     "- Only the automatic lambda-z Best Fit is simulated; in a real study a pharmacokineticist may review and adjust the lambda-z points.",

@@ -151,7 +151,7 @@ gate는 **연구 제형**에 한정한다: 300 mg(2 mL of 150 mg/mL), 600 mg(2 x
 - **AUClast**: Linear Up Log Down(농도 감소이고 두 값이 양수인 구간만 로그 사다리꼴), 실제 채혈 시각.
 - **λz Best Fit**: Cmax 이후 양수 농도의 마지막 3, 4, 5, ... 점으로 ln C 비가중 OLS. 기울기 > 0인 창은 선택 전에 제외(NonCompart; PKNCA는 전체 창 최댓값 기준이라 말단 상승 사례에서 λz를 내지 않을 수 있음 — `engine_validation_edge_case.csv`). adjusted R² = 1 − (1 − R²)(n − 1)/(n − 2) 최대, |최대 − 창| < 0.0001이면 점 수가 많은 창. Cmax 이후 양수 농도 3개 미만이거나 기울기가 음이 아니면 산출 불가.
 - **출력(Phoenix 표기)**: Lambda_z, HL_Lambda_z, Rsq, Rsq_adjusted, No_points_lambda_z, Lambda_z_lower, Lambda_z_upper, Clast_pred, AUClast, AUCINF_obs, AUCINF_pred, AUC_%Extrap_obs, AUC_%Extrap_pred, Span_ratio. AUCinf(분석 기본)는 AUCINF_obs.
-- **신뢰 플래그**(통계분석계획 관행, Phoenix 기능 아님): Rsq_adjusted < 0.80, AUC_%Extrap_obs > 20%, span ratio((Lambda_z_upper − Lambda_z_lower)/HL_Lambda_z) < 2. 처리 규칙 세 가지 모두 보고 — A: 플래그(또는 λz 산출 불가) 대상 제외, B: λz 산출 가능 전원 포함, C: 플래그 또는 산출 불가 대상은 AUCinf 자리에 AUClast 대입. 탈락 사유별 비율(중복 포함) 표 제시.
+- **신뢰 플래그**(통계분석계획 관행, Phoenix 기능 아님): Rsq_adjusted < 0.80, AUC_%Extrap_obs > 20%, span ratio((Lambda_z_upper − Lambda_z_lower)/HL_Lambda_z) < 2. 두 세트를 모두 보고한다(D-046): (i) adj R²·외삽 두 플래그, (ii) (i) + span ratio. 본문은 (i)을 주로 인용하고 (ii)를 병기하며, span ratio는 일부 통계분석계획만 쓰는 관행임을 적는다. 운용특성 시험의 G2·AUCinf는 규칙 A/B/C × (i)/(ii)로 판정(D-047). 처리 규칙 세 가지 모두 보고 — A: 플래그(또는 λz 산출 불가) 대상 제외, B: λz 산출 가능 전원 포함, C: 플래그 또는 산출 불가 대상은 AUCinf 자리에 AUClast 대입. 탈락 사유별 비율(중복 포함) 표 제시.
 - **한계**: 실제 시험에서는 약동학 담당자가 λz 점 선택을 검토·수정할 수 있으나 모의에는 반영하지 않았다.
 - 이전 엔진(`run_nca_legacy`, D-010)과의 차이: tmax 이전 BLQ = 0, 2회 연속 BLQ 규칙 없음, 동률 판정 ≤ 1e-4, span 플래그 없음. 차이표 `results/nca_engine/`.
 - **참값**: 모델 진적분 기준 실제 외삽률 = 1 − AUC0-tlast,true/AUC0-inf,true. 비구획 추정 외삽률과의 괴리 자체가 핵심 결과.

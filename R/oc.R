@@ -42,7 +42,7 @@ truth_metrics <- function(ip, dose_mg, model_id, cmax = TRUE, chunk = 20000L) {
     prm <- as.data.frame(ip[rows, c(pcols, "F"), with = FALSE]); names(prm)[names(prm) == "F"] <- "Fbio"
     s <- .solve_param_table(mod, prm, times, dose_mg)
     inf <- s[time == 400, .(id, AUCinf = auc, resid = central + periph + depot + (if ("tr1" %in% names(s)) tr1 + tr2 + tr3 + absc else 0))]
-    long <- inf[resid / dose_mg > 1e-7, id]
+    d_ <- dose_mg; long <- inf[resid / d_ > 1e-7, id]   # 인자는 지역 변수로(D-025 lint)
     if (length(long)) {
       s2 <- .solve_param_table(mod, prm[prm$id %in% long, , drop = FALSE], 4000, dose_mg)
       inf[s2[, .(id, a2 = auc)], on = "id", AUCinf := i.a2]
@@ -159,6 +159,83 @@ config_pass <- function(be, oc) {
   for (cf in names(oc$configurations)) {
     eps <- unlist(oc$configurations[[cf]]$endpoints)
     w[, (paste0("cfg_", cf)) := Reduce(`&`, lapply(eps, function(e) w[[e]] %in% TRUE))]
+  }
+  w[]
+}
+
+# --- (4) 재판정 확장: AUCinf 규칙 × 플래그 세트 (검토 의견 W2 §2) -------------------------------------
+# 플래그 세트 (i):  λz 산출 가능 & Rsq_adjusted ≥ 0.80 & AUC_%Extrap_obs ≤ 20% (span ratio 무시; NCA 출력 flag_rsq·flag_extrap 열)
+# 플래그 세트 (ii): (i) & Span_ratio ≥ 2 (= reliable 열, D-039). 원래 AUCinf_A·AUCinf_C는 (ii), AUCinf_B는 플래그와 무관.
+# 추가 평가변수: AUCinf_Ai(규칙 A, 세트 (i) 충족자만), AUCinf_Ci(규칙 C, 세트 (i) 미충족자는 AUClast 대입)
+OC_ENDPOINTS_EXT <- c(OC_ENDPOINTS, "AUCinf_Ai", "AUCinf_Ci")
+
+# run_trial_oc와 같은 simulate_trial_arms 호출·시드·NCA에 평가변수 2개를 더한다. 원래 6개 평가변수는 run_trial_oc와 비트 단위로 같다
+# (tests/testthat/test-rejudge.R, scripts/40_oc_rejudge.R가 저장본과 대조). drop에는 세트 (i) 충족 수(n_reliable_i)를 더한다.
+run_trial_oc_ext <- function(j, p, design, scenarios, master_seed, wt_spec, schedule = "B0", jitter = TRUE, model_id = NULL) {
+  sa <- simulate_trial_arms(j, p, design, scenarios, schedule, master_seed, wt_spec, jitter = jitter, model_id = model_id)
+  sd_days <- get_schedule(design, schedule)
+  scs <- names(scenarios); nmax <- max(sa$subj$id)
+  R <- sa$arms$R$S00
+  obs_l <- list(subset_schedule(R$obs, sd_days)[, .(id, time, conc)]); tr_l <- list(R$truth[, .(id, AUCinf_true)])
+  map <- list(data.table(id = R$subj$id, scenario = "REF"))
+  for (k in seq_along(scs)) {
+    x <- sa$arms$T[[scs[k]]]; o <- k * nmax
+    obs_l[[k + 1]] <- subset_schedule(x$obs, sd_days)[, .(id = id + o, time, conc)]
+    tr_l[[k + 1]] <- x$truth[, .(id = id + o, AUCinf_true)]
+    map[[k + 1]] <- data.table(id = x$subj$id + o, scenario = scs[k])
+  }
+  nca <- run_nca(rbindlist(obs_l))
+  nca <- rbindlist(tr_l)[nca, on = "id"]
+  nca <- rbindlist(map)[nca, on = "id"]
+  ncaR <- nca[scenario == "REF"]; ncaT <- nca[scenario != "REF"]
+  addC <- function(n) {
+    n[, AUCinf_C := fifelse(reliable %in% TRUE, AUCinf, AUClast)]
+    n[, rel_i := (lambda_ok & !flag_rsq & !flag_extrap) %in% TRUE]      # 세트 (i). 플래그가 NA면 미충족(세트 (ii)의 reliable %in% TRUE와 같은 처리)
+    n[, AUCinf_Ci := fifelse(rel_i, AUCinf, AUClast)][]
+  }
+  ncaR <- addC(ncaR); ncaT <- addC(ncaT)
+  endpoint_vals <- function(n, ep) switch(ep,
+    Cmax = n$Cmax, AUClast = n$AUClast, AUCinf_A = fifelse(n$reliable %in% TRUE, n$AUCinf, NA_real_),
+    AUCinf_B = fifelse(n$lambda_ok %in% TRUE, n$AUCinf, NA_real_), AUCinf_C = n$AUCinf_C, AUCinf_true = n$AUCinf_true,
+    AUCinf_Ai = fifelse(n$rel_i, n$AUCinf, NA_real_), AUCinf_Ci = n$AUCinf_Ci)
+  lim <- as.numeric(unlist(design$be$limits)); cl <- design$be$ci_level
+  be <- rbindlist(lapply(scs, function(sc) {
+    t_ <- ncaT[scenario == sc]
+    rbindlist(lapply(OC_ENDPOINTS_EXT, function(ep) {
+      yR <- endpoint_vals(ncaR, ep); yT <- endpoint_vals(t_, ep)
+      r <- be_pooled_t(c(yR, yT), c(rep("R", length(yR)), rep("T", length(yT))), cl, lim)
+      data.table(trial = j, scenario = sc, endpoint = ep, GMR = r$GMR, CI_lower = r$CI_lower, CI_upper = r$CI_upper, pass = r$pass, n_R = r$n_R, n_T = r$n_T)
+    }))
+  }))
+  drop <- rbind(data.table(trial = j, scenario = "REF", arm = "R", n_reliable = sum(ncaR$reliable %in% TRUE), n_reliable_i = sum(ncaR$rel_i), n_lambda = sum(ncaR$lambda_ok %in% TRUE),
+                           flag_rsq = sum(ncaR$flag_rsq %in% TRUE), flag_extrap = sum(ncaR$flag_extrap %in% TRUE), flag_span = sum(ncaR$flag_span %in% TRUE), n = nrow(ncaR)),
+                ncaT[, .(trial = j, arm = "T", n_reliable = sum(reliable %in% TRUE), n_reliable_i = sum(rel_i), n_lambda = sum(lambda_ok %in% TRUE), flag_rsq = sum(flag_rsq %in% TRUE),
+                         flag_extrap = sum(flag_extrap %in% TRUE), flag_span = sum(flag_span %in% TRUE), n = .N), by = scenario], use.names = TRUE)
+  list(be = be, drop = drop)
+}
+
+# 재판정 구성(규칙 × 플래그 세트). pass = 구성 안의 모든 평가변수 통과(평가변수 pass가 NA면 불통과, config_pass와 같음).
+# 규칙 B는 플래그와 무관하므로 (i)·(ii) 구분 없이 하나. P2·G2_Aii·AUCinf_Aii는 사전 고정 구성 P2·G2·AUCinf_only와 같은 정의.
+OC_REJUDGE_CONFIGS <- list(
+  P2 = c("AUClast", "Cmax"),
+  G2_Aii = c("AUCinf_A", "Cmax"), G2_B = c("AUCinf_B", "Cmax"), G2_Cii = c("AUCinf_C", "Cmax"),
+  G2_Ai = c("AUCinf_Ai", "Cmax"), G2_Ci = c("AUCinf_Ci", "Cmax"),
+  AUCinf_Aii = "AUCinf_A", AUCinf_B = "AUCinf_B", AUCinf_Cii = "AUCinf_C", AUCinf_Ai = "AUCinf_Ai", AUCinf_Ci = "AUCinf_Ci")
+
+# be(long) -> wide(trial, scenario, 평가변수별 0/1, cfg_<구성>). 평가변수 행 자체가 없는 (시험, 시나리오)의 구성은 NA(미평가)로 두어
+# 판정 불가(pass NA = 불통과)와 구분한다(예: 세트 (i) 평가변수가 재판정 파일에만 있을 때).
+config_pass_ext <- function(be, configs = OC_REJUDGE_CONFIGS) {
+  b <- be[, .(trial, scenario, endpoint, ok = as.integer(pass %in% TRUE))]
+  if (anyDuplicated(b, by = c("trial", "scenario", "endpoint"))) stop("config_pass_ext: (trial, scenario, endpoint) 중복")
+  w <- dcast(b, trial + scenario ~ endpoint, value.var = "ok", fill = NA_integer_)
+  for (cf in names(configs)) {
+    eps <- configs[[cf]]
+    v <- rep(NA, nrow(w))
+    if (all(eps %in% names(w))) {
+      miss <- Reduce(`|`, lapply(eps, function(e) is.na(w[[e]])))
+      v <- Reduce(`&`, lapply(eps, function(e) w[[e]] %in% 1L)); v[miss] <- NA
+    }
+    w[, (paste0("cfg_", cf)) := v]
   }
   w[]
 }

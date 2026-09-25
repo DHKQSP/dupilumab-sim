@@ -206,3 +206,80 @@ summarize_trials_ci <- function(be, method = "pooled_t") {
   }, by = .(scenario, schedule)]
   list(per_endpoint = pe, concordance = cc, wide = w)
 }
+
+# ---------------------------------------------------------------------------------------------
+# 보고 문구용 AUCinf 신뢰 충족률·탈락률과 그 증감(검토 의견 W2 §1). 보고서(report.Rmd)·summary_en(18)·key_numbers_en(37)이 같은 값과 같은 전제 검사를 쓴다.
+# 플래그 세트 (i) = λz 산출 & adj R² ≥ 0.80 & 외삽 ≤ 20%, (ii) = (i) & span ratio ≥ 2(일부 통계분석계획만 쓰는 관행, Phoenix 기능 아님, D-039).
+# 문구는 (i)을 주값, (ii)를 병기한다. 입력: results/reliability/(scripts/39), rationale/pillar1_two_model_range.csv,
+# trials/schedule_decision_<변형>.csv, nca_engine/engine_difference_individual_B0.csv. 문구의 정성 주장(아래 premise)이 결과와 어긋나면 stop().
+# 39 산출물이 없으면 NULL(호출 쪽은 신뢰 충족률 문구를 쓰지 않는다).
+reliability_facts <- function(root = proj_path("results")) {
+  rd_ <- function(...) { f <- file.path(root, ...); if (file.exists(f)) fread(f) else NULL }
+  two <- rd_("reliability", "reliability_two_flag_sets_summary.csv"); prd <- rd_("reliability", "reliability_paired_vs_B0.csv")
+  drs <- rd_("reliability", "dropout_reasons_by_schedule.csv"); lzw <- rd_("reliability", "reliability_lz_window_by_schedule.csv")
+  if (is.null(two) || is.null(prd) || is.null(drs)) return(NULL)
+  premise <- function(ok, msg) if (!isTRUE(all(ok))) stop("신뢰 충족률 문구의 전제가 결과와 다르다: ", msg, call. = FALSE)
+  M2 <- c(base = "k2016", struct2020 = "k2020"); DENSE <- c("D1", "D2", "D3", "D4")
+  # 1. B0 두 모델: (i)·(ii) 충족률(Wilson 95% 구간), 미충족률, 탈락 사유(중복 포함, (ii))
+  t0 <- two[match(names(M2), two$variant)]; d0 <- drs[drs$schedule == "B0"]; d0 <- d0[match(names(M2), d0$variant)]
+  premise(!anyNA(t0$variant) && !anyNA(d0$variant), "두 모델(base, struct2020)의 B0 행이 없다")
+  b0 <- data.table(variant = names(M2), model = unname(M2), rel_i = t0$reliable_i_pct, rel_i_lo = t0$reliable_i_lo, rel_i_hi = t0$reliable_i_hi,
+                   rel_ii = t0$reliable_ii_pct, rel_ii_lo = t0$reliable_ii_lo, rel_ii_hi = t0$reliable_ii_hi, span_loss = t0$span_only_loss_pct,
+                   fail_i = 100 - t0$reliable_i_pct, fail_ii = 100 - t0$reliable_ii_pct, lambda_fail = d0$lambda_fail_pct, flag_rsq = d0$flag_rsq_pct,
+                   flag_extrap = d0$flag_extrap_pct, flag_span = d0$flag_span_pct, any_ii = d0$any_flag_or_fail_pct, excl_span_only = d0$excl_span_pct)
+  premise(abs(b0$fail_ii - b0$any_ii) < 0.01, "(ii) 미충족률 = 탈락 사유 합집합")
+  premise(abs(b0$span_loss - b0$excl_span_only) < 0.01, "span 단독 손실 = (i) − (ii) = span 플래그만 있는 대상자")
+  premise(b0$rel_i > b0$rel_ii, "B0에서 (i) 충족률 > (ii) 충족률")
+  p1r <- rd_("rationale", "pillar1_two_model_range.csv")
+  if (!is.null(p1r)) premise(abs(min(b0$rel_ii) - p1r$reliable_min) < 0.01 && abs(max(b0$rel_ii) - p1r$reliable_max) < 0.01,
+                             "(ii) 두 모델 범위 = rationale/pillar1_two_model_range.csv")
+  rng <- list(rel_i = range(b0$rel_i), rel_ii = range(b0$rel_ii), fail_i = range(b0$fail_i), fail_ii = range(b0$fail_ii), span_loss = range(b0$span_loss),
+              gt20 = if (!is.null(p1r)) c(p1r$gt20_min, p1r$gt20_max) else NULL)
+  # 2. B0 대비 쌍대 증감(같은 20,000명, %p). 두 모델 D1–D4에서 span 플래그가 증감을 낮춘다((ii) < (i))는 문구의 전제
+  premise(!(prd$crit_c_i %in% TRUE) & !(prd$crit_c_ii %in% TRUE), "기준 (c)는 어느 변형·일정에서도 두 세트 모두 미충족")
+  premise(prd[!is.na(prd$recommend_ii), recommend_i == recommend_ii], "두 플래그 세트의 권고 판정이 같다")
+  for (v_ in unique(prd$variant)) { f <- file.path(root, "trials", sprintf("schedule_decision_%s.csv", v_)); if (!file.exists(f)) next
+    m <- merge(prd[prd$variant == v_, .(schedule, gain_ii_pp)], fread(f)[, .(schedule, c_reliable_gain_pp)], by = "schedule")
+    premise(abs(m$gain_ii_pp - m$c_reliable_gain_pp) < 0.01, sprintf("(ii) 증감 = trials/schedule_decision_%s.csv의 c_reliable_gain_pp", v_)) }
+  pr2 <- prd[prd$variant %in% names(M2)][, model := M2[variant]][]
+  dn <- pr2[schedule %in% DENSE]
+  premise(nrow(dn) == 2 * length(DENSE), "두 모델 × D1–D4 쌍대 증감 행")
+  premise(dn$gain_ii_pp < dn$gain_i_pp, "두 모델 D1–D4 모두 (ii) 증감 < (i) 증감(span 단독 손실 증가)")
+  flips <- dn[sign(round(gain_i_pp, 2)) != sign(round(gain_ii_pp, 2)), .(variant, model, schedule, gain_i_pp, gain_ii_pp)]
+  o3 <- dn[schedule != "D3"]
+  dense <- list(rise = range(dn$span_only_loss_pct - dn$span_only_loss_B0_pct), other_i = range(o3$gain_i_pp), other_ii = range(o3$gain_ii_pp),
+                d3 = dn[schedule == "D3"], bminus = pr2[schedule == "Bminus"])
+  # 3. 이전 엔진(D-010) 대비 하락이 거의 전부 span 플래그라는 문구의 전제(같은 관측치, 엔진 비교용 B0 단독 표본)
+  eng <- rd_("nca_engine", "engine_difference_individual_B0.csv")
+  if (!is.null(eng)) {
+    eo <- eng[grepl("D-010", eng$engine)]; en <- eng[grepl("D-039", eng$engine)]
+    eng <- merge(eo[, .(variant = model, old = reliable_pct)], en[, .(variant = model, new_i = reliable_rsq_extrap_only_pct, new_ii = reliable_pct)], by = "variant")
+    eng[, span_share_pct := 100 * (new_i - new_ii) / (old - new_ii)]
+    eng <- eng[match(names(M2), eng$variant)][, model := M2[variant]][]
+    premise(eng$old > eng$new_ii & eng$span_share_pct >= 90, "이전 엔진 대비 (ii) 하락의 90% 이상이 span 플래그 단독")
+  }
+  # 4. 잔차 가정에 민감하다는 문구의 전제: 잔차 비례 12% 변형과 2016 모델의 Wilson 구간이 두 세트 모두 겹치지 않고, 외삽 20% 초과 비율이 0.8배 미만 또는 1.25배 초과
+  resid <- NULL; r12 <- two[two$variant == "resid12"]; d12 <- rd_("trials", "schedule_decision_resid12.csv"); db <- rd_("trials", "schedule_decision_base.csv")
+  if (nrow(r12) && !is.null(d12) && !is.null(db)) {
+    bb <- two[two$variant == "base"]
+    resid <- data.table(rel_i = r12$reliable_i_pct, rel_ii = r12$reliable_ii_pct, gt20 = d12$d_extrap20_B0[1], gt20_base = db$d_extrap20_B0[1])
+    premise(c(r12$reliable_i_lo > bb$reliable_i_hi || r12$reliable_i_hi < bb$reliable_i_lo, r12$reliable_ii_lo > bb$reliable_ii_hi || r12$reliable_ii_hi < bb$reliable_ii_lo),
+            "잔차 비례 12% 변형의 신뢰 충족률 구간이 2016 모델과 겹치지 않는다((i)·(ii))")
+    premise(resid$gt20 / resid$gt20_base < 0.8 || resid$gt20 / resid$gt20_base > 1.25, "잔차 비례 12% 변형의 외삽 20% 초과 비율이 2016 모델의 0.8–1.25배 밖")
+  }
+  # 5. λz 창 구조: Day 22 이후 명목일로 만들 수 있는 가장 짧은 3점 창(일)
+  lz_min <- if (!is.null(lzw)) c(B0 = unique(lzw[lzw$schedule == "B0", min_3pt_nominal_window_days]), dense = unique(lzw[lzw$schedule %in% DENSE, min_3pt_nominal_window_days])) else NULL
+  if (!is.null(lz_min)) premise(length(lz_min) == 2 && lz_min[["dense"]] < lz_min[["B0"]], "추가 채혈 일정의 최단 3점 창이 B0보다 짧다")
+  list(b0 = b0, rng = rng, paired = pr2, dense = dense, flips = flips, eng = eng, resid = resid, lz_min = lz_min, all = prd)
+}
+
+# 반올림: 20,000명 비율은 0.005의 배수라 CSV에서 읽은 값(예: -1.015 → -1.01499…)이 아래로 잘린다. 0에서 먼 쪽으로 반올림하고 음의 0을 없앤다
+round_half_away <- function(x, d = 1) round(x + sign(x) * 1e-9, d) + 0
+fmt_num <- function(x, d = 1, signed = FALSE) { x <- round_half_away(x, d); if (signed) sprintf(paste0("%+.", d, "f"), x) else formatC(x, format = "f", digits = d) }
+# "(i) x [(ii) y]" 형식. each = FALSE: i·ii 각각을 값 하나 또는 범위(최솟값–최댓값)로, each = TRUE: 원소마다 한 쌍(벡터 반환). sep: 범위 구분, signed: 부호 표시(증감)
+fmt_flag_pair <- function(i, ii, d = 1, unit = "%", sep = "–", signed = FALSE, each = FALSE) {
+  f <- function(x) fmt_num(x, d, signed)
+  if (each) return(sprintf("(i) %s%s [(ii) %s%s]", f(i), unit, f(ii), unit))
+  one <- function(x) if (length(x) == 1 || isTRUE(all.equal(min(x), max(x)))) paste0(f(x[1]), unit) else paste0(f(min(x)), sep, f(max(x)), unit)
+  sprintf("(i) %s [(ii) %s]", one(i), one(ii))
+}

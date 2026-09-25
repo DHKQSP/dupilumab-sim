@@ -33,9 +33,7 @@ find_violations <- function(body, formals_) {
 
 # 검토한 알려진 예외(정확한 위반 문자열로만 허용). 대상 표에 그 이름의 열이 없어 함수 인자로 해석되는 것이 확실한 경우만 둔다.
 # 해당 줄이 고쳐지거나 바뀌면 이 목록은 아무것도 허용하지 않게 되므로(문자열 불일치) 다시 검사 대상이 된다. 고친 뒤 지운다.
-LINT_ALLOW <- c(
-  "oc.R: dose_mg in inf[resid/dose_mg > 1e-07, id]"   # truth_metrics: inf 열은 (id, AUCinf, resid)뿐 → dose_mg는 인자. 권장 수정: d_ <- dose_mg (R/oc.R 담당 작업)
-)
+LINT_ALLOW <- character(0)   # 허용 목록(정확한 문자열). 비워 두는 것이 원칙
 
 test_that("R/와 scripts/의 함수에서 인자-열 이름 충돌이 없다", {
   files <- c(list.files(proj_path("R"), pattern = "\\.R$", full.names = TRUE), list.files(proj_path("scripts"), pattern = "\\.R$", full.names = TRUE))
