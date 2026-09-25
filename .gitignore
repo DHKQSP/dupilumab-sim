@@ -24,3 +24,4 @@ report/*_files/
 report/*_cache/
 # testthat이 실패 시 남기는 파일
 tests/testthat/testthat-problems.rds
+Rplots.pdf
