@@ -68,6 +68,13 @@ section1:
     - "under M1 the unbiased reference (AUCinf_true only) is close to 5% and the SD/SE ratio is close to 1"
     - "P2 rises slightly under M1 compared with M0"
     - "the Model 1 (k2020) V2 x2.28 cell may reach about 5.6% under M1 (exceeding)"
+  expectation_checks:              # 변경(추가) 2026-09-25: section1 실행 시작 뒤, 어떤 section1 결과도 읽기 전에 판정 기준을 수치로 적음
+    e1_cell_range_pct: [4.0, 6.0]  # M1 불편 참조: 16칸 합산 Wilson 구간이 5% 포함, 칸별 점추정이 이 범위 안
+    e1_sd_se_range: [0.97, 1.03]   # M1 AUCinf_true의 SD/SE: 칸마다 이 범위 안(10,000회에서 SD의 95% 표본 변동 약 +-1.4%)
+    e2_min_cells_up: 14            # P2 M1 - M0 > 0인 칸이 16칸 중 이 수 이상
+    e2_max_mean_rise_pp: 1.5       # "소폭": 평균 상승이 0 초과, 이 값(%p) 이하
+    e3_expected_pct: 5.6           # Model 1 V2 x2.28 칸의 M1 P2
+    e3_tolerance_pp: 0.3           # 점추정이 5.6 +- 0.3% 안이면 일치(분류는 함께 보고)
   reporting_rule: "if any P2 cell has a point estimate above 5% under any analysis model, the first paragraph of the conclusions states for each such cell: mechanism and direction, multiplier, size (pass %), Wilson 95% interval, analysis model, and the quantitative cause (bias of the AUClast GMR toward 1 in % and the decomposition terms in percentage points); plausibility is stated as facts only (the mechanism requires a peripheral volume of distribution at least about 2-fold that of the reference for an IgG4 antibody with the same amino acid sequence)"
   decision_owner: "the choice of the primary analysis model is the sponsor's; the report shows M0 and M1 side by side"
   out_dir: results/oc_models

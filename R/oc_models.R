@@ -20,6 +20,7 @@
 # d: data.table(<key cols>, arm ("R"/"T"), y (양수, 원척도), stratum (0/1: 두 번째 층이면 1), lwt (log 체중)).
 # 반환: key × model(M1, M2)별 est(log GMR), se, df, GMR, CI_lower, CI_upper, pass, n_R, n_T. 유효하지 않은 y(NA, ≤ 0)는 제외.
 be_models_fast <- function(d, keys, ci_level = 0.90, limits = c(0.80, 1.25)) {
+  if (!all(d$stratum %in% c(0, 1))) stop("be_models_fast: stratum은 0/1 부호여야 합니다(M1의 a33 = sum(stratum)은 0/1에서만 제곱합과 같음)")
   x <- d[is.finite(y) & y > 0 & !is.na(arm)]
   x[, `:=`(t = as.numeric(arm == "T"), ly = log(y))]
   x[, `:=`(lyc = ly - mean(ly), xc = lwt - mean(lwt)), by = keys]          # 묶음 안 중심화(절편이 있으므로 추정량 불변)
