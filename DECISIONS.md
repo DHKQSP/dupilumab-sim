@@ -299,4 +299,6 @@
   - 500회·5,000회 제품 세트의 시험 수준 AUCinf(신뢰군) 통과율(`results/rationale/pillar2_products_B0.csv`, `results/trials5000/products5000_props_base.csv`; VM150·KE120 포함)은 저장된 신뢰 플래그 = 세트 (ii)만 쓴다(`results/summary_en.md`). 세트 (i) 값은 없다.
   - 시험 간 log GMR SD / 시험 안 SE 중앙값 0.961–0.993(16칸 모두 < 1) 때문에 불편 참조가 5% 아래로 기운다(4.12–5.43%, 정규 근사 4.16–4.94%). 원인은 검정하지 않았다(후보: 체중 층 안 1:1 배정, pooled t는 층 미반영; `p2_interpretation_ko.md`).
   - 적응적 확대는 결과를 본 뒤의 결정이므로 10,000회 값을 함께 보고한다(D-048).
-- (2026-09-25 추가) 재현성 워크플로는 수동 실행 외에 `config/repro_request.yaml`을 바꾼 push로도 실행한다. 작업 세션의 GitHub 통합 도구에는 workflow_dispatch 권한이 없어(403 Resource not accessible by integration) 커밋으로 요청하는 경로를 둔다. 요청마다 날짜와 사유를 그 파일에 남긴다.
+
+## D-050 | 2026-09-25 | 재현성 워크플로의 커밋 요청 경로 (D-045 보완)
+- 재현성 워크플로는 수동 실행 외에 `config/repro_request.yaml`을 바꾼 push로도 실행한다. 작업 세션의 GitHub 통합 도구에는 workflow_dispatch 권한이 없어(403 Resource not accessible by integration) 커밋으로 요청하는 경로를 둔다. 요청마다 날짜와 사유를 그 파일에 남긴다.
