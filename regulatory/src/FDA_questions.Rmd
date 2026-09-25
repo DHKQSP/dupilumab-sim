@@ -81,6 +81,11 @@ MECH_EN <- c(F = "bioavailability", ka = "absorption rate", ke = "linear elimina
 top_txt <- function(am) { r <- rows(T1f, sprintf("analysis_model=='%s' & config=='P2'", am)); rr <- r[which.max(pass_pct)]
   sprintf("the %s cell with %s %s (multiplier %s), %s", c(k2016 = "primary-model", k2020 = "2020-model")[[rr$pk_model]], MECH_EN[[rr$mechanism]], rr$direction, fnum(rr$multiplier, 2),
           vci(T1f, sprintf("analysis_model=='%s' & config=='P2' & pk_model=='%s' & scenario=='%s'", am, rr$pk_model, rr$scenario), item = sprintf("highest P2 %s", am))) }
+top_both <- function() { t0 <- rows(T1f, "analysis_model=='M0' & config=='P2'"); t0 <- t0[which.max(pass_pct)]; t1 <- rows(T1f, "analysis_model=='M1' & config=='P2'"); t1 <- t1[which.max(pass_pct)]
+  if (t0$pk_model != t1$pk_model || t0$scenario != t1$scenario) return(sprintf("%s under M0 and %s under M1", top_txt("M0"), top_txt("M1")))
+  w <- function(am) sprintf("analysis_model=='%s' & config=='P2' & pk_model=='%s' & scenario=='%s'", am, t0$pk_model, t0$scenario)
+  sprintf("the same under both analysis models, the %s cell with %s %s (multiplier %s): %s under M0 and %s under M1", c(k2016 = "primary-model", k2020 = "2020-model")[[t0$pk_model]], MECH_EN[[t0$mechanism]], t0$direction,
+          fnum(t0$multiplier, 2), vci(T1f, w("M0"), item = "highest P2 M0"), vci(T1f, w("M1"), item = "highest P2 M1")) }
 ```
 
 ```{r facts102, include=FALSE}
@@ -89,6 +94,9 @@ CIf <- "criteria/criteria_individual.csv"; CGf <- "criteria/criteria_g2_type1.cs
 cr_st <- function(s_, col = "fail_pct", d = 1, unit = "%") vrange(CIf, sprintf("distribution=='study_60_90' & set=='%s'", s_), col, d, item = sprintf("study population, set %s, %s", s_, col), unit = unit)
 g2n <- function(am, cf) vcount(CGf, sprintf("analysis_model=='%s' & config=='%s' & pass_pct > 5", am, cf), sprintf("%s %s cells above 5%%", am, cf))
 g2r <- function(am, cf) vrange(CGf, sprintf("analysis_model=='%s' & config=='%s'", am, cf), "pass_pct", 2, item = sprintf("%s %s range", am, cf), unit = "%")
+c2m1 <- local({ r <- rows(CGf, "analysis_model=='M1' & config=='G2_C_ii'"); rr <- r[which.max(pass_pct)]; p <- rows("oc_models/type1_models.csv", "analysis_model=='M1' & config=='P2'")[which.max(pass_pct)]
+  premise(rr$pk_model == p$pk_model && rr$scenario == p$scenario, "rule C (ii) and P2 are highest in the same boundary scenario under M1 (text)")
+  vci(CGf, sprintf("analysis_model=='M1' & config=='G2_C_ii' & pk_model=='%s' & scenario=='%s'", rr$pk_model, rr$scenario), item = "M1 rule C (ii) largest") })
 inst <- function(col) { r <- rows(CSf, "analysis_model=='M0' & !scenario %in% c('S00','F097')"); premise(nrow(r) == 16, "16 boundary cells in the instability file"); x <- r[[col]]
   .vis(.record(sprintf("decision instability %s, median and maximum over 16 boundary cells, M0", col), CSf, sprintf("analysis_model=='M0' & !scenario in (S00, F097) :: median and max of %s", col), c(median(x), max(x)),
           sprintf("a median of %s%% and up to %s%%", fnum(median(x), 1), fnum(max(x), 1)))) }
@@ -107,7 +115,7 @@ tpad_max <- { r <- rows(TAD, "set=='i' & scenario!='S00'"); .record("largest abs
 
 - **The true tail is negligible.** AUC0-last already contains all but a median of `r cov("k2016", "extrap_true_median")`% of total exposure (95th percentile `r cov("k2016", "extrap_true_p95")`%) under the planned schedule (report Section 5.2).
 - **The NCA tail is overstated.** NCA estimates the tail with a lambda-z fitted before the terminal cliff and overstates it: the median NCA extrapolation is `r cov("k2016", "extrap_nca_median", 1)`%.
-- **The tail estimate is unreliable in many subjects.** It fails standard reliability criteria in `r fnum(100 - as.numeric(rel("base", "reliable_i_pct")), 1)`% of subjects in the primary model.
+- **The tail estimate is unreliable in many subjects.** In the trial population it fails the reliability criteria in `r tpf("i")` of subjects with an adjusted R-squared of at least 0.80 (criteria set (i), the lower end of the conventional range) and in `r tpf("iii")` with at least 0.90 (set (iii)), two models (Q19, Q20).
 
 **Operating characteristics at the equivalence limits** (the pre-specified primary metric, report Section 5.4):
 
@@ -184,7 +192,7 @@ tpad_max <- { r <- rows(TAD, "set=='i' & scenario!='S00'"); .record("largest abs
 
 ## Q7. What is the boundary type I error of the proposed endpoints, and why is one value above 5%?
 
-**Short answer.** With the pooled t-test (M0), `r C0[["conservative"]]` of 16 boundary cells are conservative, `r C0[["nominal"]]` nominal and `r C0[["exceeding"]]` exceeding. With the weight stratum in the model (M1), they are `r C1[["conservative"]]`, `r C1[["nominal"]]` and `r C1[["exceeding"]]`. The highest cell is `r top_txt("M0")` under M0 and `r top_txt("M1")` under M1.
+**Short answer.** With the pooled t-test (M0), `r C0[["conservative"]]` of 16 boundary cells are conservative, `r C0[["nominal"]]` nominal and `r C0[["exceeding"]]` exceeding. With the weight stratum in the model (M1), they are `r C1[["conservative"]]`, `r C1[["nominal"]]` and `r C1[["exceeding"]]`. The highest cell is `r top_both()`.
 
 **Overall result** (report Sections 5.4 and 5.9):
 
@@ -215,10 +223,10 @@ tpad_max <- { r <- rows(TAD, "set=='i' & scenario!='S00'"); .record("largest abs
 
 ## Q9. What if AUC0-inf were analysed in all subjects with a lambda-z, or with AUC0-last substituted for unreliable subjects?
 
-**Short answer.** Including all subjects with a lambda-z still inflates the type I error; substituting AUC0-last controls it but is no longer a pure AUC0-inf analysis.
+**Short answer.** Including all subjects with a lambda-z still inflates the type I error; substituting AUC0-last gives a type I error close to that of AUC0-last + Cmax, because the substituted endpoint is mostly AUC0-last, but it is no longer a pure AUC0-inf analysis.
 
 - **All subjects with an estimable lambda-z (rule B).** Exceeds 5% in `r G$G2_B$n` of 16 scenarios (largest `r G$G2_B$mx`), because the extrapolation bias remains.
-- **AUC0-last substituted for subjects failing the criteria (rule C).** Controls the type I error: largest `r G$G2_Cii$mx` with the span criterion and `r G$G2_Ci$mx` without it.
+- **AUC0-last substituted for subjects failing the criteria (rule C).** Close to AUC0-last + Cmax: largest `r G$G2_Cii$mx` with the span criterion and `r G$G2_Ci$mx` without it (pooled t-test); `r c2m1` with the span criterion under the ANOVA with the weight stratum, in the same peripheral-volume scenario in which AUC0-last + Cmax is highest.
 
 **Proposal.** Rule C mixes two endpoints, so the sponsor proposes it only as a sensitivity analysis of the secondary endpoint.
 
@@ -283,6 +291,8 @@ AUC0-inf will not be used for the equivalence decision.
 - restricting the model validation to the study presentation;
 - replacing the NCA engine by a Phoenix-compatible engine, with all outputs regenerated.
 
+**Version 1.0.1.** The analysis models with the weight stratum or log body weight, the LLOQ sensitivity, the sample-size grid, criteria sets (iii) and (iv) and the trial-population analyses were registered in config/prereg_20260926.yaml and committed before they were run (report Sections 3.12 and 3.13). Results seen before each registration are disclosed in report Appendix D.
+
 **Reporting.** Pre-specified values are always reported alongside.
 
 ## Q14. How was the software verified, and can FDA reproduce the results?
@@ -336,7 +346,7 @@ AUC0-inf will not be used for the equivalence decision.
 
 **Evidence** (report Section 5.10; same subjects and residual draws re-censored at each LLOQ; simulations used `r lloq_val` mg/L):
 
-- True coverage of AUC0-last below 80%: `r lli("k2016", 0.02, "coverage_lt80_pct", 2)`% of subjects at 0.02 mg/L to `r lli("k2016", 0.5, "coverage_lt80_pct", 2)`% at 0.5 mg/L (primary model). The true concentration reaches 0.02 mg/L and 0.5 mg/L within about `r llc("k2016", 0.02, "lloq_studyday_median")` and `r llc("k2016", 0.5, "lloq_studyday_median")` study days (medians), inside the cliff.
+- Window coverage (true AUC0-tlast / true AUC0-inf) below 80%: `r lli("k2016", 0.02, "coverage_lt80_pct", 2)`% of subjects at 0.02 mg/L to `r lli("k2016", 0.5, "coverage_lt80_pct", 2)`% at 0.5 mg/L (primary model). The true concentration reaches 0.02 mg/L and 0.5 mg/L within about `r llc("k2016", 0.02, "lloq_studyday_median")` and `r llc("k2016", 0.5, "lloq_studyday_median")` study days (medians), inside the cliff.
 - AUC0-inf reliability (criteria (i)): `r lli("k2016", 0.02, "reliable_no_span_pct")`% at 0.02 mg/L, `r lli("k2016", 0.078, "reliable_no_span_pct")`% at 0.078 mg/L and `r lli("k2016", 0.5, "reliable_no_span_pct")`% at 0.5 mg/L with the residual error as estimated; `r lli("k2016", 0.02, "reliable_no_span_pct", rv = "scaled")`% at 0.02 mg/L if the assay noise scales with the LLOQ.
 - Boundary type I error of AUC0-last + Cmax over the six LLOQs (three boundary scenarios, primary model): `r llt("M0", "P2")` (M0) and `r llt("M1", "P2")` (M1).
 

@@ -21,7 +21,7 @@ max_t1 <- function(am, cf) {
   r <- rows(T1, w1(am, cf)); premise(nrow(r) == 16, sprintf("%s %s: 16 boundary cells", am, cf)); k <- which.max(r$pass_pct); rr <- r[k]
   list(text = vci(T1, w1(am, cf, sprintf(" & pk_model=='%s' & scenario=='%s'", rr$pk_model, rr$scenario)), d = 2, item = sprintf("%s %s maximum", am, cf)), row = rr)
 }
-MODEL_EN <- c(k2016 = "2016 model (primary)", k2020 = "Model 1")
+MODEL_EN <- c(k2016 = "2016 model (primary)", k2020 = "2020 model")
 cell_txt <- function(r) sprintf("%s, %s %s (multiplier %s)", MODEL_EN[[r$pk_model]], c(F = "bioavailability", ka = "absorption rate", ke = "linear elimination", Vmax = "target-mediated elimination capacity", V2 = "peripheral volume")[[r$mechanism]], r$direction, fnum(r$multiplier, 2))
 pw <- function(m, sc, am, cf = "P2") vci(PW, sprintf("pk_model=='%s' & scenario=='%s' & analysis_model=='%s' & config=='%s'", m, sc, am, cf), d = 1, item = sprintf("power %s %s %s %s", m, sc, am, cf))
 sdse <- function(am) vrange(SS, sprintf("endpoint=='AUCinf_true' & analysis_model=='%s' & !scenario %%in%% c('S00','F097')", am), "sd_se_ratio", 3, item = sprintf("SD/SE %s AUCinf_true boundary cells", am))
@@ -100,7 +100,7 @@ cr_st <- function(s_) vrange(CIf, sprintf("distribution=='study_60_90' & set=='%
 - Lambda-z is estimable in `r lzok` of simulated subjects (planned schedule, 60 to 90 kg, 20,000 subjects per model). The reliability criteria above are met by `r ri`; adding a span-ratio criterion (window of at least 2 half-lives) lowers this to `r rii`.
 - The threshold is a convention: 0.80 is the lower end of the conventional range, and 0.90 is common in public statistical analysis plans (NCT04117607: adjusted R-squared at least 0.90, span at least 3.0 half-lives, at least 3 points after tmax; NCT04441905: adjusted R-squared at least 0.90, at least 3 points; NCT04700163: adjusted R-squared above 0.90, otherwise AUC0-inf and the other terminal parameters are excluded from summaries and statistical analysis, verified from a web-search excerpt). In the trial population (healthy adults, 60 to 90 kg, two models) the share of subjects without a reliable AUC0-inf is `r cr_st("i")` with 0.80 and `r cr_st("iii")` with 0.90 (report Section 5.3). Reporting both counts shows the reader how much the secondary analysis depends on the convention.
 - A span criterion penalizes denser sampling rather than poor estimation: adding late samples (4 alternative schedules, two models) increased the share excluded by the span criterion alone by `r sp_txt` percentage points, because Best Fit then selects a later and shorter window.
-- Exclusion is not random. Subjects failing the criteria are heavier (by `r ex_i("k2016", "wt_diff", 1)` kg in the 2016 model and `r ex_i("k2020", "wt_diff", 1)` kg in Model 1) and have lower exposure (ratio of geometric mean true AUC0-inf, excluded to retained: `r ex_i("k2016", "aucinf_true_gm_ratio_excluded_to_retained", 2)` and `r ex_i("k2020", "aucinf_true_gm_ratio_excluded_to_retained", 2)`); `r ex_i("k2016", "excluded_pct", 1)`% and `r ex_i("k2020", "excluded_pct", 1)`% of subjects are excluded. Reporting both analysis sets, with the characteristics of the excluded subjects, lets the reader judge the effect of the exclusion.
+- Exclusion is not random. Subjects failing the criteria are heavier (by `r ex_i("k2016", "wt_diff", 1)` kg in the 2016 model and `r ex_i("k2020", "wt_diff", 1)` kg in the 2020 model) and have lower exposure (ratio of geometric mean true AUC0-inf, excluded to retained: `r ex_i("k2016", "aucinf_true_gm_ratio_excluded_to_retained", 2)` and `r ex_i("k2020", "aucinf_true_gm_ratio_excluded_to_retained", 2)`); `r ex_i("k2016", "excluded_pct", 1)`% and `r ex_i("k2020", "excluded_pct", 1)`% of subjects are excluded. Reporting both analysis sets, with the characteristics of the excluded subjects, lets the reader judge the effect of the exclusion.
 - The sensitivity rule (AUC0-last substituted) keeps the boundary type I error close to that of the primary endpoints: with AUC0-inf and Cmax its highest boundary value is `r gc0$text` (M0) and `r gc1$text` (M1).
 
 # 3. Fallback if FDA requires AUC0-inf as a co-primary endpoint
@@ -122,7 +122,7 @@ fa1 <- rng_t1("M1", "F3A"); fc1 <- rng_t1("M1", "F3C")
 
 **Evidence.**
 
-- Including all subjects with an estimable lambda-z excludes only `r exB("k2016")`% (2016 model) and `r exB("k2020")`% (Model 1) of subjects, and keeps the analysis set closest to the randomized set.
+- Including all subjects with an estimable lambda-z excludes only `r exB("k2016")`% (2016 model) and `r exB("k2020")`% (2020 model) of subjects, and keeps the analysis set closest to the randomized set.
 - Keeping AUC0-last as a co-primary endpoint bounds the boundary type I error of the three-endpoint decision by that of P2: with AUC0-inf under this rule it is `r fb0` under M0 (`r fbc0[["conservative"]]` conservative, `r fbc0[["nominal"]]` nominal, `r fbc0[["exceeding"]]` exceeding; highest `r fbm0$text`) and `r fb1` under M1 (`r fbc1[["conservative"]]`, `r fbc1[["nominal"]]`, `r fbc1[["exceeding"]]`; highest `r fbm1$text`).
 - Without AUC0-last (AUC0-inf under this rule with Cmax only), `r gbo0` of 16 cells exceed 5% under M0 (highest `r gb0$text`) and `r gbo1` under M1 (highest `r gb1$text`): the NCA AUC0-inf of this product is biased toward a ratio of 1 at the boundaries.
 - Under M1 the three-endpoint decision with sensitivity rule A gives `r fa1` and with rule C `r fc1`.
@@ -162,7 +162,7 @@ lt_rng <- function(am, cf) vrange(LT, sprintf("model=='%s' & resid=='fixed' & co
 >
 > Cmax and the time of Cmax are the observed values (first occurrence). AUC0-last is calculated with the linear-up log-down trapezoidal rule from time zero to the time of the last quantifiable concentration. Lambda-z and AUC0-inf are as in Section 2. No concentrations are imputed.
 
-**Evidence.** The simulations used an LLOQ of `r lloq_val` mg/L (the originator's assay, Clot 2021), set in a single configuration file so that all analyses can be regenerated with the sponsor's assay value. Across LLOQs of 0.02 to 0.5 mg/L (same subjects and residual draws, residual error as estimated), in the 2016 model the share of subjects meeting the reliability criteria of Section 2 ranged from `r li("k2016", 0.02, "reliable_no_span_pct")`% (LLOQ 0.02) to `r li("k2016", 0.5, "reliable_no_span_pct")`% (LLOQ 0.5), the share with true coverage of AUC0-last below 80% from `r li("k2016", 0.02, "coverage_lt80_pct", 2)`% to `r li("k2016", 0.5, "coverage_lt80_pct", 2)`%, and the boundary type I error of P2 at the three boundary scenarios examined (target-mediated elimination capacity in both directions, bioavailability down) ranged `r lt_rng("M0", "P2")` under M0 and `r lt_rng("M1", "P2")` under M1.
+**Evidence.** The simulations used an LLOQ of `r lloq_val` mg/L (the originator's assay, Clot 2021), set in a single configuration file so that all analyses can be regenerated with the sponsor's assay value. Across LLOQs of 0.02 to 0.5 mg/L (same subjects and residual draws, residual error as estimated), in the 2016 model the share of subjects meeting the reliability criteria of Section 2 ranged from `r li("k2016", 0.02, "reliable_no_span_pct")`% (LLOQ 0.02) to `r li("k2016", 0.5, "reliable_no_span_pct")`% (LLOQ 0.5), the share with window coverage (true AUC0-tlast / true AUC0-inf) below 80% from `r li("k2016", 0.02, "coverage_lt80_pct", 2)`% to `r li("k2016", 0.5, "coverage_lt80_pct", 2)`%, and the boundary type I error of P2 at the three boundary scenarios examined (target-mediated elimination capacity in both directions, bioavailability down) ranged `r lt_rng("M0", "P2")` under M0 and `r lt_rng("M1", "P2")` under M1.
 
 # 6. Sample size
 
@@ -181,7 +181,7 @@ tp <- function(cv, am) v(TPW, sprintf("input_model=='k2016' & cv==%s & gmr==0.95
 - With 117 evaluable subjects per arm and a CV of 43%, power is `r tp(43, "M0")`% (M0) and `r tp(43, "M1")`% (M1); with a CV of 50%, `r tp(50, "M0")`% and `r tp(50, "M1")`%.
 - For 90% power at CV 43%: `r nn(43, 0.95, "M0", 90)` (M0) or `r nn(43, 0.95, "M1", 90)` (M1) evaluable subjects per arm; at CV 50%: `r nn(50, 0.95, "M0", 90)` or `r nn(50, 0.95, "M1", 90)`.
 - For 85% power at CV 43%: `r nn(43, 0.95, "M0", 85)` (M0) or `r nn(43, 0.95, "M1", 85)` (M1); at CV 50%: `r nn(50, 0.95, "M0", 85)` or `r nn(50, 0.95, "M1", 85)`.
-- CV sources: Li 2020 Table 3 (300 mg arms, SD/mean 35% to 51%); Cohen 2022 (about 52%, 200 mg, different presentation, device comparison); PK model 40% (2016 model) and 43% (Model 1). The full table is in results/sample_size/ss_table_n_needed.csv.
+- CV sources: Li 2020 Table 3 (300 mg arms, SD/mean 35% to 51%); Cohen 2022 (about 52%, 200 mg, different presentation, device comparison); PK model 40% (2016 model) and 43% (2020 model). The full table is in results/sample_size/ss_table_n_needed.csv.
 
 **Decisions left to the sponsor:** target power (90% or 85%) and the sample size.
 
