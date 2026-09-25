@@ -1,0 +1,5 @@
+model,check,pass
+k2016,cliff subjects at 0.078 equal stored cliff_subjects.rds (base),TRUE
+k2016,"cliff points at 0.078 equal stored cliff_points.csv (current, base)",TRUE
+k2020,cliff subjects at 0.078 equal stored cliff_subjects.rds (base),TRUE
+k2020,"cliff points at 0.078 equal stored cliff_points.csv (current, base)",TRUE

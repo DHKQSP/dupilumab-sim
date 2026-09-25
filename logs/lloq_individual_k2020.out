@@ -1,0 +1,7 @@
+run log: /home/user/dupilumab-sim/logs/lloq_individual_k2020_20260925T102827.log
+[====|====|====|====|====|====|====|====|====|====] 0:00:16 
+
+   model                                                   check n_items pass
+1: k2020              subject-level B0 NCA equals stored nca rds  260000 TRUE
+2: k2020 B0 summary equals stored individual csv (relative 1e-9)      32 TRUE
+3: k2020                   scaled residual at 0.078 equals fixed   20000 TRUE

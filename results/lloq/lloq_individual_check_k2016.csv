@@ -1,0 +1,4 @@
+model,check,n_items,pass
+k2016,subject-level B0 NCA equals stored nca rds,260000,TRUE
+k2016,B0 summary equals stored individual csv (relative 1e-9),32,TRUE
+k2016,scaled residual at 0.078 equals fixed,20000,TRUE

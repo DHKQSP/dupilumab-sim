@@ -121,9 +121,10 @@ if (mode == "trial") {
   }
   append_gz <- function(dt, f) { tmp <- tempfile(fileext = ".csv.gz", tmpdir = dirname(f)); fwrite(dt, tmp, col.names = !file.exists(f))
     if (file.exists(f)) { if (!file.append(f, tmp)) stop("file.append 실패: ", f); unlink(tmp) } else if (!file.rename(tmp, f)) stop("file.rename 실패: ", f) }
-  logfile <- start_run_log(paste0("lloq_trials_", model), master_seed = OC_SEED, run_mode = "final",
-                           extra = list(model = model, scenarios = paste(SCN, collapse = ","), lloqs = LL, resid = RES, trial_from = trial_from, trial_to = trial_to, cores = cores))
-  say <- function(msg) { cat(msg, "\n"); append_run_log(logfile, msg) }
+  production <- normalizePath(out_dir, mustWork = FALSE) == normalizePath(proj_path(pr$out_dir), mustWork = FALSE)
+  logfile <- if (production) start_run_log(paste0("lloq_trials_", model), master_seed = OC_SEED, run_mode = "final",
+                           extra = list(model = model, scenarios = paste(SCN, collapse = ","), lloqs = LL, resid = RES, trial_from = trial_from, trial_to = trial_to, cores = cores)) else NULL   # 시험용 실행은 logs/에 남기지 않는다
+  say <- function(msg) { cat(msg, "\n"); if (!is.null(logfile)) append_run_log(logfile, msg) }
   invisible(get_model(p$model_id))
   one <- function(j) run_trial_oc_models(j, p, design, scen, OC_SEED, rv$wt_spec, model_id = p$model_id, lloqs = LL, resid = RES, models = AMS, endpoints = EPS)
   n_chk <- 0L

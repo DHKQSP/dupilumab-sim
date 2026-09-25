@@ -77,7 +77,8 @@ cmax_gmr <- function(g, rule, k_mech) if (rule == "equal") g else exp(k_mech * l
 
 if (mode == "stat") {
   cores <- if (length(args) >= 2) as.integer(args[2]) else 1L
-  logfile <- start_run_log("sample_size_stat", master_seed = SS_SEED, run_mode = "final", extra = list(cvs = CVS, gmrs = GMRS, ns = NS, B = B_MC))
+  production <- normalizePath(out_dir, mustWork = FALSE) == normalizePath(proj_path(pr$out_dir), mustWork = FALSE) && B_MC == 5000L
+  logfile <- if (production) start_run_log("sample_size_stat", master_seed = SS_SEED, run_mode = "final", extra = list(cvs = CVS, gmrs = GMRS, ns = NS, B = B_MC)) else tempfile(fileext = ".log")   # 시험용 실행은 logs/에 남기지 않는다
   INP <- rbindlist(lapply(names(INPUT_VARIANTS), est_inputs))
   fwrite(INP, file.path(out_dir, "ss_inputs.csv")); fwrite(WM, file.path(out_dir, "ss_weight_moments.csv"))
   # 기전 Cmax 비(F 하향 역산): log Cmax 비 / log AUC 비

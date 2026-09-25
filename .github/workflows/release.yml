@@ -1,0 +1,41 @@
+# 버전 태그(v*) push 시 GitHub 릴리스를 만들고 번들과 체크섬을 첨부한다(추가 지시 2026-09-26 §5, D-053).
+# 번들: 태그 시점 전체 소스(git archive), 규제 패키지(regulatory/), 해시 목록, SHA256SUMS. 태그 커밋의 파일만 쓰며 새 계산은 하지 않는다.
+name: release
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Build bundle and checksums
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          test -f regulatory/release_notes.md || { echo "regulatory/release_notes.md missing"; exit 1; }
+          grep -q "^# ${TAG}" regulatory/release_notes.md || { echo "release notes do not describe ${TAG}"; exit 1; }
+          mkdir -p dist
+          git archive --format=tar.gz --prefix="dupilumab-sim-${TAG}/" -o "dist/dupilumab-sim-${TAG}-source.tar.gz" "${TAG}"
+          (cd regulatory && zip -q -r -X "../dist/dupilumab-sim-${TAG}-regulatory.zip" .)
+          cp regulatory/manifest_sha256.csv "dist/dupilumab-sim-${TAG}-manifest_sha256.csv"
+          (cd dist && sha256sum -- * > SHA256SUMS.txt && cat SHA256SUMS.txt)
+          echo "## Release ${TAG}" >> "$GITHUB_STEP_SUMMARY"
+          sed 's/^/    /' dist/SHA256SUMS.txt >> "$GITHUB_STEP_SUMMARY"
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" dist/* --repo "${GITHUB_REPOSITORY}" --title "${GITHUB_REF_NAME}" --notes-file regulatory/release_notes.md --verify-tag
