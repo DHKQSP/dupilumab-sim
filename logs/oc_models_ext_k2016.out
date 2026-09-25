@@ -1,0 +1,18 @@
+run log: /home/user/dupilumab-sim/logs/oc_models_ext_k2016_20260925T134313.log
+k2016 F_down_080 M0: P2 3.71% [3.36, 4.10] at 10000 trials -> rule not met 
+k2016 F_down_080 M1: P2 4.03% [3.66, 4.43] at 10000 trials -> rule not met 
+k2016 F_up_125 M0: P2 3.24% [2.91, 3.61] at 10000 trials -> rule not met 
+k2016 F_up_125 M1: P2 3.60% [3.25, 3.98] at 10000 trials -> rule not met 
+k2016 V2_up_080 M0: P2 3.97% [3.60, 4.37] at 10000 trials -> rule not met 
+k2016 V2_up_080 M1: P2 4.33% [3.95, 4.75] at 10000 trials -> rule not met 
+k2016 Vmax_down_125 M0: P2 2.67% [2.37, 3.00] at 10000 trials -> rule not met 
+k2016 Vmax_down_125 M1: P2 2.93% [2.62, 3.28] at 10000 trials -> rule not met 
+k2016 Vmax_up_080 M0: P2 2.25% [1.98, 2.56] at 10000 trials -> rule not met 
+k2016 Vmax_up_080 M1: P2 2.54% [2.25, 2.87] at 10000 trials -> rule not met 
+k2016 ka_down_080 M0: P2 0.00% [0.00, 0.04] at 10000 trials -> rule not met 
+k2016 ka_down_080 M1: P2 0.00% [0.00, 0.04] at 10000 trials -> rule not met 
+k2016 ke_down_125 M0: P2 3.37% [3.03, 3.74] at 10000 trials -> rule not met 
+k2016 ke_down_125 M1: P2 3.79% [3.43, 4.18] at 10000 trials -> rule not met 
+k2016 ke_up_080 M0: P2 3.67% [3.32, 4.06] at 10000 trials -> rule not met 
+k2016 ke_up_080 M1: P2 4.06% [3.69, 4.46] at 10000 trials -> rule not met 
+no boundary cell selected; nothing to run 
