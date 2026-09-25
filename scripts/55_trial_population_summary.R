@@ -15,6 +15,7 @@
 #   tp_characteristics.csv         §2-4 모델 × 세트: 미달 − 잔류 체중 차이, 참 AUC0-inf·AUClast 기하평균비(Welch 95%)
 #   tp_coverage_individual.csv     §3 모델 × 지표: 채혈 구간 커버리지, 관측 대 참 비(AUClast, AUCinf 규칙 B, 규칙 A 세트 i), 외삽 항
 #   tp_gmr_agreement.csv           §3 section1 M0: AUClast GMR 기하평균 대 참 AUC0-inf 비(경계 16칸, S00, F097)
+#   tp_identity_check.csv          재생성 시험의 군별 인원이 section1 n_R·n_T와 같은지(모델별 비교 행 수)
 #   fig_tp_failure_by_set.png, fig_tp_arm_difference.png, fig_tp_strata.png, tp_conclusion_en.md, tp_conclusion_ko.md
 # 사용법: Rscript scripts/55_trial_population_summary.R   (환경변수 DUPI_TRIALPOP_SUMMARY_OUT, DUPI_TRIALPOP_ALLOW_PARTIAL=1은 시험용)
 source("R/00_setup.R"); source_project()
@@ -75,6 +76,17 @@ fwrite(SI, file.path(out_dir, "tp_strata_individual.csv"))
 CNT <- rbindlist(lapply(PK, function(m) { f <- file.path(tp_in, sprintf("trialpop_counts_%s.csv.gz", m)); if (!file.exists(f)) { if (allow_partial) return(NULL) else stop("없음: ", f) }; fread(f)[, pk_model := m] }))
 ntr <- CNT[, uniqueN(trial), by = pk_model]
 if ((nrow(ntr) < 2 || any(ntr$V1 < NTR)) && !allow_partial) stop("scripts/54 시험 수 부족")
+# 재검사: 재생성 인원(층 합계)이 section1 M0 행의 n_R·n_T와 같은가(scripts/54가 묶음마다 검사한 것을 산출 파일 전체에서 다시 확인)
+EPM <- c(AUClast = "n_auclast", AUCinf_B = "n_lambda", AUCinf_Ai = "n_i", AUCinf_A = "n_ii", AUCinf_Aiii = "n_iii", AUCinf_Aiv = "n_iv")
+if (nrow(CNT)) {
+  tt <- melt(CNT[, lapply(.SD, sum), by = .(pk_model, trial, scenario), .SDcols = unname(EPM)], id.vars = c("pk_model", "trial", "scenario"), variable.name = "col", value.name = "n_new")[, col := as.character(col)]
+  s1c <- S1[endpoint %in% names(EPM) & trial %in% unique(CNT$trial)]
+  s1c <- rbind(unique(s1c[, .(pk_model, trial, scenario = "REF", col = unname(EPM[endpoint]), n = n_R)]), s1c[, .(pk_model, trial, scenario, col = unname(EPM[endpoint]), n = n_T)])
+  if (anyDuplicated(s1c[, .(pk_model, trial, scenario, col)])) stop("section1 대조군 인원이 시나리오마다 다릅니다")
+  mm <- merge(tt, s1c, by = c("pk_model", "trial", "scenario", "col"))
+  IDC <- mm[, .(rows_compared = .N, identical_rows = sum(n_new == n), trials = uniqueN(trial), scenarios = uniqueN(scenario)), by = pk_model][, ok := rows_compared == identical_rows]
+  fwrite(IDC, file.path(out_dir, "tp_identity_check.csv")); if (!all(IDC$ok)) stop("재생성 인원이 section1과 다릅니다")
+}
 SETSX <- c(auclast = "n_auclast", setNames(NMAP, SETS))
 # 시험 × 시나리오 × 분석군: arm별 무거운 층 비율
 comp <- function(d, col) { w <- dcast(d, pk_model + trial + scenario ~ stratum, value.var = col); setnames(w, c("1", "2"), c("a1", "a2")); w[, h := 100 * a2 / (a1 + a2)][, .(pk_model, trial, scenario, h)] }
