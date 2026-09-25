@@ -4,7 +4,7 @@
 #   scripts/run_round6_rerun.sh(새 엔진으로 NCA 의존 산출물 재실행), scripts/run_oc_inversion.sh(역산 12건), scripts/run_oc_followup.sh(31→32→33).
 set -e
 cd "$(dirname "$0")/.."
-Rscript scripts/run_tests.R || echo "[경고] 테스트 실패 — logs/tests_*.log 확인. 단계 1 gate 미달이면 config/gate_decision.yaml 참조"
+Rscript scripts/run_tests.R || echo "[경고] 테스트 실패 — logs/tests_*.log 확인. 단계 1 gate 판정성 항목은 종료 코드에 넣지 않으므로 로그의 judgment items 줄과 config/gate_decision.yaml 참조"
 # NCA 엔진 검증(§1): 자체 엔진 대 NonCompart·PKNCA — Theoph, Indometh, 듀필루맙 1,000명. 교체 전 엔진 산출물 스냅숏은 results/nca_engine/legacy_snapshot/
 Rscript scripts/28_nca_engine_validation.R
 Rscript scripts/29_nca_engine_difference.R

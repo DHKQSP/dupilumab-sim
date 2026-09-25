@@ -1,0 +1,38 @@
+scenario,quantity,value,unit,note
+observed,runs_observed,71,runs,"GitHub Actions runs #1-#71 (all push events, one job each, all failed); results/ci/ci_failures_before.csv"
+observed,observation_window,44.49,hours,first run created 2026-09-23T02:11:47Z to last run created 2026-09-24T22:41:22Z
+observed,push_rate,38.3,runs per day,runs_observed / observation_window; every push on any branch started a run (push branches '**')
+before,runs_per_month,1149,runs/month,ASSUMPTION: the observed development-period push rate continues for 30 days x 24 h (upper-end extrapolation of an intense 1.9-day period)
+before_observed,run_duration_median,221,s,"median of run duration (updated_at - created_at, includes queue time); failing runs stop at Run tests after about 3 s"
+before_observed,billed_minutes_observed_total,285,min,sum over 71 runs of ceil(duration_s / 60); GitHub bills each job rounded up to the whole minute (Linux multiplier 1)
+before_observed,billed_minutes_per_run,4.01,min/run,billed_minutes_observed_total / 71
+before_observed,minutes_per_month,4612,min/month,runs_per_month x billed_minutes_per_run (what the failing workflow actually costs)
+before_full,overhead_non_renv_non_test,67,s,"median run duration 221 s - setup-renv 150 s - failed Run tests 4 s: queue, checkout, setup-r, setup-pandoc, apt System deps, artifact upload"
+before_full,renv_restore_cold,150,s,"observed setup-renv step (about 2.5 min, runs #36 and #71 step listing)"
+before_full,tests_full_scope,191,s,"local full-scope suite CPU time (user+sys incl. children), results/ci/test_timing_local.csv SUITE row; ASSUMPTION: an unloaded CI vCPU runs it in about the same time"
+before_full,step1_summary,676,s,Step 1 summary step = scripts/02_validate_step1.R (k2016) + (k2020); local wall-clock from logs/validate_step1_k2016_20260924T132547.log (252 s) and logs/validate_step1_k2020_20260924T133005.log (424 s); machine load at that time not recorded
+before_full,run_duration,1084,s,overhead + renv cold + full tests + Step 1 summary; ASSUMPTION renv stays cold (as observed); with a warm cache subtract about 105 s
+before_full,billed_minutes_per_run,19,min/run,ceil(run_duration / 60)
+before_full,minutes_per_month,21830,min/month,runs_per_month x billed_minutes_per_run: cost of the old workflow on every push had it not failed early
+after,commits_total,72,commits,git log --name-only --format=%h over the whole history
+after,commits_touching_paths,26,commits,"commits touching R/, tests/, config/, scripts/, renv.lock, renv/, .Rprofile or .github/ (renv/ and .Rprofile added to the filter after review; count unchanged, 26 with or without them)"
+after,commit_trigger_fraction,0.3611,fraction,commits_touching_paths / commits_total
+after,pushes_touching_paths,25,pushes,"of the 71 observed pushes, those whose diff (previous run sha..run sha; run 1 = whole tree) touches the paths filter; this is how GitHub evaluates paths for push events"
+after,push_trigger_fraction,0.3521,fraction,pushes_touching_paths / 71 (used below; commit_trigger_fraction is the cross-check)
+after,pushes_changing_renv_lock,3,pushes,renv cache miss (key includes hashFiles('renv.lock')): full restore
+after,runs_per_month_paths_filter,405,runs/month,runs_per_month x push_trigger_fraction
+after,tests_fast_scope,50,s,"local fast-scope suite CPU time, results/ci/test_timing_local.csv SUITE row (includes rxode2 model compile, about 1-2 s per model)"
+after,renv_restore_cached,45,s,"ASSUMPTION: cache hit (setup-renv actions/cache keyed on OS, R version, hashFiles('renv.lock'); saved only after a successful job)"
+after,run_duration_cache_hit,167,s,overhead + renv cached + fast tests + upload
+after,run_duration_cache_miss,272,s,overhead + renv cold + fast tests + upload (first run after a renv.lock change)
+after,billed_minutes_per_run_cache_hit,3,min/run,ceil(run_duration_cache_hit / 60)
+after,billed_minutes_per_run_cache_miss,5,min/run,ceil(run_duration_cache_miss / 60)
+after,runs_cancelled_by_concurrency,3,runs,"replay of the 25 triggering pushes at their observed times: a push arriving before the previous run finished cancels it (group tests-<ref>, cancel-in-progress); all pushes were on one branch"
+after,billed_minutes_saved_by_concurrency,6,min,over the replayed triggering pushes (cancelled runs bill only the minutes used)
+after,billed_minutes_per_triggered_run,3,min/run,"replayed billed minutes / triggering pushes (mix of cache hits, 3 cache misses, cancellations)"
+after,minutes_per_month,1214,min/month,runs_per_month_paths_filter x billed_minutes_per_triggered_run
+comparison,reduction_vs_before_observed,73.7,percent,"1 - after / before_observed (the old workflow failed after about 3.5 min, so this understates the saving)"
+comparison,reduction_vs_before_full,94.4,percent,1 - after / before_full (old workflow as designed: full tests + Step 1 simulation on every push)
+repro_manual,run_duration,252,s,"repro.yml (workflow_dispatch only, not in the monthly totals): overhead 67 s + renv cached 45 s + fast tests 50 s + scripts/38_repro_check.R local runtime 85.4 s with 2 cores on the loaded machine (results/repro/repro_check_meta.csv, latest run) + upload 5 s; cache miss adds 105 s"
+repro_manual,billed_minutes_per_run,5,min/run,ceil(run_duration / 60); timeout-minutes 45
+comparison,billing_scope,,,"GitHub-hosted Linux minutes are free for public repositories; private repositories draw on the plan's included minutes. Standard ubuntu-24.04 runner: 4 vCPU (public) or 2 vCPU (private); fast tests are single-threaded, so the estimate holds for both"

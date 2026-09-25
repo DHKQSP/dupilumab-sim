@@ -75,3 +75,22 @@ test_that("무작위 모의 프로필 50개에서 NonCompart와 λz 점·파라�
     expect_equal(c(o$Lambda_z, o$AUClast, o$AUCINF_obs, o$AUCINF_pred, o$Rsq_adjusted), unname(nc[c("LAMZ", "AUCLST", "AUCIFO", "AUCIFP", "R2ADJ")]), tolerance = 1e-8)
   }
 })
+
+test_that("NonCompart 문서 예제 Theoph(12명)·Indometh(6명, 혈관외 규칙): λz 선택 점 전부 일치, 파라미터 상대 차이 ≤ 1e-6 (scripts/28과 같은 설정)", {
+  skip_if_not_installed("NonCompart")
+  pars <- c(Cmax = "CMAX", Tlast = "TLST", AUClast = "AUCLST", Lambda_z = "LAMZ", Rsq_adjusted = "R2ADJ", Lambda_z_lower = "LAMZLL",
+            Lambda_z_upper = "LAMZUL", Clast_pred = "CLSTP", AUCINF_obs = "AUCIFO", AUCINF_pred = "AUCIFP", `AUC_%Extrap_obs` = "AUCPEO")
+  th <- as.data.table(datasets::Theoph)[, .(id = as.integer(as.character(Subject)), time = Time, conc = conc)]
+  im <- as.data.table(datasets::Indometh)[, .(id = as.integer(as.character(Subject)), time = time, conc = conc)]
+  for (d in list(th, im)) {
+    setorder(d, id, time)
+    own <- run_nca(copy(d)[, conc := fifelse(conc > 0, conc, NA_real_)])      # scripts/28 own_engine과 같은 입력(0은 BLQ)
+    for (i in unique(d$id)) {
+      x <- d[id == i]; o <- own[id == i]
+      nc <- NonCompart::sNCA(x$time, x$conc, dose = 1, adm = "Extravascular", down = "Log", R2ADJ = 0, excludeDelta = 1)
+      expect_equal(o$No_points_lambda_z, as.integer(nc[["LAMZNPT"]]), info = paste("id", i))
+      # 파라미터마다 따로 비교(벡터 한 번 비교는 평균 상대 차이라 크기가 작은 λz·R² 차이가 AUC에 묻힌다)
+      for (nm in names(pars)) expect_equal(o[[nm]], unname(nc[[pars[[nm]]]]), tolerance = 1e-6, info = paste("id", i, nm))
+    }
+  }
+})

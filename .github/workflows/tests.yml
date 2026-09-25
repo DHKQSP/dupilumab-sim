@@ -1,32 +1,69 @@
+# Fast-scope tests (README "CI"). Runs only when code, tests, config, scripts, the renv setup (renv.lock, renv/, .Rprofile) or workflows change;
+# commits that touch only results/, logs/, report outputs or *.md do not trigger it.
+# Scientific-judgment tests and simulations are not run here (DUPI_TEST_SCOPE=fast); see repro.yml for the manual reproducibility check.
 name: tests
 on:
   push:
     branches: ["**"]
+    paths:
+      - "R/**"
+      - "tests/**"
+      - "config/**"
+      - "scripts/**"
+      - "renv.lock"
+      - "renv/**"
+      - ".Rprofile"
+      - ".github/**"
   pull_request:
+    paths:
+      - "R/**"
+      - "tests/**"
+      - "config/**"
+      - "scripts/**"
+      - "renv.lock"
+      - "renv/**"
+      - ".Rprofile"
+      - ".github/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     env:
       RENV_CONFIG_REPOS_OVERRIDE: https://packagemanager.posit.co/cran/latest
+      DUPI_TEST_SCOPE: fast
+      DUPI_TEST_LOG_DIR: ci-test-logs
+      # a skip other than the fast-scope judgment/slow skips (e.g. rxode2 or NonCompart not loadable) fails the run instead of passing silently
+      DUPI_TEST_STRICT_SKIP: "true"
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: "4.3.3"
           use-public-rspm: true
-      - uses: r-lib/actions/setup-pandoc@v2
+      # Build deps for any package renv has to compile from source (xml/curl/ssl/fonts/images, TBB for RcppParallel, cmake for nanonext).
       - name: System deps
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libcurl4-openssl-dev libssl-dev libxml2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libpng-dev libtiff5-dev libjpeg-dev libtbb-dev cmake
+      # renv::restore() with the renv library cached by setup-renv (actions/cache keyed on OS, R version and hashFiles('renv.lock');
+      # the cache is saved in the post step of a successful job, so the first green run populates it). Checked in the run #71 job log:
+      # actions/cache key "Ubuntu 24.04.5 LTS-R version 4.3.3 (2024-02-29)-1-<hashFiles('renv.lock')>", save-always false, post step skipped on failure.
       - uses: r-lib/actions/setup-renv@v2
-      - name: Run tests
+      - name: Run tests (fast scope)
         run: Rscript scripts/run_tests.R
-      - name: Step 1 summary
-        run: Rscript scripts/02_validate_step1.R && Rscript scripts/02_validate_step1.R k2020
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: logs-and-results
-          path: |
-            logs/
-            results/step1/
-            results/step1_k2020/
+          name: test-logs
+          path: ci-test-logs/
+          if-no-files-found: warn
+          retention-days: 14

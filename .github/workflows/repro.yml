@@ -1,0 +1,55 @@
+# Manual reproducibility check (README "CI"): clean renv restore, fast tests, then scripts/38_repro_check.R
+# (exact regeneration of committed OC trials, true AUC0-inf ratio on 20,000 CRN subjects, individual true extrapolation median).
+# Tolerances are pre-specified in config/repro_check.yaml. Run from the Actions tab (repro > Run workflow) or: gh workflow run repro.yml
+name: repro
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repro-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  repro:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      RENV_CONFIG_REPOS_OVERRIDE: https://packagemanager.posit.co/cran/latest
+      DUPI_TEST_SCOPE: fast
+      DUPI_TEST_LOG_DIR: ci-test-logs
+      # a skip other than the fast-scope judgment/slow skips (e.g. rxode2 or NonCompart not loadable) fails the run instead of passing silently
+      DUPI_TEST_STRICT_SKIP: "true"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: "4.3.3"
+          use-public-rspm: true
+      - name: System deps
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libcurl4-openssl-dev libssl-dev libxml2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libpng-dev libtiff5-dev libjpeg-dev libtbb-dev cmake
+      - uses: r-lib/actions/setup-renv@v2
+      - name: Run tests (fast scope)
+        run: Rscript scripts/run_tests.R
+      - name: Reproducibility check
+        run: Rscript scripts/38_repro_check.R 4
+      - name: Job summary (fallback)
+        if: failure()
+        run: |
+          if [ ! -f results/repro/repro_check.csv ]; then
+            echo "## Reproducibility check did not produce results/repro/repro_check.csv (see the step log)" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: repro-results
+          path: |
+            results/repro/
+            ci-test-logs/
+            logs/repro_check_*.log
+          if-no-files-found: warn
+          retention-days: 30

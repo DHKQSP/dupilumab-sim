@@ -235,3 +235,12 @@
 - 단계 1 gate: AUClast 모의/관측 비 최대 절대 차이 0.0002(2016), 0.0003(Model 1) → gate 판정 불변.
 - 제품 시나리오(500회): 통과율 변화 AUClast ≤ 0.6%p, AUCinf(신뢰군) ≤ 2.4%p. 5,000회 이상 세트·체중 시험·곡률 Pillar 2의 차이는 `engine_difference_outputs.csv`에 함께 싣는다.
 - 보고 원칙: 신뢰 충족 관련 수치는 새 정의로 보고하고, 이전 회차·독립 구현 기준값과의 비교는 같은 정의(adj R²·외삽)로 맞춘 열을 따로 둔다(13b, 21, 24, 27).
+
+## D-045 | 2026-09-25 | CI 정책: 빠른 범위만, 판정성 테스트는 보고 항목, 재현성 점검은 수동 (통합 지시 2026-09-25 §6–10)
+- 진단: 이전 GitHub Actions 71회 전부 실패, 테스트는 한 번도 실행되지 않음. 원인 두 가지 — #1 커밋에 renv.lock 없음, #2–#71 `scripts/run_tests.R`의 JunitReporter가 renv.lock에 없는 xml2를 요구해 테스트 시작 전에 중단(`results/ci/ci_failures_before.csv`, `ci_failure_summary.csv`). CI는 산출물만 올렸고 저장소에 쓰지 않았으므로 로컬에서 만든 결과 수치에는 영향이 없다.
+- 수정: JunitReporter는 xml2가 있을 때만 사용, 로그 디렉터리는 절대 경로, 실패 수 제한 없이 끝까지 실행, 예기치 않은 건너뛰기는 CI에서 실패로 처리(`DUPI_TEST_STRICT_SKIP`).
+- 트리거: R/, tests/, config/, scripts/, renv.lock, renv/, .Rprofile, .github/ 변경 시에만 push·PR 실행, 수동 실행 추가. 같은 ref의 이전 실행 취소, 모든 job에 timeout, `contents: read`. renv 라이브러리는 setup-renv 캐시(키 = OS, R 버전, renv.lock 해시; 성공한 job에서만 저장).
+- 범위: CI는 빠른 테스트(모델 해석해 일치, NCA 엔진 검증 Theoph·Indometh·모의 프로파일, config 스키마, 결정 규칙, BE 통계, 소규모 스모크 모의, OC 단위 테스트)만. 장시간 모의(OC, 무작위 제품 공간, 5,000회 이상)는 제외.
+- 판정성 테스트(단계 1 gate (a)(b)(c)(f))는 결과에 따라 실패할 수 있으므로 CI 실패 조건에서 뺀다. 빠른 범위에서는 건너뛰고, 전체 범위에서는 "judgment item"으로 보고하되 종료 코드에 넣지 않는다(코드 오류는 여전히 실패).
+- 재현성: `repro.yml`(수동)이 깨끗한 renv 복원 → 빠른 테스트 → `scripts/38_repro_check.R`. 허용 오차는 `config/repro_check.yaml`에 사전 고정: (a) OC 시험 1–100(S00, Vmax ↓ 1.25) 정확 재생성, 상대 1e-6·통과 여부 불일치 0; (b) 참 AUC0-inf 비(앞 20,000명) 대 200,000명, 4 × MC 표준오차; (c) 개인 실제 외삽 중앙값 2,000명 대 20,000명, 4 × 부트스트랩 표준오차.
+- 사용 분 추정(`results/ci/ci_minutes_estimate.csv`): 이전 관측 약 4,600분/월(실패로 조기 종료), 설계대로였다면 약 21,800분/월 → 이후 약 1,200분/월(가정: 관측 push 속도 유지, 캐시 적중 45초).

@@ -1,0 +1,51 @@
+# 재현성 점검 (scripts/38_repro_check.R, .github/workflows/repro.yml, README "CI").
+# 사전 고정: 아래 허용 오차는 점검 결과를 보기 전에 정했다. 바꾸면 이유를 DECISIONS.md에 적는다.
+# 세 항목은 커밋된 결과 파일의 값을 새 환경(깨끗한 renv 복원)에서 다시 계산해 비교한다. 하나라도 불통과면 스크립트는 0이 아닌 코드로 끝난다.
+version: 1
+prespecified_on: "2026-09-24"
+
+# (a) 운용특성 시험의 정확 재생성: scripts/31_oc_trials.R와 같은 방식(변형 base, 시나리오 목록 = 역산 파일의 도달 시나리오 + S00,
+#     run_trial_oc(j, p, design, scenarios, master_seed = oc_design.yaml trials$master_seed, wt_spec))으로 시험 1-100을 다시 만든다.
+#     시나리오별 결과는 시험 j의 공통 난수(대상자·배정·채혈시각·잔차 시드가 시나리오와 무관, R/trial.R)로만 정해지므로 두 시나리오만 다시 풀어도 같다.
+oc_trials:
+  model: k2016
+  variant: base
+  trial_range: [1, 100]
+  scenarios: [S00, Vmax_down_125]          # Vmax_down_125: 역산 파일 results/oc/inversion_k2016_Vmax.csv의 direction down, target 1.25 배율
+  reference_file: results/oc/oc_trials_be_k2016.csv.gz
+  # 전체 파일이 저장소에 없을 때(진행 중 산출물로 커밋 제외된 경우) 쓰는 발췌본. 전체 파일이 있으면 발췌본이 전체 파일과 같은지도 확인한다.
+  # 발췌본 생성: Rscript scripts/38_repro_check.R --extract-reference
+  reference_extract: results/repro/reference/oc_trials_be_k2016_t001-100_S00_Vmax_down_125.csv
+  compare_cols: [GMR, CI_lower, CI_upper]
+  tolerance_rel: 1.0e-6   # 커밋 값은 signif(7)로 저장(상대 반올림 오차 <= 5e-7). 같은 코드·같은 난수면 반드시 이 안이고, 난수·코드·NCA 규칙이 달라지면 차이는 1e-3 이상
+  pass_flag_mismatch_max: 0   # 평가변수별 통과 여부(pass)와 결측 여부는 전부 같아야 한다(허용 불일치 0건)
+  configuration: P2       # 보고용 통과율: 시험 100회의 P2(AUClast + Cmax) 통과율. S00 = 동일 제품 통과율, Vmax_down_125 = 경계 1종 오류(부분집합)
+  cores: 2                # mclapply 코어(GitHub 러너 4 vCPU). 명령행 인자로 바꿀 수 있다
+
+# (b) 참 AUC0-inf 비: Vmax 배율(역산 파일의 정확한 값, 약 x0.6602)에서 공통 난수 대상자 200,000명
+#     (truth_subjects, 시드 derive_seed(oc_design.yaml truth_seed, "truth200k", model), scripts/30_oc_inversion.R와 같은 규칙) 중 앞 20,000명으로 다시 계산
+truth_ratio:
+  model: k2016
+  mechanism: Vmax
+  direction: down
+  target: 1.25
+  n_subjects: 20000
+  # 허용(log 척도) = z x (앞 20,000명 평균과 200,000명 평균 차이의 MC 표준오차). 부분집합이므로 표준오차 = se200k x sqrt(200000/20000 - 1) = 3 x se200k.
+  # se200k는 역산 파일의 auc_se_log(1.347e-4) → 허용 약 4 x 3 x 1.347e-4 = 0.0016(상대 약 0.16%). z = 4면 올바른 구현의 오경보 확률 약 6e-5
+  z: 4
+  # 추가 확인: 역산의 선별 이분법이 같은 앞 20,000명으로 목표 +-screening_tolerance_rel(2e-4, oc_design.yaml) 안의 배율을 찾았고 200,000명 추가 반복이 없었으므로
+  # (iter_full = 0) 20,000명 비는 목표 1.25의 +-2e-4 안이어야 한다. 이 확인은 공통 난수 대상자와 ODE 풀이의 사실상 정확 재현을 본다
+  screening_check: true
+
+# (c) 개인 수준 참 외삽 비율(pct_extrap_true) 중앙값, B0: 새 시드 2,000명 대 커밋된 20,000명 값(results/individual/individual_base.csv extrap_true_median)
+individual_extrap:
+  variant: base
+  schedule: B0
+  n_subjects: 2000
+  master_seed: 20260923
+  tag: repro_ind_base      # scripts/10_individual_schedules.R의 태그(ind_base)와 다른 독립 표본
+  committed_file: results/individual/individual_base.csv
+  column: extrap_true_median
+  # 허용(절대, %) = 4 x 부트스트랩 표준오차. 커밋된 20,000명 B0 NCA(nca_base_20000.rds)에서 복원 추출 부트스트랩(시드 20260925):
+  # 중앙값 SE는 2,000명 0.0305, 20,000명 0.0104 → 독립 표본 차이 SE = sqrt(0.0305^2 + 0.0104^2) = 0.0322 → 4 x 0.0322 = 0.13
+  tolerance_abs: 0.13

@@ -30,6 +30,7 @@
 | renv | 1.2.4 | `renv.lock`. 컨테이너에서는 시스템 라이브러리 우회 설정 사용(D-017, 최종본 전 정리) |
 | NCA·BE | R 직접 구현 (`R/nca.R`, `R/be_stats.R`) | BEmaster 바인딩 없음(D-010) |
 | 저장소 | `main` 없음 | PR 생성은 사용자 결정 대기. 현재 브랜치에 계속 커밋 |
+| CI | `.github/workflows/tests.yml` 빠른 범위(`DUPI_TEST_SCOPE=fast`), `repro.yml` 수동 재현성 점검 | 코드·테스트·config·scripts·renv·워크플로 변경 시에만 실행, 판정성 테스트는 보고 항목(D-045) |
 
 **코딩 규칙(D-025)**: data.table `[` 안에서 함수 인자와 같은 이름의 열을 쓰지 않는다(지역 변수, `..var`, `x[["col"]]` 사용). YAML 키에 y/n/yes/no/on/off/true/false 금지. 둘 다 자동 테스트로 검사한다.
 

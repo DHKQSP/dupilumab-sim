@@ -1,0 +1,4 @@
+category,cause,failed_step,n_runs,run_numbers,first_created,last_created,duration_s_min,duration_s_median,duration_s_max,duration_s_total,fix
+package install/build,no renv.lock in commit,setup-renv (renv::restore),1,1,2026-09-23T02:11:47Z,2026-09-23T02:11:47Z,64,64,64,64,renv.lock added in c5f097d (run 2 onward restore succeeds)
+package install/build,xml2 missing for testthat::JunitReporter,Run tests (Rscript scripts/run_tests.R),70,2-71,2026-09-23T02:24:10Z,2026-09-24T22:41:22Z,158,221.0,278,15333,"scripts/run_tests.R uses JunitReporter only if requireNamespace('xml2', quietly = TRUE); CI keeps a timing CSV instead"
+all,all causes,,71,1-71,2026-09-23T02:11:47Z,2026-09-24T22:41:22Z,64,221,278,15397,"no run executed a test or Step 1 validation; no failure was a test failure, timeout or missing result file"

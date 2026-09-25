@@ -1,0 +1,24 @@
+field,value
+commit,a4843b326b362ac7a5148f451008819f083ae26e
+commit_source,git rev-parse HEAD
+tracked_changes_uncommitted,1
+r_version,R version 4.3.3 (2024-02-29)
+rxode2_version,5.1.7
+data_table_version,1.14.10
+testthat_version,3.2.1
+platform,x86_64-pc-linux-gnu
+os,Linux 6.18.44-fc-v37
+cores_detected,4
+cores_used,2
+github_run,NA
+time_start_utc,2026-09-25T00:03:24Z
+time_end_utc,2026-09-25T00:04:49Z
+runtime_total_s,85.4
+repro_config_sha256,a5e8401417d3dd780a21876356e654a5c6b270f9d50eb47de942105cb34d2756
+n_items,7
+n_pass,7
+all_pass,TRUE
+runtime_a_s,47.9
+reference_source_a,results/oc/oc_trials_be_k2016.csv.gz
+runtime_b_s,18.3
+runtime_c_s,19.2
