@@ -183,7 +183,7 @@ section5:
   weight_table: "shares within 60-90 kg, below 60 kg, above 90 kg, above 100 kg for each distribution: analytic (untruncated and truncated) and simulated; independent reference for the primary distribution untruncated: 16.5% below 60, 23.7% above 90, 12.4% above 100, 40.2% outside 60-90"
   model_variants: [base, struct2020, k2016_bmi_vc0817]
   individual:
-    n: 20000
+    n_subjects: 20000
     dose_mg: 300
     schedule: B0
     seed: "master 20260923, tag atopic_<distribution> (same subjects across model variants)"
