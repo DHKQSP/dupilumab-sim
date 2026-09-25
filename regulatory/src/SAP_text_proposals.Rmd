@@ -1,0 +1,195 @@
+---
+title: "Statistical Analysis Plan: Proposed Text for the Pharmacokinetic Analyses"
+subtitle: "Single-dose pharmacokinetic similarity study of a proposed dupilumab biosimilar"
+date: "`r format(Sys.time(), '%Y-%m-%d', tz = 'UTC')`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+source(file.path("..", "..", "R", "00_setup.R"))
+source(file.path("..", "src", "reg_helpers.R"))
+P <- get0("REG_PARAMS", ifnotfound = list(source_commit = "not recorded", tree_clean = NA, version = "1.0.1 (draft for sponsor review)"))
+reg_init("SAP_text_proposals")
+kt <- function(x, caption = NULL, align = NULL) knitr::kable(x, format = "pipe", caption = caption, align = align)
+T1 <- "oc_models/type1_models.csv"; PW <- "oc_models/power_models.csv"; SS <- "oc_models/sd_se_models.csv"; DE <- "oc_models/p2_decomposition_models.csv"
+w1 <- function(am, cf, extra = "") sprintf("analysis_model=='%s' & config=='%s'%s", am, cf, extra)
+cls_n <- function(am, cf, cl) vcount(T1, w1(am, cf, sprintf(" & class=='%s'", cl)), item = sprintf("%s %s cells classified %s", am, cf, cl))
+n_over <- function(am, cf) vcount(T1, w1(am, cf, " & pass_pct > 5"), item = sprintf("%s %s cells with point estimate above 5%%", am, cf))
+n_lo5 <- function(am, cf) vcount(T1, w1(am, cf, " & lo > 5"), item = sprintf("%s %s cells with Wilson lower bound above 5%%", am, cf))
+rng_t1 <- function(am, cf) vrange(T1, w1(am, cf), "pass_pct", 2, item = sprintf("%s %s boundary type I error range", am, cf), unit = "%")
+max_t1 <- function(am, cf) {
+  r <- rows(T1, w1(am, cf)); premise(nrow(r) == 16, sprintf("%s %s: 16 boundary cells", am, cf)); k <- which.max(r$pass_pct); rr <- r[k]
+  list(text = vci(T1, w1(am, cf, sprintf(" & pk_model=='%s' & scenario=='%s'", rr$pk_model, rr$scenario)), d = 2, item = sprintf("%s %s maximum", am, cf)), row = rr)
+}
+MODEL_EN <- c(k2016 = "2016 model (primary)", k2020 = "Model 1")
+cell_txt <- function(r) sprintf("%s, %s %s (multiplier %s)", MODEL_EN[[r$pk_model]], c(F = "bioavailability", ka = "absorption rate", ke = "linear elimination", Vmax = "target-mediated elimination capacity", V2 = "peripheral volume")[[r$mechanism]], r$direction, fnum(r$multiplier, 2))
+pw <- function(m, sc, am, cf = "P2") vci(PW, sprintf("pk_model=='%s' & scenario=='%s' & analysis_model=='%s' & config=='%s'", m, sc, am, cf), d = 1, item = sprintf("power %s %s %s %s", m, sc, am, cf))
+sdse <- function(am) vrange(SS, sprintf("endpoint=='AUCinf_true' & analysis_model=='%s' & !scenario %%in%% c('S00','F097')", am), "sd_se_ratio", 3, item = sprintf("SD/SE %s AUCinf_true boundary cells", am))
+NN <- "sample_size/ss_table_n_needed.csv"
+nn <- function(cv, g, am, tg, col = "n_evaluable_per_arm") vi(NN, sprintf("cv==%s & gmr==%s & analysis_model=='%s' & target_pct==%s", cv, g, am, tg), col, item = sprintf("n %s CV %s GMR %s %s%%", am, cv, g, tg))
+lloq_val <- cfgv("assay.yaml", c("lloq_mg_L", "value"))
+```
+
+- **Status:** `r P$version`. Proposed text for review by the sponsor's clinical pharmacology and biostatistics functions; not approved.
+- **Source commit:** `r P$source_commit`. Every number below is read from a committed result or configuration file when this document is generated, and is listed with its source in regulatory/traceability.csv.
+- **Use:** each section gives the proposed statistical analysis plan (SAP) text, the simulation evidence that supports it, and the decisions left to the sponsor. Text in square brackets is to be completed by the sponsor.
+
+Abbreviations are defined at first use. The simulations are described in the Modeling and Simulation Report (regulatory/MS_report).
+
+# 1. Primary pharmacokinetic endpoints and primary analysis model
+
+```{r s1, include=FALSE}
+sec("1 primary analysis model")
+c0 <- sapply(c("conservative", "nominal", "exceeding"), function(k) cls_n("M0", "P2", k)); c1 <- sapply(c("conservative", "nominal", "exceeding"), function(k) cls_n("M1", "P2", k))
+r0 <- rng_t1("M0", "P2"); r1 <- rng_t1("M1", "P2"); m0 <- max_t1("M0", "P2"); m1 <- max_t1("M1", "P2")
+ref0 <- rng_t1("M0", "AUCinf_true_only"); ref1 <- rng_t1("M1", "AUCinf_true_only")
+sd0 <- sdse("M0"); sd1 <- sdse("M1")
+o1 <- n_over("M1", "P2"); o0 <- n_over("M0", "P2")
+```
+
+**Proposed text.**
+
+> The co-primary pharmacokinetic (PK) endpoints are the area under the serum concentration-time curve from time zero to the last quantifiable concentration (AUC0-last, also written AUC0-t) and the maximum observed serum concentration (Cmax). PK similarity is concluded if, for both endpoints, the 90% confidence interval (CI) of the ratio of geometric means (test/reference; geometric mean ratio, GMR) lies within 80.00% to 125.00%.
+>
+> Option M0: the natural-log-transformed endpoint is compared between treatments with a two-sample t-test with pooled variance (equivalently, an analysis of variance (ANOVA) with treatment as the only factor).
+>
+> Option M1: the natural-log-transformed endpoint is analysed with an ANOVA with treatment and body-weight stratum (60 to 75 kg, above 75 to 90 kg; the stratification factor of the randomization) as fixed effects. The difference in least-squares means between treatments and its 90% CI are back-transformed to the GMR and its 90% CI.
+>
+> Primary analysis model: [M0 or M1, to be selected by the sponsor]. The other option is a sensitivity analysis. An analysis of covariance (ANCOVA) with treatment and log body weight is a further sensitivity analysis.
+
+**Evidence.** In 16 boundary scenarios (true AUC0-inf ratio of exactly 0.80 or 1.25, 8 mechanisms and directions in each of two PK models), the probability of concluding similarity with AUC0-last and Cmax (P2), i.e. the boundary type I error, was:
+
+- M0: `r r0`; `r c0[["conservative"]]` cells conservative (Wilson 95% upper bound below 5%), `r c0[["nominal"]]` nominal and `r c0[["exceeding"]]` exceeding (lower bound above 5%). Highest: `r cell_txt(m0$row)`, `r m0$text`.
+- M1: `r r1`; `r c1[["conservative"]]` conservative, `r c1[["nominal"]]` nominal and `r c1[["exceeding"]]` exceeding. Highest: `r cell_txt(m1$row)`, `r m1$text`. Cells with a point estimate above 5%: `r o1` under M1 and `r o0` under M0.
+- Why M1 differs: the randomization is stratified by body weight, which explains part of the between-subject variance, and M0 does not model the stratum. With M0 the between-trial standard deviation (SD) of the log GMR is smaller than the within-trial standard error (SE) (ratio `r sd0` for the unbiased reference, the true AUC0-inf of each subject); with M1 the ratio is `r sd1`. The unbiased reference passes in `r ref0` of trials under M0 and `r ref1` under M1, against 5% expected for an unbiased estimator with a correctly sized SE.
+- Power of P2 for identical products: `r pw("k2016", "S00", "M0")` (M0) and `r pw("k2016", "S00", "M1")` (M1), 2016 model; for a test product with bioavailability x0.97: `r pw("k2016", "F097", "M0")` and `r pw("k2016", "F097", "M1")`.
+- Basis: ICH E9 (section 5.7, covariates and subgroups) states that factors on which the randomization has been stratified should be accounted for in the analysis, and the FDA guidance Adjusting for Covariates in Randomized Clinical Trials for Drugs and Biological Products (2023) states that a covariate adjustment model should generally include the strata variables. Under M0 the stratification is not reflected in the analysis.
+
+**Decision left to the sponsor:** the primary analysis model (M0 or M1).
+
+# 2. AUC0-inf as a secondary endpoint
+
+```{r s2, include=FALSE}
+sec("2 AUC0-inf secondary")
+RS <- "reliability/reliability_two_flag_sets_summary.csv"
+ri <- vrange(RS, "variant %in% c('base','struct2020')", "reliable_i_pct", 1, item = "reliability criteria (i), two models", unit = "%")
+rii <- vrange(RS, "variant %in% c('base','struct2020')", "reliable_ii_pct", 1, item = "reliability criteria (ii), two models", unit = "%")
+lzok <- vrange(RS, "variant %in% c('base','struct2020')", "lambda_ok_pct", 1, item = "lambda-z estimable, two models", unit = "%")
+RP <- rows("reliability/reliability_paired_vs_B0.csv", "variant %in% c('base','struct2020') & schedule %in% c('D1','D2','D3','D4')")
+sp <- range(RP$span_only_loss_pct - RP$span_only_loss_B0_pct)
+sp_txt <- .record("increase in span-only exclusions with added samples D1 to D4 (points)", "reliability/reliability_paired_vs_B0.csv", "variant in base, struct2020 & schedule in D1-D4 :: span_only_loss_pct - span_only_loss_B0_pct", sp, sprintf("%s to %s", fnum(sp[1], 2), fnum(sp[2], 2)))
+EX <- "sap/sap_exclusion_support.csv"
+ex_i <- function(m, col, d = 1, scale = 1) v(EX, sprintf("model=='%s' & set=='criteria_i'", m), col, d, item = sprintf("criteria (i) exclusion %s %s", m, col), scale = scale)
+gc0 <- max_t1("M0", "G2_Ci"); gc1 <- max_t1("M1", "G2_Ci")
+```
+
+**Proposed text.**
+
+> AUC from time zero to infinity (AUC0-inf) is a secondary endpoint. AUC0-inf = AUC0-last + Clast/lambda-z, where Clast is the last observed quantifiable concentration and lambda-z the terminal elimination rate constant (Phoenix WinNonlin AUCINF_obs). Lambda-z is estimated by unweighted log-linear regression using the Best Fit method: candidate windows are the last 3, 4, 5 or more positive concentrations after Cmax; windows with a positive slope are excluded; the window with the largest adjusted coefficient of determination (adjusted R-squared) is selected, ties within 0.0001 going to the window with more points. Lambda-z is not estimable if fewer than 3 positive concentrations follow Cmax.
+>
+> AUC0-inf is considered reliable if the adjusted R-squared of the lambda-z regression is at least 0.80 and the extrapolated area (Clast/lambda-z) is at most 20% of AUC0-inf. No criterion on the span of the lambda-z window is applied.
+>
+> The GMR and 90% CI of AUC0-inf are reported for two analysis sets: (1) all subjects with an estimable lambda-z; (2) subjects meeting the reliability criteria. For each treatment, the number of subjects with lambda-z not estimable and the number not meeting each criterion are reported, with the body weight and AUC0-last of the excluded and retained subjects. Individual lambda-z windows are listed.
+>
+> Sensitivity analysis: AUC0-last is substituted for AUC0-inf in subjects whose AUC0-inf is not reliable. AUC0-inf does not enter the similarity decision.
+
+**Evidence.**
+
+- Lambda-z is estimable in `r lzok` of simulated subjects (planned schedule, 60 to 90 kg, 20,000 subjects per model). The reliability criteria above are met by `r ri`; adding a span-ratio criterion (window of at least 2 half-lives) lowers this to `r rii`.
+- A span criterion penalizes denser sampling rather than poor estimation: adding late samples (4 alternative schedules, two models) increased the share excluded by the span criterion alone by `r sp_txt` percentage points, because Best Fit then selects a later and shorter window.
+- Exclusion is not random. Subjects failing the criteria are heavier (by `r ex_i("k2016", "wt_diff", 1)` kg in the 2016 model and `r ex_i("k2020", "wt_diff", 1)` kg in Model 1) and have lower exposure (ratio of geometric mean true AUC0-inf, excluded to retained: `r ex_i("k2016", "aucinf_true_gm_ratio_excluded_to_retained", 2)` and `r ex_i("k2020", "aucinf_true_gm_ratio_excluded_to_retained", 2)`); `r ex_i("k2016", "excluded_pct", 1)`% and `r ex_i("k2020", "excluded_pct", 1)`% of subjects are excluded. Reporting both analysis sets, with the characteristics of the excluded subjects, lets the reader judge the effect of the exclusion.
+- The sensitivity rule (AUC0-last substituted) keeps the boundary type I error close to that of the primary endpoints: with AUC0-inf and Cmax its highest boundary value is `r gc0$text` (M0) and `r gc1$text` (M1).
+
+# 3. Fallback if FDA requires AUC0-inf as a co-primary endpoint
+
+```{r s3, include=FALSE}
+sec("3 fallback rule B")
+fb0 <- rng_t1("M0", "F3B"); fb1 <- rng_t1("M1", "F3B"); fbm0 <- max_t1("M0", "F3B"); fbm1 <- max_t1("M1", "F3B")
+fbc0 <- sapply(c("conservative", "nominal", "exceeding"), function(k) cls_n("M0", "F3B", k)); fbc1 <- sapply(c("conservative", "nominal", "exceeding"), function(k) cls_n("M1", "F3B", k))
+gb0 <- max_t1("M0", "G2_B"); gb1 <- max_t1("M1", "G2_B"); gbo0 <- n_over("M0", "G2_B"); gbo1 <- n_over("M1", "G2_B")
+exB <- function(m) v(EX, sprintf("model=='%s' & set=='rule_B'", m), "excluded_pct", 1, item = sprintf("rule B exclusion %s", m))
+fa1 <- rng_t1("M1", "F3A"); fc1 <- rng_t1("M1", "F3C")
+```
+
+**Proposed text (to be used only if AUC0-inf is required as a co-primary endpoint).**
+
+> The co-primary PK endpoints are AUC0-last, AUC0-inf and Cmax. PK similarity is concluded if the 90% CI of the GMR lies within 80.00% to 125.00% for all three endpoints. For AUC0-inf, all subjects with an estimable lambda-z are included; subjects whose AUC0-inf does not meet the reliability criteria of Section 2 are flagged and listed but not excluded.
+>
+> Sensitivity analyses of AUC0-inf: (A) excluding the flagged subjects; (C) substituting AUC0-last for AUC0-inf in the flagged subjects.
+
+**Evidence.**
+
+- Including all subjects with an estimable lambda-z excludes only `r exB("k2016")`% (2016 model) and `r exB("k2020")`% (Model 1) of subjects, and keeps the analysis set closest to the randomized set.
+- Keeping AUC0-last as a co-primary endpoint bounds the boundary type I error of the three-endpoint decision by that of P2: with AUC0-inf under this rule it is `r fb0` under M0 (`r fbc0[["conservative"]]` conservative, `r fbc0[["nominal"]]` nominal, `r fbc0[["exceeding"]]` exceeding; highest `r fbm0$text`) and `r fb1` under M1 (`r fbc1[["conservative"]]`, `r fbc1[["nominal"]]`, `r fbc1[["exceeding"]]`; highest `r fbm1$text`).
+- Without AUC0-last (AUC0-inf under this rule with Cmax only), `r gbo0` of 16 cells exceed 5% under M0 (highest `r gb0$text`) and `r gbo1` under M1 (highest `r gb1$text`): the NCA AUC0-inf of this product is biased toward a ratio of 1 at the boundaries.
+- Under M1 the three-endpoint decision with sensitivity rule A gives `r fa1` and with rule C `r fc1`.
+- Power for identical products: `r pw("k2016", "S00", "M0", "F3B")` (M0) and `r pw("k2016", "S00", "M1", "F3B")` (M1), against `r pw("k2016", "S00", "M1", "P2")` for P2 under M1 (2016 model).
+
+# 4. Anti-drug antibodies
+
+```{r s4, include=FALSE}
+sec("4 ADA")
+AD <- "individual/individual_ada10_by_subgroup.csv"
+ad <- function(g, col, d = 1) v(AD, sprintf("ada==%d & schedule=='B0'", g), col, d, item = sprintf("ADA-like subgroup %d %s", g, col))
+```
+
+**Proposed text.**
+
+> Serum samples for anti-drug antibodies (ADA) are collected before dosing on Day 1 and on Days 15, 29 and 57 (or at early termination). ADA status is classified as negative, or positive with treatment-emergent or treatment-boosted status and titer; neutralizing activity is reported if assessed.
+>
+> PK parameters are summarized descriptively by treatment and ADA status (negative; positive at any post-dose time point; by titer category). The primary PK analysis includes all subjects irrespective of ADA status. A sensitivity analysis repeats the primary analysis after excluding, in both treatments, subjects who are ADA-positive at any post-dose time point.
+
+**Evidence.** In a simulated ADA-like subgroup (10% of subjects whose linear clearance doubles after Day 14; an assumption, not estimated from data), the median time of the last quantifiable concentration was `r ad(1L, "tlast_median")` days after dosing, against `r ad(0L, "tlast_median")` days in the other subjects, and the median true extrapolated share of AUC0-inf was `r ad(1L, "extrap_true_median", 2)`% against `r ad(0L, "extrap_true_median", 2)`%. ADA mainly shortens the terminal phase, which is where AUC0-inf is least reliable; AUC0-last remains close to total exposure. Sampling on Day 15 detects early responses and Days 29 and 57 cover the period over which clearance could change.
+
+# 5. Concentrations below the lower limit of quantification and calculation of PK parameters
+
+```{r s5, include=FALSE}
+sec("5 BLQ and AUC rules")
+LI <- "lloq/lloq_individual_table.csv"
+li <- function(m, L, col, d = 1) v(LI, sprintf("model=='%s' & resid=='fixed' & abs(lloq - %s) < 1e-9", m, L), col, d, item = sprintf("LLOQ %s %s %s", L, m, col))
+LT <- "lloq/lloq_trial_type1.csv"
+lt_rng <- function(am, cf) vrange(LT, sprintf("model=='%s' & resid=='fixed' & config=='%s'", am, cf), "pass_pct", 2, item = sprintf("LLOQ grid %s %s boundary type I error range", am, cf), unit = "%")
+```
+
+**Proposed text.**
+
+> Serum dupilumab is measured with a validated assay with a lower limit of quantification (LLOQ) of [LLOQ of the validated assay, mg/L]. PK parameters are calculated by non-compartmental analysis (NCA) with actual sampling times.
+>
+> Concentrations below the LLOQ (BLQ) are handled as follows: BLQ values before the first quantifiable concentration are set to zero (the pre-dose value is set to zero); a BLQ value between two quantifiable concentrations is set to missing; after two consecutive BLQ values, all later values are set to missing; BLQ values after the last quantifiable concentration are excluded. [Handling of a quantifiable pre-dose concentration: to be specified by the sponsor.]
+>
+> Cmax and the time of Cmax are the observed values (first occurrence). AUC0-last is calculated with the linear-up log-down trapezoidal rule from time zero to the time of the last quantifiable concentration. Lambda-z and AUC0-inf are as in Section 2. No concentrations are imputed.
+
+**Evidence.** The simulations used an LLOQ of `r lloq_val` mg/L (the originator's assay, Clot 2021), set in a single configuration file so that all analyses can be regenerated with the sponsor's assay value. Across LLOQs of 0.02 to 0.5 mg/L (same subjects and residual draws, residual error as estimated), in the 2016 model the share of subjects meeting the reliability criteria of Section 2 ranged from `r li("k2016", 0.02, "reliable_no_span_pct")`% (LLOQ 0.02) to `r li("k2016", 0.5, "reliable_no_span_pct")`% (LLOQ 0.5), the share with true coverage of AUC0-last below 80% from `r li("k2016", 0.02, "coverage_lt80_pct", 2)`% to `r li("k2016", 0.5, "coverage_lt80_pct", 2)`%, and the boundary type I error of P2 at the three boundary scenarios examined (target-mediated elimination capacity in both directions, bioavailability down) ranged `r lt_rng("M0", "P2")` under M0 and `r lt_rng("M1", "P2")` under M1.
+
+# 6. Sample size
+
+```{r s6, include=FALSE}
+sec("6 sample size")
+TPW <- "sample_size/ss_table_power.csv"
+tp <- function(cv, am) v(TPW, sprintf("input_model=='k2016' & cv==%s & gmr==0.95 & n==117 & analysis_model=='%s'", cv, am), "analytic_pct", 1, item = sprintf("P2 power CV %s n 117 GMR 0.95 %s", cv, am))
+```
+
+**Proposed text.**
+
+> Assuming a between-subject coefficient of variation (CV) of 43% for AUC0-last, the CV and correlation of Cmax from the PK model, and a true GMR of 0.95 for both endpoints, [n] evaluable subjects per arm give [target]% power to conclude similarity on both co-primary endpoints with the primary analysis model. [n randomized] subjects per arm are randomized to allow for [10]% non-evaluable subjects.
+
+**Evidence** (P2 power; evaluable n per arm for the target power; randomized n assumes 117 evaluable of 130 randomized):
+
+- With 117 evaluable subjects per arm and a CV of 43%, power is `r tp(43, "M0")`% (M0) and `r tp(43, "M1")`% (M1); with a CV of 50%, `r tp(50, "M0")`% and `r tp(50, "M1")`%.
+- For 90% power at CV 43%: `r nn(43, 0.95, "M0", 90)` (M0) or `r nn(43, 0.95, "M1", 90)` (M1) evaluable subjects per arm; at CV 50%: `r nn(50, 0.95, "M0", 90)` or `r nn(50, 0.95, "M1", 90)`.
+- For 85% power at CV 43%: `r nn(43, 0.95, "M0", 85)` (M0) or `r nn(43, 0.95, "M1", 85)` (M1); at CV 50%: `r nn(50, 0.95, "M0", 85)` or `r nn(50, 0.95, "M1", 85)`.
+- CV sources: Li 2020 Table 3 (300 mg arms, SD/mean 35% to 51%); Cohen 2022 (about 52%, 200 mg, different presentation, device comparison); PK model 40% (2016 model) and 43% (Model 1). The full table is in results/sample_size/ss_table_n_needed.csv.
+
+**Decisions left to the sponsor:** target power (90% or 85%) and the sample size.
+
+# 7. Summary of decisions
+
+| Item | Status |
+|---|---|
+| AUC0-inf as a secondary endpoint (Section 2) | confirmed by the sponsor's clinical pharmacology |
+| Disclosure of the boundary scenario whose type I error is above 5% | confirmed |
+| Fallback if AUC0-inf is required as co-primary: all subjects with estimable lambda-z, flagged subjects listed (Section 3) | confirmed |
+| CV 43% as the base assumption, 50% as sensitivity | confirmed |
+| Primary analysis model (M0 or M1) | pending (sponsor) |
+| LLOQ of the validated assay | pending (sponsor) |
+| Target power and sample size | pending (sponsor) |

@@ -44,6 +44,18 @@ for m in k2016 k2020; do Rscript scripts/40_oc_rejudge.R $m 3; done
 Rscript scripts/33_oc_summary.R              # 연장 판정에 쓰는 10,000회 boundary_type1.csv
 Rscript scripts/42_oc_extend.R 3 20000       # Wilson 구간이 5%를 포함한 P2 경계 시나리오만 20,000회로
 Rscript scripts/39_reliability_flags.R
+# 추가 지시 2026-09-26(config/prereg_20260926.yaml): 분석 모형 M0·M1·M2 재판정(12·20·40·42 산출과 대조하므로 그 뒤), LLOQ 민감도, 표본 수
+for m in k2016 k2020; do Rscript scripts/44_oc_models.R $m 3 main; done
+for m in k2016 k2020; do Rscript scripts/44_oc_models.R $m 3 ext; done   # 사전 등록 연장 규칙(M0 또는 M1)으로 고른 경계 칸만
+Rscript scripts/45_oc_models_summary.R
+for m in k2016 k2020; do Rscript scripts/46_lloq_sensitivity.R individual $m; done
+Rscript scripts/46_lloq_sensitivity.R cliff
+Rscript scripts/46_lloq_sensitivity.R trial 3
+Rscript scripts/48_lloq_summary.R
+Rscript scripts/47_sample_size.R stat 3
+for m in k2016 k2020; do Rscript scripts/47_sample_size.R pk $m 3; done
+Rscript scripts/49_sample_size_summary.R
+Rscript scripts/50_sap_support.R
 # 후처리·요약·보고서
 Rscript scripts/14_postprocess.R
 Rscript scripts/26_schedule_extras.R
@@ -59,3 +71,4 @@ Rscript scripts/43_p2_interpretation.R
 Rscript scripts/37_key_numbers_en.R
 Rscript scripts/18_summary_en.R
 Rscript scripts/05_report.R
+Rscript scripts/60_regulatory_package.R        # 규제 패키지(regulatory/): M&S 보고서, 예상 질의응답, SAP 제안 문안, 추적표, 해시 목록
