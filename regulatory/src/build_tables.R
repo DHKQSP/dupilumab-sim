@@ -127,7 +127,7 @@ qc <- data.table(
                "Monte Carlo consistency", "Regeneration for post hoc rules (same seeds)", "Reproducibility in a clean environment", "Continuous integration",
                "Premise checks of generated conclusions", "Analysis models M1 and M2 (closed form)", "Regeneration for the analysis-model re-judgement (same seeds)",
                "LLOQ re-censoring at the current LLOQ", "Sample-size analytic approximation", "Restart of the regenerated trials (criteria sets (iii) and (iv) added)",
-               "AUC0-inf + Cmax under the new criteria file versus version 1.0", "Adult atopic dermatitis population summaries", "Independent human QC of this report"),
+               "AUC0-inf + Cmax under the new criteria file versus version 1.0", "Adult atopic dermatitis population summaries", "Trial-population regeneration (same seeds, added scenarios)", "Independent human QC of this report"),
   Method = c("Automated test: linear limit (Vmax = 0) against the closed-form two-compartment solution", "Automated tests", "Automated tests (linear-up log-down AUC, lambda-z windows, BLQ rules, ties)",
              "Theoph, Indometh and 1,000 simulated profiles: this engine, NonCompart 0.8.4, PKNCA 0.12.1", "Automated tests against t.test (var.equal) and lm/confint", "Automated tests over all product scenarios",
              "Automated tests (YAML boolean keys, types, data.table scoping lint)", "Automated tests", "Reviewer's Python implementation, 20,000 subjects", "Reviewer's Python implementation, 8,000 subjects per condition",
@@ -138,11 +138,12 @@ qc <- data.table(
              "Simulation of every grid cell (5,000 trials) and PK-model trials at n = 117", "Rows of the trials completed before the restart versus the same rows after it",
              "M0 pass rates of rules A and C (criteria (i), (ii)) and rule B versus results/oc/g2_rules_flags.csv where the trial counts are equal",
              "Analytic weight shares versus the independent reference; simulated versus analytic shares; stored flags recomputed; stored run reproduced before the exploratory check",
+             "Per-arm counts (AUC0-last, lambda-z estimable, criteria sets (i) to (iv)) of the regenerated trials versus the section1 n_R and n_T, checked per batch and again over the whole file",
              "Line-by-line check of every number against regulatory/traceability.csv and of the text against the results"),
   `Acceptance criterion` = c("Relative difference below tolerance", "As specified in the tests", "As specified in the tests", "Identical lambda-z windows; relative difference at most 1e-6", "Identical to base R", "Reference arm unchanged; test arm shifted by the multiplier",
                              "No violation", "Same inputs give same seeds", "Within 3% (small percentages: absolute difference)", "Within 10% (non-rare metrics)", "Maximum difference 0", "Differences within Monte Carlo error",
                              "Relative 1e-6 and identical pass flags", "All items within tolerance", "No failure", "No premise violated", "Relative difference at most 1e-10",
-                             "Relative 1e-6 (1e-12 for product runs) and identical pass flags", "Identical (tolerance 0) or relative 1e-9", "Analytic value inside the Wilson 95% interval", "Identical", "Identical (tolerance 1e-9)", "Within 0.06 points; binomial z at most 4; identical", "No discrepancy"),
+                             "Relative 1e-6 (1e-12 for product runs) and identical pass flags", "Identical (tolerance 0) or relative 1e-9", "Analytic value inside the Wilson 95% interval", "Identical", "Identical (tolerance 1e-9)", "Within 0.06 points; binomial z at most 4; identical", "Identical", "No discrepancy"),
   Result = c("Pass", "Pass", "Pass",
              sprintf("Pass: %s of %s window comparisons identical; largest relative difference %s", format(sum(ev$lz_points_identical), big.mark = ","), format(sum(ev$lz_points_identical + ev$lz_points_mismatch), big.mark = ","), format(signif(max(ev$max_rel_diff), 2))),
              "Pass", "Pass", "Pass", "Pass", sprintf("%d of %d metrics within 3%%; the others are small percentages that differ by fractions of a percentage point", sum(cv1$agree_3pct, na.rm = TRUE), sum(!is.na(cv1$agree_3pct))),
@@ -158,6 +159,7 @@ qc <- data.table(
              { rc <- rd("results/criteria/restart_identity_check.csv"); premise(all(rc$ok), "restart identity"); sprintf("Pass: %s rows (%s trials)", format(sum(rc$rows_matched), big.mark = ","), paste(format(rc$trials_compared, big.mark = ","), collapse = " and ")) },
              { vc <- rd("results/criteria/criteria_check_vs_v10.csv"); premise(all(vc[same_n == TRUE, identical]), "criteria vs v1.0"); sprintf("Pass: %d of %d cells compared (equal trial counts), all identical", sum(vc$same_n), nrow(vc)) },
              "Pass (the summary stops on any failed check)",
+             { ic <- rd("results/trialpop/tp_identity_check.csv"); premise(all(ic$ok), "trial-population identity"); sprintf("Pass: %s rows identical (%s)", format(sum(ic$rows_compared), big.mark = ","), paste(sprintf("%s: %s trials", ic$pk_model, format(ic$trials, big.mark = ",")), collapse = "; ")) },
              "PENDING (sponsor)"),
   Evidence = c("tests/testthat/test-model-structure.R", "tests/testthat/test-model-structure.R", "tests/testthat/test-nca.R, test-nca-wnl.R", "results/nca_engine/engine_validation_summary.csv",
                "tests/testthat/test-be-stats.R", "tests/testthat/test-scenario-propagation.R", "tests/testthat/test-config-schema.R, test-lint-datatable-scope.R", "tests/testthat/test-seeds.R",
@@ -166,7 +168,7 @@ qc <- data.table(
                "results/ci/ci_runs_after_fix.csv", "scripts/33_oc_summary.R, 36_cliff_conclusion.R, 39_reliability_flags.R, 43_p2_interpretation.R", "tests/testthat/test-oc-models.R",
                "results/oc_models/m0_reverification.csv, logs/oc_models_k2016.out, logs/oc_models_k2020.out", "results/lloq/lloq_individual_check_k2016.csv, lloq_individual_check_k2020.csv, lloq_cliff_check.csv, logs/lloq_trials.out",
                "results/sample_size/ss_power_mc.csv, results/sample_size/ss_pk_check.csv", "results/criteria/restart_identity_check.csv", "results/criteria/criteria_check_vs_v10.csv",
-               "scripts/53_atopic_summary.R; results/atopic/atopic_weight_table.csv, atopic_exploratory_height_corr.csv", "signature page of the report"))
+               "scripts/53_atopic_summary.R; results/atopic/atopic_weight_table.csv, atopic_exploratory_height_corr.csv", "results/trialpop/tp_identity_check.csv, logs/trialpop_trials_k2016.out, logs/trialpop_trials_k2020.out", "signature page of the report"))
 fwrite(qc, file.path(out, "verification_qc.csv"))
 
 # ---- D. pre-specification and post hoc register (dates from git) ----
@@ -196,8 +198,8 @@ dd <- data.table(
                       fcommit("results/criteria/criteria_g2_type1.csv"), fcommit("results/criteria/restart_identity_check.csv"), fcommit("results/atopic/atopic_criteria_by_band.csv"), fcommit("results/atopic/atopic_coverage_failing.csv"), fcommit("results/atopic/atopic_exploratory_height_corr.csv"), "not applicable (reporting decision)", fcommit("results/trialpop/tp_failure_by_set.csv")),
   `How reported` = c("Appendix A", "Section 4.2", "200 mg data sets reported as external checks with their ratios; re-judgement on fully external data reported", "Section 5.7; recommendation unchanged in every variant",
                      "Previous versus new engine differences tabulated (results/nca_engine/); conclusions unchanged", "Primary metric; every mechanism and configuration reported (Appendix F)", "Section 5.1",
-                     "Reported first, with set (ii) alongside (set (ii) is the pre-specified definition)", "Labelled post hoc in Table 5-6; same trials regenerated with the same seeds", "Both the pre-specified 10,000-trial value and the 20,000-trial value are reported",
-                     "Section 5.4", "Section 5.5", "Section 5.9; M0 and M1 side by side; primary model left to the sponsor", "Table 5-15", "Section 5.10 (residual as estimated first, scaled variant alongside)", "Section 5.11",
+                     "Reported first, with set (ii) alongside (set (ii) is the pre-specified definition)", "Labelled post hoc in Table 5-9; same trials regenerated with the same seeds", "Both the pre-specified 10,000-trial value and the 20,000-trial value are reported",
+                     "Section 5.4", "Section 5.5", "Section 5.9; M0 and M1 side by side; primary model left to the sponsor", "Table 5-16", "Section 5.10 (residual as estimated first, scaled variant alongside)", "Section 5.11",
                      "Sections 5.3 and 5.4", "Section 3.13; results/criteria/restart_identity_check.csv", "Appendix I (robustness check)", "Appendix I", "Appendix I, labelled exploratory", "Sections 5.3, 5.8 and Appendix I", "Sections 5.2 and 5.3"))
 fwrite(dd, file.path(out, "prespecification_register.csv"))
 

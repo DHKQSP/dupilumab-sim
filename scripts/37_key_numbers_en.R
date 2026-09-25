@@ -167,7 +167,7 @@ if (!is.null(acb) && !is.null(acf) && !is.null(awt)) {
   b_ <- function(v, s_, b) f1(acb[variant == v & distribution == "primary" & band == b & set == s_, fail_pct])
   rgp <- function(s_) { x <- acb[distribution == "primary" & band == "all" & set == s_, fail_pct]; sprintf("%s%% to %s%%", f1(min(x)), f1(max(x))) }
   ws <- awt[distribution == "primary" & grepl("^simulated", source)]
-  add("Adult atopic dermatitis body weight (lognormal mean 78 kg, SD 19 kg, 40 to 180 kg; placeholder), 20,000 patients per model variant, B0, 300 mg",
+  add("Robustness check only (report Appendix I, not evidence): adult atopic dermatitis body weight (lognormal mean 78 kg, SD 19 kg, 40 to 180 kg; placeholder), 20,000 patients per model variant, B0, 300 mg",
       sprintf("- Simulated shares: below 60 kg %s%%, 60 to 90 kg %s%%, above 90 kg %s%%, above 100 kg %s%% (atopic/atopic_weight_table.csv).", f1(ws$below_60), f1(ws$in_60_90), f1(ws$above_90), f1(ws$above_100)),
       sprintf("- Without a reliable AUCinf, 2016 model: %s%% (set (i)) to %s%% (set (iii)); three variants %s and %s. Set (i) by band, 2016 model: %s%% below 60 kg, %s%% at 60 to 90 kg, %s%% above 90 kg, %s%% above 100 kg (atopic/atopic_criteria_by_band.csv).",
               b_("base", "i", "all"), b_("base", "iii", "all"), rgp("i"), rgp("iii"), b_("base", "i", "below 60"), b_("base", "i", "60-90"), b_("base", "i", "above 90"), b_("base", "i", "above 100")),
@@ -177,6 +177,22 @@ if (!is.null(acb) && !is.null(acf) && !is.null(awt)) {
       if (!is.null(abi) && !is.null(aaf)) sprintf("- Trials (M0): AUClast bias %s%% to %s%%, AUCinf rule A (i) %s%% to %s%%; arm difference in failing set (i) at Vmax x1.25 %s to %s points (atopic/atopic_trials_bias.csv, atopic_trials_arm_failure.csv).",
               f2(min(abi[analysis_model == "M0" & endpoint == "AUClast", bias_pct])), f2(max(abi[analysis_model == "M0" & endpoint == "AUClast", bias_pct])), f2(min(abi[analysis_model == "M0" & endpoint == "AUCinf_Ai", bias_pct])),
               f2(max(abi[analysis_model == "M0" & endpoint == "AUCinf_Ai", bias_pct])), f2(min(aaf[scenario == "VM125" & set == "i", diff_mean])), f2(max(aaf[scenario == "VM125" & set == "i", diff_mean]))), "")
+}
+
+# 정정 지시 2026-09-26(section6): 시험 모집단 근거
+tpf <- R("trialpop", "tp_failure_by_set.csv"); tpa <- R("trialpop", "tp_retained_per_arm.csv"); tsi <- R("trialpop", "tp_strata_individual.csv"); tad <- R("trialpop", "tp_arm_difference.csv")
+tch <- R("trialpop", "tp_characteristics.csv"); tcv <- R("trialpop", "tp_coverage_individual.csv"); tga <- R("trialpop", "tp_gmr_agreement.csv")
+if (!is.null(tpf) && !is.null(tpa) && !is.null(tsi) && !is.null(tad) && !is.null(tch)) {
+  r2 <- function(x, f = f1, u = "%") sprintf("%s%s to %s%s", f(min(x)), u, f(max(x)), u)
+  add("Trial population (healthy adults, 60 to 90 kg, weight-stratified randomization, B0, 300 mg): evidence for not using AUCinf as a primary endpoint",
+      sprintf("- Without a reliable AUCinf (two models; 20,000 subjects each): set (i) %s, (ii) %s, (iii) %s, (iv) %s (trialpop/tp_failure_by_set.csv).", r2(tpf[set == "i", fail_pct]), r2(tpf[set == "ii", fail_pct]), r2(tpf[set == "iii", fail_pct]), r2(tpf[set == "iv", fail_pct])),
+      sprintf("- Retained per arm of 117 under rule A, identical-product trials: set (i) median %s, 5th to 95th percentile %s to %s; set (iii) median %s, %s to %s (trialpop/tp_retained_per_arm.csv).",
+              paste(unique(tpa[set == "i", retained_median]), collapse = "/"), min(tpa[set == "i", retained_p05]), max(tpa[set == "i", retained_p95]), paste(unique(tpa[set == "iii", retained_median]), collapse = "/"), min(tpa[set == "iii", retained_p05]), max(tpa[set == "iii", retained_p95])),
+      sprintf("- Heavier minus lighter stratum, failing (percentage points): set (i) %s, set (iii) %s (trialpop/tp_strata_individual.csv).", r2(tsi[set == "i", diff_pp], f2, ""), r2(tsi[set == "iii", diff_pp], f2, "")),
+      sprintf("- Test minus reference, failing set (i) (percentage points): Vmax x1.25 %s, ke x1.20 %s, F x0.97 %s, identical %s (trialpop/tp_arm_difference.csv).", r2(tad[scenario == "VM125" & set == "i", diff_mean], f2, ""), r2(tad[scenario == "KE120" & set == "i", diff_mean], f2, ""),
+              r2(tad[scenario == "F097" & set == "i", diff_mean], f2, ""), r2(tad[scenario == "S00" & set == "i", diff_mean], f2, "")),
+      sprintf("- Failing minus retained, set (i): body weight %s kg; true AUCinf geometric mean ratio %s (trialpop/tp_characteristics.csv).", r2(tch[set == "i", wt_diff_kg], f2, ""), r2(tch[set == "i", true_aucinf_gmr], f3, "")),
+      if (!is.null(tga)) sprintf("- Geometric mean of trial AUClast GMRs versus the true AUCinf ratio: largest absolute difference %s over %d scenarios (trialpop/tp_gmr_agreement.csv).", f3(max(tga$abs_diff)), nrow(tga)), "")
 }
 
 txt <- paste(out, collapse = "\n")

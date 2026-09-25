@@ -90,8 +90,8 @@ cr_st <- function(s_, col = "fail_pct", d = 1, unit = "%") vrange(CIf, sprintf("
 g2n <- function(am, cf) vcount(CGf, sprintf("analysis_model=='%s' & config=='%s' & pass_pct > 5", am, cf), sprintf("%s %s cells above 5%%", am, cf))
 g2r <- function(am, cf) vrange(CGf, sprintf("analysis_model=='%s' & config=='%s'", am, cf), "pass_pct", 2, item = sprintf("%s %s range", am, cf), unit = "%")
 inst <- function(col) { r <- rows(CSf, "analysis_model=='M0' & !scenario %in% c('S00','F097')"); premise(nrow(r) == 16, "16 boundary cells in the instability file"); x <- r[[col]]
-  .record(sprintf("decision instability %s, median and maximum over 16 boundary cells, M0", col), CSf, sprintf("analysis_model=='M0' & !scenario in (S00, F097) :: median and max of %s", col), c(median(x), max(x)),
-          sprintf("a median of %s%% and up to %s%%", fnum(median(x), 1), fnum(max(x), 1))) }
+  .vis(.record(sprintf("decision instability %s, median and maximum over 16 boundary cells, M0", col), CSf, sprintf("analysis_model=='M0' & !scenario in (S00, F097) :: median and max of %s", col), c(median(x), max(x)),
+          sprintf("a median of %s%% and up to %s%%", fnum(median(x), 1), fnum(max(x), 1)))) }
 ```
 
 ## Q1. The 2016 FDA guidance names AUC0-inf and Cmax as the primary parameters of a single-dose PK similarity study. Why do you propose AUC0-last?
@@ -124,7 +124,7 @@ inst <- function(col) { r <- rows(CSf, "analysis_model=='M0' & !scenario %in% c(
 
 - The true comparison is the ratio of model-integrated AUC0-inf (Q7).
 - Against that ratio, the AUC0-last ratio is biased by at most `r bmax`% across the 16 boundary scenarios.
-- In `r b_away` of the 16 scenarios the bias points away from 1, which makes the test conservative (report Table 5-7).
+- In `r b_away` of the 16 scenarios the bias points away from 1, which makes the test conservative (report Table 5-10).
 
 ## Q3. Why not extend sampling beyond Day 57 so that AUC0-inf becomes reliable?
 
@@ -195,7 +195,7 @@ inst <- function(col) { r <- rows(CSf, "analysis_model=='M0' & !scenario %in% c(
 
 ## Q8. Why would AUC0-inf inflate the type I error? Is it not the more complete measure?
 
-**Short answer.** NCA AUC0-inf is not the true AUC0-inf. Two biases push the test and reference ratio toward 1 (report Section 5.4, Table 5-8).
+**Short answer.** NCA AUC0-inf is not the true AUC0-inf. Two biases push the test and reference ratio toward 1 (report Section 5.4, Table 5-11).
 
 **Two sources of bias.**
 

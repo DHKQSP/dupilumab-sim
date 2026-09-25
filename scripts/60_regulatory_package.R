@@ -130,12 +130,15 @@ frr <- function(dist, s_) { x <- cri[distribution == dist & set == s_, fail_pct]
 g2n <- function(cf) sum(cg[analysis_model == "M0" & config == cf, pass_pct] > 5)
 atX <- f1(acb[variant == "base" & distribution == "primary" & band == "all" & set == "i", fail_pct]); atY <- f1(acb[variant == "base" & distribution == "primary" & band == "all" & set == "iii", fail_pct])
 atZ <- floor(100 * min(acf[distribution == "primary" & set == "iii", window_fail_min]))
+tpf <- fread(proj_path("results", "trialpop", "tp_failure_by_set.csv")); tpa <- fread(proj_path("results", "trialpop", "tp_retained_per_arm.csv")); tad <- fread(proj_path("results", "trialpop", "tp_arm_difference.csv"))
+tsi <- fread(proj_path("results", "trialpop", "tp_strata_individual.csv")); tid <- fread(proj_path("results", "trialpop", "tp_identity_check.csv")); tga <- fread(proj_path("results", "trialpop", "tp_gmr_agreement.csv"))
+r2 <- function(x, f = f1, u = "%") if (identical(f(min(x)), f(max(x)))) sprintf("%s%s", f(min(x)), u) else sprintf("%s%s to %s%s", f(min(x)), u, f(max(x)), u)
 rn <- c(
   paste("#", tag), "",
   sprintf("Regulatory package version %s, generated %s UTC from commit `%s`. Status: draft for sponsor review; not approved. Previous package: document version 0.9 (commit ed9e8ba, not tagged).",
           sub(" .*$", "", VERSION), format(Sys.time(), "%Y-%m-%d %H:%M", tz = "UTC"), commit), "",
   "## Pre-registration", "",
-  "- Analyses of this version were registered in `config/prereg_20260926.yaml` and committed before their results: analysis model (commit 521645a), numeric criteria for the expectation checks (c5b304b, before any result was read), LLOQ sensitivity and sample size (211e8ed), lambda-z criteria convention and adult atopic dermatitis body weight (325e63b).", "",
+  "- Analyses of this version were registered in `config/prereg_20260926.yaml` and committed before their results: analysis model (commit 521645a), numeric criteria for the expectation checks (c5b304b, before any result was read), LLOQ sensitivity and sample size (211e8ed), lambda-z criteria convention and adult atopic dermatitis body weight (325e63b), trial-population analyses of the correction directive (bae3574).", "",
   "## Results added", "",
   sprintf("- Analysis model (report Section 5.9). Boundary type I error of AUC0-last + Cmax in 16 cells: pooled t-test (M0) %s; ANOVA with the randomization weight stratum (M1) %s. Cells above 5%% (point estimate): %s.", cls("M0"), cls("M1"), ov_l),
   sprintf("- Expectations recorded before the results: %s.", paste(sprintf("%s (%s)", ex$expectation, ifelse(ex$consistent, "consistent", "not consistent")), collapse = "; ")),
@@ -145,18 +148,23 @@ rn <- c(
           p117(43, "M0"), p117(43, "M1"), p117(50, "M0"), p117(50, "M1"), nn_(43, "M0", 90), nn_(43, "M1", 90), nn_(50, "M0", 90), nn_(50, "M1", 90)),
   sprintf("- Lambda-z criteria convention (report Sections 3.4, 5.3, 5.4). Phoenix WinNonlin applies no reliability criteria unless the user enters them; adjusted R-squared 0.80 is the lower end of the conventional range. Study population without a reliable AUC0-inf: %s (0.80), %s (0.90), %s (0.90 and span 3). AUC0-inf + Cmax with rule A exceeds 5%% in %d, %d, %d and %d of 16 boundary scenarios under criteria sets (i) to (iv) (M0).",
           frr("study_60_90", "i"), frr("study_60_90", "iii"), frr("study_60_90", "iv"), g2n("G2_A_i"), g2n("G2_A_ii"), g2n("G2_A_iii"), g2n("G2_A_iv")),
-  sprintf("- Adult atopic dermatitis body weight (report Section 5.8; lognormal mean 78 kg, SD 19 kg, placeholder). A reliable AUC0-inf cannot be obtained in %s%% (criteria set (i)) to %s%% (criteria set (iii)) of patients (primary model), concentrated in heavier patients, whereas AUC0-last covers at least %d%% of total exposure in the same patients. The earlier population with mean 100 kg is reported as a stress test.", atX, atY, atZ),
+  sprintf("- Trial population (report Sections 5.2 and 5.3; healthy adults, 60 to 90 kg, weight-stratified randomization, two models). Without a reliable AUC0-inf: %s (criteria set (i)) and %s (set (iii)); retained per arm of 117 under rule A: median %s (set (i)) and %s (set (iii)). The heavier stratum fails more often (set (i) %s percentage points), and the share failing differs between arms when the products differ (Vmax x1.25: test minus reference %s percentage points, set (i)). The geometric mean of trial AUC0-last GMRs is within %s of the true AUC0-inf ratio in every scenario examined.",
+          r2(tpf[set == "i", fail_pct]), r2(tpf[set == "iii", fail_pct]), paste(unique(tpa[set == "i", retained_median]), collapse = " to "), paste(unique(tpa[set == "iii", retained_median]), collapse = " to "),
+          r2(tsi[set == "i", diff_pp], f2, ""), r2(tad[scenario == "VM125" & set == "i", diff_mean], f2, ""), formatC(max(tga$abs_diff), format = "f", digits = 3)),
+  "- Robustness across body weight (report Appendix I): uniform weight bands, a population with a mean of 100 kg and an adult atopic dermatitis body-weight distribution are robustness checks, not evidence for the proposal (sponsor principle, correction directive).",
   "- Proposed statistical analysis plan text for the PK analyses: `sap_text_proposals_en.md` (criteria convention added to Section 2).",
-  "- Anticipated FDA questions: Q1, Q7, Q11, Q12 and Q16 updated; Q17 (analysis model and stratification), Q18 (assay LLOQ), Q19 (is 0.80 a Phoenix WinNonlin criterion) and Q20 (patients outside the study weight range) added.",
+  "- Anticipated FDA questions: Q1, Q7, Q11, Q12 and Q16 updated; Q17 (analysis model and stratification), Q18 (assay LLOQ), Q19 (is 0.80 a Phoenix WinNonlin criterion) and Q20 (patients outside the study weight range: validity judged in the trial population, wider weight range a robustness check) added.",
+  "- Terms: window coverage (true AUC0-tlast / true AUC0-inf) and the observed-to-true ratio (observed AUC0-last or NCA AUC0-inf / true AUC0-inf) are defined and used consistently.",
   "- Report tables and figures of Section 5 renumbered in order (a duplicated table number in version 1.0 corrected).", "",
   "## Decisions", "",
   "- Confirmed: AUC0-inf as a secondary endpoint (Best Fit lambda-z; adjusted R-squared at least 0.80 and extrapolation at most 20%, no span criterion; two analysis sets with excluded subjects and their body weight; substitution rule as sensitivity); disclosure of the boundary cell above 5%; fallback if AUC0-inf is required as co-primary (all subjects with an estimable lambda-z, flagged subjects listed; exclusion and substitution as sensitivity analyses); CV 43% as the base assumption and 50% as sensitivity.",
   "- Proposed (sponsor to confirm): adjusted R-squared at least 0.80 as the reliability definition for the secondary AUC0-inf, with the count at 0.90 reported alongside.",
-  "- Pending (sponsor): primary analysis model (M0 or M1); LLOQ of the validated assay; target power and sample size; phase 3 body-weight data of the reference product (FDA clinical pharmacology review of BLA 761055, EMA assessment report 2017) to replace the placeholder distribution.", "",
+  "- Pending (sponsor): primary analysis model (M0 or M1); LLOQ of the validated assay; target power and sample size.", "",
   "## Verification", "",
   sprintf("- The regenerated pooled t-test results equal the stored results in %s rows (results/oc_models/m0_reverification.csv). LLOQ re-censoring at 0.078 mg/L reproduces the stored individual, cliff and trial results. Automated tests pass.", format(sum(rv$n_rows), big.mark = ",")),
   sprintf("- Regeneration restarted to add the criteria-set endpoints: %s rows of the trials completed before the restart are identical after it (results/criteria/restart_identity_check.csv). AUC0-inf + Cmax under rules A, B and C from the new files equals the version 1.0 values in all %d cells with equal trial counts (results/criteria/criteria_check_vs_v10.csv).",
-          format(sum(rc$rows_matched), big.mark = ","), sum(vc$same_n)), "",
+          format(sum(rc$rows_matched), big.mark = ","), sum(vc$same_n)),
+  sprintf("- Trial-population regeneration: per-arm counts equal the section1 n_R and n_T in all %s compared rows (results/trialpop/tp_identity_check.csv).", format(sum(tid$rows_compared), big.mark = ",")), "",
   "## Release assets", "",
   sprintf("- `dupilumab-sim-%s-source.tar.gz`: repository at the tag (git archive).", tag),
   sprintf("- `dupilumab-sim-%s-regulatory.zip`: the regulatory/ folder.", tag),

@@ -165,8 +165,8 @@ rc_rows <- { r <- rows(RCf); premise(nrow(r) == 2 && all(r$ok), "section1 restar
   .record("section1 rows identical before and after the restart", RCf, "sum(rows_matched), all ok", sum(r$rows_matched), fint(sum(r$rows_matched))) }
 rc_trials <- { r <- rows(RCf); .record("trials compared in the restart check", RCf, "trials_compared per model", r$trials_compared, paste(sprintf("%s (%s)", fint(r$trials_compared), MODEL_SHORT[r$pk_model]), collapse = " and ")) }
 inst <- function(col) { r <- rows(CSf, "analysis_model=='M0' & !scenario %in% c('S00','F097')"); premise(nrow(r) == 16, "16 boundary cells in the instability file"); x <- r[[col]]
-  .record(sprintf("decision instability %s, median and maximum over 16 boundary cells, M0", col), CSf, sprintf("analysis_model=='M0' & !scenario in (S00, F097) :: median and max of %s", col), c(median(x), max(x)),
-          sprintf("a median of %s%% and up to %s%%", fnum(median(x), 1), fnum(max(x), 1))) }
+  .vis(.record(sprintf("decision instability %s, median and maximum over 16 boundary cells, M0", col), CSf, sprintf("analysis_model=='M0' & !scenario in (S00, F097) :: median and max of %s", col), c(median(x), max(x)),
+          sprintf("a median of %s%% and up to %s%%", fnum(median(x), 1), fnum(max(x), 1)))) }
 cbias <- function(cf, am = "M0") vrange(CBf, sprintf("analysis_model=='%s' & config=='%s'", am, cf), "bias_pct", 2, item = sprintf("AUC0-inf GMR bias against the true AUC0-inf ratio, %s, %s", cf, am), unit = "%")
 sec("Appendix I Robustness across body weight")
 AWf <- "atopic/atopic_weight_table.csv"; ABNf <- "atopic/atopic_criteria_by_band.csv"; ACFf <- "atopic/atopic_coverage_failing.csv"; ATRf <- "atopic/atopic_criteria_weight_trend.csv"
@@ -192,6 +192,34 @@ at_x_iii <- c(ind = v(AXf, "height_model=='independent'", "fail_pct_iii", 2, ite
 at_bias <- function(ep, am = "M0") vrange(ABf, sprintf("analysis_model=='%s' & endpoint=='%s'", am, ep), "bias_pct", 2, item = sprintf("atopic trials, bias of %s GMR, %s", ep, am), unit = "%")
 at_agree <- function(cf, am = "M0") vrange(ACCf, sprintf("analysis_model=='%s' & config=='%s'", am, cf), "agree_pct", 1, item = sprintf("atopic trials, P2 and G2 %s decision agreement, %s", cf, am), unit = "%")
 at_armdiff <- function(sc, s_) vrange(AAFf, sprintf("scenario=='%s' & set=='%s'", sc, s_), "diff_mean", 2, item = sprintf("atopic trials, test minus reference failing set %s, %s (points)", s_, sc))
+# ---- correction directive (config/prereg_20260926.yaml section6): trial population (healthy adults, 60 to 90 kg, weight-stratified randomization) ----
+sec("5.3 Trial population")
+TPF <- "trialpop/tp_failure_by_set.csv"; TPR <- "trialpop/tp_failure_reasons.csv"; TPA <- "trialpop/tp_retained_per_arm.csv"; TPS <- "trialpop/tp_residual_sensitivity.csv"
+TSI <- "trialpop/tp_strata_individual.csv"; TSC <- "trialpop/tp_strata_composition.csv"; TAD <- "trialpop/tp_arm_difference.csv"; TAF <- "trialpop/tp_arm_difference_fit.csv"
+TCH <- "trialpop/tp_characteristics.csv"; TCV <- "trialpop/tp_coverage_individual.csv"; TGA <- "trialpop/tp_gmr_agreement.csv"; TID <- "trialpop/tp_identity_check.csv"
+premise(nrow(rows(TPF)) == 8, "four criteria sets x two models in the trial-population failure file")
+tpf <- function(s_, col = "fail_pct", d = 1, unit = "%") vrange(TPF, sprintf("set=='%s'", s_), col, d, item = sprintf("trial population, criteria set %s, %s (two models)", s_, col), unit = unit)
+tpa <- function(s_) { r <- rows(TPA, sprintf("set=='%s'", s_)); premise(nrow(r) == 2, "retained per arm: two models")
+  med <- sort(unique(r$retained_median)); mtxt <- if (length(med) == 1) fint(med) else sprintf("%s to %s", fint(med[1]), fint(med[length(med)]))
+  .vis(.record(sprintf("retained subjects per arm of 117 under rule A, set %s: median and 5th to 95th percentiles over identical-product trials (two models)", s_), TPA, sprintf("set=='%s' :: retained_median, retained_p05, retained_p95", s_),
+          c(r$retained_median, r$retained_p05, r$retained_p95), sprintf("a median of %s (5th to 95th percentile %s to %s)", mtxt, fint(min(r$retained_p05)), fint(max(r$retained_p95))))) }
+tpres <- function(vr, s_ = "iii") v(TPS, sprintf("variant=='%s' & set=='%s'", vr, s_), "fail_pct", 1, item = sprintf("residual sensitivity, %s, set %s", vr, s_))
+tpsig <- function(vr) v(TPS, sprintf("variant=='%s' & set=='i'", vr), "sigma_prop_pct", 1, item = sprintf("proportional residual, %s (%%)", vr))
+tpsi <- function(s_, col = "diff_pp", d = 1, unit = "") vrange(TSI, sprintf("set=='%s'", s_), col, d, item = sprintf("stratum difference, set %s, %s", s_, col), unit = unit)
+tpsc <- function(sc, st, col, d = 1) vrange(TSC, sprintf("scenario=='%s' & analysis_set=='%s'", sc, st), col, d, item = sprintf("stratum composition, %s, %s, %s", sc, st, col), unit = "")
+tpad <- function(sc, s_, col = "diff_mean", d = 2) vrange(TAD, sprintf("scenario=='%s' & set=='%s'", sc, s_), col, d, item = sprintf("test minus reference failing, %s, set %s, %s", sc, s_, col))
+tpaf <- function(s_, col = "pp_per_10pct_lower", d = 2) vrange(TAF, sprintf("set=='%s'", s_), col, d, item = sprintf("arm difference per 10%% lower true ratio, set %s, %s", s_, col))
+tpch <- function(s_, col, d = 2, unit = "") vrange(TCH, sprintf("set=='%s'", s_), col, d, item = sprintf("failing versus retained, set %s, %s", s_, col), unit = unit)
+tpcv <- function(metric, col, d = 1, scale = 100, unit = "%") vrange(TCV, sprintf("metric=='%s'", metric), col, d, item = sprintf("%s, %s", metric, col), unit = unit, scale = scale)
+MW <- "window coverage (true AUC0-tlast / true AUC0-inf)"; MOL <- "observed-to-true, AUClast (lambda-z estimable)"; MOB <- "observed-to-true, AUCinf rule B (lambda-z estimable)"; MOA <- "observed-to-true, AUCinf rule A (meeting set (i))"
+MOLA <- "observed-to-true, AUClast (all subjects)"; MOLi <- "observed-to-true, AUClast (meeting set (i))"
+tpga <- { r <- rows(TGA); premise(nrow(r) == 18, "18 scenarios in the GMR agreement file (16 boundary, S00, F097)")
+  .record("largest absolute difference between the geometric mean of trial AUC0-last GMRs and the true AUC0-inf ratio (16 boundary scenarios, S00, F097; M0)", TGA, "max(abs_diff)", max(r$abs_diff), fnum(max(r$abs_diff), 3)) }
+tpid <- { r <- rows(TID); premise(nrow(r) == 2 && all(r$ok), "trial-population regeneration equals section1 in both models")
+  .record("regenerated per-arm counts identical to section1 (rows compared, both models)", TID, "sum(rows_compared), all ok", sum(r$rows_compared), fint(sum(r$rows_compared))) }
+tp_ntr <- vi("trialpop/tp_strata_composition.csv", "pk_model=='k2016' & scenario=='S00' & analysis_set=='auclast'", "n_trials", item = "regenerated trials per scenario")
+p2_atnom <- function(am) { r <- rows(T1f, sprintf("analysis_model=='%s' & config=='P2'", am)); premise(nrow(r) == 16, "16 P2 cells"); k <- sum(r$class %in% c("conservative", "nominal"))
+  .vis(.record(sprintf("P2 cells at or below nominal, %s", am), T1f, sprintf("analysis_model=='%s' & config=='P2' :: count class in (conservative, nominal)", am), k, as.character(k))) }
 ```
 
 # Synopsis {-}
@@ -205,8 +233,10 @@ at_armdiff <- function(sc, s_) vrange(AAFf, sprintf("scenario=='%s' & set=='%s'"
 **Results.**
 
 - **Boundary scenarios in which AUC0-last + Cmax exceeds 5% (point estimate).** `r ov_txt`
+- **Headline.** AUC0-last + Cmax is at or below nominal (Wilson 95% interval not entirely above 5%) in `r p2_atnom("M0")` of 16 boundary scenarios with the pooled t-test (M0), `r p2_atnom("M1")` of 16 with the weight stratum in the model (M1) and `r p2_atnom("M2")` of 16 with log body weight (M2).
 - AUC0-last captures essentially all of the exposure. The true extrapolated fraction beyond the last quantifiable sample has a median of `r ext_med["k2016"]`% (95th percentile `r ext_p95["k2016"]`%) in the primary model and `r ext_med["k2020"]`% (`r ext_p95["k2020"]`%) in the 2020 model. The share of subjects whose window coverage (true AUC0-tlast / true AUC0-inf) is below 80% is `r cov80["k2016"]` in the primary model and `r cov80["k2020"]` in the 2020 model.
-- NCA AUC0-inf fails criteria set (i) (adjusted R-squared at least 0.80 and extrapolation at most 20%) in `r cr_st("i")` of subjects of the study population (60 to 90 kg, two models). These criteria are statistical analysis plan conventions, not software defaults: Phoenix WinNonlin applies lambda-z acceptance criteria only when the user enters them, and then only flags the profiles. Set (i) is the lower end of the conventional range. With the commonly used adjusted R-squared of at least 0.90 (set (iii)) the share is `r cr_st("iii")`, and `r cr_st("iv")` if a span of at least 3 half-lives is also required (set (iv)).
+- In the trial population (healthy adults of 60 to 90 kg, randomization stratified by body weight), NCA AUC0-inf fails criteria set (i) (adjusted R-squared at least 0.80, extrapolation at most 20%) in `r tpf("i")` of subjects in the two models, leaving `r tpa("i")` of 117 subjects per arm in the analysis under rule A. These criteria are statistical analysis plan conventions, not software defaults (Phoenix WinNonlin applies lambda-z acceptance criteria only when the user enters them, and then only flags the profiles), and set (i) is the lower end of the conventional range: with the adjusted R-squared of at least 0.90 used in public statistical analysis plans (set (iii)) `r tpf("iii")` fail and `r tpa("iii")` remain per arm.
+- The failures are not random within the trial. Failing subjects have a lower true AUC0-inf (geometric mean ratio to retained subjects `r tpch("i", "true_aucinf_gmr", 3)` under set (i)), the heavier randomization stratum fails more often (by `r tpsi("i")` percentage points), and TRIALPOP_SYN_ARM
 - With the pooled t-test (M0), AUC0-last + Cmax (proposed) is conservative in `r p2_n_cons`, nominal in `r p2_n_nom` and exceeding in `r p2_n_exc` of the `r p2_n_all` boundary scenarios (Wilson 95% interval versus 5%). The largest value is `r p2_max$k2020$text` (`r nom_n` trials) for a `r nom_mult`-fold peripheral volume in the 2020 model. In the primary model the largest value is `r p2_max$k2016$text`.
 - The randomization is stratified by body weight. With the stratum in the analysis model (M1, ANOVA), AUC0-last + Cmax is conservative in `r CLS$M1[["conservative"]]`, nominal in `r CLS$M1[["nominal"]]` and exceeding in `r CLS$M1[["exceeding"]]` scenarios (`r am_rng("M1")`). M0 ignores the stratum, so its standard error overstates the sampling variability (between-trial SD / within-trial SE of the unbiased reference `r sdse("M0")` under M0 and `r sdse("M1")` under M1).
 - AUC0-inf + Cmax analysed in subjects meeting the reliability criteria (the pre-specified guidance-default configuration) exceeds 5% in `r G$G2_Aii$n_pt` of 16 boundary scenarios, with the Wilson lower bound above 5% in all `r G$G2_Aii$n_lo`. The largest value is `r G$G2_Aii$mx$text`. Including every subject with an estimable lambda-z still exceeds 5% in `r G$G2_B$n_pt` of 16 scenarios (largest `r G$G2_B$mx$text`). Only substituting AUC0-last for subjects failing the criteria restores control (largest `r G$G2_Cii$mx$text`).
@@ -442,7 +472,7 @@ The following analyses were registered in `config/prereg_20260926.yaml` and comm
 The following analyses were registered in `config/prereg_20260926.yaml` (sections 4 to 6) and committed before any of their results were generated (Appendix D):
 
 - **Criteria convention (Sections 5.3 and 5.4).** Criteria sets (iii) and (iv) were added (Section 3.4). The individual-level failure shares of the study population come from the stored subject-level NCA of 20,000 subjects per model; no new simulation was needed. AUC0-inf + Cmax under rules A and C for each set, and under rule B, was computed on the trials regenerated for Section 3.12 and analysed with M0 and M1. To add these endpoints, the regeneration was restarted from trial 1; the rows of the trials completed before the restart (`r rc_trials`) are identical after it (`r rc_rows` rows).
-- **Trial-population analyses (Sections 5.2 and 5.3; registered in section 6 before any of their results).** TRIALPOP_METHODS_PLACEHOLDER
+- **Trial-population analyses (Sections 5.2 and 5.3; registered in section 6 before any of their results).** In the trial population, criteria-set failure with Wilson intervals and reasons, retained subjects per arm in the operating-characteristic trials of identical products, failure by randomization stratum, failing-subject characteristics, and the window coverage and observed-to-true ratios use the stored subject-level NCA (20,000 subjects per model) and the regenerated trials of Section 3.12. The arm-by-stratum composition of the analysis sets and the difference between arms in the share failing were computed by regenerating trials 1 to `r fint(as.numeric(cfgv("prereg_20260926.yaml", c("section6", "n_trials_regen"))))` with the same seeds for identical products, bioavailability x0.97, linear elimination x1.10 and x1.20, Vmax x1.25 and the 16 boundary scenarios; the per-arm counts equal those of the operating-characteristic trials in every regenerated trial (`r tpid` rows). True AUC0-inf ratios of the added scenarios were computed as in Section 3.6.
 - **Body weight outside the trial population.** Uniform weight bands, a population with a mean of 100 kg and an adult atopic dermatitis body-weight distribution are robustness checks (Appendix I), not evidence for the proposal.
 
 # 4. Model credibility
@@ -594,7 +624,7 @@ fig("cliff/fig2_4_representative_en.png", "Figure 5-2")
 
 ## 5.2 Coverage of total exposure by AUC0-last
 
-Two quantities are kept apart throughout this report. **Window coverage** is the true AUC from dosing to the last quantifiable sample divided by the true AUC0-inf; it states how much of total exposure lies inside the interval that AUC0-last measures, and "coverage" means only this. The **observed-to-true ratio** is the observed AUC0-last (or NCA AUC0-inf) divided by the true AUC0-inf; it also contains the assay (residual) error and the trapezoidal approximation (Table OBS_TRUE_TABLE_REF).
+Two quantities are kept apart throughout this report. **Window coverage** is the true AUC from dosing to the last quantifiable sample divided by the true AUC0-inf; it states how much of total exposure lies inside the interval that AUC0-last measures, and "coverage" means only this. The **observed-to-true ratio** is the observed AUC0-last (or NCA AUC0-inf) divided by the true AUC0-inf; it also contains the assay (residual) error and the trapezoidal approximation (Table 5-3).
 
 ```{r coverage}
 sec("5.2 Coverage")
@@ -634,13 +664,36 @@ kt(t52, caption = "Table 5-2. Sensitivity of coverage to the unobservable curve 
 
 **ADA-like subgroup.** In the subgroup whose linear clearance doubles after Day 14 (10% of subjects), the median true extrapolation is `r ada(1L, "extrap_true_median")`% (`r ada(0L, "extrap_true_median")`% in the remaining subjects), and coverage below 80% is `r ada(1L, "coverage_lt80_pct")`%.
 
+**Observed-to-true ratio.** The observed AUC0-last and the NCA AUC0-inf of each subject can be compared with the true AUC0-inf of the same subject (Table 5-3; trial population, 20,000 subjects per model).
+
+```{r tp-obs}
+sec("5.2 Observed-to-true ratio")
+cvr <- rows(TCV)
+tab_src("Table TP-OBS observed-to-true ratio", TCV)
+MLAB <- c("window coverage (true AUC0-tlast / true AUC0-inf)" = "Window coverage (true AUC0-tlast / true AUC0-inf), all subjects",
+          "observed-to-true, AUClast (all subjects)" = "Observed AUC0-last / true AUC0-inf, all subjects",
+          "observed-to-true, AUClast (lambda-z estimable)" = "Observed AUC0-last / true AUC0-inf, lambda-z estimable",
+          "observed-to-true, AUCinf rule B (lambda-z estimable)" = "NCA AUC0-inf / true AUC0-inf, lambda-z estimable (rule B)",
+          "observed-to-true, AUClast (meeting set (i))" = "Observed AUC0-last / true AUC0-inf, meeting set (i)",
+          "observed-to-true, AUCinf rule A (meeting set (i))" = "NCA AUC0-inf / true AUC0-inf, meeting set (i) (rule A)",
+          "extrapolation factor AUCinf / AUClast (lambda-z estimable)" = "Extrapolation factor NCA AUC0-inf / observed AUC0-last, lambda-z estimable")
+premise(all(cvr$metric %in% names(MLAB)), "observed-to-true metric labels")
+t_obs <- cvr[order(pk_model, match(metric, names(MLAB))), .(Model = MODEL_SHORT[pk_model], Quantity = MLAB[metric], Subjects = fint(n), Median = fnum(median, 3), `5th percentile` = fnum(p05, 3), `95th percentile` = fnum(p95, 3),
+                                                             Minimum = fnum(min, 3), Maximum = fnum(max, 3), `SD of log` = fnum(sd_log, 3))]
+kt(t_obs, caption = "Table 5-3. Trial population: window coverage and observed-to-true ratios of AUC0-last and NCA AUC0-inf at the subject level (planned schedule, 300 mg, 20,000 subjects per model).", align = c("l", "l", rep("r", 7)))
+```
+
+- The residual (assay) error enters AUC0-last and NCA AUC0-inf in the same way, because NCA AUC0-inf is AUC0-last plus an extrapolated area. NCA AUC0-inf adds an extrapolation error on top: its largest subject-level observed-to-true ratio is `r tpcv(MOB, "max", 2, 1, "")` (two models) against `r tpcv(MOL, "max", 2, 1, "")` for AUC0-last, and the SD of its log ratio is `r tpcv(MOB, "sd_log", 3, 1, "")` against `r tpcv(MOL, "sd_log", 3, 1, "")` (subjects with an estimable lambda-z).
+- The lowest subject-level values of the observed AUC0-last / true AUC0-inf (`r tpcv(MOLA, "min")`) come from the proportional residual error on sparse samples, not from the sampling window, whose coverage is at least `r tpcv(MW, "min")`. The residual error model is the same in both arms, so these deviations are symmetric between arms.
+- In the quantity that is compared, the geometric mean of the trial GMRs, AUC0-last agrees with the true AUC0-inf ratio to within `r tpga` in every scenario examined (16 boundary scenarios, identical products and bioavailability x0.97; pooled t-test).
+
 ## 5.3 Reliability of NCA AUC0-inf
 
 ```{r reliability}
 sec("5.3 Reliability")
 dr <- rows("reliability/dropout_reasons_by_schedule.csv", "variant %in% c('base','struct2020') & schedule=='B0'")
 rs <- rows("reliability/reliability_two_flag_sets_summary.csv", "variant %in% c('base','struct2020')")
-tab_src("Table 5-3 reliability", c("reliability/dropout_reasons_by_schedule.csv", "reliability/reliability_two_flag_sets_summary.csv"))
+tab_src("Table 5-4 reliability", c("reliability/dropout_reasons_by_schedule.csv", "reliability/reliability_two_flag_sets_summary.csv"))
 t53 <- merge(rs[, .(variant, `Reliable, set (i), % (95% CI)` = sprintf("%s (%s to %s)", fnum(reliable_i_pct, 1), fnum(reliable_i_lo, 1), fnum(reliable_i_hi, 1)),
                     `Reliable, set (ii), % (95% CI)` = sprintf("%s (%s to %s)", fnum(reliable_ii_pct, 1), fnum(reliable_ii_lo, 1), fnum(reliable_ii_hi, 1)))],
              dr[, .(variant, `lambda-z not estimable (%)` = fnum(lambda_fail_pct, 1), `adjusted R-squared below 0.80 (%)` = fnum(flag_rsq_pct, 1), `extrapolation above 20% (%)` = fnum(flag_extrap_pct, 1), `span ratio below 2 (%)` = fnum(flag_span_pct, 1))], by = "variant")
@@ -655,7 +708,7 @@ dw <- range(od$wt_dropout_mean - od$wt_retained_mean); .record("dropouts heavier
 ```
 
 ```{r t53}
-kt(t53[, c("Model", setdiff(names(t53), c("Model", "variant"))), with = FALSE], caption = "Table 5-3. Reliability of NCA AUC0-inf under the planned schedule (20,000 subjects per model; flags overlap).", align = c("l", rep("r", 6)))
+kt(t53[, c("Model", setdiff(names(t53), c("Model", "variant"))), with = FALSE], caption = "Table 5-4. Reliability of NCA AUC0-inf under the planned schedule (20,000 subjects per model; flags overlap).", align = c("l", rep("r", 6)))
 ```
 
 **Denser late sampling does not improve reliability.** Best Fit selects a later and shorter window (usually the last three samples, including the added days). A span ratio of at least 2 then requires a half-life of at most 3.5 days, instead of 7 days under the planned schedule. The span flag therefore increases, and reliability under set (ii) falls in `r n_ii_down_txt` added-sampling schedule and model-variant combinations (Figure 5-3). Section 5.7 reports the changes.
@@ -664,7 +717,75 @@ kt(t53[, c("Model", setdiff(names(t53), c("Model", "variant"))), with = FALSE], 
 fig("reliability/fig_reliability_mechanism_en.png", "Figure 5-3")
 ```
 
-TRIALPOP_RESULTS_PLACEHOLDER
+**The trial population is the basis of the proposal.** The analyses below use only the population in which similarity is tested: healthy adults of 60 to 90 kg, randomized 1:1 within two body-weight strata, planned schedule, 300 mg (pre-registered, Section 3.13). Subject-level results use 20,000 subjects per model; trial-level results use the regenerated trials with the operating-characteristic seeds (117 subjects per arm).
+
+```{r tp-fail}
+sec("5.3 Trial population: failure by criteria set")
+fbs <- rows(TPF); rsn <- rows(TPR); rpa <- rows(TPA, "set %in% c('i','ii','iii','iv')")
+tab_src("Table TP-FAIL failure by criteria set", c(TPF, TPR, TPA))
+hr <- dcast(rsn[, .(pk_model, set, reason, h = fnum(hierarchical_pct, 1))], pk_model + set ~ reason, value.var = "h")
+t_tpf <- merge(fbs[, .(pk_model, set, fail = sprintf("%s [%s, %s]", fnum(fail_pct, 1), fnum(fail_lo, 1), fnum(fail_hi, 1)), lz = fnum(lz_pct, 2), est = sprintf("%s [%s, %s]", fnum(est_fail_pct, 1), fnum(est_fail_lo, 1), fnum(est_fail_hi, 1)))],
+               hr, by = c("pk_model", "set"))
+t_tpf <- merge(t_tpf, rpa[, .(pk_model, set, ret = sprintf("%s (%s to %s)", fint(retained_median), fint(retained_p05), fint(retained_p95)))], by = c("pk_model", "set"))
+t_tpf <- t_tpf[order(pk_model, set), .(Model = MODEL_SHORT[pk_model], `Criteria set` = SET_LAB[set], `Failing, % [95% CI]` = fail, `Lambda-z not estimable, %` = lz, `Estimable but failing, % [95% CI]` = est,
+                                       `Adjusted R-squared below threshold, %` = `adjusted R-squared below threshold`, `Extrapolation above 20%, %` = `extrapolation above 20%`, `Span ratio below threshold, %` = `span ratio below threshold`,
+                                       `Retained per arm of 117, median (5th to 95th percentile)` = ret)]
+kt(t_tpf, caption = "Table 5-5. Trial population: subjects without a reliable AUC0-inf by criteria set (20,000 subjects per model, Wilson 95% intervals); reasons in hierarchical order (lambda-z not estimable, then adjusted R-squared below the threshold, then extrapolation above 20%, then span ratio below the threshold); retained subjects per arm under rule A in simulated trials of identical products (both arms of each trial).", align = c("l", "l", rep("r", 7)))
+```
+
+- The share failing criteria set (i) (adjusted R-squared at least 0.80) is `r tpf("i")` in the two models, and `r tpa("i")` of 117 subjects per arm remain in the analysis under rule A. With the adjusted R-squared of at least 0.90 used in public statistical analysis plans (set (iii); Section 3.4) the share is `r tpf("iii")`, leaving `r tpa("iii")`; adding a span of at least 3 half-lives (set (iv)) gives `r tpf("iv")` and `r tpa("iv")`. Set (i) is therefore the lower end of the conventional range.
+- Lambda-z is not estimable in `r tpf("i", "lz_pct", 2)` of subjects; the rest of the failures have an estimable lambda-z that does not meet the criteria, mostly because of the adjusted R-squared.
+- **Residual error.** The failure share under sets (iii) and (iv) is the two-model range because it depends on the size of the residual error: the 2016 model has a proportional residual of `r tpsig("k2016")`% and Model 1 of `r tpsig("k2020")`%. A larger proportional residual scatters the terminal log concentrations around the regression line and lowers the adjusted R-squared, so a stricter threshold removes more subjects. With the 2016 model and a residual of `r tpsig("resid12")`%, the set (iii) share falls from `r tpres("k2016")`% to `r tpres("resid12")`%, whereas the set (iv) share stays at `r tpres("resid12", "iv")`% because the span requirement fails for a structural reason: the lambda-z window lies before the cliff and cannot span 3 half-lives.
+
+```{r fig-tp-fail, fig.cap = "Figure 5-4. Trial population: share of subjects without a reliable AUC0-inf by criteria set, split into lambda-z not estimable and estimable but not meeting the criteria (planned schedule, 300 mg, 20,000 subjects per model; bars: Wilson 95% intervals of the total). Analysis figure results/trialpop/fig_tp_failure_by_set.png."}
+fig("trialpop/fig_tp_failure_by_set.png", "Figure 5-4")
+```
+
+**Failures are not random within the trial population.**
+
+```{r tp-char}
+sec("5.3 Trial population: non-random failure")
+chr <- rows(TCH); sir <- rows(TSI)
+tab_src("Table TP-CHAR failing versus retained", c(TCH, TSI))
+t_ch <- merge(chr[, .(pk_model, set, nf = fint(n_fail), wt = sprintf("%s [%s, %s]", fnum(wt_diff_kg, 2), fnum(wt_diff_lo, 2), fnum(wt_diff_hi, 2)),
+                      tr = sprintf("%s [%s, %s]", fnum(true_aucinf_gmr, 3), fnum(true_aucinf_gmr_lo, 3), fnum(true_aucinf_gmr_hi, 3)), al = sprintf("%s [%s, %s]", fnum(auclast_gmr, 3), fnum(auclast_gmr_lo, 3), fnum(auclast_gmr_hi, 3)))],
+              sir[, .(pk_model, set, l = fnum(fail_light_pct, 1), h = fnum(fail_heavy_pct, 1), d = sprintf("%s [%s, %s]", fnum(diff_pp, 1), fnum(diff_lo, 1), fnum(diff_hi, 1)))], by = c("pk_model", "set"))
+t_ch <- t_ch[order(pk_model, set), .(Model = MODEL_SHORT[pk_model], `Criteria set` = SET_LAB[set], `Failing subjects` = nf, `Body weight, failing minus retained, kg [95% CI]` = wt,
+                                     `True AUC0-inf, geometric mean ratio failing to retained [95% CI]` = tr, `AUC0-last, geometric mean ratio [95% CI]` = al,
+                                     `Failing, 60 to 75 kg stratum, %` = l, `Failing, above 75 to 90 kg stratum, %` = h, `Difference, heavier minus lighter, points [95% CI]` = d)]
+kt(t_ch, caption = "Table 5-6. Trial population: characteristics of subjects failing each criteria set (20,000 subjects per model; Welch 95% intervals, geometric mean ratios on the log scale) and the share failing by randomization stratum (Newcombe 95% interval of the difference).", align = c("l", "l", rep("r", 7)))
+```
+
+- Subjects failing set (i) have a true AUC0-inf `r tpch("i", "true_aucinf_gmr", 3)` times that of retained subjects (geometric mean ratio), and are `r tpch("i", "wt_diff_kg", 2, " kg")` heavier. Under set (iii) the ratio is `r tpch("iii", "true_aucinf_gmr", 3)`. Rule A therefore removes subjects with lower exposure.
+- The heavier randomization stratum (above 75 to 90 kg) fails more often than the lighter stratum (60 to 75 kg): by `r tpsi("i")` percentage points under set (i) and `r tpsi("iii")` under set (iii) (Table 5-6, Figure 5-5).
+- TRIALPOP_COMPOSITION_TEXT
+
+```{r fig-tp-strata, fig.cap = "Figure 5-5. Trial population: share of subjects without a reliable AUC0-inf by randomization stratum and criteria set (20,000 subjects per model; bars: Wilson 95% intervals). Analysis figure results/trialpop/fig_tp_strata.png."}
+fig("trialpop/fig_tp_strata.png", "Figure 5-5")
+```
+
+**The failure share depends on the product.**
+
+```{r tp-arm}
+sec("5.3 Trial population: treatment-dependent failure")
+adr <- rows(TAD, "set %in% c('i','iii')")
+tab_src("Table TP-ARM treatment-dependent failure", c(TAD, TAF))
+SCN_LAB <- c(S00 = "identical products", F097 = "F x0.97", KE110 = "ke x1.10", KE120 = "ke x1.20", VM125 = "Vmax x1.25")
+adr[, lab := fifelse(scenario %in% names(SCN_LAB), SCN_LAB[scenario], scen_lab(mechanism, direction, fifelse(auc_ratio < 1, 0.80, 1.25)))]
+t_ad <- dcast(adr[, .(pk_model, scenario, lab, tr = fnum(auc_ratio, 3), set, d = sprintf("%s [%s, %s]", fnum(diff_mean, 2), fnum(diff_lo, 2), fnum(diff_hi, 2)))], pk_model + scenario + lab + tr ~ set, value.var = "d")
+ord <- c(names(SCN_LAB)); t_ad[, o := fifelse(scenario %in% ord, match(scenario, ord), 10L + rank(scenario))]
+t_ad <- t_ad[order(pk_model, o), .(Model = MODEL_SHORT[pk_model], Scenario = lab, `True AUC0-inf ratio` = tr, `Set (i), test minus reference, points [95% CI]` = i, `Set (iii), test minus reference, points [95% CI]` = iii)]
+kt(t_ad, caption = sprintf("Table 5-7. Trial population: difference between arms (test minus reference) in the share of subjects failing the criteria, mean over %s trials per scenario with 95%% interval, by scenario and true AUC0-inf ratio.", tp_ntr), align = c("l", "l", rep("r", 3)))
+```
+
+- TRIALPOP_ARM_TEXT
+
+```{r fig-tp-arm, fig.cap = "Figure 5-6. Trial population: test minus reference share failing criteria set (i) (top) and (iii) (bottom) against the true AUC0-inf ratio, product scenarios and boundary scenarios, both models (bars: 95% intervals of the mean). Analysis figure results/trialpop/fig_tp_arm_difference.png."}
+fig("trialpop/fig_tp_arm_difference.png", "Figure 5-6")
+```
+
+- **Consequence.** TRIALPOP_CONSEQUENCE_TEXT The regenerated trials reproduce the per-arm counts of the operating-characteristic trials exactly (`r tpid` rows compared).
+
 
 ## 5.4 Operating characteristics
 
@@ -673,7 +794,7 @@ TRIALPOP_RESULTS_PLACEHOLDER
 ```{r inversion}
 sec("5.4 Operating characteristics")
 ib <- rows("oc/inversion_all.csv", "abs(target-0.80)<1e-9 | abs(target-1.25)<1e-9")
-tab_src("Table 5-5 boundary multipliers", "oc/inversion_all.csv")
+tab_src("Table 5-8 boundary multipliers", "oc/inversion_all.csv")
 inv_tab <- rbindlist(lapply(split(ib, by = c("model", "mechanism", "target")), function(g) {
   r <- g[reachable %in% TRUE]
   if (nrow(r)) return(data.table(model = g$model[1], mechanism = g$mechanism[1], target = g$target[1], txt = sprintf("x%s (%s); Cmax ratio %s", fnum(r$multiplier, 3), r$direction, fnum(r$cmax_ratio, 3))))
@@ -688,7 +809,7 @@ premise(all(table(reach$model) == nrow(reach) / 2), "same number of reachable bo
 premise(nrow(ib[mechanism == "ka" & abs(target - 1.25) < 1e-9 & reachable %in% TRUE]) == 0 && nrow(ib[mechanism == "V2" & abs(target - 1.25) < 1e-9 & reachable %in% TRUE]) == 0 && nrow(ib[mechanism == "Km" & reachable %in% TRUE]) == 0,
         "ka and V2 cannot reach 1.25 and Km reaches neither limit (text)")
 ka_cmax <- vrange("oc/inversion_all.csv", "mechanism=='ka' & reachable==TRUE & abs(target-0.80)<1e-9", "cmax_ratio", 3, "true Cmax ratio at the ka multiplier reaching 0.80")
-kt(inv_w, caption = "Table 5-5. Test-arm multipliers giving a true AUC0-inf ratio of 0.80 or 1.25 (200,000 common subjects, within 0.1%), and the true Cmax ratio at that multiplier. Unreachable: the multiplier at the end of the search range and its true AUC0-inf ratio.", align = c("l", rep("l", 4)))
+kt(inv_w, caption = "Table 5-8. Test-arm multipliers giving a true AUC0-inf ratio of 0.80 or 1.25 (200,000 common subjects, within 0.1%), and the true Cmax ratio at that multiplier. Unreachable: the multiplier at the end of the search range and its true AUC0-inf ratio.", align = c("l", rep("l", 4)))
 ```
 
 `r n_reach` boundary scenarios (`r n_reach_m` per model) are reachable. Several are not:
@@ -701,7 +822,7 @@ kt(inv_w, caption = "Table 5-5. Test-arm multipliers giving a true AUC0-inf rati
 
 ```{r bte}
 bt <- rows("oc/g2_rules_flags.csv", "region=='boundary'"); bt0 <- rows("oc/boundary_type1.csv")
-tab_src("Table 5-6 boundary type I error", c("oc/g2_rules_flags.csv", "oc/boundary_type1.csv"))
+tab_src("Table 5-9 boundary type I error", c("oc/g2_rules_flags.csv", "oc/boundary_type1.csv"))
 summ <- function(d, cfg) rbindlist(lapply(M, function(m) { x <- d[config == cfg & model == m]; premise(nrow(x) == 8, paste(cfg, m, "has 8 boundary cells")); k <- which.max(x$pass_pct)
   data.table(model = m, txt = sprintf("%d (%d); %s [%s, %s], %s", sum(x$pass_pct > 5), sum(x$lo > 5), fnum(x$pass_pct[k], 2), fnum(x$lo[k], 2), fnum(x$hi[k], 2), scen_lab(x$mechanism[k], x$direction[k], x$target[k]))) }))
 cfgs <- list(P2 = bt0, AUClast_only = bt0, G2_Aii = bt, G2_Ai = bt, G2_B = bt, G2_Cii = bt, G2_Ci = bt, F3A = bt0, F3C = bt0, AUCinf_Aii = bt, AUCinf_B = bt, AUCinf_Cii = bt)
@@ -710,13 +831,13 @@ pre <- c(P2 = "pre-specified", AUClast_only = "pre-specified (reference)", G2_Ai
 t55 <- rbindlist(lapply(names(cfgs), function(cf) { s <- summ(cfgs[[cf]], cf); data.table(Configuration = CONFIG_LAB[cf], Status = pre[cf], `2016 model` = s[model == "k2016", txt], `2020 Model 1` = s[model == "k2020", txt]) }))
 chk <- merge(bt0[config == "G2", .(model, scenario, n0 = n_trials, p0 = pass_pct)], bt[config == "G2_Aii", .(model, scenario, n1 = n_trials, p1 = pass_pct)], by = c("model", "scenario"))
 premise(nrow(chk) == 16 && all(abs(chk[n0 == n1, p0 - p1]) < 1e-9), "pre-specified G2 (boundary_type1.csv) equals G2-A(ii) (g2_rules_flags.csv) where the trial counts are equal")
-kt(t55, caption = "Table 5-6. Boundary type I error (true AUC0-inf ratio 0.80 or 1.25): number of the 8 boundary scenarios per model with a point estimate above 5% (Wilson lower bound above 5%); largest value, % [Wilson 95% CI], and its scenario. 10,000 trials per scenario (20,000 for the 2020 model V2 scenario, see text).", align = c("l", "l", "l", "l"))
+kt(t55, caption = "Table 5-9. Boundary type I error (true AUC0-inf ratio 0.80 or 1.25): number of the 8 boundary scenarios per model with a point estimate above 5% (Wilson lower bound above 5%); largest value, % [Wilson 95% CI], and its scenario. 10,000 trials per scenario (20,000 for the 2020 model V2 scenario, see text).", align = c("l", "l", "l", "l"))
 ```
 
-```{r fig-bte, fig.cap = "Figure 5-5. Boundary type I error of the proposed configuration and of AUC0-inf + Cmax under three handling rules, for the 16 boundary scenarios (rows: model and scenario). Points: estimate; horizontal lines: Wilson 95% intervals; dashed line: 5%. Orange marks scenarios whose Wilson lower bound is above 5%. 10,000 trials per scenario (20,000 for the 2020 model V2 scenario). Drawn from results/oc/g2_rules_flags.csv."}
+```{r fig-bte, fig.cap = "Figure 5-7. Boundary type I error of the proposed configuration and of AUC0-inf + Cmax under three handling rules, for the 16 boundary scenarios (rows: model and scenario). Points: estimate; horizontal lines: Wilson 95% intervals; dashed line: 5%. Orange marks scenarios whose Wilson lower bound is above 5%. 10,000 trials per scenario (20,000 for the 2020 model V2 scenario). Drawn from results/oc/g2_rules_flags.csv."}
 suppressPackageStartupMessages(library(ggplot2))
 fd <- rows("oc/g2_rules_flags.csv", "region=='boundary' & config %in% c('P2','G2_Aii','G2_Ai','G2_B','G2_Cii')")
-tab_src("Figure 5-5", "oc/g2_rules_flags.csv", "region=='boundary' & config in P2, G2_Aii, G2_Ai, G2_B, G2_Cii")
+tab_src("Figure 5-7", "oc/g2_rules_flags.csv", "region=='boundary' & config in P2, G2_Aii, G2_Ai, G2_B, G2_Cii")
 panel_lab <- c(P2 = "AUC0-last + Cmax\n(proposed)", G2_Aii = "AUC0-inf + Cmax\nrule A, criteria (ii)\n(pre-specified)", G2_Ai = "AUC0-inf + Cmax\nrule A, criteria (i)", G2_B = "AUC0-inf + Cmax\nrule B", G2_Cii = "AUC0-inf + Cmax\nrule C, criteria (ii)")
 fd[, panel := factor(panel_lab[config], levels = panel_lab)]
 fd[, row := sprintf("%s: %s %s, %s", MODEL_SHORT[model], mechanism, ifelse(direction == "up", "up", "down"), formatC(target, format = "f", digits = 2))]
@@ -743,7 +864,7 @@ knitr::include_graphics(normalizePath(fp))
 
 ```{r p2interp}
 pi_ <- rows("oc/p2_interpretation.csv", "config=='P2'")
-tab_src("Table 5-7 P2 by scenario", "oc/p2_interpretation.csv")
+tab_src("Table 5-10 P2 by scenario", "oc/p2_interpretation.csv")
 t56 <- pi_[order(model, target, mechanism), .(Model = MODEL_SHORT[model], Scenario = scen_lab(mechanism, direction, target, multiplier), Trials = fint(n_trials),
               `AUC0-last + Cmax, % [95% CI]` = sprintf("%s [%s, %s]", fnum(pass_pct, 2), fnum(lo, 2), fnum(hi, 2)), Class = class,
               `Unbiased reference (true AUC0-inf), %` = fnum(ref_pct, 2), `AUC0-last bias vs true AUC0-inf (%)` = fnum(bias_pct, 2), `Cmax pass (%)` = fnum(cmax_pass_pct, 1))]
@@ -761,7 +882,7 @@ bmax <- max(abs(pi_$bias_pct_AUClast)); bmax_txt <- .record("largest absolute AU
 ```
 
 ```{r t56}
-kt(t56, caption = "Table 5-7. AUC0-last + Cmax at each boundary scenario, with the pass rate of the unbiased reference (model-integrated AUC0-inf of the same trial subjects, analysed identically), the bias of AUC0-last relative to the true AUC0-inf ratio and the Cmax pass rate.", align = c("l", "l", "r", "r", "l", "r", "r", "r"))
+kt(t56, caption = "Table 5-10. AUC0-last + Cmax at each boundary scenario, with the pass rate of the unbiased reference (model-integrated AUC0-inf of the same trial subjects, analysed identically), the bias of AUC0-last relative to the true AUC0-inf ratio and the Cmax pass rate.", align = c("l", "l", "r", "r", "l", "r", "r", "r"))
 ```
 
 **Baseline for an unbiased estimator.** With 232 degrees of freedom, the two one-sided tests reject at the near limit with probability 5% when the true ratio is exactly at that limit, so the boundary type I error of an unbiased estimator is 5% minus a negligible far-limit probability.
@@ -788,7 +909,7 @@ kt(t56, caption = "Table 5-7. AUC0-last + Cmax at each boundary scenario, with t
 sec("5.4 Operating characteristics: AUC0-inf")
 bias <- pi_[, .(Model = MODEL_SHORT[model], Scenario = scen_lab(mechanism, direction, target), `AUC0-last` = fnum(bias_pct_AUClast, 1), `AUC0-inf rule A (ii)` = fnum(bias_pct_AUCinf_A, 1),
                 `AUC0-inf rule B` = fnum(bias_pct_AUCinf_B, 1), `AUC0-inf rule C (ii)` = fnum(bias_pct_AUCinf_C, 1), Cmax = fnum(bias_pct_Cmax, 1))]
-tab_src("Table 5-8 bias", "oc/p2_interpretation.csv")
+tab_src("Table 5-11 bias", "oc/p2_interpretation.csv")
 gd <- rows("oc/g2_decomposition.csv", "region=='boundary'")
 tab_src("G2 decomposition", "oc/g2_decomposition.csv")
 ex_rng <- range(gd[contrast == "extrap", est]); se_ii <- range(gd[contrast == "sel_ii", est]); sub_ii <- range(gd[contrast == "subst_ii", est])
@@ -803,10 +924,10 @@ nB <- sum(tw(pi_$bias_pct_AUCinf_B, pi_$target)); nA <- sum(tw(pi_$bias_pct_AUCi
 ```
 
 ```{r t57}
-kt(bias, caption = "Table 5-8. Relative bias (%) of the geometric mean of trial GMRs against the truth at the boundary scenarios (AUC endpoints against the true AUC0-inf ratio, Cmax against the true Cmax ratio). A negative bias at 1.25 and a positive bias at 0.80 point toward 1 and raise the boundary type I error.", align = c("l", "l", rep("r", 5)))
+kt(bias, caption = "Table 5-11. Relative bias (%) of the geometric mean of trial GMRs against the truth at the boundary scenarios (AUC endpoints against the true AUC0-inf ratio, Cmax against the true Cmax ratio). A negative bias at 1.25 and a positive bias at 0.80 point toward 1 and raise the boundary type I error.", align = c("l", "l", rep("r", 5)))
 ```
 
-**Extrapolation bias.** NCA AUC0-inf adds the tail Clast/lambda-z, estimated with a lambda-z from the decline before the cliff. This lambda-z is smaller than the true terminal decline in both arms, so the added tail dilutes a true exposure difference toward a ratio of 1. AUC0-inf including every subject with a lambda-z (rule B) is biased toward 1 in `r nB` of 16 scenarios, and rule A in `r nA` (Table 5-8). The effect of adding the extrapolated area to all subjects with a lambda-z (rule B minus AUC0-last + Cmax, paired) ranges from `r sprintf("%s to %s", fnum(ex_rng[1], 2), fnum(ex_rng[2], 2))` percentage points across the boundary scenarios.
+**Extrapolation bias.** NCA AUC0-inf adds the tail Clast/lambda-z, estimated with a lambda-z from the decline before the cliff. This lambda-z is smaller than the true terminal decline in both arms, so the added tail dilutes a true exposure difference toward a ratio of 1. AUC0-inf including every subject with a lambda-z (rule B) is biased toward 1 in `r nB` of 16 scenarios, and rule A in `r nA` (Table 5-11). The effect of adding the extrapolated area to all subjects with a lambda-z (rule B minus AUC0-last + Cmax, paired) ranges from `r sprintf("%s to %s", fnum(ex_rng[1], 2), fnum(ex_rng[2], 2))` percentage points across the boundary scenarios.
 
 **Selection bias.** Excluding subjects who fail the criteria (rule A) changes the subjects compared in each arm, in a way that depends on the product difference itself. The effect of the exclusion (rule B minus rule A, criteria (ii), paired) ranges from `r sprintf("%s to %s", fnum(se_ii[1], 2), fnum(se_ii[2], 2))` percentage points. It is negative, meaning that exclusion raises the pass rate, in `r n_sel_neg` of 16 scenarios.
 
@@ -816,19 +937,19 @@ kt(bias, caption = "Table 5-8. Relative bias (%) of the geometric mean of trial 
 
 ```{r g2sets}
 sec("5.4 Criteria convention")
-tab_src("Table 5-9 AUC0-inf + Cmax by rule and criteria set", CGf)
+tab_src("Table 5-12 AUC0-inf + Cmax by rule and criteria set", CGf)
 t_g2s <- rbindlist(lapply(names(G2C), function(k) data.table(Configuration = paste("AUC0-inf + Cmax,", G2C_LAB[[k]]),
   M0 = sprintf("%s (%s); %s", GC$M0[[k]]$n_pt, GC$M0[[k]]$n_lo, GC$M0[[k]]$rng), M1 = sprintf("%s (%s); %s", GC$M1[[k]]$n_pt, GC$M1[[k]]$n_lo, GC$M1[[k]]$rng))))
 setnames(t_g2s, c("M0", "M1"), c("M0 (pooled t-test)", "M1 (ANOVA with weight stratum)"))
-kt(t_g2s, caption = "Table 5-9. Boundary type I error of AUC0-inf + Cmax by handling rule and criteria set, 16 boundary scenarios: number of scenarios with a point estimate above 5% (Wilson lower bound above 5%); range of the pass rate. Same regenerated trials as Section 5.9 (10,000 per scenario, extended to 20,000 where the Section 3.7 rule applied).", align = c("l", "l", "l"))
+kt(t_g2s, caption = "Table 5-12. Boundary type I error of AUC0-inf + Cmax by handling rule and criteria set, 16 boundary scenarios: number of scenarios with a point estimate above 5% (Wilson lower bound above 5%); range of the pass rate. Same regenerated trials as Section 5.9 (10,000 per scenario, extended to 20,000 where the Section 3.7 rule applied).", align = c("l", "l", "l"))
 ```
 
 - With rule A, AUC0-inf + Cmax exceeds 5% (point estimate) in `r GC$M0$A_i$n_pt`, `r GC$M0$A_ii$n_pt`, `r GC$M0$A_iii$n_pt` and `r GC$M0$A_iv$n_pt` of 16 boundary scenarios under criteria sets (i) to (iv) (M0).
 - Bias of the AUC0-inf GMR against the true AUC0-inf ratio across the boundary scenarios (M0): rule A `r cbias("A_i")` (set (i)) and `r cbias("A_iii")` (set (iii)); rule B `r cbias("B")`; rule C `r cbias("C_i")` (set (i)) and `r cbias("C_iii")` (set (iii)).
 - **Decision instability.** In the same trials, the AUC0-inf + Cmax decision differs between the nine rule and criteria-set variants in `r inst("inst_all")` of trials per boundary scenario (M0). Between rules A, B and C it differs in `r inst("inst_rules_i")` of trials with set (i) and `r inst("inst_rules_iii")` with set (iii); between criteria sets it differs in `r inst("inst_sets_A")` within rule A and `r inst("inst_sets_C")` within rule C. With AUC0-inf as a primary endpoint, the equivalence decision of a given study would thus depend on handling choices that the software leaves to the analysis plan.
 
-```{r fig-g2sets, fig.cap = "Figure 5-6. Boundary type I error of AUC0-inf + Cmax by handling rule and criteria set, 16 boundary scenarios, pooled t-test (M0); dashed line 5%. Analysis figure results/criteria/fig_criteria_g2.png."}
-fig("criteria/fig_criteria_g2.png", "Figure 5-6")
+```{r fig-g2sets, fig.cap = "Figure 5-8. Boundary type I error of AUC0-inf + Cmax by handling rule and criteria set, 16 boundary scenarios, pooled t-test (M0); dashed line 5%. Analysis figure results/criteria/fig_criteria_g2.png."}
+fig("criteria/fig_criteria_g2.png", "Figure 5-8")
 ```
 
 ### Power and comparison of configurations
@@ -861,7 +982,7 @@ f3_add <- range(cc$P2_minus_F3A); f3_in <- range(cc_in$P2_minus_F3A)
 ```{r random}
 sec("5.5 Random product space")
 rsk <- rows("oc/random_space_risks.csv", "truth=='AUC0-inf' & config %in% c('P2','G2','F3A','F3C')")
-tab_src("Table 5-10 random product space", "oc/random_space_risks.csv")
+tab_src("Table 5-13 random product space", "oc/random_space_risks.csv")
 t58 <- rsk[, .(Model = MODEL_SHORT[model], Configuration = CONFIG_LAB[c(P2 = "P2", G2 = "G2_Aii", F3A = "F3A", F3C = "F3C")[config]], Risk = metric, Scope = gsub("_", " ", scope), `% [95% CI]` = sprintf("%s [%s, %s]", fnum(pct, 2), fnum(lo, 2), fnum(hi, 2)), Products = fint(n_products))]
 t58 <- t58[order(Model, Risk, Scope, Configuration)]
 ```
@@ -869,7 +990,7 @@ t58 <- t58[order(Model, Risk, Scope, Configuration)]
 These risks depend on the assumed distribution of virtual products and are not used for the primary judgement. Consumer risk is the share of products with a true AUC0-inf ratio outside the limits that pass; producer risk is the share of products inside the limits that fail. Near the boundaries means true ratios of 0.75 to 0.80 and 1.25 to 1.33 for consumer risk, and 0.80 to 0.85 and 1.18 to 1.25 for producer risk.
 
 ```{r t58}
-kt(t58, caption = "Table 5-10. Consumer and producer risk in the random product space (20,000 products per model, one trial each).", align = c("l", "l", "l", "l", "r", "r"))
+kt(t58, caption = "Table 5-13. Consumer and producer risk in the random product space (20,000 products per model, one trial each).", align = c("l", "l", "l", "l", "r", "r"))
 ```
 
 ## 5.6 Target binding (Km)
@@ -884,7 +1005,7 @@ Differences in target binding therefore cannot be detected by AUC0-last, by AUC0
 sec("5.7 Sampling schedule")
 sv <- c(base = "Primary model", struct2020 = "2020 Model 1", vmax080_both = "Vmax x0.8 (both arms)", vmax125_both = "Vmax x1.25 (both arms)", iiv150 = "Variances x1.5", resid12 = "Proportional residual 12%", weight_alt = "Weight 50 to 90 kg", ada10 = "ADA-like subgroup 10%")
 sd_all <- rbindlist(lapply(names(sv), function(k) { x <- rows(sprintf("trials/schedule_decision_%s.csv", k)); x[, variant := k] }), fill = TRUE)
-tab_src("Table 5-11 schedule decision", sprintf("trials/schedule_decision_%s.csv", names(sv)))
+tab_src("Table 5-14 schedule decision", sprintf("trials/schedule_decision_%s.csv", names(sv)))
 n_rec <- sum(sd_all$recommend %in% TRUE); .record("schedule/variant cells where the rule recommends added samples (20,000 subjects, 500 trials)", "trials/schedule_decision_base.csv", "sum(recommend) over trials/schedule_decision_<variant>.csv", n_rec, as.character(n_rec))
 d200 <- rbindlist(lapply(c("base", "struct2020", "vmax080_both"), function(k) rows(sprintf("individual200k/criterion_d_200k_%s.csv", k))))
 tab_src("criterion (d) at 200,000 subjects", sprintf("individual200k/criterion_d_200k_%s.csv", c("base", "struct2020", "vmax080_both")))
@@ -908,7 +1029,7 @@ tab_src("D3 reliability change", "reliability/reliability_paired_vs_B0.csv")
 ```
 
 ```{r t59}
-kt(t59, caption = "Table 5-11. Pre-specified decision criteria for added samples versus the planned schedule (20,000 subjects and 500 trials per model; B-minus removes Day 50).", align = c("l", "l", rep("r", 6)))
+kt(t59, caption = "Table 5-14. Pre-specified decision criteria for added samples versus the planned schedule (20,000 subjects and 500 trials per model; B-minus removes Day 50).", align = c("l", "l", rep("r", 6)))
 ```
 
 The results below cover both models and all six sensitivity variants: Vmax x0.8 and x1.25 in both arms, variances x1.5, proportional residual error of 12%, an alternative weight distribution, and an ADA-like subgroup.
@@ -935,12 +1056,12 @@ sec("5.9 Analysis model")
 cfs <- c(P2 = "AUC0-last + Cmax (P2, proposed)", AUCinf_true_only = "true AUC0-inf alone (unbiased reference)", AUClast_only = "AUC0-last alone", G2_Aii = "AUC0-inf rule A (ii) + Cmax",
          G2_Ai = "AUC0-inf rule A (i) + Cmax", G2_B = "AUC0-inf rule B + Cmax", G2_Cii = "AUC0-inf rule C (ii) + Cmax", G2_Ci = "AUC0-inf rule C (i) + Cmax", F3A = "AUC0-last + AUC0-inf rule A + Cmax",
          F3B = "AUC0-last + AUC0-inf rule B + Cmax", F3C = "AUC0-last + AUC0-inf rule C + Cmax")
-tab_src("Table 5-14", c(T1f))
+tab_src("Table 5-15", c(T1f))
 tb <- rbindlist(lapply(names(cfs), function(cf) rbindlist(lapply(AMS, function(a) { r <- rows(T1f, sprintf("analysis_model=='%s' & config=='%s'", a, cf)); rr <- r[which.max(pass_pct)]
   data.table(Configuration = cfs[[cf]], Model = a, `Range (%)` = sprintf("%s to %s", fnum(min(r$pass_pct), 2), fnum(max(r$pass_pct), 2)),
              `Conservative / nominal / exceeding` = sprintf("%d / %d / %d", sum(r$class == "conservative"), sum(r$class == "nominal"), sum(r$class == "exceeding")),
              `Above 5% (point)` = sum(r$pass_pct > 5), `Largest (95% CI)` = sprintf("%s [%s, %s], %s %s %s", fnum(rr$pass_pct, 2), fnum(rr$lo, 2), fnum(rr$hi, 2), c(k2016 = "2016", k2020 = "2020")[[rr$pk_model]], rr$mechanism, rr$direction)) }))))
-kt(tb, caption = "Table 5-14. Boundary type I error in the 16 boundary scenarios by analysis model (Wilson 95% intervals; classification versus 5%).")
+kt(tb, caption = "Table 5-15. Boundary type I error in the 16 boundary scenarios by analysis model (Wilson 95% intervals; classification versus 5%).")
 ```
 
 - **Classification of P2.** M0: `r CLS$M0[["conservative"]]` conservative, `r CLS$M0[["nominal"]]` nominal, `r CLS$M0[["exceeding"]]` exceeding (`r am_rng("M0")`). M1: `r CLS$M1[["conservative"]]`, `r CLS$M1[["nominal"]]`, `r CLS$M1[["exceeding"]]` (`r am_rng("M1")`). M2: `r CLS$M2[["conservative"]]`, `r CLS$M2[["nominal"]]`, `r CLS$M2[["exceeding"]]` (`r am_rng("M2")`).
@@ -953,35 +1074,35 @@ fig("oc_models/fig_type1_models.png", "Figure 5-9")
 ```
 
 ```{r t-exp}
-tab_src("Table 5-15", c(EXf))
+tab_src("Table 5-16", c(EXf))
 ex <- rows(EXf, "TRUE")
 kt(ex[, .(Expectation = expectation, `Criterion (registered before results)` = criterion, Observed = observed, Consistent = ifelse(consistent, "yes", "no"))],
-   caption = "Table 5-15. Expectations of the sponsor's clinical pharmacology recorded before the results, with the numeric criteria registered before any result was read.")
+   caption = "Table 5-16. Expectations of the sponsor's clinical pharmacology recorded before the results, with the numeric criteria registered before any result was read.")
 ```
 
-Note to Table 5-15: in `r vcount(T1f, "analysis_model=='M1' & config=='P2' & n_pass==0", "P2 cells with no passing trial under M1")` boundary cells (absorption rate down), Cmax fails in every trial, so AUC0-last + Cmax passes in no trial under any analysis model and cannot rise; the registered criterion counts these cells as not rising.
+Note to Table 5-16: in `r vcount(T1f, "analysis_model=='M1' & config=='P2' & n_pass==0", "P2 cells with no passing trial under M1")` boundary cells (absorption rate down), Cmax fails in every trial, so AUC0-last + Cmax passes in no trial under any analysis model and cannot rise; the registered criterion counts these cells as not rising.
 
 ## 5.10 Sensitivity to the assay LLOQ
 
 ```{r t-lloq}
 sec("5.10 LLOQ")
-tab_src("Table 5-16", c(LIf, LCf))
+tab_src("Table 5-17", c(LIf, LCf))
 li <- rows(LIf, "resid=='fixed'"); lc <- rows(LCf, "timing=='nominal' & definition_day==1")
 tl <- merge(li, lc[, .(model, lloq, lloq_studyday_median, pct_ge2, pct_ge3)], by = c("model", "lloq"))
 kt(tl[order(model, lloq), .(Model = c(k2016 = "2016", k2020 = "2020")[model], `LLOQ (mg/L)` = format(lloq), `Reliable (i) (%)` = fnum(reliable_no_span_pct, 1), `Reliable (ii) (%)` = fnum(reliable_pct, 1),
                         `Lambda-z not estimable (%)` = fnum(lambda_fail_pct, 2), `Window coverage below 80% (%)` = fnum(coverage_lt80_pct, 2), `True extrapolation, median (%)` = fnum(extrap_true_median, 2),
                         `tlast, median (days)` = fnum(tlast_median, 1), `LLOQ reached, study day` = fnum(lloq_studyday_median, 1), `2 or more cliff samples (%)` = fnum(pct_ge2, 1))],
-   caption = "Table 5-16. Individual-level metrics by LLOQ (planned schedule, 60 to 90 kg, 20,000 subjects per model, same subjects and residual draws; residual error as estimated). Cliff columns: cliff populations, nominal days, 1-day definition.")
+   caption = "Table 5-17. Individual-level metrics by LLOQ (planned schedule, 60 to 90 kg, 20,000 subjects per model, same subjects and residual draws; residual error as estimated). Cliff columns: cliff populations, nominal days, 1-day definition.")
 ```
 
 ```{r t-lloq2}
-tab_src("Table 5-17", c(LTf))
+tab_src("Table 5-18", c(LTf))
 lt <- rows(LTf, "resid=='fixed' & config %in% c('P2','G2_Aii','G2_B')")
 lt[, cfg := c(P2 = "P2", G2_Aii = "AUC0-inf A (ii) + Cmax", G2_B = "AUC0-inf B + Cmax")[config]]
 w_ <- dcast(lt, scenario + model + cfg ~ lloq, value.var = "pass_pct", fun.aggregate = function(x) x[1])
 for (cn in setdiff(names(w_), c("scenario", "model", "cfg"))) set(w_, j = cn, value = fnum(w_[[cn]], 2))
 setnames(w_, c("scenario", "model", "cfg"), c("Scenario", "Model", "Configuration"))
-kt(w_, caption = sprintf("Table 5-17. Boundary type I error (%%) by LLOQ (columns, mg/L), primary PK model, %s trials per cell, residual error as estimated.", llt_n))
+kt(w_, caption = sprintf("Table 5-18. Boundary type I error (%%) by LLOQ (columns, mg/L), primary PK model, %s trials per cell, residual error as estimated.", llt_n))
 ```
 
 - With the residual error as estimated, lowering the LLOQ below 0.078 mg/L lets measurement noise near zero become quantifiable (additive SD 0.03 mg/L): reliability under criteria (i) is `r lli("k2016", 0.02, "reliable_no_span_pct")`% at 0.02 mg/L against `r lli("k2016", 0.078, "reliable_no_span_pct")`% at 0.078 mg/L in the primary model. With the additive error scaled with the LLOQ (constant precision at the LLOQ) it is `r lli("k2016", 0.02, "reliable_no_span_pct", rv = "scaled")`%.
@@ -996,12 +1117,12 @@ fig("lloq/fig_lloq_individual.png", "Figure 5-10")
 
 ```{r t-ss}
 sec("5.11 Sample size")
-tab_src("Table 5-18", c(NNf, SIf))
+tab_src("Table 5-19", c(NNf, SIf))
 ns <- rows(NNf, "gmr==0.95")
 w_ <- dcast(ns, cv ~ analysis_model + target_pct, value.var = c("n_evaluable_per_arm", "n_randomized_per_arm"))
 kt(w_[, .(`AUC0-last CV (%)` = cv, `90%, M0` = sprintf("%d (%d)", n_evaluable_per_arm_M0_90, n_randomized_per_arm_M0_90), `90%, M1` = sprintf("%d (%d)", n_evaluable_per_arm_M1_90, n_randomized_per_arm_M1_90),
           `85%, M0` = sprintf("%d (%d)", n_evaluable_per_arm_M0_85, n_randomized_per_arm_M0_85), `85%, M1` = sprintf("%d (%d)", n_evaluable_per_arm_M1_85, n_randomized_per_arm_M1_85))],
-   caption = "Table 5-18. Evaluable subjects per arm (randomized per arm, 117/130 evaluable) for 90% and 85% P2 power at a true GMR of 0.95 for both endpoints; Cmax CV and correlation from the primary model.")
+   caption = "Table 5-19. Evaluable subjects per arm (randomized per arm, 117/130 evaluable) for 90% and 85% P2 power at a true GMR of 0.95 for both endpoints; Cmax CV and correlation from the primary model.")
 ```
 
 - Inputs from the primary model (planned schedule, 60 to 90 kg): Cmax log-scale CV `r v(SIf, "input_model=='k2016'", "cv_cmax_pct", 1)`%, correlation of log AUC0-last and log Cmax `r v(SIf, "input_model=='k2016'", "rho_total", 2)`, the weight stratum explaining `r v(SIf, "input_model=='k2016'", "r2_stratum_auc", 1, scale = 100)`% of the AUC0-last variance.
@@ -1067,7 +1188,7 @@ The planned `r n_samp`-sample schedule to Day 57 is retained. No added-sampling 
 
 1. Boundary scenarios in which AUC0-last + Cmax exceeds 5% (point estimate) under any analysis model: `r ov_txt` Facts relevant to plausibility are stated in Section 6.2.
 2. Under the planned schedule, AUC0-last captures essentially all of the total exposure to dupilumab after a 300 mg subcutaneous dose (median true extrapolation `r ext_med["k2016"]`% and `r ext_med["k2020"]`% in the two models), and this holds for assay LLOQs between 0.02 and 0.5 mg/L.
-3. TRIALPOP_CONCLUSION_PLACEHOLDER
+3. In the trial population, a reliable AUC0-inf cannot be obtained in `r tpf("i")` (criteria set (i)) to `r tpf("iii")` (criteria set (iii)) of subjects in the two models; the share under set (i) is the lower end of the conventional range. Rule A removes subjects with lower true exposure and more subjects of the heavier stratum, TRIALPOP_CONC_ARM The window coverage of AUC0-last is at least `r tpcv(MW, "min")` in every subject, and the geometric mean of trial AUC0-last GMRs is within `r tpga` of the true AUC0-inf ratio.
 4. With the pooled t-test (M0), AUC0-last + Cmax is `r p2_n_cons` conservative, `r p2_n_nom` nominal and `r p2_n_exc` exceeding of `r p2_n_all` boundary cells; with the weight stratum in the model (M1), `r CLS$M1[["conservative"]]`, `r CLS$M1[["nominal"]]` and `r CLS$M1[["exceeding"]]`. M1 corrects the standard error of M0, which ignores the stratified randomization. Power for identical products is `r pwr("k2016", "S00", "M0")` (M0) and `r pwr("k2016", "S00", "M1")` (M1) in the primary model.
 5. Configurations based on NCA AUC0-inf exceed 5% in `r g_rng_txt` of 16 boundary scenarios under the usual handling rules, because of extrapolation and selection bias; under the stricter criteria set (iii), rule A exceeds 5% in `r GC$M0$A_iii$n_pt` of 16 (M0), and the decision changes with the handling rule or criteria set in `r inst("inst_all")` of trials per boundary scenario. They add little protection at the limits and cause additional failures of similar products.
 6. Target-binding differences do not change exposure enough to be detected by any PK endpoint.

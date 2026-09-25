@@ -159,7 +159,7 @@ if (!is.null(p1)) {
     p1e[, `:=`(rel_i_ci = sprintf("%s [%s, %s]", f2(rb$rel_i), f2(rb$rel_i_lo), f2(rb$rel_i_hi)), reliable_pct_ci = sprintf("%s [%s, %s]", f2(rb$rel_ii), f2(rb$rel_ii_lo), f2(rb$rel_ii_hi)))]
   } else p1e[, rel_i_ci := "not available"]
   add(md_table(p1e[, .(Model = fifelse(model == "k2016", "2016 (primary)", "Model 1"), `True extrapolated %: median` = f2(extrap_true_median), `95th percentile` = f2(extrap_true_p95), Max = f2(extrap_true_max),
-                       `True coverage below 80% (%, 95% CI)` = coverage_lt80_pct_ci, `NCA extrapolated %: median` = f2(extrap_nca_median), `NCA extrapolation above 20% (%, 95% CI)` = extrap_nca_gt20_pct_ci,
+                       `Window coverage below 80% (%, 95% CI)` = coverage_lt80_pct_ci, `NCA extrapolated %: median` = f2(extrap_nca_median), `NCA extrapolation above 20% (%, 95% CI)` = extrap_nca_gt20_pct_ci,
                        `AUCinf reliability met, flag set (i) (%, 95% CI)` = rel_i_ci, `AUCinf reliability met, flag set (ii) (%, 95% CI)` = reliable_pct_ci)]))
   add(sprintf("Residual-sensitive metrics are stated as the two-model range: AUCinf reliability criteria are not met in %s of subjects (%s); NCA extrapolation above 20%% occurs in %s%% to %s%%. True extrapolation (model integral beyond the last quantifiable time) is essentially the same in both models.",
               if (!is.null(RF)) FPe(RF$rng$fail_i, RF$rng$fail_ii) else sprintf("[(ii) %s%% to %s%%]", f1(100 - max(p1e$reliable_pct)), f1(100 - min(p1e$reliable_pct))), REL_DEF_EN,
@@ -170,13 +170,18 @@ if (!is.null(cs)) {
   vl <- c(base = "Primary model", km05_both = "Km x0.5", km2_both = "Km x2", km5_both = "Km x5", km10_both = "Km x10", vmax080_both = "Vmax x0.8 (longer tail, conservative)", vmax125_both = "Vmax x1.25", vmax050_both = "Vmax x0.5 (stress test, fails gate)")
   cs[, v := vl[variant]]; cs <- cs[match(names(vl), variant)][!is.na(variant)]
   add("Curve shape below the LLOQ cannot be observed; sensitivity to Km and Vmax (both arms, 20,000 subjects each):", "",
-      md_table(cs[, .(Variant = v, `True extrapolated %: median` = f2(extrap_true_median), `95th pct` = f2(extrap_true_p95), Max = f2(extrap_true_max), `Coverage below 80% (%)` = f2(coverage_lt80_pct),
+      md_table(cs[, .(Variant = v, `True extrapolated %: median` = f2(extrap_true_median), `95th pct` = f2(extrap_true_p95), Max = f2(extrap_true_max), `Window coverage below 80% (%)` = f2(coverage_lt80_pct),
                       `NCA extrap. median (%)` = f2(extrap_nca_median), `NCA extrap. >20% (%)` = f2(extrap_gt20_pct), `AUCinf reliable, (i) [(ii)] (%)` = sprintf("%s [%s]", f1(reliable_rsq_extrap_pct), f1(reliable_pct)), `Lambda-z not estimable (%)` = f2(lambda_fail_pct),
                       `Median last quantifiable day` = f1(tlast_median), `AUClast geometric mean` = f1(AUClast_geo, 0), `300 mg ~78 kg AUClast vs observed 544` = f2(AUClast_ratio_vs_obs544))]),
       "Kovalenko 2020 reported that excluding below-LLOQ values makes the model predict a less steep TMDD phase with Vm and Km increasing together; this motivates the Km-increase sensitivity.", "")
 }
 
 # 3. Pillar 2
+tpc <- proj_path("results", "trialpop", "tp_conclusion_en.md")
+if (file.exists(tpc)) { x <- readLines(tpc, encoding = "UTF-8"); x <- x[-1]; x <- sub("^## ", "### ", x)
+  add("## 2A. Reliability of AUCinf in the trial population (healthy adults, 60 to 90 kg, weight-stratified randomization)", "",
+      "Window coverage is the true AUC from dosing to the last quantifiable sample divided by the true AUCinf; the observed-to-true ratio is the observed AUClast (or NCA AUCinf) divided by the true AUCinf and also contains the residual error and the trapezoidal approximation.", "", x, "",
+      "Source: results/trialpop/ (scripts/54_trial_population_drop.R, scripts/55_trial_population_summary.R; registered in config/prereg_20260926.yaml section 6).", "") }
 add("## 3. Pillar 2: decision concordance between AUClast and AUCinf (B0, 117 per arm)", "")
 p2 <- R("rationale", "pillar2_products_B0.csv")
 if (!is.null(p2)) {
@@ -316,9 +321,10 @@ if (!is.null(p3) || !is.null(KF$km)) add("## 4. Pillar 3: invisibility of bindin
 wb <- NULL; for (f in list.files(proj_path("results", "weight_generalization"), pattern = "^weight_bands_B0_[a-d]+\\.csv$", full.names = TRUE)) wb <- rbind(wb, fread(f))
 if (!is.null(wb)) {
   ml <- c(a = "(a) 2016", b = "(b) Model 1", c = "(c) 2016 + ke~BMI", d = "(d) 2016 + ke~BMI + Vc~weight 0.817")
-  add("## 5. Body weight generalization (300 mg, B0, 20,000 subjects per uniform weight band)", "",
+  add("## 5. Robustness across body weight (300 mg, B0, 20,000 subjects per uniform weight band)", "",
+      "These results are robustness checks, not evidence for the endpoint proposal, which rests on the trial population (healthy adults of 60 to 90 kg, randomization stratified by body weight; section 2A). The adult atopic dermatitis body-weight distribution is reported only in Appendix I of the Modeling and Simulation Report.", "",
       "Covariate variants (c) and (d) use the adult coefficients of Kovalenko 2020 Model 4 (elimination rate constant ke proportional to (BMI/26)^0.368, central volume exponent 0.817); the BMI reference of 26 is a placeholder based on phase 3 mean BMI 25.4 to 27.3 (Kamal 2022). Height is simulated as normal (mean 170 cm, SD 9, truncated 150 to 195 cm). Development-data weight ranges are not reported in the source publications; bands above 130 kg are flagged as possible extrapolation.", "",
-      md_table(wb[, .(Model = ml[model], `Band (kg)` = band, `Median BMI` = f1(BMI_median), `True extrap. median (%)` = f2(extrap_true_median), `95th pct` = f2(extrap_true_p95), `Coverage <80% (%)` = f3(coverage_lt80_pct),
+      md_table(wb[, .(Model = ml[model], `Band (kg)` = band, `Median BMI` = f1(BMI_median), `True extrap. median (%)` = f2(extrap_true_median), `95th pct` = f2(extrap_true_p95), `Window coverage <80% (%)` = f3(coverage_lt80_pct),
                       `AUCinf reliable, (i) [(ii)] (%)` = sprintf("%s [%s]", f1(reliable_rsq_extrap_pct), f1(reliable_pct)), `Lambda-z not estimable (%)` = f2(lambda_fail_pct), `AUClast geometric mean` = f1(AUClast_geo, 0), Note = ifelse(dev_range_note == "", "", "outside confirmed development range"))]))
 }
 ow <- NULL; for (mk in c("a", "b", "d")) { f <- proj_path("results", "weight_generalization", sprintf("obese_trials_per_endpoint_%s.csv", mk)); if (file.exists(f)) ow <- rbind(ow, fread(f)) }
@@ -327,7 +333,7 @@ if (!is.null(ow)) {
   x <- dcast(ow[endpoint %in% c("AUClast", "AUCinf_true", "AUCinf_reliable")], model + scenario ~ endpoint, value.var = "GMR_mean")
   d <- od[, .(retained = mean(wt_retained_mean), dropped = mean(wt_dropout_mean), dropout_pct = mean(dropout_pct)), by = .(model, scenario)]
   x <- merge(x, d, by = c("model", "scenario"))
-  add("Trial level in a population with many obese subjects (weight normal mean 100 kg, SD 20, truncated 60 to 150 kg; 2,000 trials per scenario; mean GMR and dropout weights only):", "",
+  add("Trial level in a heavier population (stress test, not a population estimate; weight normal mean 100 kg, SD 20, truncated 60 to 150 kg; 2,000 trials per scenario; mean GMR and dropout weights only):", "",
       md_table(x[, .(Model = ml[model], Scenario = scenario, `GMR AUClast` = f3(AUClast), `GMR true AUCinf` = f3(AUCinf_true), `GMR NCA AUCinf reliable` = f3(AUCinf_reliable),
                      `Subjects failing AUCinf reliability, flag set (ii) (%)` = f1(dropout_pct), `Mean weight retained (kg)` = f1(retained), `Mean weight failing (kg)` = f1(dropped))]))
 }
