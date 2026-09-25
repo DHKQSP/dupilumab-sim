@@ -9,13 +9,17 @@
 #  g2_decomposition.csv        같은 시험 쌍대 차이(%p, 95% 구간): G2-B − G2-A(세트별, 탈락·선택 효과), G2-B − P2(외삽 효과), G2-C − P2, G2-A − P2(합), 세트 (i) − (ii)
 #  p2_bias_boundary.csv        경계 시나리오 × 평가변수: mean(log GMR) − log(참 AUC0-inf 비)(Cmax는 참 Cmax 비), MC 표준오차, 시험 수
 #  g2_rules_conclusion_ko.md / g2_rules_conclusion_en.md   수치로 생성, 고정 문구의 전제는 stopifnot으로 검사(어긋나면 생성 실패)
-# 사용법: nice -n 15 Rscript scripts/41_oc_rules_flags.R [out_dir=results/oc] [rejudge_dir=results/oc]
+# 적응적 연장(scripts/42): <ext_dir>/oc_trials_ext_be_<model>.csv.gz가 있으면 연장 시험(평가변수 8개: 세트 (i) 포함)을 붙인다(규칙 × 플래그 표, 분해, 치우침 모두).
+#  <ext_dir>/extension_decision.csv의 선택 시나리오만, 사전 고정 시험 1..n_before 뒤에 빈틈 없이 이어져야 한다. 없으면 사전 고정 시험만 쓴다.
+# 사용법: nice -n 15 Rscript scripts/41_oc_rules_flags.R [out_dir=results/oc] [rejudge_dir=results/oc] [ext_dir=results/oc]
 source("R/00_setup.R"); source_project()
 args <- commandArgs(trailingOnly = TRUE)
 oc <- read_cfg("oc_design.yaml")
 in_dir <- proj_path("results", "oc")
 out_dir <- if (length(args) >= 1) args[1] else in_dir
 rj_dir <- if (length(args) >= 2) args[2] else in_dir
+ext_dir <- if (length(args) >= 3) args[3] else in_dir
+dec_f <- file.path(ext_dir, "extension_decision.csv"); DEC <- if (file.exists(dec_f)) fread(dec_f) else NULL
 dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
 bnd <- as.numeric(unlist(oc$boundary_targets)); N_BND <- as.integer(oc$trials$reps_boundary)
 MODELS <- intersect(c("k2016", "k2020"), sub("^oc_trials_be_(.*)\\.csv\\.gz$", "\\1", list.files(in_dir, pattern = "^oc_trials_be_.*\\.csv\\.gz$")))
@@ -54,7 +58,7 @@ complete_rows <- function(be, eps) {
   be[k[, .(trial, scenario)], on = c("trial", "scenario")]
 }
 
-rates <- list(); decomp <- list(); bias <- list(); status <- list(); W <- list()
+rates <- list(); decomp <- list(); bias <- list(); status <- list(); W <- list(); NT <- list(); EXTN <- list()
 for (mdl in MODELS) {
   info <- scen_info(mdl); SCN <- info$scenario
   be <- fread(file.path(in_dir, sprintf("oc_trials_be_%s.csv.gz", mdl)))[scenario %in% SCN]
@@ -73,6 +77,27 @@ for (mdl in MODELS) {
     stopifnot(all(nn$n_R_AUCinf_Ai >= nn$n_R_AUCinf_A), all(nn$n_T_AUCinf_Ai >= nn$n_T_AUCinf_A))
     be <- rbind(be, rj[endpoint %in% EP_I]); n_rj <- uniqueN(rj$trial)
   }
+  n_pre <- be[endpoint == "Cmax", .(N = uniqueN(trial)), by = scenario]   # 사전 고정 파일의 시나리오별 시험 수(연장 전)
+  # 적응적 연장(scripts/42): 평가변수 8개 전부. 선택된 시나리오만, 사전 고정 시험 1..n_before 뒤에 이어지는 완전한 시험만 허용
+  ext_f <- file.path(ext_dir, sprintf("oc_trials_ext_be_%s.csv.gz", mdl)); has_ext <- file.exists(ext_f); ext_n <- data.table(scenario = character(0), n_ext = integer(0))
+  if (has_ext) {
+    if (is.null(DEC)) stop("연장 파일이 있는데 extension_decision.csv가 없습니다: ", ext_f)
+    ext <- fread(ext_f)
+    if (!identical(names(ext), c("trial", "scenario", "endpoint", "GMR", "CI_lower", "CI_upper", "pass", "n_R", "n_T"))) stop("연장 파일의 열이 다릅니다: ", ext_f)
+    sel_m <- DEC[model == mdl & selected == TRUE]
+    if (!all(unique(ext$scenario) %in% intersect(sel_m$scenario, SCN))) stop(sprintf("%s: 연장 파일에 규칙이 고르지 않은 시나리오가 있습니다: %s", mdl, paste(setdiff(unique(ext$scenario), sel_m$scenario), collapse = ",")))
+    for (sc_ in unique(ext$scenario)) {
+      nb <- sel_m[scenario == sc_, n_before]
+      et <- ext[scenario == sc_, .(n = .N, n_ep = uniqueN(endpoint), all8 = all(OC_ENDPOINTS_EXT %in% endpoint)), by = trial]
+      if (n_pre[scenario == sc_, N] != nb || max(be[scenario == sc_, trial]) != nb || !identical(sort(et$trial), nb + seq_len(nrow(et))) ||
+          any(et$n != length(OC_ENDPOINTS_EXT)) || !all(et$all8))
+        stop(sprintf("%s %s: 연장 시험(%d개)이 사전 고정 시험 1-%d 뒤에 평가변수 %d개로 완전하게 이어지지 않습니다", mdl, sc_, nrow(et), nb, length(OC_ENDPOINTS_EXT)))
+      ext_n <- rbind(ext_n, data.table(scenario = sc_, n_ext = nrow(et)))
+    }
+    nn <- dcast(ext[endpoint %in% c("AUCinf_A", "AUCinf_Ai")], trial + scenario ~ endpoint, value.var = c("n_R", "n_T"))   # 세트 (i) ⊇ 세트 (ii)
+    stopifnot(all(nn$n_R_AUCinf_Ai >= nn$n_R_AUCinf_A), all(nn$n_T_AUCinf_Ai >= nn$n_T_AUCinf_A))
+    be <- rbind(be, ext); rm(ext)
+  }
   w <- config_pass_ext(be)
   # 사전 고정 구성 정의(config_pass)와 같은지: P2, G2 = G2-A(ii), AUCinf_only = AUCinf-A(ii)
   wc <- config_pass(be[endpoint %in% OC_ENDPOINTS], oc)
@@ -83,8 +108,11 @@ for (mdl in MODELS) {
   for (cf in CFG[family %in% c("P2", "G2"), config]) stopifnot(!any(w[[paste0("cfg_", cf)]] %in% TRUE & !w$Cmax_pass))
   W[[mdl]] <- w
   n_tr <- w[, .N, by = scenario]
-  status[[mdl]] <- data.table(model = mdl, n_trials_min = min(n_tr$N), n_trials_max = max(n_tr$N), complete = min(n_tr$N) >= N_BND,
-                              rejudge = has_rj, n_rejudge_trials = n_rj, rejudge_complete = has_rj && n_rj >= max(n_tr$N))
+  status[[mdl]] <- data.table(model = mdl, n_trials_min = min(n_pre$N), n_trials_max = max(n_pre$N), complete = min(n_pre$N) >= N_BND,
+                              rejudge = has_rj, n_rejudge_trials = n_rj, rejudge_complete = has_rj && n_rj >= max(n_pre$N),
+                              extension = has_ext, ext_scenarios = paste(ext_n$scenario, collapse = ","), n_ext_trials = paste(ext_n$n_ext, collapse = ","))
+  EXTN[[mdl]] <- ext_n[, model := mdl]
+  NT[[mdl]] <- merge(info[, .(scenario, mechanism, direction, target)], n_tr[, .(scenario, n_trials = N)], by = "scenario")[, model := mdl]
 
   # (1) 통과율
   rt <- rbindlist(lapply(seq_len(nrow(CFG)), function(i) {
@@ -95,7 +123,9 @@ for (mdl in MODELS) {
   }))
   rt <- merge(CFG[, .(config, family, rule, flag_set, label, needs_i)], rt, by = "config")
   rt[, source := fifelse(needs_i, "oc_rejudge_be", "oc_trials_be")]
-  rt[, note := fifelse(needs_i & !has_rj, "rejudge file absent: run scripts/40_oc_rejudge.R", fifelse(needs_i & n_trials < n_tr[match(rt$scenario, scenario), N], "rejudge covers fewer trials than stored", ""))]
+  rt[scenario %in% ext_n$scenario, source := paste0(source, "+oc_trials_ext_be")]   # 적응적 연장 시나리오: 연장 파일의 시험 포함
+  rt[, note := fifelse(needs_i & !has_rj & n_trials == 0, "rejudge file absent: run scripts/40_oc_rejudge.R",
+                       fifelse(needs_i & n_trials < n_tr[match(rt$scenario, scenario), N], if (has_rj) "rejudge covers fewer trials than stored" else "rejudge file absent: extension trials only", ""))]
   rt[n_trials == 0, `:=`(pass_pct = NA_real_, lo = NA_real_, hi = NA_real_, n_pass = NA_integer_)]
   rt[, `:=`(gt5_point = pass_pct > LIM, gt5_lower = lo > LIM)]
   rt <- merge(info, rt, by = "scenario"); rt[, model := mdl]
@@ -192,14 +222,26 @@ cell_k <- function(p, l, h) ifelse(is.na(p), "NA", sprintf("%s [%s, %s]", f2(p),
 dcell_k <- function(e, l, h) ifelse(is.na(e), "NA", sprintf("%s [%s, %s]", s2(e), s2(l), s2(h))); dcell_e <- function(e, l, h) ifelse(is.na(e), "NA", sprintf("%s [%s to %s]", s2(e), s2(l), s2(h)))
 trials_txt <- function(mdl, lang) {
   s <- ST[model == mdl]
-  n <- if (s$n_trials_min == s$n_trials_max) fint(s$n_trials_min) else sprintf("%s-%s", fint(s$n_trials_min), fint(s$n_trials_max))
-  if (lang == "ko") sprintf("%s: 시나리오당 %s회%s", MODEL_KO[[mdl]], n, if (s$complete) "(완료)" else "(scripts/31 진행 중인 부분 파일; 완료 후 같은 코드로 다시 생성)")
-  else sprintf("%s: %s trials per scenario%s", MODEL_EN[[mdl]], n, if (s$complete) " (complete)" else " (partial file while scripts/31 is still running; regenerate with the same code when complete)")
+  n <- if (s$n_trials_min == s$n_trials_max) fint(s$n_trials_min) else sprintf("%s-%s", fint(s$n_trials_min), fint(s$n_trials_max))   # 사전 고정 파일의 시험 수
+  e <- if (s$extension) oc_n_trials_text(NT[[mdl]], lang, DEC, exceptions_only = TRUE) else ""                                  # 적응적 연장: 실제 수(R/oc.R)
+  e <- if (nzchar(e)) paste0("; ", e) else ""
+  if (lang == "ko") sprintf("%s: 시나리오당 %s회%s%s", MODEL_KO[[mdl]], n, if (s$complete) "(완료)" else "(scripts/31 진행 중인 부분 파일; 완료 후 같은 코드로 다시 생성)", e)
+  else sprintf("%s: %s trials per scenario%s%s", MODEL_EN[[mdl]], n, if (s$complete) " (complete)" else " (partial file while scripts/31 is still running; regenerate with the same code when complete)", e)
+}
+ext_txt <- function(lang) {                                          # 연장 파일이 있을 때만 머리말에 한 줄
+  x <- rbindlist(EXTN)
+  if (!nrow(x)) return(character(0))
+  if (lang == "ko") sprintf("- 적응적 연장: %s. `oc_trials_ext_be_<모델>.csv.gz`(scripts/42: 사전 고정 %s회에서 P2 경계 1종 오류의 Wilson 95%% 구간이 5%%를 포함한 경계 시나리오를 같은 시드 규칙으로 이어서 모의, 평가변수 8개)의 시험을 모든 표에 더했다.",
+                            paste(sprintf("%s %s(연장 시험 %s회)", MODEL_KO[x$model], x$scenario, format(x$n_ext, big.mark = ",", trim = TRUE)), collapse = "; "), fint(N_BND))
+  else sprintf("- Adaptive extension: %s. The trials of `oc_trials_ext_be_<model>.csv.gz` (scripts/42: boundary scenarios whose P2 boundary type I error Wilson 95%% CI at the pre-registered %s trials includes 5%%, continued with the same seed rule, all 8 endpoints) are added to every table.",
+               paste(sprintf("%s %s (%s extension trials)", MODEL_EN[x$model], x$scenario, format(x$n_ext, big.mark = ",", trim = TRUE)), collapse = "; "), fint(N_BND))
 }
 rj_txt <- function(mdl, lang) {
   s <- ST[model == mdl]
-  if (!s$rejudge) return(if (lang == "ko") sprintf("%s: 재판정 파일 없음 → 세트 (i) 구성(G2-A(i), G2-C(i), AUCinf-A(i), AUCinf-C(i))은 NA. `scripts/40_oc_rejudge.R %s` 실행 후 다시 생성.", MODEL_KO[[mdl]], mdl)
-                               else sprintf("%s: no rejudge file, so the flag set (i) configurations (G2-A(i), G2-C(i), AUCinf-A(i), AUCinf-C(i)) are NA. Run `scripts/40_oc_rejudge.R %s` and regenerate.", MODEL_EN[[mdl]], mdl))
+  if (!s$rejudge) return(if (lang == "ko") sprintf("%s: 재판정 파일 없음 → 세트 (i) 구성(G2-A(i), G2-C(i), AUCinf-A(i), AUCinf-C(i))은 NA%s. `scripts/40_oc_rejudge.R %s` 실행 후 다시 생성.", MODEL_KO[[mdl]],
+                                                        if (s$extension) "(적응적 연장 시나리오는 연장 시험만으로 계산)" else "", mdl)
+                               else sprintf("%s: no rejudge file, so the flag set (i) configurations (G2-A(i), G2-C(i), AUCinf-A(i), AUCinf-C(i)) are NA%s. Run `scripts/40_oc_rejudge.R %s` and regenerate.", MODEL_EN[[mdl]],
+                                            if (s$extension) " (the adaptively extended scenarios use the extension trials only)" else "", mdl))
   if (lang == "ko") sprintf("%s: 재판정 파일의 시험 %s회(원래 6개 평가변수가 저장본과 일치)%s.", MODEL_KO[[mdl]], fint(s$n_rejudge_trials), if (s$rejudge_complete) "" else ", 저장본보다 적어 세트 (i) 구성은 그 시험들로만 계산")
   else sprintf("%s: rejudge file with %s trials (the 6 original endpoints match the stored rows)%s.", MODEL_EN[[mdl]], fint(s$n_rejudge_trials), if (s$rejudge_complete) "" else "; fewer than stored, so the flag set (i) configurations use those trials only")
 }
@@ -332,14 +374,14 @@ cmax_txt <- function(mdl, lang) {
 
 hdr_ko <- c("# G2 경계 1종 오류: AUCinf 처리 규칙 × 플래그 세트 (검토 의견 W2 §2)", "",
   "자료: 저장된 시험 수준 결과(`results/oc/oc_trials_be_<모델>.csv.gz`, scripts/31: arm당 117명, B0, pooled t, 90% CI 80.00–125.00%), 세트 (i) 평가변수는 `oc_rejudge_be_<모델>.csv.gz`(scripts/40: 같은 시드로 경계 시나리오 + S00 재생성). 새 모의 없음. 생성: `scripts/41_oc_rules_flags.R`. 수치: `g2_rules_flags.csv`, `g2_decomposition.csv`, `p2_bias_boundary.csv`.", "",
-  paste0("- 시험 수: ", vapply(MODELS, trials_txt, "", lang = "ko"), "."), paste0("- ", vapply(MODELS, rj_txt, "", lang = "ko")), "",
+  paste0("- 시험 수: ", vapply(MODELS, trials_txt, "", lang = "ko"), "."), paste0("- ", vapply(MODELS, rj_txt, "", lang = "ko")), ext_txt("ko"), "",
   "## 정의", "",
   "- 규칙 A: 플래그 대상(또는 λz 산출 불가) 제외. 규칙 B: λz 산출 가능 전원 포함(플래그와 무관하므로 (i) = (ii)). 규칙 C: 플래그 대상(또는 λz 산출 불가)은 AUCinf 자리에 AUClast 대입.",
   "- 플래그 세트 (i): λz 산출 가능 & adj R² ≥ 0.80 & AUC_%Extrap_obs ≤ 20%. 세트 (ii): (i) & span ratio ≥ 2(사전 고정 구성 G2·F3A·F3C의 규칙 A·C, D-039).",
   "- 구성: P2 = AUClast + Cmax, G2-x = AUCinf(규칙 x) + Cmax, AUCinf-x = AUCinf(규칙 x) 단독. 경계 시나리오 = 참 AUC0-inf 비 0.80 또는 1.25(200,000명 공통 난수 역산, 기전·방향별). 5% 초과 판단은 점추정과 Wilson 95% 하한 두 가지로 적는다.", "")
 hdr_en <- c("# G2 boundary type I error: AUCinf handling rule by reliability flag set (review W2 section 2)", "",
   "Data: saved trial-level results (`results/oc/oc_trials_be_<model>.csv.gz`, scripts/31: 117 per arm, B0, pooled t, 90% CI within 80.00 to 125.00%); the flag set (i) endpoints come from `oc_rejudge_be_<model>.csv.gz` (scripts/40: boundary scenarios and S00 regenerated with the same seeds). No new simulation. Generated by `scripts/41_oc_rules_flags.R`. Numbers: `g2_rules_flags.csv`, `g2_decomposition.csv`, `p2_bias_boundary.csv`.", "",
-  paste0("- Trials: ", vapply(MODELS, trials_txt, "", lang = "en"), "."), paste0("- ", vapply(MODELS, rj_txt, "", lang = "en")), "",
+  paste0("- Trials: ", vapply(MODELS, trials_txt, "", lang = "en"), "."), paste0("- ", vapply(MODELS, rj_txt, "", lang = "en")), ext_txt("en"), "",
   "## Definitions", "",
   "- Rule A: exclude flagged subjects (or lambda-z not estimable). Rule B: include every subject with an estimable lambda-z (does not depend on the flags, so (i) = (ii)). Rule C: use AUClast in place of AUCinf for flagged subjects (or lambda-z not estimable).",
   "- Flag set (i): lambda-z estimable, adjusted R2 at least 0.80 and AUC_%Extrap_obs at most 20%. Flag set (ii): (i) plus span ratio at least 2 (rules A and C of the prespecified configurations G2, F3A and F3C, D-039).",

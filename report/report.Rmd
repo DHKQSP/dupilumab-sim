@@ -88,6 +88,10 @@ q16 <- rd("step1", "step1b_quant_gate.csv"); q20 <- rd("step1_k2020", "step1b_qu
 if (!is.null(q16) && !is.null(q20)) { g16 <- q16[gate_role == "gate"]; g20 <- q20[gate_role == "gate"]; r2 <- function(x) sprintf("%s–%s", fr(min(x), 2), fr(max(x), 2))
   premise(mean(abs(g16$AUClast_ratio - 1)) < mean(abs(g20$AUClast_ratio - 1)), "AUClast는 2016 모델이 Model 1보다 관측에 가깝다(gate 데이터셋 평균 |비 − 1|)")
   predbias_txt <- sprintf("연구 제형 gate 데이터셋 %d개의 모의/관측 비: Cmax 2016 모델 %s, 2020 Model 1 %s. AUClast는 2016 모델 %s로 관측에 근접하고, 2020 Model 1 %s다.", nrow(g16), r2(g16$Cmax_ratio), r2(g20$Cmax_ratio), r2(g16$AUClast_ratio), r2(g20$AUClast_ratio)) }
+# 보고 우선순위와 핵심 문장(지시 2026-09-25 §4): 요약표, Pillar 3 첫 문장, 역산 경계표의 수치와 전제 검사(R/summarize.R key_facts, 어긋나면 중단)
+ocd <- read_cfg("oc_design.yaml"); KF <- key_facts(oc = ocd)
+km_txt <- if (!is.null(KF$km)) key_km_sentence(KF$km, "ko") else "(Km 역산 결과 없음: scripts/30_oc_inversion.R 실행 필요)"
+rs_rng_txt <- random_space_ranges_text(ocd, "–")   # 무작위 제품 공간의 가정 분포(기전별 배율 로그 균등 범위)
 ```
 
 # 요약
@@ -96,6 +100,12 @@ if (!is.null(q16) && !is.null(q20)) { g16 <- q16[gate_role == "gate"]; g20 <- q2
 `r oc_txt <- file.path("..", "results", "oc", "oc_conclusion_ko.md"); if (file.exists(oc_txt)) paste(readLines(oc_txt, warn = FALSE), collapse = "\n\n") else "(운용특성 결과 없음)"`
 
 설계는 결과 생성 전에 `config/oc_design.yaml`로 고정했다(커밋 `r pr <- rd("oc", "prereg.csv"); if (!is.null(pr)) substr(pr$prereg_commit, 1, 7) else "?"``r if (!is.null(pr) && isTRUE(pr$changed_since)) ", 이후 변경 있음" else ", 이후 변경 없음"`). 정답은 참 AUC0-inf 비(모델 적분, 200,000명 공통 난수)이며 AUClast가 아니다. P2 = AUClast + Cmax, F3-A/B/C = P2 + AUCinf(규칙 A/B/C), G2 = AUCinf(규칙 A) + Cmax.
+
+## 핵심 수치 요약표
+1차 지표는 경계 1종 오류(참 AUC0-inf 비 `r paste(fmt_num(KF$bnd, 2), collapse = "·")`에서의 통과율; 기전 × 방향 × 구성 × 모델)다. 무작위 제품 공간의 소비자·생산자 위험은 가정한 가상 제품 분포에 의존하는 보조 지표다(제품 차이 설계 원칙과 운용특성 절). VM150·KE120은 예비 탐색 시나리오(임의 배율, 주 모델, 5,000회 이상)다.
+```{r key_tab}
+if (!is.null(KF)) kt(key_summary_table(KF, "ko"), "핵심 수치: 결과 파일에서 생성(비율은 Wilson 95% 구간, 문구의 전제는 key_facts가 검사). AUCinf 신뢰군은 플래그 세트 (ii). VM150·KE120의 참값 비는 같은 시험 대상자의 개인 모델 AUC0-inf 시험 GMR 평균으로, 역산 시나리오의 200,000명 적분 참값과 정의가 다르다")
+```
 
 ## 절벽 채혈 (§2)
 `r cl_txt <- file.path("..", "results", "cliff", "cliff_conclusion_ko.md"); if (file.exists(cl_txt)) paste(readLines(cl_txt, warn = FALSE), collapse = "\n\n") else "(절벽 분석 결과 없음)"`
@@ -197,7 +207,7 @@ md_inc(proj_path("results", "reliability", "mechanism_summary_ko.md"))
 - **잔차 민감 지표**: AUCinf 신뢰 충족률과 외삽 20% 초과 비율은 잔차 가정에 민감하므로`r resid_txt` 두 모델의 범위로 표기한다`r resid_rng_txt`.
 - **span ratio 플래그**: `r REL_CONV`. `r rel_changes_txt`.
 - **λz 점 선택**: 자동 Best Fit만 모의했다. 실제 시험에서는 약동학 담당자가 λz 점 선택을 검토·수정할 수 있으나 반영하지 않았다.
-- **무작위 제품 공간의 참값**: 계산량 때문에 제품별 참값을 모든 제품에 공통인 1,000명(공통 난수)으로 계산했다(역산 시나리오는 200,000명). 제품별 참값의 MC 표준오차를 함께 보고한다(사전 고정).
+- **무작위 제품 공간(보조 지표)**: 소비자·생산자 위험은 가정한 가상 제품 분포(기전별 배율 로그 균등 `r rs_rng_txt`)에 의존한다. 계산량 때문에 제품별 참값을 모든 제품에 공통인 `r format(ocd$random_space$truth_subjects, big.mark = ",")`명(공통 난수)으로 계산했다(역산 시나리오는 200,000명). 제품별 참값의 MC 표준오차를 함께 보고한다(사전 고정).
 - 확정 전 가정 목록은 SPEC.md §8(Day 1 투여 후 시각 0.25일, 체중 분포, 층화 분할점, 채혈 허용창, pooled 구성 비율, Li 2020 arm 체중, BMI 중심값 26).
 
 # 단계 1 검증
@@ -281,38 +291,43 @@ kt(rd("fallback", "sample_size_logsd.csv"), "표본 수 교차점검: log-scale 
 kt(rd("fallback", "empirical_power.csv"), "arm당 117명의 경험적 검정력", 2)
 ```
 ## Pillar 3 — 결합력 차이 비가시성
+**`r km_txt`** 자료: `results/oc/inversion_all.csv`(탐색 범위 끝·도달 행), `inversion_scan_<모델>_Km.csv`(스크리닝 스캔). 경계 목표별 배율은 운용특성 절의 역산 경계표.
+
+보조 근거: 같은 500회 시험에서 Km ×0.5–×10 대 동일 제품의 평가변수별 쌍대 변화(아래 표).
 ```{r pillar3}
-kt(rd("rationale", "pillar3_km_B0.csv"), "Km ×0.5–×10 vs 동일 제품: 같은 500회 시험의 쌍대 변화와 95% 구간", 3)
-kt(rd("rationale", "pillar3_km_summary.csv"), "Pillar 3 요약", 3)
+kt(rd("rationale", "pillar3_km_B0.csv"), "보조 근거: Km ×0.5–×10 vs 동일 제품, 같은 500회 시험의 쌍대 변화와 95% 구간", 3)
+kt(rd("rationale", "pillar3_km_summary.csv"), "Pillar 3 보조 근거 요약(500회 쌍대)", 3)
 ```
 
 # 제품 차이 설계 원칙과 운용특성 (검토 의견 §3–4)
 **사전 고정**: `config/oc_design.yaml`(기전, 목표값, 탐색 범위, 반복 수, 시드, 구성)을 결과 생성 전에 커밋했다(`r if (!is.null(pr)) pr$prereg_commit else "?"`). **정답**: 시험약/대조약 모집단 기하평균비 — 모델 적분 AUC0-inf(잔차 없음), 같은 가상 대상자 200,000명에 두 제품 파라미터를 각각 적용(공통 난수, 60–90 kg). 범위 안/밖은 참 AUC0-inf 비로 판정(AUClast가 아님). 참 Cmax 비와 전체 참 동등성(둘 다 범위 안)도 병기. **기전**: F, ka, ke, Vmax, Km, V2(구획 간 청소율 고정, k21 ÷ 배율) 전부, 양방향. 목표 참값 비 0.70–1.43에 맞춰 로그 배율 이분법(±0.1%)으로 역산했다. 기존 임의 배율 시나리오(F ×0.85, Vmax ×1.50 등)의 "범위 밖" 판정은 예비 탐색으로 강등한다.
 
+**보고 우선순위**: 1차 지표는 경계 1종 오류(참 AUC0-inf 비 `r paste(fmt_num(KF$bnd, 2), collapse = "·")`에서의 통과율; 기전 × 방향 × 구성 × 모델)다. 이어서 운용특성 곡선, 검정력, 구성 비교를 보고한다. 무작위 제품 공간의 소비자·생산자 위험은 가정한 가상 제품 분포(`config/oc_design.yaml`의 기전별 로그 균등 범위)에 의존하는 보조 지표다.
+
 `r if (file.exists(oc_txt)) paste(readLines(oc_txt, warn = FALSE), collapse = "\n\n") else ""`
 
-## 역산된 배율 (3-D)
-```{r oc_inv, fig.height=6.5}
-MEANING <- c(F = "흡수량(생체이용률)", ka = "흡수 속도", ke = "선형 소실(FcRn 경로)", Vmax = "표적 매개 소실 용량(내재화)", Km = "결합(MM 상수)", V2 = "말초 분포용적(Q 고정)")
-iv <- rd("oc", "inversion_all.csv")
-if (!is.null(iv)) { iv[, 의미 := MEANING[mechanism]]
-  kt(iv[, .(model, mechanism, 의미, direction, target, reachable, multiplier, auc_ratio, cmax_ratio, overall_true_equiv, end_multiplier, end_auc_ratio, end_cmax_ratio)],
-     "기전·방향·목표별 역산 배율과 200,000명 참값 비. 도달 불가는 탐색 범위 끝 배율의 참값 비", 4) |> print() }
-imgs(proj_path("results", "oc", "fig3D_inversion_multipliers.png"))
+## 경계 1종 오류 (1차 지표, 3-B)
+경계 시나리오: 기전별로 참 AUC0-inf 비 `r paste(fmt_num(KF$bnd, 2), collapse = "·")`를 주는 시험군 배율과 그 배율의 참 Cmax 비(아래 역산 경계표). 도달 불가는 목표 쪽 탐색 범위 끝의 배율과 그 참 AUC0-inf 비다. 전체 역산 표와 그림 3-D는 '역산된 배율 전체' 절.
+```{r oc_inv_bnd}
+if (!is.null(KF$inv_bnd)) kt(key_inv_bnd_table(KF$inv_bnd, "ko"),
+  sprintf("역산 경계표: 참 AUC0-inf 비 %s를 주는 시험군 배율과 그 배율의 참 Cmax 비(%s명 공통 난수, 로그 배율 이분법 ±%s%%; 60–90 kg, %s mg). 도달 불가 = 목표 쪽 탐색 범위 끝(배율: 참 AUC0-inf 비)",
+          paste(fmt_num(KF$bnd, 2), collapse = "·"), format(unique(rd("oc", "inversion_all.csv")$n_subjects), big.mark = ","), format(100 * ocd$inversion$tolerance_rel), ocd$estimand$dose_mg), 3)
 ```
-## 운용특성 곡선 (3-A)
-```{r oc_curves, fig.height=6.5}
-imgs(proj_path("results", "oc", sprintf("fig3A_oc_curves_%s.png", c("k2016", "k2020"))))
-```
-## 경계 1종 오류 (3-B)
 ```{r oc_bnd, fig.height=6}
 bt <- rd("oc", "boundary_type1.csv")
 if (!is.null(bt)) print(kt(dcast(bt[config %in% c("P2", "F3A", "F3B", "F3C", "G2", "AUClast_only", "AUCinf_only")], model + mechanism + direction + target + auc_ratio + cmax_ratio + n_trials ~ config,
-                          value.var = "pass_pct"), "경계 1종 오류 (%): 기전 × 방향 × 구성 × 모델 (각 10,000회; 구간은 부록 B)", 2))
+                          value.var = "pass_pct"), sprintf("경계 1종 오류 (%%): 기전 × 방향 × 구성 × 모델 (시험 수 %s; 구간은 부록 B)",
+                                                           oc_n_trials_text(bt[config == "P2"], "ko", rd("oc", "extension_decision.csv"), c(k2016 = "2016", k2020 = "Model 1"))), 2))
 imgs(proj_path("results", "oc", sprintf("fig3B_boundary_type1_%s.png", c("k2016", "k2020"))))
 gb <- rd("oc", "gmr_by_endpoint.csv")
 if (!is.null(gb)) print(kt(dcast(gb[endpoint %in% c("AUClast", "AUCinf_A", "AUCinf_B", "AUCinf_C", "Cmax")], model + mechanism + direction + target + auc_ratio + cmax_ratio ~ endpoint, value.var = "rel_bias_pct")[order(model, mechanism, target)],
                           "평가변수별 시험 GMR 기하평균의 참값 대비 상대 치우침(%). AUC 계열은 참 AUC0-inf 비, Cmax는 참 Cmax 비 기준. 규칙 A = 추정 + 선택(플래그 제외), 규칙 B = 추정만, 규칙 C = 플래그 대상 AUClast 대입", 2))
+```
+## 경계 1종 오류: P2 해석 (지시 2026-09-25 §3)
+저장된 시험 수준 결과로 P2 경계 1종 오류를 불편 추정량의 기준(이론·경험), 분류(Wilson 95% 구간 대 5%), 원인(AUClast 편향, Cmax 불통과)으로 나눴다(`scripts/43_p2_interpretation.R`, 새 모의 없음; 수치 `results/oc/p2_interpretation.csv`).
+```{r p2_interp_md, results="asis"}
+p2i_f <- proj_path("results", "oc", "p2_interpretation_ko.md")
+if (file.exists(p2i_f)) md_inc(p2i_f, shift = 1) else cat("(P2 해석 결과 없음: scripts/43_p2_interpretation.R 실행 필요)\n")
 ```
 ## 경계 1종 오류: AUCinf 처리 규칙 × 플래그 세트 (검토 의견 W2 §2)
 저장된 시험 수준 결과로 G2를 AUCinf 처리 규칙(A, B, C)과 플래그 세트((i), (ii))별로 다시 판정했다(`scripts/41_oc_rules_flags.R`, 새 모의 없음). `r REL_CONV`. 전체 표는 부록 B.
@@ -324,19 +339,35 @@ pbz <- rd("oc", "p2_bias_boundary.csv")
 if (!is.null(pbz)) kt(dcast(pbz, model + scenario + target + true_ratio + n_trials ~ endpoint, value.var = "bias_pct")[order(model, target, scenario)],
                       "경계 시나리오의 시험 GMR 기하평균의 참값 대비 상대 치우침 (%): AUC 계열은 참 AUC0-inf 비, Cmax는 참 Cmax 비 기준. AUCinf_A·C = 플래그 세트 (ii), AUCinf_Ai·Ci = 세트 (i)(재판정 파일이 없으면 NA), AUCinf_true = 시험 대상자의 개인 모델 AUC0-inf(참고) (p2_bias_boundary.csv)", 2)
 ```
+## 운용특성 곡선 (3-A)
+```{r oc_curves, fig.height=6.5}
+imgs(proj_path("results", "oc", sprintf("fig3A_oc_curves_%s.png", c("k2016", "k2020"))))
+```
 ## 검정력과 구성 비교
 ```{r oc_pow}
 pw <- rd("oc", "power.csv")
-if (!is.null(pw)) kt(dcast(pw[config %in% c("P2", "F3A", "F3B", "F3C", "G2")], model + scenario + target + auc_ratio + n_trials ~ config, value.var = "pass_pct"), "참값 1.00(동일 제품, 10,000회), 0.95, 1.05(기전별, 2,000회)에서의 통과율 (%)", 1)
+if (!is.null(pw)) { ntx <- function(x) paste(format(sort(unique(x$n_trials)), big.mark = ",", trim = TRUE), collapse = "·")
+  kt(dcast(pw[config %in% c("P2", "F3A", "F3B", "F3C", "G2")], model + scenario + target + auc_ratio + n_trials ~ config, value.var = "pass_pct"),
+     sprintf("참값 1.00(동일 제품, %s회), 0.95, 1.05(기전별, %s회)에서의 통과율 (%%)", ntx(pw[scenario == "S00"]), ntx(pw[scenario != "S00"])), 1) }
 cc <- rd("oc", "config_comparison.csv")
 if (!is.null(cc)) kt(cc[, .(model, mechanism, direction, target, auc_ratio, region, n_trials, P2_minus_F3A, P2_minus_F3A_lo, P2_minus_F3A_hi, P2_minus_F3C, G2_minus_P2, G2_minus_P2_lo, G2_minus_P2_hi)][order(model, mechanism, target)],
                      "세 구성 비교(같은 시험 쌍대 차이, %p): P2 − F3 = 경계·범위 밖에서 F3의 추가 보호, 범위 안에서 F3의 추가 탈락; G2 − P2", 2)
 ```
-## 무작위 다변량 제품 공간 (3-C)
+## 역산된 배율 전체 (3-D)
+```{r oc_inv, fig.height=6.5}
+MEANING <- c(F = "흡수량(생체이용률)", ka = "흡수 속도", ke = "선형 소실(FcRn 경로)", Vmax = "표적 매개 소실 용량(내재화)", Km = "결합(MM 상수)", V2 = "말초 분포용적(Q 고정)")
+iv <- rd("oc", "inversion_all.csv")
+if (!is.null(iv)) { iv[, 의미 := MEANING[mechanism]]
+  kt(iv[, .(model, mechanism, 의미, direction, target, reachable, multiplier, auc_ratio, cmax_ratio, overall_true_equiv, end_multiplier, end_auc_ratio, end_cmax_ratio)],
+     "기전·방향·목표별 역산 배율과 200,000명 참값 비. 도달 불가는 탐색 범위 끝 배율의 참값 비", 4) |> print() }
+imgs(proj_path("results", "oc", "fig3D_inversion_multipliers.png"))
+```
+## 무작위 다변량 제품 공간 (보조 지표, 3-C)
+**보조 지표**: 아래 소비자·생산자 위험은 가정한 가상 제품 분포(라틴 하이퍼큐브 `r format(ocd$random_space$n_products, big.mark = ",")`개 제품, 기전별 배율 로그 균등 `r rs_rng_txt`; `config/oc_design.yaml`)에 의존한다. 위험은 이 분포 위의 평균이므로 분포 가정이 바뀌면 값도 바뀐다. 구성의 판단은 1차 지표(경계 1종 오류)로 한다.
 ```{r oc_rs, fig.height=8}
-print(kt(rd("oc", "random_space_truth_distribution.csv"), "무작위 공간 참값 비 분포: 범위(로그 균등 F 0.80–1.25, ka 0.67–1.50, ke 0.80–1.25, Vmax 0.67–1.50, Km 0.2–5, V2 0.90–1.11)는 참값 비가 두 경계를 모두 덮도록 설정", 2))
+print(kt(rd("oc", "random_space_truth_distribution.csv"), sprintf("무작위 공간 참값 비 분포(보조 지표): 범위(로그 균등 %s)는 참값 비가 두 경계를 모두 덮도록 설정", rs_rng_txt), 2))
 rk <- rd("oc", "random_space_risks.csv")
-if (!is.null(rk)) print(kt(rk[config %in% c("P2", "F3A", "F3B", "F3C", "G2", "AUClast_only", "AUCinf_only")], "소비자·생산자 위험 (%, Wilson 95% 구간). 경계 근처: 소비자 0.75 ≤ 참값 < 0.80 또는 1.25 < 참값 ≤ 1.33, 생산자 0.80–0.85 또는 1.18–1.25", 2))
+if (!is.null(rk)) print(kt(rk[config %in% c("P2", "F3A", "F3B", "F3C", "G2", "AUClast_only", "AUCinf_only")], "소비자·생산자 위험 (%, Wilson 95% 구간; 보조 지표, 가정한 가상 제품 분포에 의존). 경계 근처: 소비자 0.75 ≤ 참값 < 0.80 또는 1.25 < 참값 ≤ 1.33, 생산자 0.80–0.85 또는 1.18–1.25", 2))
 imgs(proj_path("results", "oc", sprintf("fig3C_random_space_%s.png", c("k2016", "k2020"))))
 ```
 

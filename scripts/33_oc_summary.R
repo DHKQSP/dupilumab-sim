@@ -1,6 +1,8 @@
 #!/usr/bin/env Rscript
 # §3–§4 요약: 운용특성 곡선, 경계 1종 오류, 검정력, 무작위 제품 공간의 소비자·생산자 위험, 세 구성 비교, 그림 3-A~3-D, 자동 문구.
 # 입력: results/oc/ (30·31·32 산출물), config/oc_design.yaml. 사전 고정 커밋 해시는 git에서 읽는다.
+# 적응적 연장(scripts/42): extension_decision.csv와 oc_trials_ext_be_<model>.csv.gz가 있으면 연장 시험(원래 6개 평가변수)을 붙여 그 시나리오를
+# 전체 시험 수로 계산한다(표의 n_trials, 그림 부제, 자동 문구는 실제 시험 수). 없으면 사전 고정 시험만 쓴다.
 source("R/00_setup.R"); source_project()
 suppressPackageStartupMessages(library(ggplot2))
 args <- commandArgs(trailingOnly = TRUE)
@@ -21,11 +23,38 @@ inv_all <- rbindlist(lapply(list.files(out_dir, pattern = "^inversion_k20(16|20)
 fwrite(inv_all[order(model, mechanism, direction, target)], file.path(out_dir, "inversion_all.csv"))
 
 cfg_pass <- function(be) { w <- config_pass(be, oc); w }
-tab_all <- list(); bnd_all <- list(); pow_all <- list(); comp_all <- list(); gmr_all <- list()
+# 적응적 연장(scripts/42, R/oc.R oc_extension_select): extension_decision.csv와 oc_trials_ext_be_<model>.csv.gz가 있으면 연장 시험(원래 6개 평가변수만)을
+# 저장본에 붙여 그 시나리오의 통과율을 전체 시험 수(예: 20,000회)로 계산한다. 사전 고정 10,000회 파일은 그대로 두고, 판정 파일이 자료와 같은지 검사한다.
+N_BND <- as.integer(oc$trials$reps_boundary)
+dec_f <- file.path(out_dir, "extension_decision.csv"); DEC <- if (file.exists(dec_f)) fread(dec_f) else NULL
+EXT <- list()                                                       # (모델, 연장 선택 시나리오)별 시험 수: n_before, n_ext, n_after(목표)
+tab_all <- list(); bnd_all <- list(); pow_all <- list(); comp_all <- list(); gmr_all <- list(); ntr_all <- list()
 for (mdl in models) {
   be <- fread(file.path(out_dir, sprintf("oc_trials_be_%s.csv.gz", mdl)))
   sc <- fread(file.path(out_dir, sprintf("oc_scenarios_%s.csv", mdl)))
+  ext_f <- file.path(out_dir, sprintf("oc_trials_ext_be_%s.csv.gz", mdl))
+  sel_m <- if (is.null(DEC)) DEC else DEC[model == mdl & selected == TRUE]
+  if (file.exists(ext_f)) {
+    if (is.null(DEC)) stop("연장 파일이 있는데 extension_decision.csv가 없습니다: ", ext_f)
+    ext <- fread(ext_f)
+    if (!identical(names(ext), names(be))) stop("연장 파일의 열이 저장본과 다릅니다: ", ext_f)
+    ext <- ext[endpoint %in% OC_ENDPOINTS]
+    if (!all(unique(ext$scenario) %in% sel_m$scenario)) stop(sprintf("%s: 연장 파일에 규칙이 고르지 않은 시나리오가 있습니다: %s", mdl, paste(setdiff(unique(ext$scenario), sel_m$scenario), collapse = ",")))
+    for (sc_ in unique(ext$scenario)) {                              # 사전 고정 시험 1..n_before 다음에 빈틈·중복 없이 이어지고 평가변수 6개가 모두 있어야 한다
+      nb <- sel_m[scenario == sc_, n_before]
+      pre <- be[scenario == sc_, .(n = .N), by = trial]; et <- ext[scenario == sc_, .(n = .N, n_ep = uniqueN(endpoint)), by = trial]
+      if (!identical(sort(pre$trial), seq_len(nb)) || any(pre$n != length(OC_ENDPOINTS)) || !identical(sort(et$trial), nb + seq_len(nrow(et))) ||
+          any(et$n != length(OC_ENDPOINTS)) || any(et$n_ep != length(OC_ENDPOINTS)))
+        stop(sprintf("%s %s: 연장 시험(%d개)이 사전 고정 시험 1-%d 뒤에 완전하게 이어지지 않습니다", mdl, sc_, nrow(et), nb))
+    }
+    be <- rbind(be, ext); rm(ext)
+  }
+  if (!is.null(sel_m)) for (sc_ in sel_m$scenario) {
+    n_all <- uniqueN(be[scenario == sc_, trial]); r_ <- sel_m[scenario == sc_]
+    EXT[[paste(mdl, sc_)]] <- data.table(model = mdl, scenario = sc_, n_before = r_$n_before, n_ext = n_all - r_$n_before, n_after = r_$n_after)
+  }
   w <- cfg_pass(be)
+  ntr_all[[mdl]] <- be[, .(model = mdl, n_unique = uniqueN(trial)), by = scenario]   # 시나리오별 실제 시험 수(문구 전제 검사용)
   long <- melt(w, id.vars = c("trial", "scenario"), measure.vars = paste0("cfg_", CFG), variable.name = "config", value.name = "pass")
   long[, config := sub("^cfg_", "", config)]
   tab <- long[, { wc <- wilson_ci(sum(pass), .N); .(n_trials = .N, pass_pct = wc$est, lo = wc$lo, hi = wc$hi) }, by = .(scenario, config)]
@@ -36,6 +65,14 @@ for (mdl in models) {
   # (b) 경계 1종 오류
   bt <- tab[abs(target - bnd[1]) < 1e-9 | abs(target - bnd[2]) < 1e-9]
   bnd_all[[mdl]] <- bt
+  # 전제: 연장 판정 파일 = 사전 고정 시험(1..reps_boundary)의 P2 값에 규칙을 적용한 결과(값·선택이 이 자료에서 다시 계산한 것과 같다)
+  if (!is.null(DEC)) {
+    p10 <- w[scenario %in% bt$scenario & trial <= N_BND, { wc <- wilson_ci(sum(cfg_P2), .N); .(model = mdl, config = "P2", n_trials = .N, pass_pct = wc$est, lo = wc$lo, hi = wc$hi) }, by = scenario]
+    chk <- oc_extension_select(p10, N_BND, max(c(DEC$n_after, N_BND + 1L)), cfg = "P2", threshold = DEC$threshold[1])
+    m_ <- merge(chk[, .(scenario, selected, pass_pct, lo, hi)], DEC[model == mdl, .(scenario, sel0 = selected, p0 = pass_pct, lo0 = lo, hi0 = hi)], by = "scenario", all = TRUE)
+    if (nrow(m_) != uniqueN(bt$scenario) || anyNA(m_) || !identical(m_$selected, m_$sel0) || any(abs(m_$pass_pct - m_$p0) > 1e-9) || any(abs(m_$lo - m_$lo0) > 1e-9) || any(abs(m_$hi - m_$hi0) > 1e-9))
+      stop(sprintf("%s: extension_decision.csv가 사전 고정 %s회 자료의 P2 판정과 다릅니다", mdl, format(N_BND, big.mark = ",")))
+  }
   # (c) 검정력: 1.00(동일 제품), 0.95, 1.05
   pow_all[[mdl]] <- tab[abs(target - 1) < 1e-9 | abs(target - 0.95) < 1e-9 | abs(target - 1.05) < 1e-9]
   # 4절 구성 비교: 같은 시험의 쌍대 차이 (P2 − F3x: 추가 보호/추가 탈락, G2 − P2)
@@ -56,7 +93,7 @@ for (mdl in models) {
   g[, rel_bias_pct := 100 * (gmr_geo / truth - 1)][, model := mdl]
   gmr_all[[mdl]] <- g
 }
-tab_all <- rbindlist(tab_all); bnd_all <- rbindlist(bnd_all); pow_all <- rbindlist(pow_all); comp_all <- rbindlist(comp_all)
+NTR <- rbindlist(ntr_all); tab_all <- rbindlist(tab_all); bnd_all <- rbindlist(bnd_all); pow_all <- rbindlist(pow_all); comp_all <- rbindlist(comp_all)
 gmr_all <- rbindlist(gmr_all); if (nrow(gmr_all)) fwrite(gmr_all[order(model, mechanism, direction, target, endpoint)], file.path(out_dir, "gmr_by_endpoint.csv"))
 fwrite(tab_all, file.path(out_dir, "oc_curves.csv")); fwrite(bnd_all, file.path(out_dir, "boundary_type1.csv"))
 fwrite(pow_all, file.path(out_dir, "power.csv")); fwrite(comp_all, file.path(out_dir, "config_comparison.csv"))
@@ -103,20 +140,24 @@ if (length(rs_models)) {
                      truth_se_log_median = median(auc_se_log), truth_se_log_p95 = quantile(auc_se_log, 0.95)), by = model], file.path(out_dir, "random_space_truth_distribution.csv"))
 }
 
+# 무작위 제품 공간의 가정 분포(config random_space.ranges, 기전별 배율 로그 균등) 문구: 그림 3-C 부제와 결론 문단(보조 지표). R/summarize.R
+rs_ranges_text <- function(sep) random_space_ranges_text(oc, sep)
 # ----- 그림 3-A~3-D: 한국어(보고서)와 영문(summary_en.md, 파일명 _en) 두 벌. 색 + 선 모양 + 점 모양으로 구성 식별 ------------------------------
 FX <- list(
-  ko = list(model = MODEL_LABEL, cfg = CFG_LABEL, cap_n = "시험 반복: 경계·동일 제품 %s회, 나머지 %s회, arm당 117명, B0, 60–90 kg", xA = "참 AUC0-inf 비 (로그 척도, 200,000명 공통 난수)", yA = "통과 확률 (%)",
+  ko = list(model = MODEL_LABEL, cfg = CFG_LABEL, cap_n = "시험 반복: 경계·동일 제품 %s, 나머지 %s\narm당 117명, B0, 60–90 kg", xA = "참 AUC0-inf 비 (로그 척도, 200,000명 공통 난수)", yA = "통과 확률 (%)",
             tA = "그림 3-A. 기전별 운용특성 곡선 — %s", sA = ".\n세로선 0.80·1.25, 가로선 5%", same = "동일", panel = "참값 %.2f · %s %s (×%.3g)", yB = "경계 1종 오류 (%, Wilson 95% 구간)",
-            tB = "그림 3-B. 경계 1종 오류 — %s", sB = "기전 × 구성, 경계 시나리오 각 %s회. 점선 = 5%%. 막대 아래 구성 이름으로 식별", yC1 = "제품 수", tC = "그림 3-C. 무작위 제품 공간 — %s",
-            sC = "라틴 하이퍼큐브 %s개 제품(기전별 로그 균등), 제품당 시험 1회, 제품별 참값 1,000명 공통 난수.\n위: 참 AUC0-inf 비 분포, 아래: 구간별 통과율(점, n ≥ 20)과 로지스틱 평활(선)",
+            tB = "그림 3-B. 경계 1종 오류 — %s", sB = "기전 × 구성, 경계 시나리오 시험 수 %s.\n점선 = 5%%. 막대 아래 구성 이름으로 식별", panel_n = "\n%s회", yC1 = "제품 수", tC = "그림 3-C. 무작위 제품 공간(보조 지표) — %s",
+            sC = "보조 지표: 소비자·생산자 위험은 가정한 가상 제품 분포(기전별 배율 로그 균등)에 의존한다.\n%s\n라틴 하이퍼큐브 %s개 제품, 제품당 시험 1회, 제품별 참값 %s명 공통 난수",
+            cC = "위: 참 AUC0-inf 비 분포, 아래: 구간별 통과율(점, n ≥ 20)과 로지스틱 평활(선)", rsep = "–",
             xC = "참 AUC0-inf 비 (로그)", yC = "통과율 (%)", xD = "목표 참 AUC0-inf 비 (로그)", yD = "필요한 시험군 배율 (로그)", tD = "그림 3-D. 목표 참값 비에 필요한 기전별 배율",
             sD = "×: 탐색 범위 끝에서도 도달 불가(표시 위치 = 범위 끝 배율). 200,000명 공통 난수, 이분법 ±0.1%"),
   en = list(model = c(k2016 = "Kovalenko 2016 (primary)", k2020 = "Kovalenko 2020 Model 1"), cfg = c(CFG_LABEL[1:5], AUClast_only = "AUClast only", AUCinf_only = "AUCinf only"),
-            cap_n = "Trials: boundary and identical-product scenarios %s each, others %s each; 117 per arm, B0, 60 to 90 kg", xA = "True AUC0-inf ratio (log scale, 200,000 CRN subjects)", yA = "Pass probability (%)",
+            cap_n = "Trials: boundary and identical-product scenarios %s, others %s\n117 per arm, B0, 60 to 90 kg", xA = "True AUC0-inf ratio (log scale, 200,000 CRN subjects)", yA = "Pass probability (%)",
             tA = "Figure 3-A. Operating characteristic curves by mechanism, %s", sA = ".\nVertical lines 0.80 and 1.25, horizontal line 5%", same = "identical", panel = "True %.2f · %s %s (x%.3g)",
-            yB = "Boundary type I error (%, Wilson 95% CI)", tB = "Figure 3-B. Boundary type I error, %s", sB = "Mechanism by configuration, %s trials per boundary scenario. Dashed line = 5%%. Configurations named under the bars",
-            yC1 = "Products", tC = "Figure 3-C. Random product space, %s",
-            sC = "Latin hypercube, %s products (log-uniform per mechanism), one trial each, truth per product from 1,000 CRN subjects.\nTop: true AUC0-inf ratio; bottom: pass rate per bin (points, n >= 20) and logistic smooth (lines)",
+            yB = "Boundary type I error (%, Wilson 95% CI)", tB = "Figure 3-B. Boundary type I error, %s", sB = "Mechanism by configuration; trials per boundary scenario %s.\nDashed line = 5%%. Configurations named under the bars", panel_n = "\n%s trials",
+            yC1 = "Products", tC = "Figure 3-C. Random product space (secondary metric), %s",
+            sC = "Secondary metric: the risks depend on the assumed virtual product distribution (log-uniform multipliers).\n%s\nLatin hypercube, %s products, one trial each, truth per product from %s CRN subjects",
+            cC = "Top: true AUC0-inf ratio; bottom: pass rate per bin (points, n >= 20) and logistic smooth (lines)", rsep = " to ",
             xC = "True AUC0-inf ratio (log)", yC = "Pass rate (%)", xD = "Target true AUC0-inf ratio (log)", yD = "Required test-arm multiplier (log)", tD = "Figure 3-D. Multiplier required for each target true ratio, by mechanism",
             sD = "x: not reachable even at the end of the search range (plotted at the range-end multiplier).\n200,000 CRN subjects, bisection to within 0.1%"))
 cols4 <- c(P2 = VIZ$s1, F3A = VIZ$s2, F3C = VIZ$s3, G2 = "#eda100"); lt4 <- c(P2 = "solid", F3A = "22", F3C = "42", G2 = "12"); sh4 <- c(P2 = 16, F3A = 17, F3C = 15, G2 = 18)
@@ -126,8 +167,8 @@ for (lg in names(FX)) {
   cL <- setNames(cols4, T_$cfg[names(cols4)]); lL <- setNames(lt4, T_$cfg[names(lt4)]); sL <- setNames(sh4, T_$cfg[names(sh4)])
   for (mdl in models) {
     x <- tab_all[model == mdl & config %in% names(cols4)]
-    isb <- x$scenario == "S00" | abs(x$target - bnd[1]) < 1e-9 | abs(x$target - bnd[2]) < 1e-9      # 캡션의 반복 수는 실제 시험 수
-    cap_n <- sprintf(T_$cap_n, format(max(x$n_trials[isb]), big.mark = ","), format(if (any(!isb)) max(x$n_trials[!isb]) else 0, big.mark = ","))
+    isb <- x$scenario == "S00" | abs(x$target - bnd[1]) < 1e-9 | abs(x$target - bnd[2]) < 1e-9      # 캡션의 반복 수는 실제 시험 수(최빈 수 + 적응적 연장 등 예외)
+    cap_n <- sprintf(T_$cap_n, oc_n_trials_text(x[isb], lg, DEC), if (any(!isb)) oc_n_trials_text(x[!isb], lg, DEC) else if (lg == "ko") "없음" else "none")
     s0 <- x[scenario == "S00"]
     xx <- rbind(x[mechanism %in% MECH], rbindlist(lapply(MECH, function(mc) copy(s0)[, mechanism := mc])))
     xx[, config := factor(config, levels = names(cols4), labels = T_$cfg[names(cols4)])]
@@ -145,11 +186,13 @@ for (lg in names(FX)) {
       b[, config := factor(config, levels = cfg5, labels = T_$cfg[cfg5])]
       # 패널 = 참값 경계 × 기전(도달 방향 표시). 빈 패널 없이 참값 0.80 줄, 1.25 줄
       b[, panel := sprintf(T_$panel, target, mechanism, fifelse(direction == "down", "↓", "↑"), multiplier)]
+      nb0 <- b[, .N, by = n_trials][order(-N, n_trials)]$n_trials[1]                               # 최빈 시험 수와 다른 패널(적응적 연장 등)은 패널 이름에 시험 수
+      b[n_trials != nb0, panel := paste0(panel, sprintf(T_$panel_n, format(n_trials, big.mark = ",")))]
       b[, panel := factor(panel, levels = unique(b[order(target, match(mechanism, MECH), direction), panel]))]
       g <- ggplot(b, aes(config, pass_pct, fill = config)) + geom_col(width = 0.7) + geom_errorbar(aes(ymin = lo, ymax = hi), width = 0.25, colour = VIZ$ink2) +
         geom_hline(yintercept = 5, colour = VIZ$ink, linetype = "22") + geom_text(aes(label = sprintf("%.1f", pass_pct), y = hi), vjust = -0.4, size = 2.5, colour = VIZ$ink2) +
         scale_fill_manual(values = fill5, guide = "none") + facet_wrap(~panel, ncol = max(b[, uniqueN(panel), by = target]$V1)) +   # 한 줄 = 한 경계(0.80이 더 많을 때) scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
-        labs(x = NULL, y = T_$yB, title = sprintf(T_$tB, T_$model[[mdl]]), subtitle = sprintf(T_$sB, format(max(b$n_trials), big.mark = ","))) +
+        labs(x = NULL, y = T_$yB, title = sprintf(T_$tB, T_$model[[mdl]]), subtitle = sprintf(T_$sB, oc_n_trials_text(b, lg, DEC))) +
         theme_dupi() + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 7))
       ggsave(file.path(fig_dir, sprintf("fig3B_boundary_type1_%s%s.png", mdl, sfx)), g, width = 12, height = 6, dpi = 120)
     }
@@ -163,12 +206,13 @@ for (lg in names(FX)) {
     pd <- rbindlist(rs_prod_all)[model == mdl]
     xl <- range(pd$true_auc_ratio) * c(0.98, 1.02)   # 모든 제품이 보이도록 자료 범위로
     g1 <- ggplot(pd, aes(true_auc_ratio)) + geom_histogram(bins = 80, fill = VIZ$s1) + geom_vline(xintercept = bnd, colour = VIZ$ink, linetype = "22") +
-      scale_x_log10(limits = xl) + labs(x = NULL, y = T_$yC1, title = sprintf(T_$tC, T_$model[[mdl]]), subtitle = sprintf(T_$sC, format(nrow(pd), big.mark = ","))) + theme_dupi()
+      scale_x_log10(limits = xl) + labs(x = NULL, y = T_$yC1, title = sprintf(T_$tC, T_$model[[mdl]]),
+                                        subtitle = sprintf(T_$sC, rs_ranges_text(T_$rsep), format(nrow(pd), big.mark = ","), format(oc$random_space$truth_subjects, big.mark = ","))) + theme_dupi()
     g2 <- ggplot() + geom_vline(xintercept = bnd, colour = VIZ$muted) + geom_hline(yintercept = 5, colour = VIZ$muted, linetype = "22") +
       geom_point(data = bb, aes(ratio, pass_pct, colour = config, shape = config), size = 1.6, alpha = 0.8) +
       geom_line(data = sm, aes(ratio, pass_pct, colour = config, linetype = config), linewidth = 0.7) +
       scale_x_log10(limits = xl) + scale_colour_manual(values = c4, name = NULL) + scale_linetype_manual(values = l4, name = NULL) + scale_shape_manual(values = s4, name = NULL) +
-      labs(x = T_$xC, y = T_$yC) + theme_dupi()
+      labs(x = T_$xC, y = T_$yC, caption = T_$cC) + theme_dupi()
     png(file.path(fig_dir, sprintf("fig3C_random_space_%s%s.png", mdl, sfx)), width = 10 * 120, height = 8 * 120, res = 120)
     grid::grid.newpage(); grid::pushViewport(grid::viewport(layout = grid::grid.layout(5, 1)))
     print(g1, vp = grid::viewport(layout.pos.row = 1:2, layout.pos.col = 1)); print(g2, vp = grid::viewport(layout.pos.row = 3:5, layout.pos.col = 1)); dev.off()
@@ -189,28 +233,58 @@ for (lg in names(FX)) {
 cat("summary written\n"); print(bnd_all[config %in% c("P2", "F3A", "F3C", "G2"), .(model, mechanism, direction, target, config, pass_pct, lo, hi)], digits = 3)
 
 # ----- 자동 결론 문구(한국어·영문). 고정 문구의 전제는 결과로 검사하고 어긋나면 중단한다(§4) ---------------------------------
-f1 <- function(x) formatC(x, format = "f", digits = 1); f2 <- function(x) formatC(x, format = "f", digits = 2)
+f1 <- function(x) formatC(x, format = "f", digits = 1); f2 <- function(x) formatC(x, format = "f", digits = 2); fmt_int <- function(x) format(as.integer(x), big.mark = ",", trim = TRUE)
 MECH_KO <- c(F = "F(흡수량)", ka = "ka(흡수 속도)", ke = "ke(선형 소실)", Vmax = "Vmax(표적 매개 소실)", Km = "Km(결합)", V2 = "V2(분포)")
 MECH_EN <- c(F = "bioavailability (F)", ka = "absorption rate (ka)", ke = "linear elimination (ke)", Vmax = "target-mediated elimination capacity (Vmax)", Km = "binding constant (Km)", V2 = "peripheral volume (V2)")
 ko <- c(); en <- c()
 if (nrow(bnd_all)) {
   p2 <- bnd_all[config == "P2"]
   ex <- p2[pass_pct > 5][order(-pass_pct)]
+  ML_EN <- c(k2016 = "2016 model", k2020 = "Model 1")
+  # 적응적 연장 문장(extension_decision.csv가 있을 때): 선택된 시나리오의 사전 고정 수 값과 연장 후 값. 연장 후 값은 위 표(p2)에서, 전 값은 판정 파일(자료와 같음을 위에서 검사)
+  ext_ko <- ""; ext_en <- ""
+  if (!is.null(DEC)) {
+    ds <- DEC[selected == TRUE & model %in% models]; ex_t <- if (length(EXT)) rbindlist(EXT) else NULL
+    n_to_ <- as.integer(sub(".* to ([0-9]+) trials$", "\\1", DEC$rule[1])); stopifnot(!is.na(n_to_), length(unique(DEC$rule)) == 1)
+    rule_ko <- sprintf("사전 고정 %s회의 P2 Wilson 95%% 구간이 5%%를 포함한 경계 시나리오를 %s회로 늘림; 5,000회 제품 시나리오와 같은 규칙을 모든 모델에 적용, scripts/42", fmt_int(N_BND), fmt_int(n_to_))
+    rule_en <- sprintf("the rule of the 5,000-trial product scenarios applied to every model: a boundary scenario whose P2 Wilson 95%% CI at the pre-registered %s trials includes 5%% is extended to %s trials; scripts/42", fmt_int(N_BND), fmt_int(n_to_))
+    if (!nrow(ds)) {
+      stopifnot(!any(DEC$lo <= DEC$threshold & DEC$hi >= DEC$threshold))
+      ext_ko <- sprintf(" 적응적 연장(%s): 해당 시나리오 없음.", rule_ko); ext_en <- sprintf(" Adaptive extension (%s): no scenario met the rule.", rule_en)
+    } else {
+      it_ko <- character(0); it_en <- character(0)
+      for (i in seq_len(nrow(ds))) {
+        d_ <- ds[i]; e_ <- ex_t[model == d_$model & scenario == d_$scenario]; a_ <- p2[model == d_$model & scenario == d_$scenario]
+        stopifnot(nrow(e_) == 1, nrow(a_) == 1, a_$n_trials == e_$n_before + e_$n_ext, d_$lo <= d_$threshold, d_$hi >= d_$threshold)
+        lab_ko <- sprintf("%s %s %s %.2f", MODEL_LABEL[[d_$model]], d_$mechanism, c(down = "하향", up = "상향")[[d_$direction]], d_$target)
+        lab_en <- sprintf("%s %s %s %.2f", ML_EN[[d_$model]], d_$mechanism, d_$direction, d_$target)
+        before_ko <- sprintf("%s회 %s%% [%s, %s]", fmt_int(d_$n_before), f2(d_$pass_pct), f2(d_$lo), f2(d_$hi))
+        before_en <- sprintf("%s%% (95%% CI %s to %s) at %s trials", f2(d_$pass_pct), f2(d_$lo), f2(d_$hi), fmt_int(d_$n_before))
+        if (e_$n_ext == 0) { it_ko <- c(it_ko, sprintf("%s — %s, 연장 미실행", lab_ko, before_ko)); it_en <- c(it_en, sprintf("%s: %s, extension not yet run", lab_en, before_en)); next }
+        prog_ko <- if (a_$n_trials < d_$n_after) sprintf("(진행 중, 목표 %s회)", fmt_int(d_$n_after)) else ""
+        prog_en <- if (a_$n_trials < d_$n_after) sprintf(" (in progress, target %s)", fmt_int(d_$n_after)) else ""
+        it_ko <- c(it_ko, sprintf("%s — %s → %s회%s %s%% [%s, %s]", lab_ko, before_ko, fmt_int(a_$n_trials), prog_ko, f2(a_$pass_pct), f2(a_$lo), f2(a_$hi)))
+        it_en <- c(it_en, sprintf("%s: %s, then %s%% (95%% CI %s to %s) at %s trials%s", lab_en, before_en, f2(a_$pass_pct), f2(a_$lo), f2(a_$hi), fmt_int(a_$n_trials), prog_en))
+      }
+      ext_ko <- sprintf(" 적응적 연장(%s): %s.", rule_ko, paste(it_ko, collapse = "; ")); ext_en <- sprintf(" Adaptive extension (%s): %s.", rule_en, paste(it_en, collapse = "; "))
+    }
+  }
   if (nrow(ex)) {
-    stopifnot(all(ex$pass_pct > 5))
-    ko <- c(ko, sprintf("**P2(AUClast + Cmax)의 경계 1종 오류가 5%%를 넘는 경우가 있다.** %s. 해당 기전·크기·구간은 3절 표와 그림 3-B에 있다.",
-                        paste(sprintf("%s %s, 참값 %.2f(배율 %.3g): %s%% [%s, %s]%s", MODEL_LABEL[ex$model], MECH_KO[ex$mechanism], ex$target, ex$multiplier, f1(ex$pass_pct), f1(ex$lo), f1(ex$hi),
-                                      fifelse(ex$lo > 5, " — 구간 하한도 5% 초과", "")), collapse = "; ")))
-    en <- c(en, sprintf("**The boundary type I error of P2 (AUClast + Cmax) exceeds 5%% in some cases.** %s.",
-                        paste(sprintf("%s, %s, true ratio %.2f (multiplier %.3g): %s%% (95%% CI %s to %s)%s", c(k2016 = "2016 model", k2020 = "Model 1")[ex$model], MECH_EN[ex$mechanism], ex$target, ex$multiplier,
-                                      f1(ex$pass_pct), f1(ex$lo), f1(ex$hi), fifelse(ex$lo > 5, ", lower bound also above 5%", "")), collapse = "; ")))
+    # 전제: 점추정 > 5%만 나열. 시험 수는 그 시나리오의 실제 수(연장 시나리오는 연장 후), 하한 문구는 Wilson 하한 > 5% 여부로 고른다
+    stopifnot(all(ex$pass_pct > 5), all(ex$n_trials == NTR[ex, on = c("model", "scenario"), n_unique]))
+    ko <- c(ko, sprintf("**P2(AUClast + Cmax)의 경계 1종 오류가 5%%를 넘는 경우가 있다.** %s. 해당 기전·크기·구간은 3절 표와 그림 3-B에 있다.%s",
+                        paste(sprintf("%s %s, 참값 %.2f(배율 %.3g): %s%% [%s, %s], 시험 %s회 — %s", MODEL_LABEL[ex$model], MECH_KO[ex$mechanism], ex$target, ex$multiplier, f2(ex$pass_pct), f2(ex$lo), f2(ex$hi),
+                                      fmt_int(ex$n_trials), fifelse(ex$lo > 5, "Wilson 하한도 5% 초과", "Wilson 하한은 5% 이하")), collapse = "; "), ext_ko))
+    en <- c(en, sprintf("**The boundary type I error of P2 (AUClast + Cmax) exceeds 5%% in some cases.** %s.%s",
+                        paste(sprintf("%s, %s, true ratio %.2f (multiplier %.3g): %s%% (95%% CI %s to %s, %s trials), %s", ML_EN[ex$model], MECH_EN[ex$mechanism], ex$target, ex$multiplier,
+                                      f2(ex$pass_pct), f2(ex$lo), f2(ex$hi), fmt_int(ex$n_trials), fifelse(ex$lo > 5, "Wilson lower bound also above 5%", "Wilson lower bound not above 5%")), collapse = "; "), ext_en))
   } else {
     mx <- p2[which.max(pass_pct)]
     stopifnot(max(p2$pass_pct) <= 5)
-    ko <- c(ko, sprintf("P2(AUClast + Cmax)의 경계 1종 오류는 모든 기전·방향·모델에서 5%% 이하다(%d개 경계 시나리오, 각 %s회). 최대 %s%% [%s, %s]: %s %s, 참값 %.2f.",
-                        nrow(p2), format(min(p2$n_trials), big.mark = ","), f1(mx$pass_pct), f1(mx$lo), f1(mx$hi), MODEL_LABEL[[mx$model]], MECH_KO[[mx$mechanism]], mx$target))
-    en <- c(en, sprintf("The boundary type I error of P2 (AUClast + Cmax) is at most 5%% for every mechanism, direction and model (%d boundary scenarios, %s trials each); the largest is %s%% (95%% CI %s to %s) for %s, %s, true ratio %.2f.",
-                        nrow(p2), format(min(p2$n_trials), big.mark = ","), f1(mx$pass_pct), f1(mx$lo), f1(mx$hi), c(k2016 = "the 2016 model", k2020 = "Model 1")[[mx$model]], MECH_EN[[mx$mechanism]], mx$target))
+    ko <- c(ko, sprintf("P2(AUClast + Cmax)의 경계 1종 오류는 모든 기전·방향·모델에서 5%% 이하다(%d개 경계 시나리오, 시험 수 %s). 최대 %s%% [%s, %s]: %s %s, 참값 %.2f.%s",
+                        nrow(p2), oc_n_trials_text(p2, "ko", DEC, MODEL_LABEL), f2(mx$pass_pct), f2(mx$lo), f2(mx$hi), MODEL_LABEL[[mx$model]], MECH_KO[[mx$mechanism]], mx$target, ext_ko))
+    en <- c(en, sprintf("The boundary type I error of P2 (AUClast + Cmax) is at most 5%% for every mechanism, direction and model (%d boundary scenarios, trials %s); the largest is %s%% (95%% CI %s to %s) for %s, %s, true ratio %.2f.%s",
+                        nrow(p2), oc_n_trials_text(p2, "en", DEC, ML_EN), f2(mx$pass_pct), f2(mx$lo), f2(mx$hi), c(k2016 = "the 2016 model", k2020 = "Model 1")[[mx$model]], MECH_EN[[mx$mechanism]], mx$target, ext_en))
   }
   g2 <- bnd_all[config == "G2"]; exg <- g2[pass_pct > 5]
   ko <- c(ko, sprintf("G2(AUCinf 규칙 A + Cmax)의 경계 1종 오류: 범위 %s–%s%%%s.", f1(min(g2$pass_pct)), f1(max(g2$pass_pct)),
@@ -255,17 +329,21 @@ if (nrow(pow_all)) {
 if (length(rs_models)) {
   rk <- rbindlist(risk_all)[config %in% c("P2", "F3A", "F3C", "G2")]
   lst <- function(x, d = 2, en = FALSE) paste(x[, sprintf(if (en) "%s %s%% (%s to %s)" else "%s %s%% [%s, %s]", CFG_LABEL[config], formatC(pct, format = "f", digits = d), formatC(lo, format = "f", digits = d), formatC(hi, format = "f", digits = d))], collapse = ", ")
+  # 보조 지표(지시 2026-09-25 §4): 무작위 제품 공간의 위험은 가정한 가상 제품 분포에 의존한다. 1차 지표는 경계 1종 오류
+  ko <- c(ko, sprintf("보조 지표: 무작위 제품 공간의 소비자·생산자 위험은 가정한 가상 제품 분포(라틴 하이퍼큐브, 기전별 배율 로그 균등 %s)에 의존한다. 1차 지표는 경계 1종 오류(기전 × 방향 × 구성 × 모델)다.", rs_ranges_text("–")))
+  en <- c(en, sprintf("Secondary metric: the consumer and producer risks of the random product space depend on the assumed distribution of virtual products (Latin hypercube, log-uniform multipliers %s). The primary metric is the boundary type I error (mechanism by direction by configuration by model).", rs_ranges_text(" to ")))
   for (mdl in rs_models) { x <- rk[model == mdl]; pd <- rbindlist(rs_prod_all)[model == mdl]
     cA <- x[truth == "AUC0-inf" & startsWith(metric, "소비자") & scope == "전체"]; cN <- x[truth == "AUC0-inf" & startsWith(metric, "소비자") & scope == "경계 근처"]
     pA <- x[truth == "AUC0-inf" & startsWith(metric, "생산자") & scope == "전체"]; pN <- x[truth == "AUC0-inf" & startsWith(metric, "생산자") & scope == "경계 근처"]
     pB <- x[truth != "AUC0-inf" & startsWith(metric, "생산자")]; cB <- x[truth != "AUC0-inf" & startsWith(metric, "소비자")]
-    ko <- c(ko, sprintf("무작위 제품 공간(%s, %s개 제품, 제품당 시험 1회; 참 AUC0-inf 비 범위 안 %s%%, 참 AUC0-inf·Cmax 모두 범위 안 %s%%): 소비자 위험(참 AUC0-inf 범위 밖 제품 중 통과, %s개) %s; 경계 근처(0.75–0.80, 1.25–1.33, %s개) %s. 생산자 위험(참 AUC0-inf 범위 안 제품 중 불통과, %s개) %s; 경계 근처(0.80–0.85, 1.18–1.25, %s개) %s. 참 AUC0-inf·Cmax 모두 기준: 소비자 위험 %s, 생산자 위험 %s.",
+    ko <- c(ko, sprintf("무작위 제품 공간(보조 지표; %s, %s개 제품, 제품당 시험 1회; 참 AUC0-inf 비 범위 안 %s%%, 참 AUC0-inf·Cmax 모두 범위 안 %s%%): 소비자 위험(참 AUC0-inf 범위 밖 제품 중 통과, %s개) %s; 경계 근처(0.75–0.80, 1.25–1.33, %s개) %s. 생산자 위험(참 AUC0-inf 범위 안 제품 중 불통과, %s개) %s; 경계 근처(0.80–0.85, 1.18–1.25, %s개) %s. 참 AUC0-inf·Cmax 모두 기준: 소비자 위험 %s, 생산자 위험 %s.",
       MODEL_LABEL[[mdl]], format(nrow(pd), big.mark = ","), f1(100 * mean(pd$inside)), f1(100 * mean(pd$inside_both)),
       format(cA$n_products[1], big.mark = ","), lst(cA), format(cN$n_products[1], big.mark = ","), lst(cN), format(pA$n_products[1], big.mark = ","), lst(pA, 1), format(pN$n_products[1], big.mark = ","), lst(pN, 1), lst(cB), lst(pB, 1)))
-    en <- c(en, sprintf("Random product space (%s, %s products, one trial each; true AUC0-inf ratio inside the limits for %s%%, true AUC0-inf and Cmax both inside for %s%%): consumer risk (pass among %s products with true AUC0-inf outside) %s; near the boundaries (0.75 to 0.80 and 1.25 to 1.33, %s products) %s. Producer risk (failure among %s products with true AUC0-inf inside) %s; near the boundaries (0.80 to 0.85 and 1.18 to 1.25, %s products) %s. Against the joint truth (AUC0-inf and Cmax): consumer risk %s, producer risk %s.",
+    en <- c(en, sprintf("Random product space (secondary metric; %s, %s products, one trial each; true AUC0-inf ratio inside the limits for %s%%, true AUC0-inf and Cmax both inside for %s%%): consumer risk (pass among %s products with true AUC0-inf outside) %s; near the boundaries (0.75 to 0.80 and 1.25 to 1.33, %s products) %s. Producer risk (failure among %s products with true AUC0-inf inside) %s; near the boundaries (0.80 to 0.85 and 1.18 to 1.25, %s products) %s. Against the joint truth (AUC0-inf and Cmax): consumer risk %s, producer risk %s.",
       c(k2016 = "2016 model", k2020 = "Model 1")[[mdl]], format(nrow(pd), big.mark = ","), f1(100 * mean(pd$inside)), f1(100 * mean(pd$inside_both)),
       format(cA$n_products[1], big.mark = ","), lst(cA, en = TRUE), format(cN$n_products[1], big.mark = ","), lst(cN, en = TRUE), format(pA$n_products[1], big.mark = ","), lst(pA, 1, TRUE),
       format(pN$n_products[1], big.mark = ","), lst(pN, 1, TRUE), lst(cB, en = TRUE), lst(pB, 1, TRUE))) }
 }
+stopifnot(!any(grepl("[ᄀ-ᇿ㄰-㆏가-힣]", en)), !any(grepl("—|–|−", en)))   # 영문: 한글·em dash·en dash·U+2212 없음
 writeLines(ko, file.path(out_dir, "oc_conclusion_ko.md")); writeLines(en, file.path(out_dir, "oc_conclusion_en.md"))
 cat(ko, sep = "\n\n")

@@ -239,3 +239,64 @@ config_pass_ext <- function(be, configs = OC_REJUDGE_CONFIGS) {
   }
   w[]
 }
+
+# --- (5) 적응적 연장 (지시 2026-09-25 §3) ----------------------------------------------------------------------------
+# 규칙(scripts/20_products_5000.R의 5,000회 제품 시나리오와 같은 적응적 상향을 모든 모델에 일반 적용): 사전 고정 reps_boundary(10,000)회의
+# 경계 1종 오류(구성 P2) Wilson 95% 구간이 임계 5%를 포함하면(lo ≤ 5 ≤ hi, 경계 포함) 그 (모델, 경계 시나리오)만 n_to(20,000)회로 늘린다.
+# 연장분은 별도 파일 oc_trials_ext_be_<model>.csv.gz(scripts/42)에 두어 사전 고정 10,000회 파일을 바꾸지 않는다.
+oc_extension_rule_text <- function(n_from, n_to, cfg = "P2", threshold = 5)
+  sprintf("%s boundary type I error Wilson 95%% CI at %d trials includes %g%% (lo <= %g <= hi) -> extend that boundary scenario to %d trials",
+          cfg, as.integer(n_from), threshold, threshold, as.integer(n_to))
+
+# bt: boundary_type1.csv 형식(model, scenario, config, n_trials, pass_pct, lo, hi[, mechanism, direction, target, multiplier]).
+# 반환: 구성 cfg의 모델 × 경계 시나리오별 한 행(n_before, pass_pct·lo·hi = n_from회 값, threshold, rule, selected, n_after = 목표 시험 수).
+# 모든 행의 n_trials가 n_from이어야 한다(규칙은 사전 고정 시험 수에서 판정한다. 연장 뒤의 표로 다시 판정하지 않는다).
+oc_extension_select <- function(bt, n_from, n_to, cfg = "P2", threshold = 5) {
+  need <- c("model", "scenario", "config", "n_trials", "pass_pct", "lo", "hi")
+  if (!all(need %in% names(bt))) stop("oc_extension_select: 경계 표에 열이 없습니다: ", paste(setdiff(need, names(bt)), collapse = ", "))
+  n_from <- as.integer(n_from); n_to <- as.integer(n_to)
+  if (is.na(n_to) || n_to <= n_from) stop(sprintf("oc_extension_select: 목표 시험 수(%s)가 %d보다 커야 합니다", n_to, n_from))
+  x <- as.data.table(bt)[bt$config == cfg]
+  if (!nrow(x)) stop(sprintf("oc_extension_select: 구성 %s 행이 없습니다", cfg))
+  if (anyDuplicated(x, by = c("model", "scenario"))) stop("oc_extension_select: (model, scenario) 중복")
+  if (anyNA(x$lo) || anyNA(x$hi) || anyNA(x$pass_pct)) stop("oc_extension_select: 통과율·구간에 NA")
+  if (any(x$n_trials != n_from)) stop(sprintf("oc_extension_select: 판정은 사전 고정 %d회 값으로 한다(n_trials가 다른 행 %d개)", n_from, sum(x$n_trials != n_from)))
+  keep <- intersect(c("model", "scenario", "mechanism", "direction", "target", "multiplier"), names(x))
+  out <- x[, c(keep, "n_trials", "pass_pct", "lo", "hi"), with = FALSE]
+  setnames(out, "n_trials", "n_before")
+  sel <- out$lo <= threshold & out$hi >= threshold
+  out[, `:=`(config = cfg, threshold = threshold, rule = oc_extension_rule_text(n_from, n_to, cfg, threshold), selected = sel)]
+  out[, n_after := ifelse(sel, n_to, n_from)]
+  setcolorder(out, c(keep, "config", "n_before", "pass_pct", "lo", "hi", "threshold", "rule", "selected", "n_after"))
+  out[order(model, scenario)][]
+}
+
+# 시험 수 문구(그림 캡션·자동 문구·보고서 공용): 시나리오 집합의 최빈 시험 수를 "N each"(ko "각 N회")로, 그와 다른 시나리오는 실제 수로 따로 적는다.
+# x: (model, scenario, mechanism, direction, target, n_trials) 행(시나리오당 여러 행이면 같은 n_trials여야 함). dec: extension_decision.csv(scripts/42) 또는 NULL.
+# 연장 선택되어 사전 고정 수보다 많은 시나리오는 "adaptive extension rule"(목표 미달이면 진행 중과 목표)을 붙인다. model_labels가 있으면 예외 항목 앞에 모델 이름.
+# exceptions_only = TRUE: 예외 항목만("; "로 연결, 없으면 "").
+oc_n_trials_text <- function(x, lang = c("en", "ko"), dec = NULL, model_labels = NULL, exceptions_only = FALSE) {
+  lang <- match.arg(lang)
+  u <- unique(as.data.table(x)[, c("model", "scenario", "mechanism", "direction", "target", "n_trials"), with = FALSE])
+  if (!nrow(u)) stop("oc_n_trials_text: 행이 없습니다")
+  if (anyDuplicated(u, by = c("model", "scenario"))) stop("oc_n_trials_text: 한 (모델, 시나리오)에 시험 수가 둘 이상")
+  fmt <- function(n) format(as.integer(n), big.mark = ",", trim = TRUE)
+  tb <- u[, .N, by = "n_trials"][order(-N, n_trials)]; n0 <- tb$n_trials[1]
+  base <- if (lang == "ko") sprintf("각 %s회", fmt(n0)) else sprintf("%s each", fmt(n0))
+  ex <- u[u$n_trials != n0][order(model, target, mechanism, direction)]
+  if (!nrow(ex)) return(if (exceptions_only) "" else base)
+  dir_l <- if (lang == "ko") c(down = "하향", up = "상향") else c(down = "down", up = "up")
+  items <- vapply(seq_len(nrow(ex)), function(i) {
+    r <- ex[i]
+    lab <- if (r$scenario == "S00") "S00" else sprintf("%s %s %.2f", r$mechanism, if (r$direction %in% names(dir_l)) dir_l[[r$direction]] else r$direction, r$target)
+    if (!is.null(model_labels)) lab <- paste(model_labels[[r$model]], lab)
+    d <- if (is.null(dec)) NULL else dec[dec$model == r$model & dec$scenario == r$scenario]
+    ext <- !is.null(d) && nrow(d) == 1 && isTRUE(d$selected) && r$n_trials > d$n_before
+    n_ <- fmt(r$n_trials)
+    if (!ext) { if (lang == "ko") sprintf("%s: %s회", lab, n_) else sprintf("%s: %s", lab, n_) }
+    else if (r$n_trials >= d$n_after) { if (lang == "ko") sprintf("%s: 적응적 연장 규칙으로 %s회", lab, n_) else sprintf("%s: %s by the adaptive extension rule", lab, n_) }
+    else if (lang == "ko") sprintf("%s: 적응적 연장 진행 중 %s회(목표 %s회)", lab, n_, fmt(d$n_after)) else sprintf("%s: %s so far, adaptive extension toward %s", lab, n_, fmt(d$n_after))
+  }, "")
+  if (exceptions_only) return(paste(items, collapse = "; "))
+  sprintf(if (lang == "ko") "%s(%s)" else "%s (%s)", base, paste(items, collapse = "; "))
+}

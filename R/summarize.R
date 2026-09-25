@@ -283,3 +283,209 @@ fmt_flag_pair <- function(i, ii, d = 1, unit = "%", sep = "–", signed = FALSE,
   one <- function(x) if (length(x) == 1 || isTRUE(all.equal(min(x), max(x)))) paste0(f(x[1]), unit) else paste0(f(min(x)), sep, f(max(x)), unit)
   sprintf("(i) %s [(ii) %s]", one(i), one(ii))
 }
+
+# ---------------------------------------------------------------------------------------------
+# 보고 우선순위와 핵심 문장(지시 2026-09-25 §4)의 수치. 보고서(요약표, Pillar 3 첫 문장, 역산 경계표)·summary_en(18)·key_numbers_en(37)이
+# 같은 값과 같은 전제 검사를 쓴다. 문구의 정성 주장(아래 premise)이 결과와 어긋나면 stop(). 입력 파일이 없으면 그 원소는 NULL.
+#   km      : 결합 상수(Km) 역산. oc/inversion_all.csv(없으면 oc/inversion_k20*_*.csv)의 탐색 범위 끝·도달 행(200,000명)과
+#             oc/inversion_scan_<모델>_Km.csv(스크리닝 20,000명)에서 참 AUC0-inf 비의 범위, 도달 가능한 목표와 그 배율
+#   inv_bnd : 모델 × 기전 × 경계 목표(0.80, 1.25): 도달 배율과 그 배율의 참 Cmax 비, 도달 불가면 목표 쪽 탐색 범위 끝 배율과 참값 비
+#   vm150, ke120: 예비 제품 시나리오(trials5000/products5000_props_base.csv, 주 모델). AUCinf 신뢰군은 플래그 세트 (ii).
+#             참값 비 = 같은 시험 대상자의 개인 모델 AUC0-inf 시험 GMR의 평균(fallback/consumer_risk.csv·discordance_classification.csv의
+#             true_ratio = rationale/pillar2_products_B0.csv GMR_mean_AUCinf_true). 200,000명 적분 참값(역산)과는 다른 정의
+#   p2max, g2max: 경계 1종 오류(oc/boundary_type1.csv) 최대 칸과 적응적 연장 판정(oc/extension_decision.csv가 있으면)
+key_facts <- function(root = proj_path("results"), oc = read_cfg("oc_design.yaml")) {
+  rd_ <- function(...) { f <- file.path(root, ...); if (file.exists(f)) fread(f) else NULL }
+  premise <- function(ok, msg) if (!isTRUE(all(ok))) stop("핵심 수치 문구의 전제가 결과와 다르다: ", msg, call. = FALSE)
+  bnd <- as.numeric(unlist(oc$boundary_targets)); MODELS <- c("k2016", "k2020")
+  out <- list(km = NULL, inv_bnd = NULL, vm150 = NULL, ke120 = NULL, p2max = NULL, g2max = NULL, bnd = bnd)
+  # 1. 역산(200,000명 공통 난수)
+  iv <- rd_("oc", "inversion_all.csv")
+  if (is.null(iv)) { fs <- list.files(file.path(root, "oc"), pattern = "^inversion_k20(16|20)_.*\\.csv$", full.names = TRUE); if (length(fs)) iv <- rbindlist(lapply(fs, fread), fill = TRUE) }
+  if (!is.null(iv) && nrow(iv)) {
+    ib <- iv[abs(target - bnd[1]) < 1e-9 | abs(target - bnd[2]) < 1e-9]
+    out$inv_bnd <- rbindlist(lapply(split(ib, by = c("model", "mechanism", "target")), function(g) {
+      lab <- sprintf("%s %s %.2f", g$model[1], g$mechanism[1], g$target[1]); tg <- g$target[1]
+      r <- g[reachable %in% TRUE]
+      premise(nrow(r) <= 1, paste0(lab, ": 경계 목표에 닿는 방향은 많아야 하나"))
+      if (nrow(r)) return(r[, .(model, mechanism, target, reachable = TRUE, direction, multiplier, auc_ratio, cmax_ratio, end_multiplier = NA_real_, end_auc_ratio = NA_real_, end_cmax_ratio = NA_real_)])
+      # 도달 불가: 목표 쪽(참값 비가 1에서 목표 방향으로 움직이는) 탐색 범위 끝 중 목표에 가장 가까운 것. 그 비가 목표에 못 미쳐야 한다
+      u <- g[is.finite(end_auc_ratio) & sign(log(end_auc_ratio)) == sign(log(tg))]
+      premise(nrow(u) >= 1, paste0(lab, ": 도달 불가인데 목표 쪽 탐색 범위 끝이 없다"))
+      u <- u[which.max(abs(log(end_auc_ratio)))]
+      premise(abs(log(u$end_auc_ratio)) < abs(log(tg)), paste0(lab, ": 도달 불가 방향의 범위 끝 참값 비가 목표에 못 미친다"))
+      u[, .(model, mechanism, target, reachable = FALSE, direction, multiplier = NA_real_, auc_ratio = NA_real_, cmax_ratio = NA_real_, end_multiplier, end_auc_ratio, end_cmax_ratio)] }))
+    kr <- iv[mechanism == "Km"]
+    if (nrow(kr)) {
+      rng_cfg <- as.numeric(unlist(oc$mechanisms$Km$range))
+      premise(setequal(unique(kr$model), MODELS), "Km 역산이 두 모델 모두에 있다")
+      ends <- unique(kr[is.finite(end_auc_ratio), .(model, direction, end_multiplier, end_auc_ratio, end_cmax_ratio)])
+      premise(nrow(ends) == 2 * length(MODELS) && !anyDuplicated(ends, by = c("model", "direction")), "Km 탐색 범위 끝(모델 × 방향)의 참값 비가 하나씩")
+      premise(abs(ends[direction == "down", end_multiplier] - rng_cfg[1]) < 1e-12 & abs(ends[direction == "up", end_multiplier] - rng_cfg[2]) < 1e-12,
+              sprintf("Km 탐색 범위 끝 = config 범위(×%s–×%s)", format(rng_cfg[1]), format(rng_cfg[2])))
+      reach <- kr[reachable %in% TRUE]
+      tg <- unique(reach$target)
+      premise(length(tg) == 1 && nrow(reach) == length(MODELS) && setequal(reach$model, MODELS), "Km으로 도달 가능한 사전 고정 목표는 하나이고 두 모델 모두 도달")
+      premise(reach$within_tol %in% TRUE, "Km 도달 행이 허용 오차(±0.1%) 안")
+      sc <- rbindlist(lapply(MODELS, function(m_) rd_("oc", sprintf("inversion_scan_%s_Km.csv", m_))))
+      if (nrow(sc)) premise(sc[order(multiplier), .(ok = all(diff(auc_ratio_screen) >= 0) || all(diff(auc_ratio_screen) <= 0)), by = model]$ok,
+                            "스크리닝 스캔에서 참 AUC0-inf 비가 Km 배율에 단조(범위 = 양 끝)")
+      vals <- c(ends$end_auc_ratio, reach$auc_ratio, if (nrow(sc)) sc$auc_ratio_screen)
+      rr <- range(vals)
+      premise(rr[1] > bnd[1] && rr[2] < bnd[2], "Km 탐색 범위 전체에서 참 AUC0-inf 비가 동등성 한계 안")
+      tl <- as.numeric(unlist(oc$targets)); tl <- tl[abs(tl - 1) > 1e-9]
+      premise(all(abs(unique(kr$target) - 1) > 1e-9) && setequal(round(unique(kr$target), 6), round(tl, 6)), "Km 역산 목표 = config targets(1.00 제외)")
+      premise(uniqueN(kr$n_subjects) == 1, "Km 역산(범위 끝·도달 행)의 참값 대상자 수가 하나(문구 'N명')")
+      out$km <- list(range_mult = rng_cfg, ratio = rr, target = tg, direction = unique(reach$direction),
+                     mult = setNames(reach$multiplier, reach$model)[MODELS], cmax = setNames(reach$cmax_ratio, reach$model)[MODELS],
+                     ends = ends, targets = range(tl), n_targets = length(tl), n_subjects = unique(kr$n_subjects),
+                     n_screen = if (nrow(sc)) as.integer(oc$inversion$screening_subjects) else NA_integer_)
+    }
+  }
+  # 2. 예비 제품 시나리오(주 모델, 5,000회 이상)
+  pr5 <- rd_("trials5000", "products5000_props_base.csv"); cr <- rd_("fallback", "consumer_risk.csv"); dc <- rd_("fallback", "discordance_classification.csv")
+  p2p <- rd_("rationale", "pillar2_products_B0.csv")
+  g5 <- function(s_, m_) { x <- pr5[pr5$scenario == s_ & pr5$metric == m_]; premise(nrow(x) == 1, sprintf("products5000_props_base.csv에 %s %s 행이 하나", s_, m_)); x }
+  if (!is.null(pr5) && !is.null(cr)) {
+    ri <- g5("VM150", "AUCinf_reliable"); rl <- g5("VM150", "AUClast"); tr <- cr[cr$scenario == "VM150"]
+    premise(nrow(tr) == 1 && tr$n_trials == ri$n_trials, "VM150 참값 비(consumer_risk.csv)가 같은 시험 수에서")
+    if (!is.null(p2p)) { pp <- p2p[p2p$model == "k2016" & p2p$scenario == "VM150" & p2p$n_trials == ri$n_trials]
+      premise(nrow(pp) == 1 && abs(pp$GMR_mean_AUCinf_true - tr$true_ratio) < 1e-9 && abs(pp$pass_rate_AUCinf_reliable - ri$est) < 1e-9 && abs(pp$pass_rate_AUClast - rl$est) < 1e-9,
+              "VM150: consumer_risk.csv true_ratio = pillar2_products_B0.csv GMR_mean_AUCinf_true, 통과율 = products5000_props_base.csv") }
+    premise(ri$est > 5, "VM150 AUCinf(신뢰군) 단독 통과율 > 명목 5%")
+    premise(tr$true_ratio < bnd[1], "VM150 참 AUC0-inf 비 < 0.80(범위 밖)")
+    premise(rl$hi < 5, "VM150 AUClast 단독 통과율의 Wilson 상한 < 5%")
+    premise(ri$n_trials >= 5000L && rl$n_trials == ri$n_trials, "VM150 시험 수 ≥ 5,000(문구 '5,000회 이상'), AUCinf·AUClast 같은 시험 수")
+    out$vm150 <- list(n_trials = ri$n_trials, rel = ri[, .(est, lo, hi)], last = rl[, .(est, lo, hi)], true_ratio = tr$true_ratio, rel_lo_gt5 = ri$lo > 5, flag_set = "(ii)")
+  }
+  if (!is.null(pr5) && !is.null(dc)) {
+    d_ <- g5("KE120", "discord_last_pass_inf_fail"); c_ <- dc[dc$scenario == "KE120"]
+    premise(nrow(c_) == 1 && c_$n_trials == d_$n_trials && abs(c_$last_pass_inf_fail - d_$est) < 1e-9, "KE120 불일치율: discordance_classification.csv = products5000_props_base.csv")
+    premise(c_$true_ratio >= bnd[1] && c_$true_ratio <= bnd[2] && isTRUE(c_$true_inside), "KE120 참 AUC0-inf 비가 80–125% 안")
+    premise(startsWith(c_$classification, "AUCinf 위음성"), "KE120 분류 = AUCinf 위음성(discordance_classification.csv)")
+    premise(d_$n_trials >= 5000L, "KE120 시험 수 ≥ 5,000(문구 '5,000회 이상')")
+    out$ke120 <- list(n_trials = d_$n_trials, est = d_$est, lo = d_$lo, hi = d_$hi, true_ratio = c_$true_ratio, flag_set = "(ii)")
+  }
+  # 3. 경계 1종 오류 최대 칸(1차 지표)과 적응적 연장
+  bt <- rd_("oc", "boundary_type1.csv"); dec <- rd_("oc", "extension_decision.csv")
+  if (!is.null(bt) && nrow(bt)) {
+    cls <- function(r) classify_type1(r$lo, r$hi, 5)                  # Wilson 95% 구간 대 5% (R/oc_interpret.R, scripts/43과 같은 분류)
+    one <- function(cf) { x <- bt[bt$config == cf]; if (!nrow(x)) return(NULL); r <- x[which.max(x$pass_pct)]
+      e <- if (!is.null(dec)) dec[dec$model == r$model & dec$scenario == r$scenario & dec$selected %in% TRUE] else NULL
+      if (!is.null(e) && !nrow(e)) e <- NULL
+      if (!is.null(e)) {
+        premise(r$n_trials >= e$n_before, sprintf("%s %s: 시험 수 ≥ 연장 전 시험 수", r$model, r$scenario))
+        # 문구("미실행", "진행 중", 완료)는 boundary_type1.csv의 시험 수에서 고른다: 연장 파일의 시험이 모두 반영되어 있어야 한다(아니면 scripts/33을 다시 실행)
+        ef <- file.path(root, "oc", sprintf("oc_trials_ext_be_%s.csv.gz", r$model))
+        n_ext <- if (file.exists(ef)) { z <- fread(ef, select = c("trial", "scenario")); uniqueN(z$trial[z$scenario == r$scenario]) } else 0L
+        premise(r$n_trials == e$n_before + n_ext, sprintf("%s %s: boundary_type1.csv 시험 수 %d = 사전 고정 %d + 연장 파일 %d회(scripts/33이 연장 파일을 반영)",
+                                                          r$model, r$scenario, as.integer(r$n_trials), as.integer(e$n_before), as.integer(n_ext)))
+      }
+      list(row = r, class = cls(r), ext = e, n_gt5 = sum(x$pass_pct > 5), n_cells = nrow(x)) }
+    out$p2max <- one("P2"); out$g2max <- one("G2")
+  }
+  out
+}
+
+# 무작위 제품 공간의 가정 분포(config/oc_design.yaml random_space.ranges, 기전별 배율 로그 균등) 문구. 그림 3-C 부제·결론 문단(scripts/33),
+# 보고서·summary_en의 보조 지표 절이 같은 문구를 쓴다. 예: "F 0.80–1.25, ka 0.67–1.50, …, Km 0.20–5"
+random_space_ranges_text <- function(oc = read_cfg("oc_design.yaml"), sep = "–") {
+  r <- oc$random_space$ranges; stopifnot(length(r) > 0, all(lengths(r) == 2))
+  fr_ <- function(v) sub("\\.00$", "", formatC(as.numeric(v), format = "f", digits = 2))
+  paste(vapply(names(r), function(k) sprintf("%s %s%s%s", k, fr_(r[[k]][[1]]), sep, fr_(r[[k]][[2]])), ""), collapse = ", ")
+}
+
+# 시험 수 문구: 적응적 연장(extension_decision.csv) 대상이면 사전 고정 수·그때 값과 연장 상태를 붙인다
+key_trials_text <- function(r, e, lang = c("ko", "en")) {
+  lang <- match.arg(lang); fi <- function(x) format(as.integer(x), big.mark = ",", trim = TRUE)
+  if (is.null(e)) return(if (lang == "ko") sprintf("시험 %s회", fi(r$n_trials)) else sprintf("%s trials", fi(r$n_trials)))
+  pre_ko <- sprintf("사전 고정 %s회 %s%% [%s, %s]", fi(e$n_before), fmt_num(e$pass_pct, 2), fmt_num(e$lo, 2), fmt_num(e$hi, 2))
+  pre_en <- sprintf("pre-registered %s trials: %s%% (95%% CI %s to %s)", fi(e$n_before), fmt_num(e$pass_pct, 2), fmt_num(e$lo, 2), fmt_num(e$hi, 2))
+  if (r$n_trials <= e$n_before) return(if (lang == "ko") sprintf("시험 %s회(적응적 연장 대상, 목표 %s회, 미실행)", fi(r$n_trials), fi(e$n_after))
+                                       else sprintf("%s trials (selected for adaptive extension to %s trials, not yet run)", fi(r$n_trials), fi(e$n_after)))
+  prog <- r$n_trials < e$n_after
+  if (lang == "ko") sprintf("시험 %s회(적응적 연장%s; %s)", fi(r$n_trials), if (prog) sprintf(" 진행 중, 목표 %s회", fi(e$n_after)) else "", pre_ko)
+  else sprintf("%s trials (adaptive extension%s; %s)", fi(r$n_trials), if (prog) sprintf(" in progress, target %s", fi(e$n_after)) else "", pre_en)
+}
+
+# Pillar 3 첫 문장(결합 상수): key_facts()$km에서
+key_km_sentence <- function(km, lang = c("ko", "en")) {
+  lang <- match.arg(lang); fg <- function(x) format(x, scientific = FALSE, drop0trailing = TRUE, trim = TRUE)
+  scan_ko <- if (is.na(km$n_screen)) "" else sprintf(", 그 사이 스크리닝 스캔은 %s명", format(km$n_screen, big.mark = ","))
+  scan_en <- if (is.na(km$n_screen)) "" else sprintf(", screening scan in between with %s", format(km$n_screen, big.mark = ","))
+  if (lang == "ko") sprintf("결합 상수(Km)를 %s–%s배로 바꿔도 참 AUC0-inf 비는 %s–%s에 머문다(두 모델; 탐색 범위 끝과 도달 행은 %s명%s, 공통 난수). 사전 고정 목표 %d개(%s–%s) 중 도달 가능한 것은 %s 하나다(Km 약 ×%s(2016 모델), ×%s(Model 1)).",
+                            fg(km$range_mult[1]), fg(km$range_mult[2]), fmt_num(km$ratio[1], 3), fmt_num(km$ratio[2], 3), format(km$n_subjects, big.mark = ","), scan_ko, km$n_targets,
+                            fmt_num(km$targets[1], 2), fmt_num(km$targets[2], 2), fmt_num(km$target, 2), fmt_num(km$mult[["k2016"]], 0), fmt_num(km$mult[["k2020"]], 0))
+  else sprintf("Changing the binding constant (Km) from %s to %s times keeps the true AUC0-inf ratio within %s to %s (both models; range ends and reachable rows with %s common-random-number subjects%s). Of the %d pre-specified targets (%s to %s) the only reachable one is %s (Km about x%s in the 2016 model and x%s in Model 1).",
+               fg(km$range_mult[1]), fg(km$range_mult[2]), fmt_num(km$ratio[1], 3), fmt_num(km$ratio[2], 3), format(km$n_subjects, big.mark = ","), scan_en, km$n_targets,
+               fmt_num(km$targets[1], 2), fmt_num(km$targets[2], 2), fmt_num(km$target, 2), fmt_num(km$mult[["k2016"]], 0), fmt_num(km$mult[["k2020"]], 0))
+}
+
+# 역산 경계표(모델 × 기전): 참 AUC0-inf 비 0.80·1.25를 주는 배율과 그 배율의 참 Cmax 비. 도달 불가는 목표 쪽 범위 끝 배율과 그 참 AUC0-inf 비
+key_inv_bnd_table <- function(ib, lang = c("ko", "en"), mech = c("F", "ka", "ke", "Vmax", "Km", "V2")) {
+  lang <- match.arg(lang); fg <- function(x) format(x, scientific = FALSE, drop0trailing = TRUE, trim = TRUE)
+  bnd <- sort(unique(ib$target)); stopifnot(length(bnd) == 2)
+  ML <- if (lang == "ko") c(k2016 = "2016 모델", k2020 = "Model 1") else c(k2016 = "2016 model", k2020 = "Model 1")
+  mult_cell <- function(r) if (!nrow(r)) "" else if (isTRUE(r$reachable)) sprintf(if (lang == "ko") "×%s" else "x%s", fmt_num(r$multiplier, 3))
+    else sprintf(if (lang == "ko") "도달 불가(범위 끝 ×%s: %s)" else "unreachable (range end x%s: %s)", fg(r$end_multiplier), fmt_num(r$end_auc_ratio, 3))
+  cmax_cell <- function(r) if (nrow(r) && isTRUE(r$reachable)) fmt_num(r$cmax_ratio, 3) else ""
+  keys <- unique(ib[, .(model, mechanism)])[order(match(model, names(ML)), match(mechanism, mech))]
+  rows <- lapply(seq_len(nrow(keys)), function(i) { k <- keys[i]; a <- ib[model == k$model & mechanism == k$mechanism & abs(target - bnd[1]) < 1e-9]
+    b <- ib[model == k$model & mechanism == k$mechanism & abs(target - bnd[2]) < 1e-9]
+    data.table(v1 = ML[[k$model]], v2 = k$mechanism, v3 = mult_cell(a), v4 = cmax_cell(a), v5 = mult_cell(b), v6 = cmax_cell(b)) })
+  x <- rbindlist(rows)
+  setnames(x, if (lang == "ko") c("모델", "기전", sprintf("참값 %s: 배율", fmt_num(bnd[1], 2)), sprintf("참값 %s: 참 Cmax 비", fmt_num(bnd[1], 2)), sprintf("참값 %s: 배율", fmt_num(bnd[2], 2)), sprintf("참값 %s: 참 Cmax 비", fmt_num(bnd[2], 2)))
+              else c("Model", "Mechanism", sprintf("True %s: multiplier", fmt_num(bnd[1], 2)), sprintf("True %s: true Cmax ratio", fmt_num(bnd[1], 2)), sprintf("True %s: multiplier", fmt_num(bnd[2], 2)), sprintf("True %s: true Cmax ratio", fmt_num(bnd[2], 2))))
+  x[]
+}
+
+# 요약표(보고서 요약·summary_en 핵심 결론): 1차 지표(경계 1종 오류 최대), 예비 제품 시나리오 VM150·KE120, Pillar 3(Km). 모든 수치는 key_facts()에서
+key_summary_table <- function(kf, lang = c("ko", "en")) {
+  lang <- match.arg(lang); ko <- lang == "ko"
+  pc <- function(e, lo, hi) { d <- if (e < 1) 3 else 2; sprintf(if (ko) "%s%% [%s, %s]" else "%s%% (95%% CI %s to %s)", fmt_num(e, d), fmt_num(lo, d), fmt_num(hi, d)) }
+  ML <- if (ko) c(k2016 = "2016 모델", k2020 = "Model 1") else c(k2016 = "2016 model", k2020 = "Model 1")
+  CL <- if (ko) c(conservative = "보수적(Wilson 상한 < 5%)", nominal = "명목(Wilson 구간이 5% 포함)", exceeding = "초과(Wilson 하한 > 5%)")
+        else c(conservative = "conservative (Wilson upper bound below 5%)", nominal = "nominal (Wilson interval includes 5%)", exceeding = "exceeding (Wilson lower bound above 5%)")
+  DL <- if (ko) c(down = "하향", up = "상향") else c(down = "down", up = "up")
+  rows <- list()
+  bt_row <- function(m, what) { r <- m$row
+    data.table(a = what, b = sprintf("%s; %s", pc(r$pass_pct, r$lo, r$hi), key_trials_text(r, m$ext, lang)),
+               c = sprintf(if (ko) "%s(%s %s %s, 목표 %s)" else "%s (%s, %s %s, target %s)", fmt_num(r$auc_ratio, 3), ML[[r$model]], r$mechanism, DL[[r$direction]], fmt_num(r$target, 2)),
+               d = if (ko) sprintf("%s; 경계 칸 %d개 중 점추정 5%% 초과 %d개", CL[[m$class]], m$n_cells, m$n_gt5)
+                   else sprintf("%s; point estimate above 5%% in %d of %d boundary cells", CL[[m$class]], m$n_gt5, m$n_cells),
+               e = "oc/boundary_type1.csv") }
+  if (!is.null(kf$p2max)) rows$p2 <- bt_row(kf$p2max, if (ko) "1차 지표: P2(AUClast + Cmax) 경계 1종 오류, 최대 칸" else "Primary metric: P2 (AUClast + Cmax) boundary type I error, largest cell")
+  if (!is.null(kf$g2max)) rows$g2 <- bt_row(kf$g2max, if (ko) "1차 지표: G2(AUCinf 규칙 A + Cmax) 경계 1종 오류, 최대 칸" else "Primary metric: G2 (AUCinf rule A + Cmax) boundary type I error, largest cell")
+  v <- kf$vm150; k <- kf$ke120; fi <- function(x) format(as.integer(x), big.mark = ",", trim = TRUE)
+  tr_src <- if (ko) "같은 시험 대상자의 개인 모델 AUC0-inf 시험 GMR 평균(fallback/consumer_risk.csv true_ratio = rationale/pillar2_products_B0.csv GMR_mean_AUCinf_true)"
+            else "mean trial GMR of the individual model AUC0-inf of the same trial subjects (fallback/consumer_risk.csv true_ratio = rationale/pillar2_products_B0.csv GMR_mean_AUCinf_true)"
+  if (!is.null(v)) {
+    rows$vm_rel <- data.table(a = if (ko) sprintf("VM150(Vmax ×1.50) AUCinf 신뢰군 단독 통과율(플래그 세트 %s, 규칙 A)", v$flag_set) else sprintf("VM150 (Vmax x1.50): pass rate of AUCinf alone, reliable subjects (flag set %s, rule A)", v$flag_set),
+                              b = sprintf(if (ko) "%s; 시험 %s회" else "%s; %s trials", pc(v$rel$est, v$rel$lo, v$rel$hi), fi(v$n_trials)),
+                              c = sprintf(if (ko) "%s(범위 밖); %s" else "%s (outside the limits); %s", fmt_num(v$true_ratio, 3), tr_src),
+                              d = if (ko) sprintf("참값이 한계 밖인데 명목 5%% 초과%s", if (v$rel_lo_gt5) "(Wilson 하한도 5% 초과)" else "(점추정)")
+                                  else sprintf("exceeds the nominal 5%% although the truth is outside the limits%s", if (v$rel_lo_gt5) " (Wilson lower bound also above 5%)" else " (point estimate)"),
+                              e = "trials5000/products5000_props_base.csv")
+    rows$vm_last <- data.table(a = if (ko) "VM150 AUClast 단독 통과율" else "VM150: pass rate of AUClast alone",
+                               b = sprintf(if (ko) "%s; 시험 %s회" else "%s; %s trials", pc(v$last$est, v$last$lo, v$last$hi), fi(v$n_trials)),
+                               c = sprintf(if (ko) "%s(범위 밖)" else "%s (outside the limits)", fmt_num(v$true_ratio, 3)),
+                               d = if (ko) "같은 범위 밖 제품을 AUClast는 5% 미만으로 통과(Wilson 상한 < 5%)" else "the same out-of-limits product passes on AUClast below 5% (Wilson upper bound below 5%)",
+                               e = "trials5000/products5000_props_base.csv") }
+  if (!is.null(k)) rows$ke <- data.table(a = if (ko) sprintf("KE120(ke ×1.20) AUClast 통과·AUCinf 신뢰군 불통과(플래그 세트 %s)", k$flag_set) else sprintf("KE120 (ke x1.20): AUClast pass, AUCinf (reliable subjects, flag set %s) fail", k$flag_set),
+                                         b = sprintf(if (ko) "%s; 시험 %s회" else "%s; %s trials", pc(k$est, k$lo, k$hi), fi(k$n_trials)),
+                                         c = sprintf(if (ko) "%s(범위 안); 같은 정의(discordance_classification.csv true_ratio)" else "%s (inside the limits); same definition (discordance_classification.csv true_ratio)", fmt_num(k$true_ratio, 3)),
+                                         d = if (ko) "참값이 한계 안이므로 AUCinf의 위음성으로 분류" else "truth inside the limits, so classified as false negatives of AUCinf",
+                                         e = "trials5000/products5000_props_base.csv, fallback/discordance_classification.csv")
+  if (!is.null(kf$km)) { km <- kf$km; fg <- function(x) format(x, scientific = FALSE, drop0trailing = TRUE, trim = TRUE)
+    rows$km <- data.table(a = if (ko) "Pillar 3: 결합 상수 Km 배율의 참 AUC0-inf 비" else "Pillar 3: true AUC0-inf ratio across binding-constant (Km) multipliers",
+                          b = if (ko) sprintf("Km ×%s–×%s에서 %s–%s", fg(km$range_mult[1]), fg(km$range_mult[2]), fmt_num(km$ratio[1], 3), fmt_num(km$ratio[2], 3))
+                              else sprintf("%s to %s for Km x%s to x%s", fmt_num(km$ratio[1], 3), fmt_num(km$ratio[2], 3), fg(km$range_mult[1]), fg(km$range_mult[2])),
+                          c = sprintf(if (ko) "모델 적분 참값(%s명 공통 난수)" else "model-integrated truth (%s common-random-number subjects)", format(km$n_subjects, big.mark = ",")),
+                          d = sprintf(if (ko) "동등성 한계 안; 도달 가능한 사전 고정 목표는 %s 하나(Km 약 ×%s(2016 모델), ×%s(Model 1))" else "inside the limits; the only reachable pre-specified target is %s (Km about x%s in the 2016 model, x%s in Model 1)",
+                                      fmt_num(km$target, 2), fmt_num(km$mult[["k2016"]], 0), fmt_num(km$mult[["k2020"]], 0)),
+                          e = "oc/inversion_all.csv, oc/inversion_scan_k20*_Km.csv") }
+  x <- rbindlist(rows)
+  if (!nrow(x)) return(x)
+  setnames(x, if (ko) c("항목", "추정 (95% 구간)", "참 AUC0-inf 비", "해석", "출처 (results/)") else c("Item", "Estimate (95% CI)", "True AUC0-inf ratio", "Interpretation", "Source (results/)"))
+  x[]
+}

@@ -72,21 +72,35 @@ if (!is.null(cs)) { b <- cs[model == "k2016" & weight == "base"]; n1 <- cp[model
               f1(max(n1[definition_day == 1 & schedule != "daily_29_57", pct_ge2])), f1(n1[definition_day == 1 & schedule == "daily_29_57", pct_ge3])), "") }
 
 bt <- R("oc", "boundary_type1.csv"); pw <- R("oc", "power.csv"); rk <- R("oc", "random_space_risks.csv"); pr <- R("oc", "prereg.csv")
+# 보고 우선순위(지시 2026-09-25 §4): 1차 지표 = 경계 1종 오류, 무작위 제품 공간 = 보조 지표. 최대 칸·연장·Km·VM150·KE120은 key_facts(전제 검사 포함)
+oc_cfg <- read_cfg("oc_design.yaml"); KF <- key_facts(oc = oc_cfg)
 if (!is.null(bt)) {
   x <- bt[config == "P2"][which.max(pass_pct)]; g <- bt[config == "G2"][which.max(pass_pct)]
-  add("Operating characteristics (pre-specified design)",
+  stopifnot(!is.null(KF$p2max), identical(KF$p2max$row$scenario, x$scenario), identical(KF$p2max$row$model, x$model))
+  add("Operating characteristics (pre-specified design; primary metric: boundary type I error)",
       if (!is.null(pr)) sprintf("- Design pre-registered in commit %s (oc/prereg.csv).", substr(pr$prereg_commit, 1, 7)),
-      sprintf("- Largest boundary type I error of P2 (AUClast + Cmax): %s, %s, %s, true AUC0-inf ratio %s (oc/boundary_type1.csv, %s trials).", ci(x$pass_pct, x$lo, x$hi, 2), ML[[x$model]], x$mechanism, f2(x$target),
-              if ("n_trials" %in% names(x)) formatC(x$n_trials, format = "d", big.mark = ",") else "10,000"),
-      sprintf("- Largest boundary type I error of G2 (AUCinf + Cmax): %s, %s, %s, true ratio %s.", ci(g$pass_pct, g$lo, g$hi, 2), ML[[g$model]], g$mechanism, f2(g$target)),
+      sprintf("- Largest boundary type I error of P2 (AUClast + Cmax): %s, %s, %s %s, true AUC0-inf ratio %s; %s (oc/boundary_type1.csv%s).", ci(x$pass_pct, x$lo, x$hi, 2), ML[[x$model]], x$mechanism, x$direction, f2(x$target),
+              key_trials_text(KF$p2max$row, KF$p2max$ext, "en"), if (!is.null(KF$p2max$ext)) ", oc/extension_decision.csv" else ""),
+      sprintf("- Largest boundary type I error of G2 (AUCinf + Cmax): %s, %s, %s %s, true ratio %s; %s.", ci(g$pass_pct, g$lo, g$hi, 2), ML[[g$model]], g$mechanism, g$direction, f2(g$target), key_trials_text(KF$g2max$row, KF$g2max$ext, "en")),
       sprintf("- Boundary scenarios with P2 above 5%%: %d of %d.", nrow(bt[config == "P2" & pass_pct > 5]), nrow(bt[config == "P2"])))
   if (!is.null(pw)) { s0 <- pw[scenario == "S00" & config %in% c("P2", "F3A", "G2")]
     out <<- c(out, sprintf("- Power for identical products (%s trials): %s (oc/power.csv).", if ("n_trials" %in% names(s0)) paste(unique(formatC(s0$n_trials, format = "d", big.mark = ",")), collapse = " or ") else "10,000", paste(sprintf("%s %s %s", ML[s0$model], c(P2 = "P2", F3A = "F3-A", G2 = "G2")[s0$config], ci(s0$pass_pct, s0$lo, s0$hi)), collapse = "; "))) }
   if (!is.null(rk)) { r <- rk[truth == "AUC0-inf" & scope == "전체" & config %in% c("P2", "G2")]
-    out <<- c(out, sprintf("- Random product space, consumer risk (truth outside, 20,000 products): %s (oc/random_space_risks.csv).",
+    out <<- c(out, sprintf("- Random product space (secondary metric; depends on the assumed virtual product distribution, log-uniform multipliers %s), consumer risk (truth outside, %s products): %s (oc/random_space_risks.csv).",
+                          random_space_ranges_text(oc_cfg, " to "), format(oc_cfg$random_space$n_products, big.mark = ","),
                           paste(sprintf("%s %s %s", ML[r[startsWith(metric, "소비자")]$model], r[startsWith(metric, "소비자")]$config, ci(r[startsWith(metric, "소비자")]$pct, r[startsWith(metric, "소비자")]$lo, r[startsWith(metric, "소비자")]$hi, 2)), collapse = "; "))) }
   out <- c(out, "")
 }
+
+# Pillar 3 첫 문장(결합 상수 Km, 역산)과 예비 제품 시나리오(VM150, KE120): key_facts의 수치와 전제 검사
+if (!is.null(KF$km)) add("Binding constant (Pillar 3 lead sentence)",
+  sprintf("- %s Sources: oc/inversion_all.csv, oc/inversion_scan_k2016_Km.csv, oc/inversion_scan_k2020_Km.csv.", key_km_sentence(KF$km, "en")), "")
+if (!is.null(KF$vm150) || !is.null(KF$ke120)) { v <- KF$vm150; k2 <- KF$ke120; d_ <- function(e) if (e < 1) 3 else 2
+  add("Preliminary product scenarios (arbitrary multipliers, 2016 model; AUCinf reliability under flag set (ii))",
+      if (!is.null(v)) sprintf("- VM150 (Vmax x1.50), %s trials: AUCinf alone (reliable subjects) passes in %s, above the nominal 5%% although the true AUC0-inf ratio %s is outside the limits; AUClast alone passes in %s (trials5000/products5000_props_base.csv; true ratio = mean trial GMR of the individual model AUC0-inf, fallback/consumer_risk.csv).",
+                               formatC(v$n_trials, format = "d", big.mark = ","), ci(v$rel$est, v$rel$lo, v$rel$hi, d_(v$rel$est)), f3(v$true_ratio), ci(v$last$est, v$last$lo, v$last$hi, d_(v$last$est))),
+      if (!is.null(k2)) sprintf("- KE120 (ke x1.20), %s trials: AUClast pass with AUCinf (reliable subjects) fail in %s; the true AUC0-inf ratio %s is inside the limits, so these are false negatives of AUCinf (fallback/discordance_classification.csv).",
+                                formatC(k2$n_trials, format = "d", big.mark = ","), ci(k2$est, k2$lo, k2$hi, d_(k2$est)), f3(k2$true_ratio)), "") }
 
 dec <- R("trials", "schedule_decision_base.csv"); k <- R("individual200k", "criterion_d_200k_base.csv")
 if (!is.null(dec)) { d3 <- dec[schedule == "D3"]
@@ -104,7 +118,7 @@ if (!is.null(p1)) { x <- p1[group == "전체"]
               x[model == "k2016", coverage_lt80_pct_ci], x[model == "k2020", coverage_lt80_pct_ci]), "") }
 
 txt <- paste(out, collapse = "\n")
-if (grepl("—", txt)) stop("key_numbers_en.md contains an em-dash")
+if (grepl("—|–|\u2212", txt)) stop("key_numbers_en.md contains an em-dash, en-dash or minus sign (U+2212)")
 if (grepl("[가-힣]", txt)) { bad <- regmatches(txt, gregexpr("[^\n]*[가-힣][^\n]*", txt))[[1]]; stop("key_numbers_en.md contains Korean text: ", paste(head(bad, 3), collapse = " || ")) }
 writeLines(txt, proj_path("results", "key_numbers_en.md"), useBytes = TRUE)
 cat(txt, "\n")

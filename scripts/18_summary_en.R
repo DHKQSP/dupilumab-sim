@@ -14,6 +14,14 @@ add <- function(...) out <<- c(out, ...)
 # 그림: results/ 기준 상대 경로의 영문판(_en.png). 캡션에 모델·조건·반복 수
 fig <- function(rel, caption) { if (file.exists(proj_path("results", rel))) add(sprintf("![%s](%s)", caption, rel), "", sprintf("*%s*", caption), "") }
 oc_cfg <- read_cfg("oc_design.yaml"); nb_ <- format(oc_cfg$trials$reps_boundary, big.mark = ","); no_ <- format(oc_cfg$trials$reps_other, big.mark = ",")
+# OC 그림·표의 시험 수: 결과 파일의 실제 수(적응적 연장 포함, scripts/42와 R/oc.R oc_n_trials_text). 결과 파일이 없으면 설계값
+oc_cv_ <- R("oc", "oc_curves.csv"); oc_dec_ <- R("oc", "extension_decision.csv"); bnd_ <- as.numeric(unlist(oc_cfg$boundary_targets))
+oc_ntxt <- function(m_, part) {                                     # part: "bnd" 경계 + 동일 제품, "bnd_only" 경계만, "other" 나머지
+  if (is.null(oc_cv_)) return(sprintf("%s each", if (part == "other") no_ else nb_))
+  x <- oc_cv_[oc_cv_$model == m_ & oc_cv_$config == "P2"]; isb <- abs(x$target - bnd_[1]) < 1e-9 | abs(x$target - bnd_[2]) < 1e-9
+  x <- switch(part, bnd = x[isb | x$scenario == "S00"], bnd_only = x[isb], other = x[!isb & x$scenario != "S00"])
+  if (nrow(x)) oc_n_trials_text(x, "en", oc_dec_) else "none"
+}
 MLF <- c(k2016 = "Kovalenko 2016 (primary)", k2020 = "Kovalenko 2020 Model 1")
 gate <- read_cfg("gate_decision.yaml"); sdec <- read_cfg("schedule_decision.yaml"); design <- read_cfg("trial_design.yaml")
 # 신뢰 충족률·탈락률과 그 증감: 결과 파일에서 만들고 전제를 검사한다(reliability_facts, 어긋나면 중단). 플래그 세트 (i) 주값, (ii) 대괄호 병기
@@ -44,11 +52,13 @@ ocen <- proj_path("results", "oc", "oc_conclusion_en.md"); clen <- proj_path("re
 if (file.exists(ocen)) add("## Key conclusion: operating characteristics of the co-primary endpoint configurations", "",
   sprintf("Design fixed before any result in config/oc_design.yaml (commit %s%s). Truth is the population GMR of model-integrated AUC0-inf (no residual error; the same 200,000 virtual subjects receive both products, CRN), not AUClast; the true Cmax ratio is reported alongside. Configurations: P2 = AUClast + Cmax (proposed); F3-A, F3-B, F3-C = P2 + AUCinf under handling rule A, B or C; G2 = AUCinf (rule A) + Cmax (guideline default). Mechanisms F, ka, ke, Vmax, Km and peripheral volume V2 in both directions, with multipliers inverted by bisection to target true AUC0-inf ratios 0.70 to 1.43.",
           if (!is.null(pr)) substr(pr$prereg_commit, 1, 7) else "not found", if (!is.null(pr) && isTRUE(pr$changed_since)) ", changed since" else ", unchanged since"), "",
-  readLines(ocen, warn = FALSE), "")
-fig("oc/fig3D_inversion_multipliers_en.png", "Figure 3-D. Test-arm multiplier needed for each target true AUC0-inf ratio, by mechanism and model (200,000 CRN subjects, 60 to 90 kg, 300 mg; bisection to within 0.1%; x marks targets not reachable within the search range).")
-for (m_ in c("k2016", "k2020")) fig(sprintf("oc/fig3A_oc_curves_%s_en.png", m_), sprintf("Figure 3-A (%s). Pass probability of P2, F3-A, F3-C and G2 against the true AUC0-inf ratio, by mechanism (B0, 117 per arm, 60 to 90 kg; %s trials at the boundaries and for identical products, %s trials elsewhere).", MLF[[m_]], nb_, no_))
-for (m_ in c("k2016", "k2020")) fig(sprintf("oc/fig3B_boundary_type1_%s_en.png", m_), sprintf("Figure 3-B (%s). Boundary type I error by mechanism and configuration, true AUC0-inf ratio 0.80 or 1.25 (%s trials per scenario, Wilson 95%% intervals; dashed line 5%%).", MLF[[m_]], nb_))
-for (m_ in c("k2016", "k2020")) fig(sprintf("oc/fig3C_random_space_%s_en.png", m_), sprintf("Figure 3-C (%s). Random product space: %s Latin hypercube products with log-uniform multipliers of all six mechanisms, one trial each (B0, 117 per arm); top, distribution of the true AUC0-inf ratio; bottom, pass rate per bin and logistic spline smooth.", MLF[[m_]], format(oc_cfg$random_space$n_products, big.mark = ",")))
+  c(rbind(readLines(ocen, warn = FALSE), "")))   # 결론 문구 한 줄 = 한 문단(첫 문단 = P2 경계 1종 오류)
+# 핵심 수치 요약표(지시 2026-09-25 §4): 1차 지표(경계 1종 오류 최대), 예비 제품 시나리오 VM150·KE120, Pillar 3(Km). 수치·전제 검사는 key_facts(R/summarize.R)
+KF <- key_facts(oc = oc_cfg); ktab_ <- key_summary_table(KF, "en")
+if (nrow(ktab_)) add("## Key numbers", "",
+  sprintf("The primary metric is the boundary type I error (pass rate at a true AUC0-inf ratio of %s; mechanism by direction by configuration by model). The consumer and producer risks of the random product space are a secondary metric that depends on the assumed virtual product distribution. VM150 and KE120 are preliminary scenarios with arbitrary multipliers (primary model, at least 5,000 trials); their AUCinf reliability uses flag set (ii), and their true ratio is the mean trial GMR of the individual model AUC0-inf of the same trial subjects, a different definition from the 200,000-subject integral of the inverted scenarios. Every value below is read from the named result file (proportions with Wilson 95%% intervals).",
+          paste(fmt_num(KF$bnd, 2), collapse = " or ")), "",
+  md_table(ktab_))
 if (file.exists(clen)) { add("## Key conclusion: sampling on the terminal cliff", "", readLines(clen, warn = FALSE), "")
   ccf <- oc_cfg$cliff; nsub <- format(ccf$n_subjects, big.mark = ",")
   fig("cliff/fig2_1_lloq_day_en.png", sprintf("Figure 2-1. Study day when the true concentration reaches the LLOQ (Kovalenko 2016 primary model, 60 to 90 kg, 300 mg, %s virtual subjects, nominal days; bins containing a current sampling day highlighted).", nsub))
@@ -222,24 +232,38 @@ if (!is.null(sd) && !is.null(pw)) {
               ci(x[scenario == "F097", power_last_cmax], x[scenario == "F097", lo], x[scenario == "F097", hi]), ci(x[scenario == "F097", power_3], x[scenario == "F097", lo3], x[scenario == "F097", hi3])), "")
 }
 
-# OC detail
-bt <- R("oc", "boundary_type1.csv"); ivv <- R("oc", "inversion_all.csv"); rk <- R("oc", "random_space_risks.csv"); pw_oc <- R("oc", "power.csv")
+# OC detail(지시 2026-09-25 §4의 보고 우선순위): 1차 지표 경계 1종 오류(역산 경계표, 표, 그림 3-B, 치우침, P2 해석, G2 규칙 × 플래그 세트) →
+# 운용특성 곡선(3-A) → 검정력 → 구성 비교 → 역산 전체(3-D) → 보조 지표 무작위 제품 공간(3-C, 가정한 가상 제품 분포에 의존)
+bt <- R("oc", "boundary_type1.csv"); rk <- R("oc", "random_space_risks.csv"); pw_oc <- R("oc", "power.csv"); cc_oc <- R("oc", "config_comparison.csv")
+ml <- c(k2016 = "2016", k2020 = "Model 1"); isb_ <- function(t) abs(t - bnd_[1]) < 1e-9 | abs(t - bnd_[2]) < 1e-9
+bnd_txt <- paste(fmt_num(bnd_, 2), collapse = " or ")
 if (!is.null(bt)) {
-  ml <- c(k2016 = "2016", k2020 = "Model 1")
-  ntr_ <- if ("n_trials" %in% names(bt)) paste(unique(format(range(bt$n_trials), big.mark = ",", trim = TRUE)), collapse = " to ") else nb_   # 반복 수는 결과 파일에서(부분 실행이면 설계값보다 적다)
-  add(sprintf("## Operating characteristics: boundary type I error (true AUC0-inf ratio 0.80 or 1.25, %s trials each)", ntr_), "",
-      md_table(dcast(bt[config %in% c("P2", "F3A", "F3C", "G2")], model + mechanism + direction + target + auc_ratio + cmax_ratio ~ config, value.var = "pass_pct")[
+  ntr_ <- if ("n_trials" %in% names(bt)) oc_n_trials_text(bt[config == "P2"], "en", oc_dec_, ml) else paste(nb_, "each")   # 반복 수는 결과 파일에서(적응적 연장·부분 실행 반영)
+  add(sprintf("## Operating characteristics, primary metric: boundary type I error (true AUC0-inf ratio %s)", bnd_txt), "",
+      "The primary metric is the boundary type I error: the pass rate when the true AUC0-inf ratio is exactly at an equivalence limit, by mechanism, direction, configuration and model. Operating characteristic curves, power and the configuration comparison follow; the random product space is a secondary metric (last subsection).", "")
+  if (!is.null(KF$inv_bnd)) {
+    ivn_ <- unique(R("oc", "inversion_all.csv")$n_subjects)
+    add(sprintf("Boundary scenarios: test-arm multiplier giving a true AUC0-inf ratio of %s and the true Cmax ratio at that multiplier (%s CRN subjects, 60 to 90 kg, %s mg, log-multiplier bisection to within %s%%). Unreachable: the range-end multiplier on the side of the target and its true AUC0-inf ratio.",
+                paste(fmt_num(bnd_, 2), collapse = " and "), format(ivn_, big.mark = ","), oc_cfg$estimand$dose_mg, format(100 * oc_cfg$inversion$tolerance_rel)), "",
+        md_table(key_inv_bnd_table(KF$inv_bnd, "en"))) }
+  add(md_table(dcast(bt[config %in% c("P2", "F3A", "F3C", "G2")], model + mechanism + direction + target + auc_ratio + cmax_ratio ~ config, value.var = "pass_pct")[
         , .(Model = ml[model], Mechanism = mechanism, Direction = direction, `Target` = f2(target), `True AUC0-inf ratio` = f3(auc_ratio), `True Cmax ratio` = f3(cmax_ratio),
             `P2 (%)` = f2(P2), `F3-A (%)` = f2(F3A), `F3-C (%)` = f2(F3C), `G2 (%)` = f2(G2))]),
-      sprintf("Wilson 95%% intervals are in the full report (Appendix B); each rate is based on %s trials.", ntr_), "")
+      sprintf("Wilson 95%% intervals are in the full report (Appendix B). Trials per scenario: %s.", ntr_), "")
+  for (m_ in c("k2016", "k2020")) fig(sprintf("oc/fig3B_boundary_type1_%s_en.png", m_), sprintf("Figure 3-B (%s). Boundary type I error by mechanism and configuration, true AUC0-inf ratio %s (trials per scenario %s; Wilson 95%% intervals; dashed line 5%%).", MLF[[m_]], bnd_txt, oc_ntxt(m_, "bnd_only")))
 }
 gb <- R("oc", "gmr_by_endpoint.csv")
 if (!is.null(gb)) {
-  x <- dcast(gb[endpoint %in% c("AUClast", "AUCinf_A", "AUCinf_B", "AUCinf_C", "Cmax") & (abs(target - 0.8) < 1e-9 | abs(target - 1.25) < 1e-9)], model + mechanism + direction + target + auc_ratio + cmax_ratio ~ endpoint, value.var = "rel_bias_pct")
+  x <- dcast(gb[endpoint %in% c("AUClast", "AUCinf_A", "AUCinf_B", "AUCinf_C", "Cmax") & isb_(target)], model + mechanism + direction + target + auc_ratio + cmax_ratio ~ endpoint, value.var = "rel_bias_pct")
   add("Relative bias (%) of the geometric mean of trial GMRs against the truth at the boundaries (AUC endpoints against the true AUC0-inf ratio, Cmax against the true Cmax ratio). Rule A combines estimation and selection (flagged subjects excluded), rule B is estimation only, rule C substitutes AUClast for flagged subjects:", "",
-      md_table(x[order(model, mechanism, target), .(Model = c(k2016 = "2016", k2020 = "Model 1")[model], Mechanism = mechanism, Direction = direction, Target = f2(target), `AUClast` = f1(AUClast), `AUCinf rule A` = f1(AUCinf_A),
+      md_table(x[order(model, mechanism, target), .(Model = ml[model], Mechanism = mechanism, Direction = direction, Target = f2(target), `AUClast` = f1(AUClast), `AUCinf rule A` = f1(AUCinf_A),
                                                     `AUCinf rule B` = f1(AUCinf_B), `AUCinf rule C` = f1(AUCinf_C), `Cmax` = f1(Cmax))]))
 }
+# P2 해석(scripts/43 결과): 불편 추정량 기준, 분류, 원인
+p2en <- proj_path("results", "oc", "p2_interpretation_en.md")
+if (file.exists(p2en)) add("## P2 boundary type I error: interpretation (directive 2026-09-25, section 3)", "",
+  "The P2 boundary type I error split into the baseline of an unbiased estimator (theory and the individual model AUC0-inf of the trial subjects), a classification of each cell (Wilson 95% interval against 5%) and its causes (AUClast bias, Cmax failures), from the saved trial-level results (scripts/43_p2_interpretation.R; no new simulation; numbers in oc/p2_interpretation.csv).", "",
+  md_body(p2en, 1))
 # G2: AUCinf 처리 규칙 × 플래그 세트(검토 의견 W2 §2, scripts/41 결과)
 g2en <- proj_path("results", "oc", "g2_rules_conclusion_en.md"); pbz <- R("oc", "p2_bias_boundary.csv")
 if (file.exists(g2en)) {
@@ -248,30 +272,45 @@ if (file.exists(g2en)) {
       md_body(g2en, 1))
   if (!is.null(pbz)) { x <- dcast(pbz, model + scenario + target ~ endpoint, value.var = "bias_pct")
     add("Relative bias (%) of the geometric mean of trial GMRs against the truth in the boundary scenarios (AUC endpoints against the true AUC0-inf ratio, Cmax against the true Cmax ratio; AUCinf rules A and C under flag set (ii); AUCinf true = individual model AUC0-inf of the trial subjects, reference; oc/p2_bias_boundary.csv):", "",
-        md_table(x[order(model, target, scenario), .(Model = c(k2016 = "2016", k2020 = "Model 1")[model], Scenario = scenario, Target = f2(target), AUClast = f2(AUClast), `AUCinf rule A` = f2(AUCinf_A), `AUCinf rule B` = f2(AUCinf_B),
+        md_table(x[order(model, target, scenario), .(Model = ml[model], Scenario = scenario, Target = f2(target), AUClast = f2(AUClast), `AUCinf rule A` = f2(AUCinf_A), `AUCinf rule B` = f2(AUCinf_B),
                         `AUCinf rule C` = f2(AUCinf_C), `AUCinf rule A, set (i)` = ifelse(is.na(AUCinf_Ai), "NA", f2(AUCinf_Ai)), `AUCinf rule C, set (i)` = ifelse(is.na(AUCinf_Ci), "NA", f2(AUCinf_Ci)), `AUCinf true` = f2(AUCinf_true), Cmax = f2(Cmax))])) }
 }
-if (!is.null(ivv)) {
-  x <- ivv[abs(target - 0.8) < 1e-9 | abs(target - 1.25) < 1e-9]
-  add("Multipliers required to reach the boundaries (200,000 subjects, CRN; unreachable means the end of the search range does not reach the target):", "",
-      md_table(x[, .(Model = c(k2016 = "2016", k2020 = "Model 1")[model], Mechanism = mechanism, Direction = direction, Target = f2(target),
-                     Multiplier = ifelse(reachable, formatC(multiplier, format = "g", digits = 4), "unreachable"),
-                     `True Cmax ratio` = ifelse(reachable, f3(cmax_ratio), ""), `Range-end AUC0-inf ratio` = ifelse(reachable, "", f3(end_auc_ratio)))]))
+# 운용특성 곡선, 검정력, 구성 비교. 시험 수준 비율은 5,000회 이상 실행에서만 구간과 함께 인용(이 문서 규칙); 2,000회 시나리오는 보고서
+if (!is.null(bt) || !is.null(pw_oc) || !is.null(cc_oc)) {
+  add("## Operating characteristics: OC curves, power and configuration comparison", "")
+  for (m_ in c("k2016", "k2020")) fig(sprintf("oc/fig3A_oc_curves_%s_en.png", m_), sprintf("Figure 3-A (%s). Pass probability of P2, F3-A, F3-C and G2 against the true AUC0-inf ratio, by mechanism (B0, 117 per arm, 60 to 90 kg; trials per scenario: boundaries and identical products %s, elsewhere %s).", MLF[[m_]], oc_ntxt(m_, "bnd"), oc_ntxt(m_, "other")))
+  CFGe <- c(P2 = "P2", F3A = "F3-A", F3C = "F3-C", G2 = "G2")
+  if (!is.null(pw_oc)) { big <- pw_oc[config %in% names(CFGe) & n_trials >= 5000]; small <- unique(pw_oc[n_trials < 5000, n_trials])
+    if (nrow(big)) add(sprintf("Power (pass rate, %%, Wilson 95%% CI) in scenarios run with at least 5,000 trials%s:", if (length(small)) sprintf("; power at true ratios %s (%s trials per mechanism) is tabulated in the full report", paste(fmt_num(sort(unique(pw_oc[n_trials < 5000, target])), 2), collapse = " and "), paste(format(sort(small), big.mark = ","), collapse = " or ")) else ""), "",
+      md_table(dcast(big[, .(model, scenario, target, auc_ratio, n_trials, config, v = ci(pass_pct, lo, hi, 1))], model + scenario + target + auc_ratio + n_trials ~ config, value.var = "v")[
+        , .(Model = ml[model], Scenario = scenario, Target = f2(target), `True AUC0-inf ratio` = f3(auc_ratio), Trials = format(n_trials, big.mark = ","), `P2 (%)` = P2, `F3-A (%)` = F3A, `F3-C (%)` = F3C, `G2 (%)` = G2)])) }
+  if (!is.null(cc_oc)) { x <- cc_oc[isb_(target) & n_trials >= 5000]
+    if (nrow(x)) add("Configuration comparison at the boundaries (paired within the same trials, percentage points, 95% CI): P2 minus F3 is the additional protection of F3 (P2 passes, F3 fails), G2 minus P2 the difference in pass rate; inside and outside the limits the ranges are in the key conclusion and the full table in the full report:", "",
+      md_table(x[order(model, mechanism, target), .(Model = ml[model], Mechanism = mechanism, Direction = direction, Target = f2(target), Trials = format(n_trials, big.mark = ","),
+                                                    `P2 minus F3-A` = ci(P2_minus_F3A, P2_minus_F3A_lo, P2_minus_F3A_hi, 2), `P2 minus F3-C` = ci(P2_minus_F3C, P2_minus_F3C_lo, P2_minus_F3C_hi, 2),
+                                                    `G2 minus P2` = ci(G2_minus_P2, G2_minus_P2_lo, G2_minus_P2_hi, 2))])) }
+  fig("oc/fig3D_inversion_multipliers_en.png", "Figure 3-D. Test-arm multiplier needed for each target true AUC0-inf ratio, by mechanism and model (200,000 CRN subjects, 60 to 90 kg, 300 mg; bisection to within 0.1%; x marks targets not reachable within the search range).")
 }
+# 보조 지표: 무작위 제품 공간(가정한 가상 제품 분포에 의존)
 if (!is.null(rk)) {
+  rs_rng_en <- random_space_ranges_text(oc_cfg, " to "); nprod_ <- format(oc_cfg$random_space$n_products, big.mark = ",")
   x <- rk[config %in% c("P2", "F3A", "F3C", "G2") & truth == "AUC0-inf"]
   x[, metric_en := fifelse(startsWith(metric, "소비자"), "Consumer risk (pass when truth outside)", "Producer risk (fail when truth inside)")]
   x[, scope_en := fifelse(scope == "전체", "all", "near boundary")]
-  add("Random product space (Latin hypercube, 20,000 products, log-uniform multipliers of all six mechanisms, one trial per product; truth from 1,000 CRN subjects per product):", "",
-      md_table(x[, .(Model = c(k2016 = "2016", k2020 = "Model 1")[model], Configuration = c(P2 = "P2", F3A = "F3-A", F3C = "F3-C", G2 = "G2")[config], Metric = metric_en, Scope = scope_en,
-                     `Rate (%)` = ci(pct, lo, hi, 2), Products = n_products)]))
+  add("## Secondary metric: random product space (depends on the assumed virtual product distribution)", "",
+      sprintf("Secondary metric. The consumer and producer risks below depend on the assumed distribution of virtual products (Latin hypercube of %s products, log-uniform multipliers %s; config/oc_design.yaml). They are averages over that distribution and change if the distribution changes; configurations are judged on the primary metric, the boundary type I error.", nprod_, rs_rng_en), "",
+      sprintf("Random product space (one trial per product, B0, 117 per arm; truth from %s CRN subjects per product):", format(oc_cfg$random_space$truth_subjects, big.mark = ",")), "",
+      md_table(x[, .(Model = ml[model], Configuration = c(P2 = "P2", F3A = "F3-A", F3C = "F3-C", G2 = "G2")[config], Metric = metric_en, Scope = scope_en,
+                     `Rate (%)` = ci(pct, lo, hi, 2), Products = format(n_products, big.mark = ",", trim = TRUE))]))
+  for (m_ in c("k2016", "k2020")) fig(sprintf("oc/fig3C_random_space_%s_en.png", m_), sprintf("Figure 3-C (%s). Random product space, secondary metric that depends on the assumed virtual product distribution: %s Latin hypercube products with log-uniform multipliers (%s), one trial each (B0, 117 per arm); top, distribution of the true AUC0-inf ratio; bottom, pass rate per bin and logistic spline smooth.", MLF[[m_]], nprod_, rs_rng_en))
 }
 
-# 4. Pillar 3
+# 4. Pillar 3: 첫 문장은 역산(Km 0.01–100배)에서(key_facts, 전제 검사), 500회 쌍대 표는 보조 근거
 p3 <- R("rationale", "pillar3_km_summary.csv"); p3d <- R("rationale", "pillar3_km_B0.csv")
-if (!is.null(p3)) add("## 4. Pillar 3: invisibility of binding-constant differences", "",
-  sprintf("Test-arm Km multiplied by 0.5 to 10 (0.005 to 0.1 mg/L) changes the mean GMR of every endpoint by at most %s%% (2016 model) and %s%% (Model 1) relative to identical products (paired within the same 500 trials). Km is an MM approximation constant and is not identical to binding affinity.",
-          f2(p3[model == "k2016", max_abs_GMR_change_pct]), f2(p3[model == "k2020", max_abs_GMR_change_pct])), "")
+if (!is.null(p3) || !is.null(KF$km)) add("## 4. Pillar 3: invisibility of binding-constant differences", "",
+  if (!is.null(KF$km)) c(sprintf("**%s**", key_km_sentence(KF$km, "en")), "", "Source: oc/inversion_all.csv (range ends and reachable rows) and oc/inversion_scan_<model>_Km.csv (screening scan); boundary multipliers of all mechanisms are in the boundary scenario table above.", ""),
+  if (!is.null(p3)) c(sprintf("Supporting evidence: test-arm Km multiplied by 0.5 to 10 (0.005 to 0.1 mg/L) changes the mean GMR of every endpoint by at most %s%% (2016 model) and %s%% (Model 1) relative to identical products (paired within the same 500 trials). Km is an MM approximation constant and is not identical to binding affinity.",
+          f2(p3[model == "k2016", max_abs_GMR_change_pct]), f2(p3[model == "k2020", max_abs_GMR_change_pct])), ""))
 
 # 5. Weight generalization
 wb <- NULL; for (f in list.files(proj_path("results", "weight_generalization"), pattern = "^weight_bands_B0_[a-d]+\\.csv$", full.names = TRUE)) wb <- rbind(wb, fread(f))
@@ -366,9 +405,10 @@ add("## 8. Limitations", "",
     "- Placeholders not yet confirmed: Day 1 post-dose sampling time (0.25 day), weight distribution and stratification split, sampling windows, BMI reference of 26, body weights of the Li 2020 single-arm studies.",
     "- Development-data body weight ranges are not reported; results above 130 kg are extrapolations.",
     "- Only the automatic lambda-z Best Fit is simulated; in a real study a pharmacokineticist may review and adjust the lambda-z points.",
-    "- In the random product space the truth of each product is computed from 1,000 common virtual subjects (not 200,000) for computational reasons, as pre-specified; the Monte Carlo standard error of each product's truth is reported.", "")
+    sprintf("- The random product space is a secondary metric: its consumer and producer risks depend on the assumed distribution of virtual products (log-uniform multipliers %s). The truth of each product is computed from %s common virtual subjects (not 200,000) for computational reasons, as pre-specified; the Monte Carlo standard error of each product's truth is reported.",
+            random_space_ranges_text(oc_cfg, " to "), format(oc_cfg$random_space$truth_subjects, big.mark = ",")), "")
 txt <- paste(out, collapse = "\n")
-if (grepl("—", txt)) stop("summary_en.md contains an em-dash")
+if (grepl("—|–|\u2212", txt)) { bad <- regmatches(txt, gregexpr("[^\n]*(—|–|\u2212)[^\n]*", txt))[[1]]; stop("summary_en.md contains an em-dash, en-dash or minus sign (U+2212): ", paste(substr(head(bad, 3), 1, 160), collapse = " || ")) }
 if (grepl("[가-힣]", txt)) { bad <- regmatches(txt, gregexpr("[^\n]*[가-힣][^\n]*", txt))[[1]]; stop("summary_en.md contains Korean text: ", paste(head(bad, 3), collapse = " || ")) }
 writeLines(txt, proj_path("results", "summary_en.md"), useBytes = TRUE)
 cat("results/summary_en.md written:", length(out), "lines\n")
