@@ -147,6 +147,15 @@ sec("5.11 Sample size")
 NNf <- "sample_size/ss_table_n_needed.csv"; TPf <- "sample_size/ss_table_power.csv"; PKf <- "sample_size/ss_pk_check.csv"; SIf <- "sample_size/ss_inputs.csv"
 nn <- function(cv, g, am, tg, col = "n_evaluable_per_arm") vi(NNf, sprintf("cv==%s & gmr==%s & analysis_model=='%s' & target_pct==%s", cv, g, am, tg), col, item = sprintf("n %s CV %s GMR %s target %s", am, cv, g, tg))
 p117 <- function(cv, am, g = 0.95) v(TPf, sprintf("input_model=='k2016' & cv==%s & gmr==%s & n==117 & analysis_model=='%s'", cv, g, am), "analytic_pct", 1, item = sprintf("P2 power n 117 CV %s GMR %s %s", cv, g, am))
+MCf <- "sample_size/ss_power_mc.csv"
+ss_mc_in <- vcount(MCf, "analytic_in_ci == TRUE", "grid cells with the analytic power inside the Wilson interval of the statistical simulation"); ss_mc_n <- vcount(MCf, "TRUE", "grid cells simulated")
+ss_mc_max <- local({ r <- rows(MCf); x <- max(abs(r$diff_pp)); .vis(.record("largest absolute difference, analytic versus statistical simulation (points)", MCf, "max(abs(diff_pp))", x, fnum(x, 2))) })
+# analytic minus PK-model empirical power (diff_pp in the file is empirical minus analytic), M0 and M1, by true GMR band
+ss_pk <- function(lo_, hi_, what = c("absmax", "range")) { what <- match.arg(what); w <- sprintf("analysis_model != 'M2' & auc_ratio > %s & auc_ratio < %s", lo_, hi_); r <- rows(PKf, w)
+  premise(nrow(r) >= 4, "PK-model check rows in the GMR band"); d <- -r$diff_pp
+  if (what == "absmax") { x <- max(abs(d)); .vis(.record(sprintf("largest absolute analytic minus PK-model power, true GMR %s to %s (points)", lo_, hi_), PKf, sprintf("%s :: max(abs(diff_pp))", w), x, fnum(x, 2))) }
+  else { x <- range(d); .vis(.record(sprintf("analytic minus PK-model power, true GMR %s to %s (points)", lo_, hi_), PKf, sprintf("%s :: range(-diff_pp)", w), x, sprintf("%s to %s", fnum(x[1], 2), fnum(x[2], 2)))) } }
+local({ r <- rows(PKf, "analysis_model != 'M2' & auc_ratio > 0.85 & auc_ratio < 0.92"); premise(all(r$diff_pp < 0), "at a true GMR of 0.90 the analytic power is above the PK-model trials in every comparison (text)") })
 # ---- version 1.0.1, second request (config/prereg_20260926.yaml section4 and section5): lambda-z criteria convention, adult atopic dermatitis body weight ----
 sec("5.3 Criteria convention")
 CIf <- "criteria/criteria_individual.csv"; CGf <- "criteria/criteria_g2_type1.csv"; CBf <- "criteria/criteria_bias.csv"; CSf <- "criteria/criteria_instability.csv"; RCf <- "criteria/restart_identity_check.csv"
@@ -1142,7 +1151,7 @@ kt(w_[, .(`AUC0-last CV (%)` = cv, `90%, M0` = sprintf("%d (%d)", n_evaluable_pe
 
 - Inputs from the primary model (planned schedule, 60 to 90 kg): Cmax log-scale CV `r v(SIf, "input_model=='k2016'", "cv_cmax_pct", 1)`%, correlation of log AUC0-last and log Cmax `r v(SIf, "input_model=='k2016'", "rho_total", 2)`, the weight stratum explaining `r v(SIf, "input_model=='k2016'", "r2_stratum_auc", 1, scale = 100)`% of the AUC0-last variance.
 - With 117 evaluable subjects per arm, P2 power at GMR 0.95 is `r p117(43, "M0")`% (M0) and `r p117(43, "M1")`% (M1) at CV 43%, and `r p117(50, "M0")`% and `r p117(50, "M1")`% at CV 50%.
-- The analytic approximation was checked against simulation of every grid cell and against PK-model trials at the models' own CV (results/sample_size/ss_power_mc.csv, ss_pk_check.csv).
+- The analytic approximation lies inside the Wilson 95% interval of the statistical simulation (5,000 trials per cell) in `r ss_mc_in` of `r ss_mc_n` grid cells (largest difference `r ss_mc_max` percentage points). Against PK-model trials with 117 evaluable subjects per arm at the models' own CV (both models, M0 and M1), it is within `r ss_pk(0.93, 1.01)` percentage points of the empirical power at true GMRs of 0.95 (the GMR of Table 5-19) and 1.00, and higher than the empirical power by `r ss_pk(0.85, 0.92, "range")` percentage points at a true GMR of 0.90 (results/sample_size/ss_power_mc.csv, ss_pk_check.csv).
 - CV sources: Li 2020 (Table 3, 300 mg arms, SD/mean 35% to 51%), Cohen 2022 (about 52%; 200 mg, a different presentation, device comparison), the PK models (40% and 43%).
 
 ```{r fig-ss, fig.cap = "Figure 5-11. P2 power at a true GMR of 0.95 by evaluable subjects per arm and AUC0-last CV, M0 and M1 (lines analytic, points simulation). Analysis figure results/sample_size/fig_ss_power.png."}

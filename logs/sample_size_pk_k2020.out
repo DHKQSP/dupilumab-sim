@@ -1,0 +1,12 @@
+run log: /home/user/dupilumab-sim/logs/sample_size_pk_k2020_20260925T152835.log
+k2020 trials 1-500 done in 1.521631 mins; M0 matched oc_trials_be for trials 1-500 
+k2020 trials 501-1000 done in 1.503123 mins; M0 matched oc_trials_be for trials 501-1000 
+k2020 trials 1001-1500 done in 1.511356 mins; M0 matched oc_trials_be for trials 1001-1500 
+k2020 trials 1501-2000 done in 1.529886 mins; M0 matched oc_trials_be for trials 1501-2000 
+k2020 trials 2001-2500 done in 1.674925 mins 
+k2020 trials 2501-3000 done in 1.542224 mins 
+k2020 trials 3001-3500 done in 1.507258 mins 
+k2020 trials 3501-4000 done in 1.49207 mins 
+k2020 trials 4001-4500 done in 1.490923 mins 
+k2020 trials 4501-5000 done in 1.48421 mins 
+done: /home/user/dupilumab-sim/results/sample_size/ss_pk_trials_k2020.csv.gz 
