@@ -104,7 +104,7 @@ km_reach <- local({ r <- rows("oc/inversion_all.csv", "mechanism=='Km' & reachab
 
 # Synopsis {-}
 
-**Background.** Dupilumab is eliminated by a linear pathway and a saturable target-mediated pathway in parallel. As concentrations fall toward the lower limit of quantification (LLOQ, 0.078 mg/L), target-mediated elimination accelerates the decline: in the primary model, the true concentration falls from about `r cstart["k2016"]` mg/L to the LLOQ within a median of `r len1["k2016"]` days (the "terminal cliff"). A non-compartmental terminal rate constant (lambda-z) is therefore estimated on the decline before the cliff and does not represent the true terminal phase. The originator's population pharmacokinetic (PK) analysis concluded that a meaningful terminal half-life cannot be calculated (Kovalenko 2020), and a published device-comparison study did not calculate half-life or AUC0-inf for this reason (Cohen 2022).
+**Background.** Dupilumab is eliminated by a linear pathway and a saturable target-mediated pathway in parallel. As concentrations fall toward the lower limit of quantification (LLOQ, `r cfgv("assay.yaml", c("lloq_mg_L", "value"))` mg/L), target-mediated elimination accelerates the decline: in the primary model, the true concentration falls from about `r cstart["k2016"]` mg/L to the LLOQ within a median of `r len1["k2016"]` days (the "terminal cliff"). A non-compartmental terminal rate constant (lambda-z) is therefore estimated on the decline before the cliff and does not represent the true terminal phase. The originator's population pharmacokinetic (PK) analysis concluded that a meaningful terminal half-life cannot be calculated (Kovalenko 2020), and a published device-comparison study did not calculate half-life or AUC0-inf for this reason (Cohen 2022).
 
 **Questions of interest.** (1) Can AUC0-last together with Cmax serve as the co-primary endpoints of the PK similarity study in place of AUC0-inf together with Cmax? (2) Do additional samples between study Day 36 and Day 50 improve the PK assessment enough to justify them?
 
@@ -165,7 +165,7 @@ Two further developments raise the weight of this study:
 - **Sample size:** `r cfgv("trial_design.yaml", "n_randomized_per_arm")` subjects randomized and `r cfgv("trial_design.yaml", "n_per_arm")` evaluable per arm. Dropout itself is not simulated.
 - **Randomization:** stratified by body weight (two strata).
 - **Sampling (study days):** pre-dose, then Days 1 (post-dose), 2, 4, 6, 8, 11, 15, 22, 29, 36, 43, 50 and 57. In days after dosing these are `r cfgv("trial_design.yaml", c("schedules", "B0", "days"), fmt = function(x) paste(x, collapse = ", "))`.
-- **Bioanalysis:** LLOQ `r cfgv("trial_design.yaml", "lloq_mg_L")` mg/L.
+- **Bioanalysis:** LLOQ `r cfgv("assay.yaml", c("lloq_mg_L", "value"))` mg/L.
 - **Equivalence:** 90% CI of the GMR (pooled two-sample t on the log scale) within 80.00% to 125.00% for each co-primary endpoint.
 
 # 2. Question of interest, context of use and model risk
@@ -231,7 +231,7 @@ Common random numbers are used throughout: subjects, allocation, sampling-time d
 
 - **Sample times:** actual sampling times deviate within visit windows of plus or minus 2 hours up to Day 1, plus or minus 6 hours up to Day 14 and plus or minus 1 day thereafter (placeholders). The Day 1 post-dose sample is at `r cfgv("trial_design.yaml", c("day1_postdose_time", "value"))` day after dosing (placeholder).
 - **Residual error:** observations are the model concentration with the model's proportional and additive residual error.
-- **LLOQ:** observations below `r cfgv("trial_design.yaml", "lloq_mg_L")` mg/L are reported as below the LLOQ (BLQ).
+- **LLOQ:** observations below `r cfgv("assay.yaml", c("lloq_mg_L", "value"))` mg/L are reported as below the LLOQ (BLQ).
 
 ## 3.4 Non-compartmental analysis
 

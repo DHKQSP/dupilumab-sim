@@ -46,6 +46,7 @@ if (any(grepl("구조적으로 불가능", ko))) stopifnot(ge2_nom_1d == 0)
 writeLines(ko, file.path(d, "cliff_conclusion_ko.md")); writeLines(en, file.path(d, "cliff_conclusion_en.md"))
 # 독립 구현 기준값 비교(2016, 60–90 kg, 명목일)
 ref <- read_cfg("crossval_reference.yaml")$cliff_round6
+if (!isTRUE(all.equal(study_lloq(), as.numeric(read_cfg("crossval_reference.yaml")$lloq_mg_L)))) warning("연구 LLOQ가 기준값 LLOQ와 달라 절벽 기준값 비교는 해석할 수 없습니다(D-054)")
 if (!is.null(ref)) {
   rr <- rbindlist(list(
     data.table(metric = c("LLOQ 도달일 중앙값", "5백분위", "95백분위", "Day 58 이후 %", "절벽 시작 농도 중앙값", "구간 길이 1일 정의", "구간 길이 2일 정의"),

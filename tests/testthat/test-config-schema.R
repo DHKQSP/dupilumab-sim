@@ -27,7 +27,7 @@ test_that("파라미터 config 자료형", {
 
 test_that("시험 설계 config 자료형", {
   d <- read_cfg("trial_design.yaml")
-  expect_true(num1(d$n_per_arm) && d$n_per_arm == round(d$n_per_arm)); expect_true(num1(d$dose_mg)); expect_true(num1(d$lloq_mg_L))
+  expect_true(num1(d$n_per_arm) && d$n_per_arm == round(d$n_per_arm)); expect_true(num1(d$dose_mg)); expect_null(d$lloq_mg_L); expect_true(num1(.num(read_cfg("assay.yaml")$lloq_mg_L)))   # 연구 LLOQ는 assay.yaml 한 곳(D-054)
   for (nm in names(d$schedules)) { x <- unlist(d$schedules[[nm]]$days); expect_true(is.numeric(x) && all(x > 0) && !is.unsorted(x) && !anyDuplicated(x), info = nm) }
   for (w in c("base", "sensitivity")) { x <- d$weight[[w]]; expect_true(num1(x$mean) && num1(x$sd) && is.numeric(x$trunc) && length(x$trunc) == 2 && x$trunc[1] < x$trunc[2], info = w) }
   expect_true(num1(d$stratification$split_kg$value))

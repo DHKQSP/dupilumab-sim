@@ -1,0 +1,11 @@
+# 연구 시험(스폰서 검증 분석법) 혈청 두필루맙 LLOQ의 단일 출처 (추가 지시 2026-09-26 §2, D-054).
+# 계획 시험을 모의하는 모든 코드(시험 엔진 R/trial.R, 개인 수준 모집단 R/mc.R, 절벽 분석 R/cliff.R)는 여기서만 LLOQ를 읽는다(R/params.R study_lloq()).
+# 스폰서 분석법 LLOQ가 확정되면 lloq_mg_L 값만 바꾸고 scripts/run_all.sh로 전체를 다시 생성한다.
+# 구분: config/params_typical.yaml·params_k2020_model1.yaml의 lloq_mg_L(= p$lloq)과 config/design_clot2021.yaml의 lloq_mg_L은
+#       모델 개발·외부 검증 자료(Clot 2021 등, 원개발사 분석법)의 LLOQ이며 그 자료에 묶여 있으므로 바꾸지 않는다. 잔차 모형도 그 자료에서 추정됐다.
+# 교차검증 기준값(config/crossval_reference.yaml)은 LLOQ 0.078에서 계산됐으므로 scripts/13은 그 값으로 고정해 실행한다(options(dupi.study_lloq)).
+lloq_mg_L:
+  value: 0.078
+  status: assumption
+  source: "Clot 2021 section 2.4 (originator's assay, the LLOQ of the data used to develop the PK models); placeholder until the sponsor's validated assay LLOQ is fixed"
+lloq_sensitivity_mg_L: [0.02, 0.05, 0.078, 0.1, 0.2, 0.5]   # §2 민감도 격자(연구 LLOQ를 포함해야 한다)

@@ -1,4 +1,5 @@
 # 교차검증 기준값 — 검토자 독립 구현(Python, 적응 스텝 RK4), 지시서 2026-09-23 §8. 크게 다르면 원인 규명 후 보고.
+lloq_mg_L: 0.078     # 기준값을 계산한 LLOQ(D-054: 연구 LLOQ가 바뀌어도 교차검증 모의는 이 값으로 고정, scripts/13)
 individual_B0_wt60_90_300mg_n20000:
   AUClast_geo: 546
   AUClast_logcv_pct: 40.4

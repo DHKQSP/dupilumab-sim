@@ -6,7 +6,7 @@ route: SC
 population: {healthy: true, bmi_range: [18, 32], note: "BMI는 모델링하지 않음"}
 n_per_arm: 117            # 평가 가능 대상자. 무작위배정 130명, 탈락은 모델링하지 않음
 n_randomized_per_arm: 130
-lloq_mg_L: 0.078
+# LLOQ: config/assay.yaml(연구 LLOQ 단일 출처, D-054)
 
 weight:
   inclusion_kg: [60, 90]

@@ -36,7 +36,8 @@ res20 <- data.table(Model = "Kovalenko 2020 Model 1 (sensitivity)", Parameter = 
                     Unit = c("fraction (SD)", "mg/L (SD)"), Status = "confirmed", Source = src_en(c(p20$residual$sigma_prop$source, p20$residual$sigma_add$source)))
 cov20 <- data.table(Model = "Kovalenko 2020 Model 1 (sensitivity)", Parameter = c("Weight exponent on Vc", "Reference weight"), Value = c(p20$covariates$WT_on_Vc$theta_WT$value, p20$covariates$WT_on_Vc$WT_ref$value),
                     Unit = c("", "kg"), Status = "confirmed", Source = c("Kovalenko 2020 Table 1 Model 1", "Kovalenko 2020 Model 1 (reference weight 75 kg)"))
-lloq <- data.table(Model = "both", Parameter = "LLOQ", Value = pt$lloq_mg_L$value, Unit = "mg/L", Status = "assumption for the sponsor's assay", Source = src_en(pt$lloq_mg_L$source))
+asy <- read_cfg("assay.yaml")
+lloq <- data.table(Model = "both", Parameter = "LLOQ (study assay, config/assay.yaml)", Value = asy$lloq_mg_L$value, Unit = "mg/L", Status = "assumption for the sponsor's assay", Source = asy$lloq_mg_L$source)
 pp <- rbind(th16, cov16, iiv16, res16, th20, cov20, iiv20, res20, lloq)
 pp[, Parameter := gsub("^Vc$", "Vc (central volume, L at 75 kg; V2 in Kovalenko 2016)", Parameter)]
 pp[, Parameter := gsub("^k12$", "k12 (k23 in Kovalenko 2016; kcp in 2020)", Parameter)]; pp[, Parameter := gsub("^k21$", "k21 (k32 in Kovalenko 2016; kpc in 2020)", Parameter)]
@@ -51,7 +52,7 @@ ab <- data.table(
                  "Randomization stratification", "Evaluable subjects per arm; dropout", "Km fixed, without between-subject variability", "No parameter uncertainty layer",
                  "Residual error model", "Immunogenicity (ADA)", "Automated lambda-z selection without manual review", "Presentation of test and reference products", "Population: healthy subjects",
                  "Body weight of single-arm literature studies (validation only)", "BMI reference for the ke-BMI covariate (weight generalization only)"),
-  `Value used` = c(sprintf("%s mg/L", td$lloq_mg_L), sprintf("%s day after dosing", td$day1_postdose_time$value), "plus or minus 2 h to Day 1, 6 h to Day 14, 1 day thereafter",
+  `Value used` = c(sprintf("%s mg/L", asy$lloq_mg_L$value), sprintf("%s day after dosing", td$day1_postdose_time$value), "plus or minus 2 h to Day 1, 6 h to Day 14, 1 day thereafter",
                    sprintf("normal, mean %s kg, SD %s kg, truncated %s to %s kg; male fraction %s", td$weight$base$mean, td$weight$base$sd, td$weight$base$trunc[1], td$weight$base$trunc[2], td$weight$sex_ratio_male$value),
                    sprintf("two strata split at %s kg, 1:1 within strata", td$stratification$split_kg$value), sprintf("%s evaluable per arm (%s randomized); dropout not simulated", td$n_per_arm, td$n_randomized_per_arm),
                    "0.01 mg/L in both models", "single-layer Monte Carlo (parameters fixed at published estimates)", "as published: proportional 24.2% (2016) and 15.0% (2020), additive 0.03 mg/L",

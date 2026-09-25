@@ -9,7 +9,7 @@ simulate_trial_arms <- function(j, p, design, scenarios, schedules, master_seed,
   if (is.null(n_per_arm)) n_per_arm <- design$n_per_arm
   if (is.null(sex_ratio_male)) sex_ratio_male <- design$weight$sex_ratio_male$value
   if (is.null(model_id)) model_id <- p$model_id
-  dose <- design$dose_mg; lloq <- p$lloq
+  dose <- design$dose_mg; lloq <- study_lloq()                       # 연구 LLOQ 단일 출처(config/assay.yaml, D-054)
   grid <- union_grid(design, schedules)
   # (1) 피험자 (2) 배정
   subj <- with_seed(derive_seed(master_seed, j, "subj"), make_subjects(2 * n_per_arm, p, wt_spec, sex_ratio_male, p$ada$fraction))
@@ -44,7 +44,7 @@ simulate_trial_arms <- function(j, p, design, scenarios, schedules, master_seed,
       }
     }
   }
-  list(j = j, subj = subj, arms = arms, grid = grid)
+  list(j = j, subj = subj, arms = arms, grid = grid, lloq = lloq)
 }
 
 # 한 (시나리오, 일정)의 NCA + BE. 반환 list(be, nca)

@@ -4,6 +4,7 @@
 # 입력: results/curve_shape/curve_shape_B0.csv, results/weight_generalization/weight_bands_B0_abcd.csv, config/crossval_reference.yaml
 source("R/00_setup.R"); source_project()
 ref <- read_cfg("crossval_reference.yaml"); out_dir <- proj_path("results", "crossval")
+if (!isTRUE(all.equal(study_lloq(), as.numeric(ref$lloq_mg_L)))) warning(sprintf("연구 LLOQ %g mg/L ≠ 기준값 LLOQ %g mg/L: 입력 결과(21, 24)가 다른 LLOQ에서 만들어져 이 비교는 해석할 수 없습니다(D-054)", study_lloq(), as.numeric(ref$lloq_mg_L)))
 cs <- fread(proj_path("results", "curve_shape", "curve_shape_B0.csv"))
 wb <- fread(proj_path("results", "weight_generalization", "weight_bands_B0_abcd.csv"))
 row <- function(analysis, cond, metric, r, s) data.table(analysis = analysis, condition = cond, metric = metric, ref_8000 = r, sim_20000 = s)

@@ -80,4 +80,64 @@ section1:
   out_dir: results/oc_models
   scripts: [scripts/44_oc_models.R, scripts/45_oc_models_summary.R]
 
-# §2 LLOQ 범위 민감도, §3 표본 수 표: 각 절의 결과를 만들기 전에 이 파일에 추가하고 커밋한다.
+# ---------------------------------------------------------------------------------------------------------------------
+# §2 LLOQ 범위 민감도 (등록 2026-09-25, 이 절의 결과 생성 전). 연구 LLOQ의 단일 출처는 config/assay.yaml(D-054).
+# 공개: 코드 개발 중 시험 1·2(k2016)와 400명 점검, 절벽 도달일 중앙값(LLOQ 0.02·0.078·0.5)을 보았다. 설계(격자·지표·시나리오·시험 수)는 지시문이 정했다.
+section2:
+  question: "스폰서 분석법 LLOQ가 0.078 mg/L와 다를 때 AUClast 포착, AUC0-inf 산출 가능성·신뢰성, 절벽 채혈, 경계 1종 오류가 어떻게 달라지는가"
+  lloq_grid_mg_L: [0.02, 0.05, 0.078, 0.1, 0.2, 0.5]   # config/assay.yaml lloq_sensitivity_mg_L와 같아야 한다(scripts/46이 검사)
+  reference_lloq_mg_L: 0.078                           # 쌍대 비교 기준(현재 연구 LLOQ)
+  censoring: "same subjects, sampling times and residual draws (y_raw) re-censored at each LLOQ with the simulation rule: pre-dose or y_raw < LLOQ is BLQ; NCA BLQ handling unchanged"
+  residual_variants:
+    - fixed     # 1차: 잔차 모형 그대로(가산 SD 0.03 mg/L, 모델 개발 자료 LLOQ 0.078에서 추정)
+    - scaled    # 2차(지시 외 추가): 가산 잔차 SD x (LLOQ / 0.078), LLOQ에서의 상대 정밀도 유지. 같은 시드로 잔차를 다시 뽑고 배율 1에서 저장 y_raw 재현을 검사
+  residual_rationale: "with the fixed additive SD of 0.03 mg/L a noise-only sample reads at or above 0.02 mg/L with probability about 25%, so a low LLOQ under the fixed variant also tests the residual assumption; the scaled variant keeps the precision at the LLOQ constant"
+  individual:
+    pk_models: [k2016, k2020]
+    population: "scripts/10 populations: variants base (k2016) and struct2020 (k2020), 20,000 subjects, 60-90 kg, tags ind_base and ind_struct2020, master seed 20260923, all schedule_analysis schedules drawn on the union grid; B0 analysed"
+    metrics: [extrap_true_median, extrap_true_p95, coverage_lt80_pct, extrap_median, extrap_p95, extrap_gt20_pct, reliable_no_span_pct, reliable_pct, lambda_fail_pct, tlast_median, tlast_p05, tlast_p95, quant_at_last_pct, tlast_planned_distribution]
+    paired_changes: "versus LLOQ 0.078 within residual variant: reliability (i) and (ii), lambda-z failure, coverage below 80%, NCA extrapolation above 20% (paired proportion differences, 95% interval)"
+    verification: "fixed variant at 0.078 reproduces results/individual/individual_<variant>.csv row B0 (relative 1e-9) and results/individual/nca_<variant>_20000.rds B0 (subject level, exact)"
+    cliff: "cliff populations of scripts/34 (seed 20260928, base weight, 20,000 subjects per model), schedule current (B0), nominal and windowed times, cliff-start definitions 1 and 2 days; cliff end = time the true concentration reaches each LLOQ; share of subjects with 1 or more, 2 or more, 3 or more samples in the cliff; the 0.078 rows reproduce results/cliff/cliff_subjects.rds and cliff_points.csv exactly"
+  trial:
+    pk_model: k2016                  # 주 모델(D-023)
+    scenarios: [S00, Vmax_up_080, Vmax_down_125, F_down_080]   # 경계: Vmax 양방향, F 하향 + 동일 제품(검정력)
+    trials: [1, 5000]
+    analysis_models: [M0, M1]
+    endpoints: [Cmax, AUClast, AUCinf_A, AUCinf_B, AUCinf_true]
+    configurations: [P2, G2_Aii, G2_B, AUClast_only, AUCinf_true_only]
+    outputs: "boundary type I error (Wilson 95%) and paired change versus LLOQ 0.078 (same trials, same analysis model and residual variant); power in S00; drop counts (lambda-z, flags) and median tlast per arm"
+    verification: "M0, fixed variant, LLOQ 0.078 equals results/oc/oc_rejudge_be_k2016.csv.gz for trials 1-5,000 (relative 1e-6, pass and n identical); scaled variant at 0.078 equals fixed (bit-identical y_raw check in every trial)"
+  out_dir: results/lloq
+  scripts: [scripts/46_lloq_sensitivity.R]
+
+# ---------------------------------------------------------------------------------------------------------------------
+# §3 표본 수 표 (등록 2026-09-25, 이 절의 결과 생성 전).
+# 공개: 코드 조사 중 저장된 20,000명 B0 자료에서 입력값(분산 분해)을 계산했고, 분석식의 원형을 n = 117에서 저장된 경험 검정력과 대조했다. 격자의 검정력·필요 n은 계산하지 않았다.
+section3:
+  target: "P2 joint power (AUClast and Cmax both with 90% CI within 80.00-125.00%)"
+  grid:
+    auclast_cv_pct: [35, 40, 43, 46, 50, 52]      # 총 개체 간 CV(로그 정규: sigma^2 = log(1 + CV^2); 로그 정규에서 산술 SD/평균과 같은 정의)
+    true_gmr: [0.90, 0.95, 1.00]
+    n_evaluable_per_arm: [100, 117, 130, 140]
+  base_cv_pct: 43                                  # 프로토콜 가정(Syneos 제안). 민감도 50
+  sensitivity_cv_pct: 50
+  cv_sources:
+    - "Li 2020 Table 3 (p. 750), 300 mg arms: SD/mean 35.4-51.4% (6 arms), pooled 42.0% (config/design_clot2021.yaml arm_checks_300mg)"
+    - "Cohen 2022: log SD 0.49 (CV about 52%), 200 mg, different presentation, device comparison (config/design_clot2021.yaml)"
+    - "protocol assumption 43% (Syneos proposal)"
+    - "PK models, 60-90 kg, B0, 20,000 subjects: AUClast log-CV 40.3% (2016 model), 42.8% (Model 1)"
+  inputs_from_simulation:
+    source: "results/individual/nca_base_20000.rds (primary, 2016 model) and nca_struct2020_20000.rds (sensitivity), schedule B0"
+    estimated: "OLS slopes of log AUClast and log Cmax on log body weight; total SD of log Cmax; total correlation of log AUClast and log Cmax; computed by scripts/47 and written to results/sample_size/ss_inputs.csv"
+    cmax_cv: "held at the simulated value (primary); sensitivity: Cmax log SD = (simulated ratio of Cmax to AUClast log SD) x AUClast log SD"
+    correlation: "total correlation of log AUClast and log Cmax held at the simulated value"
+  data_generating_model: "log Y = mu + tau x T + beta x (log WT - mean) + e for AUClast and Cmax; WT ~ normal(75, 9) truncated 60-90 kg; stratum WT > 75; 1:1 allocation within stratum (odd leftovers alternated); e bivariate normal with variances total minus beta^2 Var(log WT) and covariance matching the total correlation"
+  cmax_gmr: "equal to the AUClast GMR (primary, conservative); sensitivity: log Cmax ratio = k x log AUC ratio with k from the F-down inversion scenarios (about 0.72)"
+  methods:
+    analytic: "bivariate normal rectangle for the two treatment estimators with the standard error fixed at its expectation: M1 uses the within-stratum variance for the estimator and the SE (df 2n - 3); M0 uses the within-stratum variance for the estimator (stratified allocation) and the total variance for the SE (df 2n - 2)"
+    statistical_mc: "subject-level simulation of the data-generating model, 5,000 trials per grid cell (all 72 cells), M0 and M1 on the same trials; seed derive_seed(20260926, 'samplesize', input model, CV, GMR, n)"
+    pk_model_check: "PK-model trials at n = 117 and the models' natural CV: S00 and F097 from section1 (10,000 trials), plus F_down_090 and F_down_095 (true AUC0-inf ratio 0.90 and 0.95), 5,000 trials each, both PK models, M0/M1/M2 with the operating-characteristic seeds; M0 verified against results/oc/oc_trials_be_<model>.csv.gz trials 1-2,000; compared with the analytic power at the same inputs and true ratios"
+  n_needed: "smallest evaluable n per arm (integer) with analytic P2 power at least 90% and at least 85%, per CV, GMR, analysis model and input set; randomized n per arm = ceiling(n x 130 / 117)"
+  out_dir: results/sample_size
+  scripts: [scripts/47_sample_size.R]

@@ -5,7 +5,7 @@
 #   $omega   : 명명 벡터, 로그 척도 SD (= sqrt(ω²))
 #   $omega2  : 명명 벡터, 분산(원자료)
 #   $sigma   : c(prop, add)
-#   $lloq    : 정량한계
+#   $lloq    : 모델 개발·외부 검증 자료(Clot 2021 등)의 정량한계. 계획 시험의 LLOQ는 study_lloq()(config/assay.yaml)
 #   $model_id: "k2016_2cmt_linMM_ka" | "k2020_model1_transit"
 #   $ada     : list(fraction, onset_day, ke_multiplier) — ADA 유사 소집단(기본 fraction 0)
 #   $status  : data.table(item, status, source)
@@ -13,6 +13,28 @@
 read_cfg <- function(name) yaml::read_yaml(proj_path("config", name), fileEncoding = "UTF-8", readLines.warn = FALSE)
 
 .num <- function(x) if (is.list(x) && !is.null(x$value)) as.numeric(x$value) else as.numeric(x)
+
+# 연구 시험(스폰서 분석법) LLOQ의 단일 출처: config/assay.yaml (D-054). 계획 시험을 모의하는 코드는 이 함수만 쓴다.
+# p$lloq(파라미터 config의 lloq_mg_L)는 모델 개발·외부 검증 자료(Clot 2021 등)의 LLOQ이며 그 자료의 모의(R/step1.R)에만 쓴다.
+# options(dupi.study_lloq = x)는 고정 기준값과 비교하는 재현 실행(scripts/13 교차검증)에서만 쓴다.
+.ASSAY_CACHE <- new.env(parent = emptyenv())
+study_lloq <- function() {
+  o <- getOption("dupi.study_lloq")
+  if (!is.null(o)) { o <- as.numeric(o); if (length(o) != 1 || !is.finite(o) || o <= 0) stop("options(dupi.study_lloq)는 양의 스칼라"); return(o) }
+  if (is.null(.ASSAY_CACHE$lloq)) {
+    v <- .num(read_cfg("assay.yaml")$lloq_mg_L)
+    if (length(v) != 1 || !is.finite(v) || v <= 0) stop("config/assay.yaml lloq_mg_L은 양의 스칼라여야 합니다")
+    .ASSAY_CACHE$lloq <- v
+  }
+  .ASSAY_CACHE$lloq
+}
+# §2 민감도 격자(정렬, 연구 LLOQ 포함 확인)
+study_lloq_grid <- function() {
+  g <- sort(unique(as.numeric(unlist(read_cfg("assay.yaml")$lloq_sensitivity_mg_L))))
+  if (!length(g) || any(!is.finite(g) | g <= 0)) stop("config/assay.yaml lloq_sensitivity_mg_L은 양수 벡터여야 합니다")
+  if (!any(abs(g - study_lloq()) < 1e-12)) stop("LLOQ 민감도 격자에 연구 LLOQ가 없습니다")
+  g
+}
 
 load_params <- function(model = c("k2016", "k2020"), variant = "base") {
   model <- match.arg(model)

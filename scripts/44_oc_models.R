@@ -101,8 +101,8 @@ done_trials <- function(f, n_rows_trial, by_scen = FALSE) {         # 완전한 
   if (by_scen) unique(ex[, .(trial, scenario)]) else unique(ex$trial)
 }
 finish_rows <- function(be) {
-  stopifnot(identical(unique(be$lloq), p$lloq))
-  be[, lloq := NULL]
+  stopifnot(identical(unique(be$lloq), study_lloq()), "resid" %in% names(be) && identical(unique(be$resid), "fixed"))
+  be[, c("lloq", "resid") := NULL]
   be[, `:=`(est = signif(est, 8), se = signif(se, 8))]
   be[, ..COLS]
 }

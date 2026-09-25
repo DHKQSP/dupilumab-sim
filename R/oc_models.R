@@ -67,36 +67,61 @@ be_m0_fast <- function(d, keys, ci_level = 0.90, limits = c(0.80, 1.25)) {
 # 시나리오 × 평가변수마다 분석 모형을 적용한다.
 #   M0 = be_pooled_t(run_trial_oc_ext와 같은 입력 순서 c(대조군, 시험군) → 저장본과 대조), M1·M2 = be_models_fast.
 #   공변량은 배정 때 기록한 대상자 표(sa$subj)의 체중과 배정 층(1번째 층 = 60–75 kg, 2번째 = >75–90 kg)이다.
-# lloqs: NULL이면 모의 LLOQ(p$lloq). 여러 값이면 같은 y_raw(같은 대상자·채혈 시각·잔차)를 LLOQ마다 simulate_observations와 같은 규칙
-#   (투여 전 또는 y_raw < LLOQ → BLQ, conc NA)으로 다시 검열한다(LLOQ 간 쌍대 비교). LLOQ l의 id 오프셋은 (l − 1)·(시나리오 수 + 1)·nmax.
-# 반환 list(be = trial, lloq, scenario, endpoint, model, est, se, df, GMR, CI_lower, CI_upper, pass, n_R, n_T;
-#           drop = trial, lloq, scenario(REF = 대조군), arm, n, n_lambda, n_reliable(세트 ii), n_reliable_i(세트 i), flag_rsq, flag_extrap, flag_span;
+# lloqs: NULL이면 모의에 쓴 연구 LLOQ(sa$lloq = study_lloq()). 여러 값이면 같은 y_raw(같은 대상자·채혈 시각·잔차)를 LLOQ마다 simulate_observations와
+#   같은 규칙(투여 전 또는 y_raw < LLOQ → BLQ, conc NA)으로 다시 검열한다(LLOQ 간 쌍대 비교).
+# resid: "fixed" = 잔차 모형 그대로(가산 SD는 모델 개발 자료의 추정값), "scaled" = 가산 잔차를 LLOQ / p$lloq 배로(LLOQ에서의 상대 정밀도 유지; §2 민감도).
+#   scaled는 시험군·대조군 잔차를 simulate_trial_arms와 같은 시드(master, j, arm, "eps")로 다시 뽑아 y_raw = C·(1 + eps_p) + eps_a·배율로 만든다.
+#   배율 1에서 다시 만든 y_raw가 저장 y_raw와 비트 단위로 같은지 시험마다 검사한다.
+#   (LLOQ, resid) 조합 l의 id 오프셋은 (l − 1)·(시나리오 수 + 1)·nmax.
+# 반환 list(be = trial, lloq, resid, scenario, endpoint, model, est, se, df, GMR, CI_lower, CI_upper, pass, n_R, n_T;
+#           drop = trial, lloq, resid, scenario(REF = 대조군), arm, n, n_lambda, n_reliable(세트 ii), n_reliable_i(세트 i), flag_rsq, flag_extrap, flag_span, tlast_median;
 #           strata = trial, arm, stratum, n)
 recensor_obs <- function(obs, lloq) {
+  l_ <- lloq                                                           # 인자를 지역 변수로(data.table 스코프, D-022)
   o <- copy(obs)
-  o[, blq := planned == 0 | y_raw < lloq]
+  o[, blq := planned == 0 | y_raw < l_]
   o[, conc := fifelse(blq, NA_real_, y_raw)][]
+}
+# 잔차를 같은 시드로 다시 뽑아 가산 잔차 배율을 바꾼 y_raw. eps: draw_eps 결과(id, planned, eps_p, eps_a). 배율 1이면 원래 y_raw와 같아야 한다.
+rescale_additive <- function(obs, eps, scale) {
+  s_ <- scale
+  o <- merge(copy(obs), eps, by = c("id", "planned"), all.x = TRUE, sort = TRUE)
+  if (anyNA(o$eps_p)) stop("rescale_additive: 잔차가 없는 관측")
+  chk <- o$C * (1 + o$eps_p) + o$eps_a
+  if (!identical(chk, o$y_raw)) stop("rescale_additive: 다시 뽑은 잔차가 저장 y_raw를 재현하지 않습니다(시드·격자 확인)")
+  o[, y_raw := C * (1 + eps_p) + eps_a * s_]
+  o[, c("eps_p", "eps_a") := NULL]
+  setorder(o, id, time)[]
 }
 
 run_trial_oc_models <- function(j, p, design, scenarios, master_seed, wt_spec, schedule = "B0", jitter = TRUE, model_id = NULL,
-                                lloqs = NULL, models = c("M0", "M1", "M2"), endpoints = OC_ENDPOINTS_EXT) {
-  stopifnot(all(models %in% c("M0", "M1", "M2")), all(endpoints %in% OC_ENDPOINTS_EXT))
+                                lloqs = NULL, resid = "fixed", models = c("M0", "M1", "M2"), endpoints = OC_ENDPOINTS_EXT) {
+  stopifnot(all(models %in% c("M0", "M1", "M2")), all(endpoints %in% OC_ENDPOINTS_EXT), length(resid) >= 1, all(resid %in% c("fixed", "scaled")), !anyDuplicated(resid))
   sa <- simulate_trial_arms(j, p, design, scenarios, schedule, master_seed, wt_spec, jitter = jitter, model_id = model_id)
   sd_days <- get_schedule(design, schedule)
   scs <- names(scenarios); nmax <- max(sa$subj$id); K <- length(scs) + 1L
-  if (is.null(lloqs)) lloqs <- p$lloq
+  if (is.null(lloqs)) lloqs <- sa$lloq
   if (anyDuplicated(lloqs) || any(!is.finite(lloqs) | lloqs <= 0)) stop("run_trial_oc_models: lloqs는 서로 다른 양수")
   if (nlevels(sa$subj$stratum) != 2L) stop("run_trial_oc_models: 배정 층이 2개가 아닙니다")
   cv <- sa$subj[, .(sid = id, WT, s2 = as.integer(as.integer(stratum) == 2L))]
   arms_l <- c(list(REF = sa$arms$R$S00), setNames(lapply(scs, function(sc) sa$arms$T[[sc]]), scs))
-  obs_l <- vector("list", length(lloqs) * K); tr_l <- obs_l; map_l <- obs_l; i <- 0L
-  for (li in seq_along(lloqs)) for (k in seq_len(K)) {
-    x <- arms_l[[k]]; o <- ((li - 1L) * K + (k - 1L)) * nmax; i <- i + 1L
+  arm_of <- c(REF = "R", setNames(rep("T", length(scs)), scs))
+  eps_l <- NULL
+  if ("scaled" %in% resid) {                                          # simulate_trial_arms와 같은 시드·격자로 잔차 재추출
+    gp <- sort(unique(c(0, sa$grid)))
+    eps_l <- lapply(c(R = "R", T = "T"), function(a) with_seed(derive_seed(master_seed, j, a, "eps"), draw_eps(sa$subj[arm == a, id], gp, p$sigma)))
+  }
+  combos <- CJ(resid = resid, lloq = lloqs, sorted = FALSE)
+  obs_l <- vector("list", nrow(combos) * K); tr_l <- obs_l; map_l <- obs_l; i <- 0L
+  for (ci in seq_len(nrow(combos))) for (k in seq_len(K)) {
+    L <- combos$lloq[ci]; rv_ <- combos$resid[ci]
+    x <- arms_l[[k]]; o <- ((ci - 1L) * K + (k - 1L)) * nmax; i <- i + 1L
     ob <- subset_schedule(x$obs, sd_days)
-    if (lloqs[li] != p$lloq) ob <- recensor_obs(ob, lloqs[li])      # 모의 LLOQ와 같으면 저장 검열 그대로(규칙이 같아 결과도 같음)
+    if (rv_ == "scaled") ob <- rescale_additive(ob, eps_l[[arm_of[[names(arms_l)[k]]]]], L / p$lloq)
+    if (rv_ == "scaled" || L != sa$lloq) ob <- recensor_obs(ob, L)  # 모의 LLOQ·고정 잔차면 저장 검열 그대로(규칙이 같아 결과도 같음)
     obs_l[[i]] <- ob[, .(id = id + o, time, conc)]
     tr_l[[i]] <- x$truth[, .(id = id + o, AUCinf_true)]
-    map_l[[i]] <- data.table(id = x$subj$id + o, sid = x$subj$id, lloq = lloqs[li], scenario = names(arms_l)[k])
+    map_l[[i]] <- data.table(id = x$subj$id + o, sid = x$subj$id, lloq = L, resid = rv_, scenario = names(arms_l)[k])
   }
   nca <- run_nca(rbindlist(obs_l))
   nca <- rbindlist(tr_l)[nca, on = "id"]
@@ -110,13 +135,13 @@ run_trial_oc_models <- function(j, p, design, scenarios, master_seed, wt_spec, s
     Cmax = nca$Cmax, AUClast = nca$AUClast, AUCinf_A = fifelse(nca$reliable %in% TRUE, nca$AUCinf, NA_real_),
     AUCinf_B = fifelse(nca$lambda_ok %in% TRUE, nca$AUCinf, NA_real_), AUCinf_C = nca$AUCinf_C, AUCinf_true = nca$AUCinf_true,
     AUCinf_Ai = fifelse(nca$rel_i, nca$AUCinf, NA_real_), AUCinf_Ci = nca$AUCinf_Ci)
-  long <- rbindlist(lapply(endpoints, function(ep) data.table(id = nca$id, lloq = nca$lloq, scenario = nca$scenario, endpoint = ep, y = ev(ep),
+  long <- rbindlist(lapply(endpoints, function(ep) data.table(id = nca$id, lloq = nca$lloq, resid = nca$resid, scenario = nca$scenario, endpoint = ep, y = ev(ep),
                                                               stratum = nca$s2, lwt = log(nca$WT))))
   ref <- long[scenario == "REF"]
-  d <- rbindlist(lapply(scs, function(sc) rbind(ref[, .(lloq, scenario = sc, endpoint, arm = "R", id, y, stratum, lwt)],
-                                                long[scenario == sc, .(lloq, scenario, endpoint, arm = "T", id, y, stratum, lwt)])))
+  d <- rbindlist(lapply(scs, function(sc) rbind(ref[, .(lloq, resid, scenario = sc, endpoint, arm = "R", id, y, stratum, lwt)],
+                                                long[scenario == sc, .(lloq, resid, scenario, endpoint, arm = "T", id, y, stratum, lwt)])))
   # 묶음 안 순서: 대조군(id 순) 다음 시험군(id 순) = run_trial_oc_ext의 c(yR, yT)
-  keys <- c("lloq", "scenario", "endpoint")
+  keys <- c("lloq", "resid", "scenario", "endpoint")
   lim <- as.numeric(unlist(design$be$limits)); cl <- design$be$ci_level
   out <- list()
   if ("M0" %in% models) {
@@ -128,9 +153,10 @@ run_trial_oc_models <- function(j, p, design, scenarios, master_seed, wt_spec, s
   be <- rbindlist(out, use.names = TRUE)
   be[, trial := j]
   setcolorder(be, c("trial", keys, "model"))
-  setorderv(be, c("lloq", "scenario", "endpoint", "model"))
+  setorderv(be, c("resid", "lloq", "scenario", "endpoint", "model"))
   drop <- nca[, .(n = .N, n_lambda = sum(lambda_ok %in% TRUE), n_reliable = sum(reliable %in% TRUE), n_reliable_i = sum(rel_i),
-                  flag_rsq = sum(flag_rsq %in% TRUE), flag_extrap = sum(flag_extrap %in% TRUE), flag_span = sum(flag_span %in% TRUE)), by = .(lloq, scenario)]
+                  flag_rsq = sum(flag_rsq %in% TRUE), flag_extrap = sum(flag_extrap %in% TRUE), flag_span = sum(flag_span %in% TRUE),
+                  tlast_median = as.numeric(median(tlast, na.rm = TRUE))), by = .(lloq, resid, scenario)]
   drop[, `:=`(trial = j, arm = fifelse(scenario == "REF", "R", "T"))]
   strata <- sa$subj[, .(n = .N), by = .(arm, stratum = as.character(stratum))][, trial := j]
   list(be = be[], drop = drop[], strata = strata[])

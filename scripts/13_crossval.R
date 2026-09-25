@@ -4,6 +4,7 @@
 source("R/00_setup.R"); source_project()
 args <- commandArgs(trailingOnly = TRUE)
 design <- read_cfg("trial_design.yaml"); sc <- load_scenarios(); ref <- read_cfg("crossval_reference.yaml")
+options(dupi.study_lloq = as.numeric(ref$lloq_mg_L))                  # 기준값의 LLOQ로 고정(연구 LLOQ config/assay.yaml와 무관, D-054)
 n_trials <- if (length(args) >= 1) as.integer(args[1]) else design$mc$n_trials
 cores <- if (length(args) >= 2) as.integer(args[2]) else max(1L, parallel::detectCores())
 MASTER_SEED <- 20260923L

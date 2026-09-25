@@ -68,10 +68,26 @@ test_that("run_trial_oc_models의 M0는 run_trial_oc_ext와 같고, M1은 층 �
   expect_true(all(abs(e$M1 - e$M0) < 0.01))
   expect_true(all(dcast(full, scenario + endpoint ~ model, value.var = "se")[, M1 < M0]))   # 층 효과가 있어 잔차 SD가 작다
   # LLOQ 재검열: 모의 LLOQ 포함 3개를 한 번에 → 모의 LLOQ 행은 단일 실행과 같고, 다른 LLOQ는 같은 대상자(n 동일)로 다른 값
-  c3 <- run_trial_oc_models(3L, p, design, scen, ms, rv$wt_spec, model_id = p$model_id, lloqs = c(0.02, p$lloq, 0.5), models = c("M0", "M1"))
-  same <- c3$be[lloq == p$lloq][b$be[model %in% c("M0", "M1")], on = c("scenario", "endpoint", "model")]
+  L0 <- study_lloq(); expect_equal(L0, p$lloq)                         # 현재 연구 LLOQ = 모델 개발 자료 LLOQ(0.078)
+  c3 <- run_trial_oc_models(3L, p, design, scen, ms, rv$wt_spec, model_id = p$model_id, lloqs = c(0.02, L0, 0.5), resid = c("fixed", "scaled"), models = c("M0", "M1"))
+  same <- c3$be[lloq == L0 & resid == "fixed"][b$be[model %in% c("M0", "M1")], on = c("scenario", "endpoint", "model")]
   expect_identical(same$est, same$i.est); expect_identical(same$se, same$i.se)
-  lo <- c3$be[lloq == 0.02 & endpoint == "AUClast" & model == "M0"]; hi <- c3$be[lloq == p$lloq & endpoint == "AUClast" & model == "M0"]
+  # 가산 잔차 배율 = LLOQ / p$lloq: 연구 LLOQ(배율 1)에서 scaled = fixed(재추출 잔차가 저장 y_raw를 비트 단위로 재현)
+  sc1 <- c3$be[lloq == L0 & resid == "scaled"][c3$be[lloq == L0 & resid == "fixed"], on = c("scenario", "endpoint", "model")]
+  expect_identical(sc1$est, sc1$i.est); expect_identical(sc1$se, sc1$i.se)
+  lo <- c3$be[lloq == 0.02 & resid == "fixed" & endpoint == "AUClast" & model == "M0"]; hi <- c3$be[lloq == L0 & resid == "fixed" & endpoint == "AUClast" & model == "M0"]
   expect_identical(lo$n_R, hi$n_R); expect_false(isTRUE(all.equal(lo$est, hi$est)))
-  expect_identical(c3$be[lloq == 0.5 & endpoint == "AUCinf_true", est], c3$be[lloq == p$lloq & endpoint == "AUCinf_true", est])   # 참값은 LLOQ와 무관
+  expect_false(isTRUE(all.equal(c3$be[lloq == 0.02 & resid == "scaled", est], c3$be[lloq == 0.02 & resid == "fixed", est])))
+  expect_identical(c3$be[lloq == 0.5 & resid == "fixed" & endpoint == "AUCinf_true", est], c3$be[lloq == L0 & resid == "fixed" & endpoint == "AUCinf_true", est])   # 참값은 LLOQ와 무관
+})
+
+test_that("연구 LLOQ는 config/assay.yaml 한 곳에서 읽고, 민감도 격자는 연구 LLOQ를 포함하며, 옵션으로만 고정할 수 있다", {
+  a <- read_cfg("assay.yaml")
+  expect_equal(study_lloq(), as.numeric(a$lloq_mg_L$value))
+  expect_true(any(abs(study_lloq_grid() - study_lloq()) < 1e-12)); expect_false(is.unsorted(study_lloq_grid()))
+  old <- options(dupi.study_lloq = 0.2); on.exit(options(old))
+  expect_equal(study_lloq(), 0.2)
+  options(old); expect_equal(study_lloq(), as.numeric(a$lloq_mg_L$value))
+  expect_null(read_cfg("trial_design.yaml")$lloq_mg_L)                   # 두 번째 출처가 없어야 한다
+  expect_equal(load_params("k2016")$lloq, read_cfg("design_clot2021.yaml")$lloq_mg_L)   # p$lloq = 외부 자료(Clot 2021) LLOQ
 })

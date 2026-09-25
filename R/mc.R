@@ -26,7 +26,8 @@ run_individual_population <- function(n, p, design, schedules, master_seed, wt_s
   obs <- with_seed(derive_seed(master_seed, tag, "jitter"), make_obs_times(subj$id, grid, design, jitter = jitter))
   eps <- with_seed(derive_seed(master_seed, tag, "eps"), draw_eps(subj$id, sort(unique(c(0, grid))), p$sigma))
   ip <- individual_params(apply_multipliers(p, multipliers), subj)
-  sim <- simulate_observations(ip, obs, dose_mg, p$lloq, eps, model_id = model_id)
+  lloq <- study_lloq()                                                # 연구 LLOQ 단일 출처(config/assay.yaml, D-054)
+  sim <- simulate_observations(ip, obs, dose_mg, lloq, eps, model_id = model_id)
   nca_by_sched <- lapply(schedules, function(sh) {
     ob <- subset_schedule(sim$obs, get_schedule(design, sh))
     nca <- attach_truth(run_nca(ob), ob, sim$truth)
@@ -34,5 +35,5 @@ run_individual_population <- function(n, p, design, schedules, master_seed, wt_s
     nca[, schedule := sh][]
   })
   names(nca_by_sched) <- schedules
-  list(subj = subj, obs = sim$obs, truth = sim$truth, nca = rbindlist(nca_by_sched))
+  list(subj = subj, obs = sim$obs, truth = sim$truth, nca = rbindlist(nca_by_sched), lloq = lloq, grid = grid)
 }

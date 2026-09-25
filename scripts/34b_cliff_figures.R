@@ -3,7 +3,7 @@
 if (!exists("cs_all")) {
   source("R/00_setup.R"); source_project(); suppressPackageStartupMessages(library(ggplot2))
   oc <- read_cfg("oc_design.yaml"); cf <- oc$cliff; design <- read_cfg("trial_design.yaml")
-  out_dir <- proj_path("results", "cliff"); N <- as.integer(cf$n_subjects); LLOQ <- as.numeric(cf$lloq); SEED <- as.integer(cf$seed)
+  out_dir <- proj_path("results", "cliff"); N <- as.integer(cf$n_subjects); LLOQ <- study_lloq(); SEED <- as.integer(cf$seed)
   cs_all <- readRDS(file.path(out_dir, "cliff_subjects.rds")); pts <- fread(file.path(out_dir, "cliff_points.csv"))
   b0 <- get_schedule(design, "B0")
   SCHED_LABEL <- c(current = "현행", plus_39_46 = "+Day 39·46", plus_39_46_53 = "+Day 39·46·53", plus_32_39_46_53 = "+Day 32·39·46·53", plus_40_47 = "+Day 40·47", daily_29_57 = "Day 29–57 매일")
@@ -26,6 +26,7 @@ TX <- list(
             t23 = "Figure 2-3. Cliff length and minimum visit interval after Day 22 by schedule", rep = "Subject at the %sth percentile (LLOQ at Day %.1f)", cur = "Current samples", add = "+Day 39, 46, 53",
             x24 = "Days after dose", y24 = "True concentration (mg/L, log)", t24 = "Figure 2-4. Concentration curves of representative subjects and the cliff (shaded, 1-day definition)",
             lloq = ", dashed line = LLOQ 0.078 mg/L", sep = ", "))
+TX <- rapply(TX, function(x) gsub("0.078", format(LLOQ), x, fixed = TRUE), how = "replace")   # 라벨의 LLOQ = 연구 LLOQ(config/assay.yaml)
 base_cs <- cs_all[model == "k2016" & weight == "base" & !is.na(t_lloq)]
 cur_days <- c(22, 29, 36, 43, 50, 57)
 h <- base_cs[, .(day = t_lloq + 1)]
@@ -36,7 +37,7 @@ hb[, has_visit := vapply(bin, function(b) any(cur_days >= b & cur_days < b + 2),
 qs <- quantile(base_cs$t_lloq, c(0.25, 0.5, 0.75))
 rep_ids <- vapply(qs, function(q) base_cs$id[which.min(abs(base_cs$t_lloq - q))], numeric(1))
 p16 <- load_params("k2016")
-subj16 <- with_seed(derive_seed(SEED, "k2016", "base", "subj"), make_subjects(N, p16, wt_spec_for(cf$weights$base), 0.5, 0))
+subj16 <- with_seed(derive_seed(SEED, "k2016", "base", "subj"), make_subjects(N, p16, cliff_weight_spec(design, cf$weights$base), 0.5, 0))
 iprep <- individual_params(p16, subj16[id %in% rep_ids])
 prof0 <- solve_model(iprep, CJ(id = rep_ids, time = seq(0.05, 70, by = 0.05)), design$dose_mg, p16$model_id)
 for (lg in names(TX)) {
