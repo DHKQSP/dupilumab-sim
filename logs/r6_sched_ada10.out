@@ -1,0 +1,14 @@
+run log: /home/user/dupilumab-sim/logs/trial_schedules_ada10_20260924T144737.log
+variant=ada10 n_trials=500 cores=3 combos=6
+  trial 50 (500개 중) 14:48:24
+  trial 100 (500개 중) 14:49:00
+  trial 150 (500개 중) 14:49:39
+  trial 200 (500개 중) 14:50:21
+  trial 250 (500개 중) 14:50:56
+  trial 300 (500개 중) 14:51:37
+  trial 350 (500개 중) 14:52:22
+  trial 400 (500개 중) 14:52:53
+  trial 450 (500개 중) 14:53:38
+  trial 500 (500개 중) 14:54:20
+elapsed: 6.721957 mins 
+postprocess schedules ada10: 500 trials, 3 scenarios, 2 schedules

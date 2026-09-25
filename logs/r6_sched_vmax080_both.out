@@ -2,3 +2,13 @@ run log: /home/user/dupilumab-sim/logs/trial_schedules_vmax080_both_20260924T140
 variant=vmax080_both n_trials=500 cores=3 combos=12
   trial 50 (500개 중) 14:02:23
   trial 100 (500개 중) 14:03:38
+  trial 150 (500개 중) 14:04:44
+  trial 200 (500개 중) 14:05:51
+  trial 250 (500개 중) 14:07:01
+  trial 300 (500개 중) 14:08:04
+  trial 350 (500개 중) 14:09:10
+  trial 400 (500개 중) 14:10:17
+  trial 450 (500개 중) 14:11:24
+  trial 500 (500개 중) 14:12:35
+elapsed: 11.40679 mins 
+postprocess schedules vmax080_both: 500 trials, 2 scenarios, 6 schedules

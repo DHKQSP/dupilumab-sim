@@ -1,0 +1,27 @@
+run log: /home/user/dupilumab-sim/logs/products5000_base_20260924T153053.log
+trials 1–500 done in 12.0882 mins
+trials 501–1000 done in 11.95403 mins
+trials 1001–1500 done in 12.08996 mins
+trials 1501–2000 done in 12.11079 mins
+trials 2001–2500 done in 11.88149 mins
+trials 2501–3000 done in 11.98785 mins
+trials 3001–3500 done in 11.88241 mins
+trials 3501–4000 done in 12.18066 mins
+trials 4001–4500 done in 12.20679 mins
+trials 4501–5000 done in 11.74904 mins
+
+적응적 상향 → 10000회: VM150, F110 (임계 포함 지표: VM150 Cmax; F110 discord_last_pass_inf_fail)
+
+적응적 상향 → 20000회: VM150, F110 (임계 포함 지표: VM150 Cmax; F110 discord_last_pass_inf_fail)
+
+최종 반복 수:
+   scenario n_trials
+1:     F085     5000
+2:     F090     5000
+3:     F097     5000
+4:     F110    20000
+5:    KE110     5000
+6:    KE120     5000
+7:      S00    20000
+8:    VM125     5000
+9:    VM150    20000

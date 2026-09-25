@@ -1,0 +1,13 @@
+run log: /home/user/dupilumab-sim/logs/trial_products_struct2020_20260924T151311.log
+  trial 50 (500개 중) 15:14:49
+  trial 100 (500개 중) 15:16:15
+  trial 150 (500개 중) 15:17:39
+  trial 200 (500개 중) 15:19:21
+  trial 250 (500개 중) 15:20:38
+  trial 300 (500개 중) 15:22:08
+  trial 350 (500개 중) 15:23:45
+  trial 400 (500개 중) 15:25:57
+  trial 450 (500개 중) 15:28:22
+  trial 500 (500개 중) 15:30:46
+elapsed: 17.57205 mins 
+postprocess products struct2020: 500 trials, 15 scenarios

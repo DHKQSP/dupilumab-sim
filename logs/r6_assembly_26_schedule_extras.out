@@ -1,0 +1,22 @@
+   schedule a_width_B0_pp a_width_pp a_mean_width_rel_decrease a_paired_lo
+1:   Bminus      16.67044   16.55622                0.00685159 0.006679897
+   a_paired_hi a_label c_reliable_B0 c_reliable c_reliable_gain_pp
+1: 0.007014558    감소        80.735      78.92             -1.815
+   c_gain_boot_lo c_gain_boot_hi d_extrap20_B0 d_extrap20 d_extrap20_ratio
+1:          -2.09      -1.544875      1.096002   1.410738         1.287168
+   d_ratio_boot_lo d_ratio_boot_hi
+1:          1.2103        1.373632
+                                                                 recommendation
+1: Day 50 삭제 권고하지 않음 (AUC0-inf 이차 평가변수와 fallback용 말단 점 확보)
+   schedule         base      base_lo      base_hi      noresid   noresid_lo
+1:   Bminus  0.006847228  0.006679897  0.007014558  0.007357159  0.007201714
+2:       D1 -0.003950886 -0.004093495 -0.003808278 -0.004334945 -0.004415622
+3:       D2 -0.004704457 -0.004850127 -0.004558787 -0.005152110 -0.005230668
+4:       D3 -0.001283205 -0.001558479 -0.001007931 -0.001829484 -0.001966503
+5:       D4 -0.004018318 -0.004158128 -0.003878507 -0.004382878 -0.004468421
+     noresid_hi base_widened noresid_widened                              cause
+1:  0.007512604        FALSE           FALSE               해당 없음(확대 아님)
+2: -0.004254268         TRUE            TRUE tlast 연장에 따른 꼬리 면적 이질성
+3: -0.005073551         TRUE            TRUE tlast 연장에 따른 꼬리 면적 이질성
+4: -0.001692465         TRUE            TRUE tlast 연장에 따른 꼬리 면적 이질성
+5: -0.004297336         TRUE            TRUE tlast 연장에 따른 꼬리 면적 이질성

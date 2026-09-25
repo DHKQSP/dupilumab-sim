@@ -1,0 +1,24 @@
+- The project is out-of-sync -- use `renv::status()` for details.
+k2020: 경계 시나리오 8개 + S00, 시험 1–10000, cores 2, 출력 /home/user/dupilumab-sim/results/oc
+run log: /home/user/dupilumab-sim/logs/oc_rejudge_k2020_20260925T005156.log
+trials 1-500 (9 scenarios, 8 endpoints) done in 6.192321 mins; stored-row check passed 
+trials 501-1000 (9 scenarios, 8 endpoints) done in 6.260095 mins; stored-row check passed 
+trials 1001-1500 (9 scenarios, 8 endpoints) done in 6.445089 mins; stored-row check passed 
+trials 1501-2000 (9 scenarios, 8 endpoints) done in 7.637367 mins; stored-row check passed 
+trials 2001-2500 (9 scenarios, 8 endpoints) done in 7.340686 mins; stored-row check passed 
+trials 2501-3000 (9 scenarios, 8 endpoints) done in 5.92285 mins; stored-row check passed 
+trials 3001-3500 (9 scenarios, 8 endpoints) done in 6.15959 mins; stored-row check passed 
+trials 3501-4000 (9 scenarios, 8 endpoints) done in 6.047496 mins; stored-row check passed 
+trials 4001-4500 (9 scenarios, 8 endpoints) done in 6.302655 mins; stored-row check passed 
+trials 4501-5000 (9 scenarios, 8 endpoints) done in 6.125344 mins; stored-row check passed 
+trials 5001-5500 (9 scenarios, 8 endpoints) done in 6.420915 mins; stored-row check passed 
+trials 5501-6000 (9 scenarios, 8 endpoints) done in 6.545477 mins; stored-row check passed 
+trials 6001-6500 (9 scenarios, 8 endpoints) done in 6.503706 mins; stored-row check passed 
+trials 6501-7000 (9 scenarios, 8 endpoints) done in 7.490422 mins; stored-row check passed 
+trials 7001-7500 (9 scenarios, 8 endpoints) done in 5.879236 mins; stored-row check passed 
+trials 7501-8000 (9 scenarios, 8 endpoints) done in 5.894593 mins; stored-row check passed 
+trials 8001-8500 (9 scenarios, 8 endpoints) done in 5.868042 mins; stored-row check passed 
+trials 8501-9000 (9 scenarios, 8 endpoints) done in 5.871873 mins; stored-row check passed 
+trials 9001-9500 (9 scenarios, 8 endpoints) done in 5.880846 mins; stored-row check passed 
+trials 9501-10000 (9 scenarios, 8 endpoints) done in 5.827236 mins; stored-row check passed 
+done: 540000 stored rows matched (6 original endpoints), output /home/user/dupilumab-sim/results/oc/oc_rejudge_be_k2020.csv.gz 

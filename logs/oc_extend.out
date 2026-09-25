@@ -1,0 +1,26 @@
+- The project is out-of-sync -- use `renv::status()` for details.
+규칙: P2 boundary type I error Wilson 95% CI at 10000 trials includes 5% (lo <= 5 <= hi) -> extend that boundary scenario to 20000 trials
+선택: k2020 V2_up_080 (P2 5.32% [4.90, 5.78])
+run log: /home/user/dupilumab-sim/logs/oc_extend_20260925T021847.log
+k2020 V2_up_080: trial 10000 reproduced from the stored file (6 original endpoints); extending trials 10001-20000 (P2 at 10000 trials 5.32% [4.90, 5.78]) 
+k2020 V2_up_080: trials 10001-10500 (8 endpoints) done in 2.845874 mins 
+k2020 V2_up_080: trials 10501-11000 (8 endpoints) done in 1.897688 mins 
+k2020 V2_up_080: trials 11001-11500 (8 endpoints) done in 1.698619 mins 
+k2020 V2_up_080: trials 11501-12000 (8 endpoints) done in 1.711212 mins 
+k2020 V2_up_080: trials 12001-12500 (8 endpoints) done in 1.727895 mins 
+k2020 V2_up_080: trials 12501-13000 (8 endpoints) done in 1.722738 mins 
+k2020 V2_up_080: trials 13001-13500 (8 endpoints) done in 1.71771 mins 
+k2020 V2_up_080: trials 13501-14000 (8 endpoints) done in 1.711245 mins 
+k2020 V2_up_080: trials 14001-14500 (8 endpoints) done in 1.727573 mins 
+k2020 V2_up_080: trials 14501-15000 (8 endpoints) done in 1.72358 mins 
+k2020 V2_up_080: trials 15001-15500 (8 endpoints) done in 1.728924 mins 
+k2020 V2_up_080: trials 15501-16000 (8 endpoints) done in 1.747332 mins 
+k2020 V2_up_080: trials 16001-16500 (8 endpoints) done in 1.728602 mins 
+k2020 V2_up_080: trials 16501-17000 (8 endpoints) done in 1.715864 mins 
+k2020 V2_up_080: trials 17001-17500 (8 endpoints) done in 1.722352 mins 
+k2020 V2_up_080: trials 17501-18000 (8 endpoints) done in 1.733017 mins 
+k2020 V2_up_080: trials 18001-18500 (8 endpoints) done in 1.737346 mins 
+k2020 V2_up_080: trials 18501-19000 (8 endpoints) done in 1.721838 mins 
+k2020 V2_up_080: trials 19001-19500 (8 endpoints) done in 1.732604 mins 
+k2020 V2_up_080: trials 19501-20000 (8 endpoints) done in 1.730852 mins 
+done: k2020 V2_up_080, 10000 + 10000 = 20000 trials (target 20000), output /home/user/dupilumab-sim/results/oc/oc_trials_ext_be_k2020.csv.gz 

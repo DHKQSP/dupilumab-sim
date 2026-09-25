@@ -22,14 +22,31 @@ Generated 2026-09-25. Each line names its source file under results/.
 
 ## G2 by AUCinf handling rule and flag set (boundary scenarios, true AUC0-inf ratio 0.80 or 1.25)
 
-- Largest boundary pass rate: 2016 model G2-A(ii) 24.58% (95% CI 23.75 to 25.43) in Vmax_down_125 (10,000 trials; above 5% in 6 of 8); 2016 model G2-B 15.06% (95% CI 14.37 to 15.77) in Vmax_up_080 (10,000 trials; above 5% in 4 of 8); 2016 model G2-C(ii) 3.85% (95% CI 3.49 to 4.25) in ke_up_080 (10,000 trials; above 5% in 0 of 8); 2016 model P2 3.97% (95% CI 3.60 to 4.37) in V2_up_080 (10,000 trials; above 5% in 0 of 8); Model 1 G2-A(ii) 28.54% (95% CI 27.31 to 29.81) in Vmax_down_125 (5,000 trials; above 5% in 6 of 8); Model 1 G2-B 11.96% (95% CI 11.09 to 12.89) in Vmax_up_080 (5,000 trials; above 5% in 5 of 8); Model 1 G2-C(ii) 5.46% (95% CI 4.86 to 6.12) in V2_up_080 (5,000 trials; above 5% in 1 of 8); Model 1 P2 5.70% (95% CI 5.09 to 6.38) in V2_up_080 (5,000 trials; above 5% in 1 of 8) (oc/g2_rules_flags.csv).
-- Not yet computed (rejudge file absent): G2-A(i), G2-C(i).
+- Largest boundary pass rate: 2016 model G2-A(i) 19.91% (95% CI 19.14 to 20.70) in Vmax_up_080 (10,000 trials; above 5% in 4 of 8); 2016 model G2-A(ii) 24.58% (95% CI 23.75 to 25.43) in Vmax_down_125 (10,000 trials; above 5% in 6 of 8); 2016 model G2-B 15.06% (95% CI 14.37 to 15.77) in Vmax_up_080 (10,000 trials; above 5% in 4 of 8); 2016 model G2-C(i) 4.13% (95% CI 3.76 to 4.54) in F_down_080 (10,000 trials; above 5% in 0 of 8); 2016 model G2-C(ii) 3.85% (95% CI 3.49 to 4.25) in ke_up_080 (10,000 trials; above 5% in 0 of 8); 2016 model P2 3.97% (95% CI 3.60 to 4.37) in V2_up_080 (10,000 trials; above 5% in 0 of 8); Model 1 G2-A(i) 17.37% (95% CI 16.64 to 18.13) in Vmax_up_080 (10,000 trials; above 5% in 4 of 8); Model 1 G2-A(ii) 27.60% (95% CI 26.73 to 28.48) in Vmax_down_125 (10,000 trials; above 5% in 6 of 8); Model 1 G2-B 11.87% (95% CI 11.25 to 12.52) in Vmax_up_080 (10,000 trials; above 5% in 4 of 8); Model 1 G2-C(i) 4.63% (95% CI 4.34 to 4.92) in V2_up_080 (20,000 trials; above 5% in 0 of 8); Model 1 G2-C(ii) 5.01% (95% CI 4.71 to 5.32) in V2_up_080 (20,000 trials; above 5% in 1 of 8); Model 1 P2 5.18% (95% CI 4.88 to 5.50) in V2_up_080 (20,000 trials; above 5% in 1 of 8) (oc/g2_rules_flags.csv).
 
 ## Sampling cliff (2016 model, 60 to 90 kg, 20,000 subjects)
 
 - True LLOQ reached at study Day 38.5 (5th to 95th percentile 27.2 to 54.2); after Day 58 in 2.5% (cliff/cliff_summary.csv).
 - Cliff length: 1.38 days (1-day definition), 2.94 days (2-day definition); cliff starts at 0.88 mg/L (median).
 - Two or more samples in the cliff at nominal days, fixed schedules, 1-day definition: at most 0.0%; three or more with daily Day 29 to 57 sampling: 0.0% (cliff/cliff_points.csv).
+
+## Operating characteristics (pre-specified design; primary metric: boundary type I error)
+
+- Design pre-registered in commit 779e068 (oc/prereg.csv).
+- Largest boundary type I error of P2 (AUClast + Cmax): 5.18% (95% CI 4.88 to 5.50), Model 1, V2 up, true AUC0-inf ratio 0.80; 20,000 trials (adaptive extension; pre-registered 10,000 trials: 5.32% (95% CI 4.90 to 5.78)) (oc/boundary_type1.csv, oc/extension_decision.csv).
+- Largest boundary type I error of G2 (AUCinf + Cmax): 27.60% (95% CI 26.73 to 28.48), Model 1, Vmax down, true ratio 1.25; 10,000 trials.
+- Boundary scenarios with P2 above 5%: 1 of 16.
+- Power for identical products (10,000 trials): 2016 model P2 99.6% (95% CI 99.4 to 99.7); 2016 model F3-A 99.1% (95% CI 98.9 to 99.2); 2016 model G2 99.3% (95% CI 99.2 to 99.5); Model 1 P2 99.0% (95% CI 98.8 to 99.2); Model 1 F3-A 98.3% (95% CI 98.0 to 98.5); Model 1 G2 98.9% (95% CI 98.7 to 99.1) (oc/power.csv).
+- Random product space (secondary metric; depends on the assumed virtual product distribution, log-uniform multipliers F 0.80 to 1.25, ka 0.67 to 1.50, ke 0.80 to 1.25, Vmax 0.67 to 1.50, Km 0.20 to 5, V2 0.90 to 1.11), consumer risk (truth outside, 20,000 products): 2016 model P2 0.14% (95% CI 0.08 to 0.25); 2016 model G2 1.08% (95% CI 0.88 to 1.32); Model 1 P2 0.18% (95% CI 0.11 to 0.29); Model 1 G2 1.39% (95% CI 1.17 to 1.67) (oc/random_space_risks.csv).
+
+## Binding constant (Pillar 3 lead sentence)
+
+- Changing the binding constant (Km) from 0.01 to 100 times keeps the true AUC0-inf ratio within 0.999 to 1.059 (both models; range ends and reachable rows with 200,000 common-random-number subjects, screening scan in between with 20,000). Of the 12 pre-specified targets (0.70 to 1.43) the only reachable one is 1.05 (Km about x84 in the 2016 model and x92 in Model 1). Sources: oc/inversion_all.csv, oc/inversion_scan_k2016_Km.csv, oc/inversion_scan_k2020_Km.csv.
+
+## Preliminary product scenarios (arbitrary multipliers, 2016 model; AUCinf reliability under flag set (ii))
+
+- VM150 (Vmax x1.50), 20,000 trials: AUCinf alone (reliable subjects) passes in 6.50% (95% CI 6.16 to 6.84), above the nominal 5% although the true AUC0-inf ratio 0.758 is outside the limits; AUClast alone passes in 0.075% (95% CI 0.045 to 0.124) (trials5000/products5000_props_base.csv; true ratio = mean trial GMR of the individual model AUC0-inf, fallback/consumer_risk.csv).
+- KE120 (ke x1.20), 5,000 trials: AUClast pass with AUCinf (reliable subjects) fail in 7.30% (95% CI 6.61 to 8.05); the true AUC0-inf ratio 0.905 is inside the limits, so these are false negatives of AUCinf (fallback/discordance_classification.csv).
 
 ## Sampling density decision (2016 model)
 

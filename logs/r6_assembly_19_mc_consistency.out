@@ -1,0 +1,35 @@
+   rows_compared max_abs_diff
+1:         22500            0
+    scenario        endpoint pass_500 pass_rest pass_all n_all          z
+ 1:    KE110      AUCinf_all     96.8 97.911111   97.800  5000 -1.6068783
+ 2:      S00         AUClast    100.0 99.528205   99.540 20000  1.5394401
+ 3:     F097      AUCinf_all     97.4 98.333333   98.240  5000 -1.5057141
+ 4:    VM150      AUCinf_all      1.8  2.866667    2.840 20000 -1.4177939
+ 5:      S00 AUCinf_reliable     98.8 99.323077   99.310 20000 -1.3951851
+ 6:     F097 AUCinf_reliable     95.4 96.422222   96.320  5000 -1.1517797
+ 7:      S00      AUCinf_all    100.0 99.753846   99.760 20000  1.1107341
+ 8:      S00     AUCinf_true    100.0 99.769231   99.775 20000  1.0753828
+ 9:    KE110     AUCinf_true     97.2 97.933333   97.860  5000 -1.0749746
+10:     F110 AUCinf_reliable     51.4 49.148718   49.205 20000  0.9942649
+11:     F085            Cmax     14.8 16.488889   16.320  5000 -0.9694746
+12:     F097         AUClast     96.2 96.933333   96.860  5000 -0.8920119
+13:    KE110         AUClast     95.8 96.533333   96.460  5000 -0.8418456
+14:     F110      AUCinf_all     49.2 47.605128   47.645 20000  0.7050588
+15:    VM125      AUCinf_all     64.0 62.511111   62.660  5000  0.6529594
+    outside_mc
+ 1:      FALSE
+ 2:      FALSE
+ 3:      FALSE
+ 4:      FALSE
+ 5:      FALSE
+ 6:      FALSE
+ 7:      FALSE
+ 8:      FALSE
+ 9:      FALSE
+10:      FALSE
+11:      FALSE
+12:      FALSE
+13:      FALSE
+14:      FALSE
+15:      FALSE
+MC 오차 밖(|z| > 1.96): 0 / 45 (우연 기대치 약 2.2 )

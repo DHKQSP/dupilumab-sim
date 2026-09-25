@@ -1,0 +1,21 @@
+run log: /home/user/dupilumab-sim/logs/oc_trials_k2016_20260924T152400.log
+trials 1–500 (55 scenarios) done in 32.15427 mins 
+trials 501–1000 (55 scenarios) done in 32.21901 mins 
+trials 1001–1500 (55 scenarios) done in 32.22519 mins 
+trials 1501–2000 (55 scenarios) done in 32.1049 mins 
+trials 2001–2500 (9 scenarios) done in 6.536392 mins 
+trials 2501–3000 (9 scenarios) done in 6.580398 mins 
+trials 3001–3500 (9 scenarios) done in 6.590641 mins 
+trials 3501–4000 (9 scenarios) done in 6.532176 mins 
+trials 4001–4500 (9 scenarios) done in 6.514473 mins 
+trials 4501–5000 (9 scenarios) done in 6.614893 mins 
+trials 5001–5500 (9 scenarios) done in 6.641056 mins 
+trials 5501–6000 (9 scenarios) done in 6.581971 mins 
+trials 6001–6500 (9 scenarios) done in 6.79753 mins 
+trials 6501–7000 (9 scenarios) done in 6.70187 mins 
+trials 7001–7500 (9 scenarios) done in 6.563143 mins 
+trials 7501–8000 (9 scenarios) done in 6.537678 mins 
+trials 8001–8500 (9 scenarios) done in 6.096987 mins 
+trials 8501–9000 (9 scenarios) done in 6.566434 mins 
+trials 9001–9500 (9 scenarios) done in 6.697266 mins 
+trials 9501–10000 (9 scenarios) done in 6.63222 mins 

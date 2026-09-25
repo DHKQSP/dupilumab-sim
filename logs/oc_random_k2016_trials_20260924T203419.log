@@ -1,0 +1,74 @@
+run_name: oc_random_k2016_trials
+started_utc: 2026-09-24 20:34:19
+run_mode: final
+master_seed: 20260926
+seed_rule_version: 1
+git_sha: 49cad259e2928363df63f675d465a304fb90bc16
+R_version: R version 4.3.3 (2024-02-29)
+rxode2: 5.1.7
+BEmaster: not installed
+config_sha256:
+  crossval_reference.yaml: 7a0aa327432c1978f539f74910d53125dacc54f1455cb02a7fdb0d4a65e73988
+  design_clot2021.yaml: 4b3ddc374dfbf3f451d3fe3d6a865645b0b5d93b0ea7eea9a3f24cd8d2f05da5
+  gate_decision.yaml: fec8e5a4376e78560e2945be2c69db22e63e6b6731a2413101efa1ac58cb1838
+  nca_rules.yaml: 0f53d9e003bf1df504df24201f06301cabe423babd1078def5c5a4b3b2c1db94
+  oc_design.yaml: 629011b264fbc4c3f03f8a3989bac1f2711d49959f3268f5e8f758c80f93ea0a
+  params_k2020_model1.yaml: b6e3816238f158ab76cda1edfc4ce9ae49b53fdd4836de8be36bd64664dca96f
+  params_typical.yaml: 0661b248227771273d5c58c86c61f35ef655fdeecebe3f188868fd61cff4b801
+  params_variability.yaml: b849a4cc3acc6d47f9833392ac4f47ebacc6ad9fa79fcc5848628fd4b5aa99a9
+  scenarios.yaml: 7243c4f34f21614eccae4c143ba05b8a9eb9183a76770cfce7153ef30a5dc17c
+  schedule_decision.yaml: de62d815c54d33e4016ed7fdb535ede38ae9c0a6350ef8e7e0a26cb5dd9572b2
+  trial_design.yaml: ff6424d371b8f6a6c9bfef3035cf242fa4c9c5c92819cfd699f0c467e8f605db
+extra:
+  model: k2016
+  stage: trials
+  n_products: 20000
+  truth_subjects: 1000
+  cores: 2
+session_info:
+  R version 4.3.3 (2024-02-29)
+  Platform: x86_64-pc-linux-gnu (64-bit)
+  Running under: Ubuntu 24.04.4 LTS
+  
+  Matrix products: default
+  BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+  LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0
+  
+  locale:
+   [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       
+   [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   
+   [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          
+  [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   
+  
+  time zone: Etc/UTC
+  tzcode source: system (glibc)
+  
+  attached base packages:
+  [1] stats     graphics  grDevices datasets  utils     methods   base     
+  
+  other attached packages:
+  [1] digest_0.6.34      data.table_1.14.10 yaml_2.3.8        
+  
+  loaded via a namespace (and not attached):
+  [1] compiler_4.3.3 tools_4.3.3    renv_1.2.4    
+[20:45:45] trials products 1–1000 done in 11.40296 mins
+[20:57:20] trials products 1001–2000 done in 11.58421 mins
+[21:09:01] trials products 2001–3000 done in 11.67738 mins
+[21:20:41] trials products 3001–4000 done in 11.66651 mins
+[21:32:40] trials products 4001–5000 done in 11.98753 mins
+[21:44:21] trials products 5001–6000 done in 11.6828 mins
+[21:55:48] trials products 6001–7000 done in 11.4501 mins
+[22:07:36] trials products 7001–8000 done in 11.79902 mins
+[22:19:25] trials products 8001–9000 done in 11.81693 mins
+[22:30:42] trials products 9001–10000 done in 11.28445 mins
+[22:41:56] trials products 10001–11000 done in 11.22513 mins
+[22:50:37] trials products 11001–12000 done in 8.692935 mins
+[22:59:04] trials products 12001–13000 done in 8.438352 mins
+[23:07:42] trials products 13001–14000 done in 8.63368 mins
+[23:16:30] trials products 14001–15000 done in 8.796742 mins
+[23:25:06] trials products 15001–16000 done in 8.613908 mins
+[23:35:01] trials products 16001–17000 done in 9.909049 mins
+[23:47:02] trials products 17001–18000 done in 12.02082 mins
+[23:57:26] trials products 18001–19000 done in 10.39227 mins
+[00:07:39] trials products 19001–20000 done in 10.21639 mins
+[00:07:39] done

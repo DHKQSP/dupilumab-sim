@@ -21,6 +21,8 @@ rd <- function(...) { fp <- proj_path("results", ...); if (file.exists(fp) || fi
 kt <- function(x, cap = NULL, digits = 3) if (!is.null(x) && nrow(x)) knitr::kable(x, caption = cap, digits = digits) else structure(list(), class = "empty_kt")
 print.empty_kt <- function(x, ...) invisible(x); knit_print.empty_kt <- function(x, ...) invisible(NULL)
 registerS3method("knit_print", "empty_kt", knit_print.empty_kt, envir = asNamespace("knitr"))
+# 반복문 안의 표(results="asis" 청크): print(kable)은 콘솔 텍스트("## |...")로 나오므로 빈 줄로 감싼 markdown으로 내보낸다
+pkt <- function(x) { if (inherits(x, "knitr_kable")) cat("\n\n", paste(as.character(x), collapse = "\n"), "\n\n", sep = ""); invisible(NULL) }
 dec <- function(v) rd("trials", sprintf("schedule_decision_%s.csv", v))
 d200 <- function(v) rd("individual200k", sprintf("criterion_d_200k_%s.csv", v))
 imgs <- function(paths) { paths <- paths[file.exists(paths)]; if (length(paths)) knitr::include_graphics(paths) }
@@ -212,15 +214,15 @@ md_inc(proj_path("results", "reliability", "mechanism_summary_ko.md"))
 
 # 단계 1 검증
 gate 범위: `r gate$gate_scope`. 연구별 채혈 일정(통합본 §0-3)을 사용했다.
-```{r step1}
-for (m in c("step1", "step1_k2020")) print(kt(rd(m, "step1_status.csv")[, .(role, check, status)], paste0("단계 1 상태: ", m)))
+```{r step1, results="asis"}
+for (m in c("step1", "step1_k2020")) pkt(kt(rd(m, "step1_status.csv")[, .(role, check, status)], paste0("단계 1 상태: ", m)))
 gb <- rd("step1", "step1b_quant_gate.csv"); ga <- rd("step1_k2020", "step1b_quant_gate.csv")
 if (!is.null(gb) && !is.null(ga)) { print(fig_gate(gb, ga))
   g2 <- merge(gb[, .(id, gate_role, schedule, obs = AUClast_obs_mean, dev_2016 = dev, ratio_2016 = AUClast_ratio, z_2016 = AUClast_z, cmax_2016 = Cmax_ratio)], ga[, .(id, dev_2020 = dev, ratio_2020 = AUClast_ratio, z_2020 = AUClast_z, cmax_2020 = Cmax_ratio)], by = "id")
-  print(kt(g2, "정량 gate와 외부 점검 — 모델별 내부/외부(개발 자료 포함 여부)")) }
+  pkt(kt(g2, "정량 gate와 외부 점검 — 모델별 내부/외부(개발 자료 포함 여부)")) }
 kt(rd("step1", "step1b_schedule_change_comparison.csv"), "연구별 일정 적용 전후 비교 (2016)")
-for (m in c("step1", "step1_k2020")) print(kt(rd(m, "step1h_external_only_gate.csv"), paste0("완전 외부 데이터셋만의 gate: ", m)))
-for (m in c("step1", "step1_k2020")) print(kt(rd(m, "step1f_300mg_arm_check.csv"), paste0("Li 2020 300 mg 개별 arm (연구별 일정, 체중 78 kg 가정): ", m)))
+for (m in c("step1", "step1_k2020")) pkt(kt(rd(m, "step1h_external_only_gate.csv"), paste0("완전 외부 데이터셋만의 gate: ", m)))
+for (m in c("step1", "step1_k2020")) pkt(kt(rd(m, "step1f_300mg_arm_check.csv"), paste0("Li 2020 300 mg 개별 arm (연구별 일정, 체중 78 kg 가정): ", m)))
 ws <- rbind(rd("step1", "step1i_arm_weight_sensitivity.csv"), rd("step1_k2020", "step1i_arm_weight_sensitivity.csv"))
 if (!is.null(ws)) kt(dcast(ws[, .(model, study, arm, weight_mean, r = round(ratio, 3))], model + study + arm ~ weight_mean, value.var = "r"), "Li 2020 arm 모의/관측 비의 가정 체중 의존성(서술용, 판정 변경 안 함)")
 ```
@@ -233,10 +235,10 @@ kt(rd("crossval", "crossval_trial_compare.csv"), "2016 시험 수준 (이전 일
 ```
 
 # 결과: 채혈 밀도 (1차 목적)
-```{r sched_dec}
+```{r sched_dec, results="asis"}
 cols <- c("schedule", "added_points", "added_visits_total", "a_mean_width_rel_decrease", "a_paired_lo", "a_paired_hi", "a_label", "b_ke110_gain_pp", "b_paired_lo", "b_paired_hi",
           "c_reliable_gain_pp", "c_gain_boot_lo", "c_gain_boot_hi", "d_extrap20_B0", "d_extrap20", "d_extrap20_ratio", "d_ratio_boot_lo", "d_ratio_boot_hi", "d_abs_change_per_arm", "crit_a", "crit_b", "crit_c", "crit_d", "recommend")
-for (v in c("base", "struct2020", "vmax080_both", "vmax125_both")) { d <- dec(v); if (!is.null(d)) print(kt(d[, intersect(cols, names(d)), with = FALSE], paste0("판정 규칙 (500회 쌍대, 개체 20,000명): ", v, ". 기준 (c) 증감(c_reliable_gain_pp)은 플래그 세트 (ii); 세트 (i) 값은 신뢰 플래그 두 세트 절"), 4)) }
+for (v in c("base", "struct2020", "vmax080_both", "vmax125_both")) { d <- dec(v); if (!is.null(d)) pkt(kt(d[, intersect(cols, names(d)), with = FALSE], paste0("판정 규칙 (500회 쌍대, 개체 20,000명): ", v, ". 기준 (c) 증감(c_reliable_gain_pp)은 플래그 세트 (ii); 세트 (i) 값은 신뢰 플래그 두 세트 절"), 4)) }
 print(fig_width_by_schedule(list(`Kovalenko 2016 (주)` = dec("base"), `Kovalenko 2020 Model 1` = dec("struct2020"))))
 kt(rd("trials", "bminus_explicit.csv"), "B− (Day 50 삭제) 명시: 폭, 신뢰 충족률(플래그 세트 (ii)), 외삽 20% 초과 비율")
 if (!is.null(RF)) kt(RF$dense$bminus[, .(모델 = ML2[model], gain_i_pp, gain_i_lo, gain_i_hi, gain_ii_pp, gain_ii_lo, gain_ii_hi)], "B− 신뢰 충족 증감 (%p): 세트 (i) 주값, (ii) 병기 (reliability_paired_vs_B0.csv)", 3)
@@ -267,6 +269,7 @@ kt(rd("rationale", "pillar1_coverage_B0.csv"), "Pillar 1: 20,000명/모델, 비�
 kt(rd("rationale", "pillar1_two_model_range.csv"), "잔차 민감 지표의 두 모델 범위 (%; reliable_min·max는 플래그 세트 (ii))", 2)
 if (!is.null(RF)) kt(RF$b0[, .(모델 = ML2[model], reliable_i = rel_i, reliable_i_lo = rel_i_lo, reliable_i_hi = rel_i_hi, reliable_ii = rel_ii, reliable_ii_lo = rel_ii_lo, reliable_ii_hi = rel_ii_hi, span_only_loss = span_loss)], "AUCinf 신뢰 충족 (%, B0, 20,000명/모델): 세트 (i) 주값, (ii) 병기 (reliability_two_flag_sets_summary.csv)", 2)
 ```
+
 ## 곡선 모양·곡률 민감도 (통합본 §5-1)
 ```{r curve}
 kt(rd("curve_shape", "curve_shape_B0.csv")[, .(variant, n, extrap_true_median, extrap_true_p95, extrap_true_max, coverage_lt80_pct, extrap_nca_median, extrap_gt20_pct, reliable_rsq_extrap_pct, reliable_pct, lambda_fail_pct, tlast_median, AUClast_geo, AUClast_ratio_vs_obs544, gate_note, ref_note)], "양 군 공통 배율, 20,000명/변형. Vmax ×0.5는 스트레스 테스트. 신뢰 충족: reliable_rsq_extrap_pct = 플래그 세트 (i), reliable_pct = 세트 (ii)", 3)
@@ -281,6 +284,7 @@ kt(rd("trials5000", "products5000_props_base.csv"), "5,000회 이상 결과의 �
 pc <- rd("pillar2_curvature", "pillar2_vmax080_per_endpoint.csv"); if (!is.null(pc)) kt(pc[endpoint %in% c("AUClast", "AUCinf_reliable", "AUCinf_true", "Cmax")], "곡률 견고성(§5-2): 모집단 Vmax ×0.8, 2,000회", 3)
 kt(rd("pillar2_curvature", "pillar2_vmax080_concordance.csv"), "곡률 견고성: 판정 일치 (2,000회)", 3)
 ```
+
 ## 판정 불일치 분류·fallback (예비 탐색: 임의 배율 시나리오, §5-3–5-6, 5,000회 이상)
 ```{r fallback}
 kt(rd("fallback", "discordance_classification.csv"), "AUClast 통과·AUCinf 불통과: 참값 비에 따른 분류", 3)
@@ -290,6 +294,7 @@ kt(rd("fallback", "aucinf_rules.csv"), "AUCinf 처리 규칙 비교 (A 신뢰군
 kt(rd("fallback", "sample_size_logsd.csv"), "표본 수 교차점검: log-scale SD·CV", 3)
 kt(rd("fallback", "empirical_power.csv"), "arm당 117명의 경험적 검정력", 2)
 ```
+
 ## Pillar 3 — 결합력 차이 비가시성
 **`r km_txt`** 자료: `results/oc/inversion_all.csv`(탐색 범위 끝·도달 행), `inversion_scan_<모델>_Km.csv`(스크리닝 스캔). 경계 목표별 배율은 운용특성 절의 역산 경계표.
 
@@ -313,22 +318,24 @@ if (!is.null(KF$inv_bnd)) kt(key_inv_bnd_table(KF$inv_bnd, "ko"),
   sprintf("역산 경계표: 참 AUC0-inf 비 %s를 주는 시험군 배율과 그 배율의 참 Cmax 비(%s명 공통 난수, 로그 배율 이분법 ±%s%%; 60–90 kg, %s mg). 도달 불가 = 목표 쪽 탐색 범위 끝(배율: 참 AUC0-inf 비)",
           paste(fmt_num(KF$bnd, 2), collapse = "·"), format(unique(rd("oc", "inversion_all.csv")$n_subjects), big.mark = ","), format(100 * ocd$inversion$tolerance_rel), ocd$estimand$dose_mg), 3)
 ```
-```{r oc_bnd, fig.height=6}
+```{r oc_bnd, fig.height=6, results="asis"}
 bt <- rd("oc", "boundary_type1.csv")
-if (!is.null(bt)) print(kt(dcast(bt[config %in% c("P2", "F3A", "F3B", "F3C", "G2", "AUClast_only", "AUCinf_only")], model + mechanism + direction + target + auc_ratio + cmax_ratio + n_trials ~ config,
+if (!is.null(bt)) pkt(kt(dcast(bt[config %in% c("P2", "F3A", "F3B", "F3C", "G2", "AUClast_only", "AUCinf_only")], model + mechanism + direction + target + auc_ratio + cmax_ratio + n_trials ~ config,
                           value.var = "pass_pct"), sprintf("경계 1종 오류 (%%): 기전 × 방향 × 구성 × 모델 (시험 수 %s; 구간은 부록 B)",
                                                            oc_n_trials_text(bt[config == "P2"], "ko", rd("oc", "extension_decision.csv"), c(k2016 = "2016", k2020 = "Model 1"))), 2))
 imgs(proj_path("results", "oc", sprintf("fig3B_boundary_type1_%s.png", c("k2016", "k2020"))))
 gb <- rd("oc", "gmr_by_endpoint.csv")
-if (!is.null(gb)) print(kt(dcast(gb[endpoint %in% c("AUClast", "AUCinf_A", "AUCinf_B", "AUCinf_C", "Cmax")], model + mechanism + direction + target + auc_ratio + cmax_ratio ~ endpoint, value.var = "rel_bias_pct")[order(model, mechanism, target)],
+if (!is.null(gb)) pkt(kt(dcast(gb[endpoint %in% c("AUClast", "AUCinf_A", "AUCinf_B", "AUCinf_C", "Cmax")], model + mechanism + direction + target + auc_ratio + cmax_ratio ~ endpoint, value.var = "rel_bias_pct")[order(model, mechanism, target)],
                           "평가변수별 시험 GMR 기하평균의 참값 대비 상대 치우침(%). AUC 계열은 참 AUC0-inf 비, Cmax는 참 Cmax 비 기준. 규칙 A = 추정 + 선택(플래그 제외), 규칙 B = 추정만, 규칙 C = 플래그 대상 AUClast 대입", 2))
 ```
+
 ## 경계 1종 오류: P2 해석 (지시 2026-09-25 §3)
 저장된 시험 수준 결과로 P2 경계 1종 오류를 불편 추정량의 기준(이론·경험), 분류(Wilson 95% 구간 대 5%), 원인(AUClast 편향, Cmax 불통과)으로 나눴다(`scripts/43_p2_interpretation.R`, 새 모의 없음; 수치 `results/oc/p2_interpretation.csv`).
 ```{r p2_interp_md, results="asis"}
 p2i_f <- proj_path("results", "oc", "p2_interpretation_ko.md")
 if (file.exists(p2i_f)) md_inc(p2i_f, shift = 1) else cat("(P2 해석 결과 없음: scripts/43_p2_interpretation.R 실행 필요)\n")
 ```
+
 ## 경계 1종 오류: AUCinf 처리 규칙 × 플래그 세트 (검토 의견 W2 §2)
 저장된 시험 수준 결과로 G2를 AUCinf 처리 규칙(A, B, C)과 플래그 세트((i), (ii))별로 다시 판정했다(`scripts/41_oc_rules_flags.R`, 새 모의 없음). `r REL_CONV`. 전체 표는 부록 B.
 ```{r g2_rules_md, results="asis"}
@@ -339,10 +346,12 @@ pbz <- rd("oc", "p2_bias_boundary.csv")
 if (!is.null(pbz)) kt(dcast(pbz, model + scenario + target + true_ratio + n_trials ~ endpoint, value.var = "bias_pct")[order(model, target, scenario)],
                       "경계 시나리오의 시험 GMR 기하평균의 참값 대비 상대 치우침 (%): AUC 계열은 참 AUC0-inf 비, Cmax는 참 Cmax 비 기준. AUCinf_A·C = 플래그 세트 (ii), AUCinf_Ai·Ci = 세트 (i)(재판정 파일이 없으면 NA), AUCinf_true = 시험 대상자의 개인 모델 AUC0-inf(참고) (p2_bias_boundary.csv)", 2)
 ```
+
 ## 운용특성 곡선 (3-A)
 ```{r oc_curves, fig.height=6.5}
 imgs(proj_path("results", "oc", sprintf("fig3A_oc_curves_%s.png", c("k2016", "k2020"))))
 ```
+
 ## 검정력과 구성 비교
 ```{r oc_pow}
 pw <- rd("oc", "power.csv")
@@ -353,21 +362,23 @@ cc <- rd("oc", "config_comparison.csv")
 if (!is.null(cc)) kt(cc[, .(model, mechanism, direction, target, auc_ratio, region, n_trials, P2_minus_F3A, P2_minus_F3A_lo, P2_minus_F3A_hi, P2_minus_F3C, G2_minus_P2, G2_minus_P2_lo, G2_minus_P2_hi)][order(model, mechanism, target)],
                      "세 구성 비교(같은 시험 쌍대 차이, %p): P2 − F3 = 경계·범위 밖에서 F3의 추가 보호, 범위 안에서 F3의 추가 탈락; G2 − P2", 2)
 ```
+
 ## 역산된 배율 전체 (3-D)
-```{r oc_inv, fig.height=6.5}
+```{r oc_inv, fig.height=6.5, results="asis"}
 MEANING <- c(F = "흡수량(생체이용률)", ka = "흡수 속도", ke = "선형 소실(FcRn 경로)", Vmax = "표적 매개 소실 용량(내재화)", Km = "결합(MM 상수)", V2 = "말초 분포용적(Q 고정)")
 iv <- rd("oc", "inversion_all.csv")
 if (!is.null(iv)) { iv[, 의미 := MEANING[mechanism]]
   kt(iv[, .(model, mechanism, 의미, direction, target, reachable, multiplier, auc_ratio, cmax_ratio, overall_true_equiv, end_multiplier, end_auc_ratio, end_cmax_ratio)],
-     "기전·방향·목표별 역산 배율과 200,000명 참값 비. 도달 불가는 탐색 범위 끝 배율의 참값 비", 4) |> print() }
+     "기전·방향·목표별 역산 배율과 200,000명 참값 비. 도달 불가는 탐색 범위 끝 배율의 참값 비", 4) |> pkt() }
 imgs(proj_path("results", "oc", "fig3D_inversion_multipliers.png"))
 ```
+
 ## 무작위 다변량 제품 공간 (보조 지표, 3-C)
 **보조 지표**: 아래 소비자·생산자 위험은 가정한 가상 제품 분포(라틴 하이퍼큐브 `r format(ocd$random_space$n_products, big.mark = ",")`개 제품, 기전별 배율 로그 균등 `r rs_rng_txt`; `config/oc_design.yaml`)에 의존한다. 위험은 이 분포 위의 평균이므로 분포 가정이 바뀌면 값도 바뀐다. 구성의 판단은 1차 지표(경계 1종 오류)로 한다.
-```{r oc_rs, fig.height=8}
-print(kt(rd("oc", "random_space_truth_distribution.csv"), sprintf("무작위 공간 참값 비 분포(보조 지표): 범위(로그 균등 %s)는 참값 비가 두 경계를 모두 덮도록 설정", rs_rng_txt), 2))
+```{r oc_rs, fig.height=8, results="asis"}
+pkt(kt(rd("oc", "random_space_truth_distribution.csv"), sprintf("무작위 공간 참값 비 분포(보조 지표): 범위(로그 균등 %s)는 참값 비가 두 경계를 모두 덮도록 설정", rs_rng_txt), 2))
 rk <- rd("oc", "random_space_risks.csv")
-if (!is.null(rk)) print(kt(rk[config %in% c("P2", "F3A", "F3B", "F3C", "G2", "AUClast_only", "AUCinf_only")], "소비자·생산자 위험 (%, Wilson 95% 구간; 보조 지표, 가정한 가상 제품 분포에 의존). 경계 근처: 소비자 0.75 ≤ 참값 < 0.80 또는 1.25 < 참값 ≤ 1.33, 생산자 0.80–0.85 또는 1.18–1.25", 2))
+if (!is.null(rk)) pkt(kt(rk[config %in% c("P2", "F3A", "F3B", "F3C", "G2", "AUClast_only", "AUCinf_only")], "소비자·생산자 위험 (%, Wilson 95% 구간; 보조 지표, 가정한 가상 제품 분포에 의존). 경계 근처: 소비자 0.75 ≤ 참값 < 0.80 또는 1.25 < 참값 ≤ 1.33, 생산자 0.80–0.85 또는 1.18–1.25", 2))
 imgs(proj_path("results", "oc", sprintf("fig3C_random_space_%s.png", c("k2016", "k2020"))))
 ```
 
@@ -415,6 +426,16 @@ if (!is.null(g2f)) kt(g2f[, .(model, scenario, region, target, auc_ratio, cmax_r
 g2d <- rd("oc", "g2_decomposition.csv")
 if (!is.null(g2d)) kt(g2d[, .(model, scenario, target, contrast, a, b, flag_set, meaning, n_trials, pct_a, pct_b, est, lo, hi, note)][order(model, scenario, contrast)],
                       "G2 분해: 같은 시험의 쌍대 차이 (%p)와 95% 구간. 외삽 효과 = 규칙 B − P2, 선택 효과 = 규칙 B − 규칙 A (g2_decomposition.csv)", 2)
+```
+
+# 부록 C. 재현성 점검 (통합 지시 2026-09-25 §9)
+`scripts/38_repro_check.R`, 허용 오차는 `config/repro_check.yaml`에 사전 고정. 로컬 실행과 GitHub Actions 수동 실행(`.github/workflows/repro.yml`, 깨끗한 renv 복원)의 결과.
+```{r repro_appx, results="asis"}
+rl <- rd("repro", "repro_check.csv"); rm_ <- rd("repro", "repro_check_meta.csv"); rg <- rd("repro", "repro_github_run.csv"); rgi <- rd("repro", "repro_github_items.csv")
+if (!is.null(rl)) pkt(kt(rl, "로컬 재현성 점검 항목(커밋된 결과 대 재계산, 사전 고정 허용 오차)", 6))
+if (!is.null(rm_)) pkt(kt(rm_, "로컬 실행 정보", 3))
+if (!is.null(rg)) pkt(kt(rg, "GitHub Actions 재현성 실행(수동, workflow_dispatch)", 3)) else cat("\n\nGitHub Actions 재현성 실행 결과 없음(아직 실행 전).\n\n")
+if (!is.null(rgi)) pkt(kt(rgi, "GitHub Actions 실행의 점검 항목", 6))
 ```
 
 # 재현 방법

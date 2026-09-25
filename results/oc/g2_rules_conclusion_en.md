@@ -25,8 +25,8 @@ Data: saved trial-level results (`results/oc/oc_trials_be_<model>.csv.gz`, scrip
     - At or below 5% in every boundary scenario: AUCinf-C(ii) (highest 4.00% (95% CI 3.63 to 4.40), ka_down_080); AUCinf-C(i) (highest 4.60% (95% CI 4.21 to 5.03), ka_down_080).
 - Kovalenko 2020 Model 1
   - G2 family:
-    - Point estimate above 5%: P2 1/8 scenarios (Wilson lower bound above 5%: 0; highest 5.18% (95% CI 4.88 to 5.50), V2_up_080); G2-A(ii) 6/8 scenarios (Wilson lower bound above 5%: 6; highest 27.60% (95% CI 26.73 to 28.48), Vmax_down_125); G2-B 4/8 scenarios (Wilson lower bound above 5%: 3; highest 11.87% (95% CI 11.25 to 12.52), Vmax_up_080); G2-C(ii) 1/8 scenarios (Wilson lower bound above 5%: 0; highest 5.00% (95% CI 4.71 to 5.32), V2_up_080); G2-A(i) 4/8 scenarios (Wilson lower bound above 5%: 4; highest 17.37% (95% CI 16.64 to 18.13), Vmax_up_080).
-    - At or below 5% in every boundary scenario: G2-C(i) (highest 4.62% (95% CI 4.34 to 4.92), V2_up_080).
+    - Point estimate above 5%: P2 1/8 scenarios (Wilson lower bound above 5%: 0; highest 5.18% (95% CI 4.88 to 5.50), V2_up_080); G2-A(ii) 6/8 scenarios (Wilson lower bound above 5%: 6; highest 27.60% (95% CI 26.73 to 28.48), Vmax_down_125); G2-B 4/8 scenarios (Wilson lower bound above 5%: 3; highest 11.87% (95% CI 11.25 to 12.52), Vmax_up_080); G2-C(ii) 1/8 scenarios (Wilson lower bound above 5%: 0; highest 5.01% (95% CI 4.71 to 5.32), V2_up_080); G2-A(i) 4/8 scenarios (Wilson lower bound above 5%: 4; highest 17.37% (95% CI 16.64 to 18.13), Vmax_up_080).
+    - At or below 5% in every boundary scenario: G2-C(i) (highest 4.63% (95% CI 4.34 to 4.92), V2_up_080).
   - AUCinf alone:
     - Point estimate above 5%: AUCinf-A(ii) 7/8 scenarios (Wilson lower bound above 5%: 7; highest 36.53% (95% CI 35.59 to 37.48), ka_down_080); AUCinf-B 5/8 scenarios (Wilson lower bound above 5%: 4; highest 16.23% (95% CI 15.52 to 16.97), ka_down_080); AUCinf-C(ii) 1/8 scenarios (Wilson lower bound above 5%: 0; highest 5.03% (95% CI 4.73 to 5.34), V2_up_080); AUCinf-A(i) 5/8 scenarios (Wilson lower bound above 5%: 5; highest 38.12% (95% CI 37.17 to 39.08), ka_down_080); AUCinf-C(i) 1/8 scenarios (Wilson lower bound above 5%: 0; highest 5.01% (95% CI 4.60 to 5.46), ka_down_080).
     - At or below 5% in every boundary scenario: none.
@@ -65,7 +65,7 @@ Data: saved trial-level results (`results/oc/oc_trials_be_<model>.csv.gz`, scrip
 | Boundary scenario | P2 | G2-A(ii) | G2-B | G2-C(ii) | G2-A(i) | G2-C(i) |
 |---|---|---|---|---|---|---|
 | F_down_080 (true 0.80, x0.871) | 3.70 [3.35 to 4.09] | 8.33 [7.80 to 8.89] | 6.23 [5.77 to 6.72] | 3.97 [3.60 to 4.37] | 6.88 [6.40 to 7.39] | 4.45 [4.06 to 4.87] |
-| V2_up_080 (true 0.80, x2.28) | 5.18 [4.88 to 5.50] | 1.06 [0.93 to 1.21] | 3.71 [3.46 to 3.98] | 5.00 [4.71 to 5.32] | 2.30 [2.10 to 2.51] | 4.62 [4.34 to 4.92] |
+| V2_up_080 (true 0.80, x2.28) | 5.18 [4.88 to 5.50] | 1.06 [0.93 to 1.21] | 3.71 [3.46 to 3.98] | 5.01 [4.71 to 5.32] | 2.30 [2.10 to 2.51] | 4.63 [4.34 to 4.92] |
 | Vmax_up_080 (true 0.80, x1.4) | 2.76 [2.46 to 3.10] | 23.29 [22.47 to 24.13] | 11.87 [11.25 to 12.52] | 3.18 [2.85 to 3.54] | 17.37 [16.64 to 18.13] | 4.24 [3.86 to 4.65] |
 | ka_down_080 (true 0.80, x0.424) | 0.00 [0.00 to 0.04] | 0.00 [0.00 to 0.04] | 0.00 [0.00 to 0.04] | 0.00 [0.00 to 0.04] | 0.00 [0.00 to 0.04] | 0.00 [0.00 to 0.04] |
 | ke_up_080 (true 0.80, x1.46) | 3.77 [3.41 to 4.16] | 5.88 [5.44 to 6.36] | 4.83 [4.43 to 5.27] | 4.11 [3.74 to 4.52] | 4.25 [3.87 to 4.66] | 4.30 [3.92 to 4.72] |
@@ -76,7 +76,7 @@ Data: saved trial-level results (`results/oc/oc_trials_be_<model>.csv.gz`, scrip
 | Boundary scenario | AUCinf-A(ii) | AUCinf-B | AUCinf-C(ii) | AUCinf-A(i) | AUCinf-C(i) |
 |---|---|---|---|---|---|
 | F_down_080 (true 0.80, x0.871) | 9.57 [9.01 to 10.16] | 6.42 [5.96 to 6.92] | 3.99 [3.62 to 4.39] | 7.55 [7.05 to 8.08] | 4.50 [4.11 to 4.92] |
-| V2_up_080 (true 0.80, x2.28) | 1.06 [0.93 to 1.22] | 3.72 [3.47 to 4.00] | 5.03 [4.73 to 5.34] | 2.31 [2.11 to 2.52] | 4.65 [4.37 to 4.95] |
+| V2_up_080 (true 0.80, x2.28) | 1.07 [0.93 to 1.22] | 3.73 [3.47 to 4.00] | 5.03 [4.73 to 5.34] | 2.31 [2.11 to 2.52] | 4.65 [4.37 to 4.95] |
 | Vmax_up_080 (true 0.80, x1.4) | 23.32 [22.50 to 24.16] | 11.87 [11.25 to 12.52] | 3.18 [2.85 to 3.54] | 17.37 [16.64 to 18.13] | 4.24 [3.86 to 4.65] |
 | ka_down_080 (true 0.80, x0.424) | 36.53 [35.59 to 37.48] | 16.23 [15.52 to 16.97] | 4.15 [3.78 to 4.56] | 38.12 [37.17 to 39.08] | 5.01 [4.60 to 5.46] |
 | ke_up_080 (true 0.80, x1.46) | 5.88 [5.44 to 6.36] | 4.83 [4.43 to 5.27] | 4.11 [3.74 to 4.52] | 4.25 [3.87 to 4.66] | 4.30 [3.92 to 4.72] |

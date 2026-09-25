@@ -1,0 +1,14 @@
+run log: /home/user/dupilumab-sim/logs/trial_schedules_weight_alt_20260924T144014.log
+variant=weight_alt n_trials=500 cores=3 combos=6
+  trial 50 (500개 중) 14:40:58
+  trial 100 (500개 중) 14:41:47
+  trial 150 (500개 중) 14:42:32
+  trial 200 (500개 중) 14:43:11
+  trial 250 (500개 중) 14:43:58
+  trial 300 (500개 중) 14:44:42
+  trial 350 (500개 중) 14:45:22
+  trial 400 (500개 중) 14:46:05
+  trial 450 (500개 중) 14:46:51
+  trial 500 (500개 중) 14:47:29
+elapsed: 7.247753 mins 
+postprocess schedules weight_alt: 500 trials, 3 scenarios, 2 schedules

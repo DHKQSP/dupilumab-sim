@@ -35,7 +35,7 @@ CFG <- data.table(config = names(OC_REJUDGE_CONFIGS),
                   label = c("P2", "G2-A(ii)", "G2-B", "G2-C(ii)", "G2-A(i)", "G2-C(i)", "AUCinf-A(ii)", "AUCinf-B", "AUCinf-C(ii)", "AUCinf-A(i)", "AUCinf-C(i)"))
 CFG[, needs_i := vapply(OC_REJUDGE_CONFIGS[config], function(e) any(e %in% EP_I), logical(1))]
 stopifnot(identical(CFG$config, names(OC_REJUDGE_CONFIGS)))
-f2 <- function(x) formatC(round(x, 2) + 0, format = "f", digits = 2); s2 <- function(x) sprintf("%+.2f", round(x, 2) + 0)
+f2 <- function(x) formatC(round_half_away(x, 2) + 0, format = "f", digits = 2); s2 <- function(x) sprintf("%+.2f", round_half_away(x, 2) + 0)   # 다른 산출물과 같은 반올림(0.5는 0에서 먼 쪽)
 fint <- function(x) format(x, big.mark = ",")
 
 # 시나리오 정보: 31과 같은 규칙으로 역산 결과에서 만든다. oc_scenarios_<model>.csv가 있으면 같은지 확인

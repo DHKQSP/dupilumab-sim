@@ -1,0 +1,75 @@
+run_name: oc_trials_k2016
+started_utc: 2026-09-24 15:24:00
+run_mode: final
+master_seed: 20260923
+seed_rule_version: 1
+git_sha: 96c83829caddf40b707045713a8dbca978521412
+R_version: R version 4.3.3 (2024-02-29)
+rxode2: 5.1.7
+BEmaster: not installed
+config_sha256:
+  crossval_reference.yaml: 7a0aa327432c1978f539f74910d53125dacc54f1455cb02a7fdb0d4a65e73988
+  design_clot2021.yaml: 4b3ddc374dfbf3f451d3fe3d6a865645b0b5d93b0ea7eea9a3f24cd8d2f05da5
+  gate_decision.yaml: fec8e5a4376e78560e2945be2c69db22e63e6b6731a2413101efa1ac58cb1838
+  nca_rules.yaml: 0f53d9e003bf1df504df24201f06301cabe423babd1078def5c5a4b3b2c1db94
+  oc_design.yaml: 629011b264fbc4c3f03f8a3989bac1f2711d49959f3268f5e8f758c80f93ea0a
+  params_k2020_model1.yaml: b6e3816238f158ab76cda1edfc4ce9ae49b53fdd4836de8be36bd64664dca96f
+  params_typical.yaml: 0661b248227771273d5c58c86c61f35ef655fdeecebe3f188868fd61cff4b801
+  params_variability.yaml: b849a4cc3acc6d47f9833392ac4f47ebacc6ad9fa79fcc5848628fd4b5aa99a9
+  scenarios.yaml: 7243c4f34f21614eccae4c143ba05b8a9eb9183a76770cfce7153ef30a5dc17c
+  schedule_decision.yaml: de62d815c54d33e4016ed7fdb535ede38ae9c0a6350ef8e7e0a26cb5dd9572b2
+  trial_design.yaml: ff6424d371b8f6a6c9bfef3035cf242fa4c9c5c92819cfd699f0c467e8f605db
+extra:
+  model: k2016
+  n_scen_all: 55
+  n_scen_bnd: 9
+  reps_other: 2000
+  reps_boundary: 10000
+  cores: 3
+session_info:
+  R version 4.3.3 (2024-02-29)
+  Platform: x86_64-pc-linux-gnu (64-bit)
+  Running under: Ubuntu 24.04.4 LTS
+  
+  Matrix products: default
+  BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+  LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0
+  
+  locale:
+   [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       
+   [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   
+   [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          
+  [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   
+  
+  time zone: Etc/UTC
+  tzcode source: system (glibc)
+  
+  attached base packages:
+  [1] stats     graphics  grDevices datasets  utils     methods   base     
+  
+  other attached packages:
+  [1] digest_0.6.34      data.table_1.14.10 yaml_2.3.8        
+  
+  loaded via a namespace (and not attached):
+  [1] compiler_4.3.3 tools_4.3.3    renv_1.2.4    
+[15:56:09] trials 1–500 (55 scenarios) done in 32.15427 mins
+[16:28:22] trials 501–1000 (55 scenarios) done in 32.21901 mins
+[17:00:36] trials 1001–1500 (55 scenarios) done in 32.22519 mins
+[17:32:42] trials 1501–2000 (55 scenarios) done in 32.1049 mins
+[17:39:14] trials 2001–2500 (9 scenarios) done in 6.536392 mins
+[17:45:49] trials 2501–3000 (9 scenarios) done in 6.580398 mins
+[17:52:25] trials 3001–3500 (9 scenarios) done in 6.590641 mins
+[17:58:56] trials 3501–4000 (9 scenarios) done in 6.532176 mins
+[18:05:27] trials 4001–4500 (9 scenarios) done in 6.514473 mins
+[18:12:04] trials 4501–5000 (9 scenarios) done in 6.614893 mins
+[18:18:43] trials 5001–5500 (9 scenarios) done in 6.641056 mins
+[18:25:18] trials 5501–6000 (9 scenarios) done in 6.581971 mins
+[18:32:05] trials 6001–6500 (9 scenarios) done in 6.79753 mins
+[18:38:48] trials 6501–7000 (9 scenarios) done in 6.70187 mins
+[18:45:21] trials 7001–7500 (9 scenarios) done in 6.563143 mins
+[18:51:54] trials 7501–8000 (9 scenarios) done in 6.537678 mins
+[18:57:59] trials 8001–8500 (9 scenarios) done in 6.096987 mins
+[19:04:33] trials 8501–9000 (9 scenarios) done in 6.566434 mins
+[19:11:15] trials 9001–9500 (9 scenarios) done in 6.697266 mins
+[19:17:53] trials 9501–10000 (9 scenarios) done in 6.63222 mins
+[19:17:53] done

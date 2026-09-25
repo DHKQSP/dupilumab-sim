@@ -1,0 +1,228 @@
+tests run at 2026-09-25 00:39:29 (UTC)
+scope: fast (DUPI_TEST_SCOPE)
+rxode2: 5.1.7; testthat: 3.2.1; JUnit XML: yes
+                        file
+             test-be-stats.R
+             test-be-stats.R
+             test-be-stats.R
+        test-config-schema.R
+        test-config-schema.R
+        test-config-schema.R
+        test-config-schema.R
+ test-lint-datatable-scope.R
+ test-lint-datatable-scope.R
+      test-model-structure.R
+      test-model-structure.R
+      test-model-structure.R
+      test-model-structure.R
+      test-model-structure.R
+              test-nca-wnl.R
+              test-nca-wnl.R
+              test-nca-wnl.R
+              test-nca-wnl.R
+              test-nca-wnl.R
+              test-nca-wnl.R
+              test-nca-wnl.R
+                  test-nca.R
+                  test-nca.R
+                  test-nca.R
+                  test-nca.R
+                  test-nca.R
+                  test-nca.R
+                  test-nca.R
+                  test-nca.R
+                   test-oc.R
+                   test-oc.R
+                   test-oc.R
+                   test-oc.R
+                   test-oc.R
+                   test-oc.R
+               test-params.R
+               test-params.R
+               test-params.R
+               test-params.R
+           test-population.R
+           test-population.R
+           test-population.R
+           test-population.R
+           test-population.R
+              test-rejudge.R
+              test-rejudge.R
+              test-rejudge.R
+     test-reliability-text.R
+     test-reliability-text.R
+               test-round5.R
+               test-round5.R
+               test-round5.R
+               test-round5.R
+               test-round5.R
+               test-round5.R
+             test-sampling.R
+             test-sampling.R
+ test-scenario-propagation.R
+ test-scenario-propagation.R
+                test-seeds.R
+                test-seeds.R
+             test-simulate.R
+             test-simulate.R
+             test-simulate.R
+       test-step1-clot2021.R
+       test-step1-clot2021.R
+       test-step1-clot2021.R
+       test-step1-clot2021.R
+       test-step1-clot2021.R
+            test-summarize.R
+            test-summarize.R
+            test-summarize.R
+                                                                                                   test
+                                pooled t 90% CI는 t.test(var.equal=TRUE)와 일치하고 80–125% 판정이 맞다
+                                                                    ANCOVA(체중) CI는 lm/confint와 일치
+                                                          be_analyze는 평가변수별·부분집합별로 계산한다
+                                모든 config에 YAML 불리언 예약어 키가 없다 (원문 검사 + 파싱 결과 검사)
+                                                                                 파라미터 config 자료형
+                                                                                시험 설계 config 자료형
+                                                                       시나리오·gate·검증 config 자료형
+                                                      R/와 scripts/의 함수에서 인자-열 이름 충돌이 없다
+                                                               검사기가 실제로 위반을 잡는다(자기 검증)
+                                                                 Vmax=0이면 해석적 선형 2구획 해와 일치
+                                                               질량 보존, F 반영, MM 0차 극한, auc 상태
+                                              MM 소실로 용량당 AUCinf가 용량과 함께 증가; 다개체 일관성
+                                                ADA 스위치: onset 이전 동일, 이후 ke 배율만큼 소실 증가
+         Kovalenko 2020 transit 모델: 질량 보존, 평균 통과 시간 = MTT, 대표 프로파일이 2016 모델과 같은
+                                             Phoenix 표기 출력 변수와 Clast_pred·AUCINF_pred·span ratio
+                            BLQ: 첫 정량값 이전은 0, 첫 정량 이후 tmax 이전의 BLQ는 결측(이전 엔진은 0)
+                           BLQ 2회 연속 뒤의 정량값은 결측(그 이후 전부 제외), 단일 BLQ는 결측으로 연결
+                        동률 판정은 엄격 부등호(|최대 − adj R²| < 1e-4), 기울기 > 0 창은 선택 전에 제외
+                                                          신뢰 플래그 세 가지와 reliable, 규칙 C 대체값
+                                           무작위 모의 프로필 50개에서 NonCompart와 λz 점·파라미터 일치
+           NonCompart 문서 예제 Theoph(12명)·Indometh(6명, 혈관외 규칙): λz 선택 점 전부 일치, 파라미터
+                                             AUClast: linear-up/log-down 손계산과 일치, (0,0) 앵커 포함
+                               λz: 마지막 k점 후보 중 adjusted R² 최대 창 선택, AUCinf·외삽률·신뢰 기준
+                             λz 동률(정확한 단일지수)이면 점 수가 많은 창을 택한다; Cmax 점은 후보 제외
+                                         BLQ 규칙: tmax 이전 0, 중간 결측(인접점 연결), tlast 이후 제외
+                                                λz 산출 불가: tmax 이후 정량점 3개 미만 또는 기울기 ≥ 0
+                                  정량치가 전혀 없는 개체는 NA 행으로 남고 여러 개체를 한 번에 처리한다
+                                                BEmaster 호환 모드: 선형 사다리꼴, BLQ=0, 마지막 3점 λz
+                                                                                         참값 지표 부착
+                                            bisect_log는 단조 함수의 목표 배율을 허용오차 안에서 찾는다
+                                       .parabola_max는 간격이 다른 세 점에서도 포물선 꼭짓점을 돌려준다
+                                     V2 기전은 k21만 나누고(Q = k12·Vc 고정) F 배율은 F <= 1을 강제한다
+         truth_metrics의 AUC0-inf는 선형 소실만 있을 때 F·Dose/(Vc·ke)와 같다(느슨한 참값 허용오차 포함
+                                          truth_ratio는 같은 제품에서 1, 알려진 배율에서 그 배율을 준다
+                                      config_pass는 사전 고정 구성 정의대로 계산하고 NA는 불통과로 본다
+                                           기본 파라미터는 Kovalenko 2016 Table 2 값이고 전부 confirmed
+                                                             Kovalenko 2020 Model 1 파라미터와 IIV 차용
+                                                                            시나리오 배율과 민감도 변형
+                                                                             CV <-> omega 변환과 log-CV
+                                                                        체중: 절단 정규분포와 성별 하한
+                                                             eta 표본 SD = omega, IIV 없는 파라미터는 0
+                                          개체 파라미터: 체중 공변량 지수 0.705, F는 고정 0.607, ADA 열
+                                                     층 경계는 체중 절단 범위에서 자동 생성된다 (D-024)
+                                   층화 무작위배정: 각 arm 정확히 n, 층 내 1:1(±1), 층 밖 대상자는 오류
+           재판정 구성 정의는 사전 고정 구성(P2, G2, AUCinf_only)과 같고 G2 계열은 모두 Cmax를 포함한다
+ config_pass_ext는 규칙 × 플래그 세트 조합을 평가변수 통과의 논리곱으로 계산하고, pass NA는 불통과, 행 
+       run_trial_oc_ext는 원래 6개 평가변수를 run_trial_oc와 비트 단위로 재현하고 세트 (i) 포함 수는 세
+                                            fmt_flag_pair: (i) 주값, (ii) 병기, 범위·원소별·부호·반올림
+                                         reliability_facts: 39 결과가 없으면 NULL, 전제와 어긋나면 중단
+                                        2020 Model 1: 자체 IIV(분산 = SD²)와 잔차, MTT IIV 포함 (D-029)
+                                                                       MTT 개체간 변동이 ktr에 반영된다
+                                                                            체중 밴드 균등분포와 키·BMI
+                                                            ke~BMI 공변량과 Vc 체중 지수 대체 (§6 c, d)
+                                                              Wilson 구간, MC 평균 구간, 쌍대 비율 차이
+                              trial_ids: 같은 시험 번호는 묶음과 무관하게 같은 결과(적응적 상향의 전제)
+                                                                              채혈 일정 정의(지시서 §5)
+                                                          채혈 편차는 허용창 안, 시점 0 고정, 순서 유지
+             모든 제품 시나리오: 시험군 개체 파라미터 기하평균이 해당 배율만큼만 이동하고 대조군은 불변
+                                         양 군 공통 배율(곡률 민감도)은 대조군과 시험군 모두에 적용된다
+                                                                 시드 파생은 결정적이고 인자에 민감하다
+                                                                   with_seed는 바깥 RNG 상태를 복원한다
+                                                                              잔차·BLQ 규칙과 시드 재현
+                                                                              일정 부분집합과 참값 부착
+      시험 엔진: 대조군은 시나리오 간 동일(공통 난수), 시험군은 같은 eta로 배율만 다름, 각 arm 정확히 n
+                       gate 범위: 연구 제형(300 mg, 600 mg)만 gate, 200 mg 1.14 mL 제형은 external (gat
+        [판정] (a) 연구 용량 300·600 mg: 관측 중앙값 tlast가 8명 코호트 2,000회 중앙값 분포의 5–95 백분
+                                        [판정] (b) 연구 제형 데이터셋: AUClast 평균 ±15%, log-CV 35–51%
+                  [판정] (c) 체중 기울기: 5 kg당 AUClast 약 50 mg·day/L 감소 (허용 ±50%는 확정 전 가정)
+                   [판정] (f) 300 mg 개별 arm 외부 점검: 모델 평균(약 78 kg)이 Li 2020 arm 평균 범위 안
+                                              개인 수준 대응 비교: McNemar 불일치 쌍과 신뢰 충족률 차이
+                                             시험 수준 대응 비교와 판정 규칙 (a)–(d) (검토 의견 3차 §5)
+                                    시나리오·방법이 섞인 결과에서도 필터가 정확하다 (D-022 회귀 테스트)
+ failed skipped error warning real_s
+      0   FALSE FALSE       0   0.16
+      0   FALSE FALSE       0   0.03
+      0   FALSE FALSE       0   0.08
+      0   FALSE FALSE       0   1.86
+      0   FALSE FALSE       0   0.17
+      0   FALSE FALSE       0   0.12
+      0   FALSE FALSE       0   0.28
+      0   FALSE FALSE       0   0.42
+      0   FALSE FALSE       0   0.01
+      0   FALSE FALSE       0   2.34
+      0   FALSE FALSE       0   0.09
+      0   FALSE FALSE       0   0.33
+      0   FALSE FALSE       0   0.03
+      0   FALSE FALSE       0   0.77
+      0   FALSE FALSE       0   0.20
+      0   FALSE FALSE       0   0.16
+      0   FALSE FALSE       0   0.07
+      0   FALSE FALSE       0   0.04
+      0   FALSE FALSE       0   0.06
+      0   FALSE FALSE       0   0.60
+      0   FALSE FALSE       0   0.81
+      0   FALSE FALSE       0   0.05
+      0   FALSE FALSE       0   0.04
+      0   FALSE FALSE       0   0.03
+      0   FALSE FALSE       0   0.04
+      0   FALSE FALSE       0   0.06
+      0   FALSE FALSE       0   0.05
+      0   FALSE FALSE       0   0.04
+      0   FALSE FALSE       0   0.03
+      0   FALSE FALSE       0   0.03
+      0   FALSE FALSE       0   0.03
+      0   FALSE FALSE       0   0.04
+      0   FALSE FALSE       0   0.13
+      0   FALSE FALSE       0   0.03
+      0   FALSE FALSE       0   0.05
+      0   FALSE FALSE       0   0.03
+      0   FALSE FALSE       0   0.01
+      0   FALSE FALSE       0   0.04
+      0   FALSE FALSE       0   0.01
+      0   FALSE FALSE       0   0.06
+      0   FALSE FALSE       0   0.01
+      0   FALSE FALSE       0   0.01
+      0   FALSE FALSE       0   0.05
+      0   FALSE FALSE       0   0.09
+      0   FALSE FALSE       0   0.03
+      0   FALSE FALSE       0   0.26
+      0    TRUE FALSE       0   0.02
+      0   FALSE FALSE       0   0.03
+      0   FALSE FALSE       0   0.14
+      0   FALSE FALSE       0   0.02
+      0   FALSE FALSE       0   0.01
+      0   FALSE FALSE       0   0.04
+      0   FALSE FALSE       0   0.06
+      0   FALSE FALSE       0   0.04
+      0   FALSE FALSE       0   2.54
+      0   FALSE FALSE       0   0.02
+      0   FALSE FALSE       0   0.33
+      0   FALSE FALSE       0   1.58
+      0   FALSE FALSE       0   0.53
+      0   FALSE FALSE       0   0.01
+      0   FALSE FALSE       0   0.01
+      0   FALSE FALSE       0   0.05
+      0   FALSE FALSE       0   0.07
+      0   FALSE FALSE       0   2.16
+      0   FALSE FALSE       0   0.02
+      0    TRUE FALSE       0   0.03
+      0    TRUE FALSE       0   0.02
+      0    TRUE FALSE       0   0.02
+      0    TRUE FALSE       0   0.02
+      0   FALSE FALSE       0   0.07
+      0   FALSE FALSE       0   0.18
+      0   FALSE FALSE       0   0.08
+judgment items (report only, not counted as suite failure):
+  skipped   [판정] (a) 연구 용량 300·600 mg: 관측 중앙값 tlast가 8명 코호트 2,000회 중앙값 분포의 5–95 백분위 안
+  skipped   [판정] (b) 연구 제형 데이터셋: AUClast 평균 ±15%, log-CV 35–51%
+  skipped   [판정] (c) 체중 기울기: 5 kg당 AUClast 약 50 mg·day/L 감소 (허용 ±50%는 확정 전 가정)
+  skipped   [판정] (f) 300 mg 개별 arm 외부 점검: 모델 평균(약 78 kg)이 Li 2020 arm 평균 범위 안
+TOTAL: 72 tests, 0 failed (0 code, 0 judgment unmet), 0 errors, 5 skipped (0 unexpected); wall 19.3 s, cpu 20.2 s

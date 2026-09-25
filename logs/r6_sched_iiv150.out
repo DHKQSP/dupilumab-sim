@@ -1,0 +1,14 @@
+run log: /home/user/dupilumab-sim/logs/trial_schedules_iiv150_20260924T142516.log
+variant=iiv150 n_trials=500 cores=3 combos=6
+  trial 50 (500개 중) 14:26:00
+  trial 100 (500개 중) 14:26:40
+  trial 150 (500개 중) 14:27:17
+  trial 200 (500개 중) 14:27:59
+  trial 250 (500개 중) 14:28:38
+  trial 300 (500개 중) 14:29:17
+  trial 350 (500개 중) 14:30:03
+  trial 400 (500개 중) 14:30:40
+  trial 450 (500개 중) 14:31:19
+  trial 500 (500개 중) 14:32:07
+elapsed: 6.852105 mins 
+postprocess schedules iiv150: 500 trials, 3 scenarios, 2 schedules

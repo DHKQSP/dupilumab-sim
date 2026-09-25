@@ -272,10 +272,12 @@ if (nrow(bnd_all)) {
   if (nrow(ex)) {
     # 전제: 점추정 > 5%만 나열. 시험 수는 그 시나리오의 실제 수(연장 시나리오는 연장 후), 하한 문구는 Wilson 하한 > 5% 여부로 고른다
     stopifnot(all(ex$pass_pct > 5), all(ex$n_trials == NTR[ex, on = c("model", "scenario"), n_unique]))
-    ko <- c(ko, sprintf("**P2(AUClast + Cmax)의 경계 1종 오류가 5%%를 넘는 경우가 있다.** %s. 해당 기전·크기·구간은 3절 표와 그림 3-B에 있다.%s",
+    head_ko <- if (any(ex$lo > 5)) "**P2(AUClast + Cmax)의 경계 1종 오류가 5%를 넘는 경우가 있다(Wilson 하한도 5% 초과).**" else "**P2(AUClast + Cmax)의 경계 1종 오류 점추정이 5%를 넘는 경우가 있다(Wilson 95% 구간은 5%를 포함: 명목).**"
+    head_en <- if (any(ex$lo > 5)) "**The boundary type I error of P2 (AUClast + Cmax) exceeds 5% in some cases (Wilson lower bound also above 5%).**" else "**The point estimate of the boundary type I error of P2 (AUClast + Cmax) exceeds 5% in some cases (the Wilson 95% interval includes 5%: nominal).**"
+    ko <- c(ko, sprintf("%s %s. 해당 기전·크기·구간은 3절 표와 그림 3-B에 있다.%s", head_ko,
                         paste(sprintf("%s %s, 참값 %.2f(배율 %.3g): %s%% [%s, %s], 시험 %s회 — %s", MODEL_LABEL[ex$model], MECH_KO[ex$mechanism], ex$target, ex$multiplier, f2(ex$pass_pct), f2(ex$lo), f2(ex$hi),
                                       fmt_int(ex$n_trials), fifelse(ex$lo > 5, "Wilson 하한도 5% 초과", "Wilson 하한은 5% 이하")), collapse = "; "), ext_ko))
-    en <- c(en, sprintf("**The boundary type I error of P2 (AUClast + Cmax) exceeds 5%% in some cases.** %s.%s",
+    en <- c(en, sprintf("%s %s.%s", head_en,
                         paste(sprintf("%s, %s, true ratio %.2f (multiplier %.3g): %s%% (95%% CI %s to %s, %s trials), %s", ML_EN[ex$model], MECH_EN[ex$mechanism], ex$target, ex$multiplier,
                                       f2(ex$pass_pct), f2(ex$lo), f2(ex$hi), fmt_int(ex$n_trials), fifelse(ex$lo > 5, "Wilson lower bound also above 5%", "Wilson lower bound not above 5%")), collapse = "; "), ext_en))
   } else {

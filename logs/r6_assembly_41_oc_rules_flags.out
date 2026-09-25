@@ -1,0 +1,37 @@
+- The project is out-of-sync -- use `renv::status()` for details.
+   model n_trials_min n_trials_max complete rejudge n_rejudge_trials
+1: k2016        10000        10000     TRUE    TRUE            10000
+2: k2020        10000        10000     TRUE    TRUE            10000
+   rejudge_complete extension ext_scenarios n_ext_trials
+1:             TRUE     FALSE                           
+2:             TRUE      TRUE     V2_up_080        10000
+    model        label n_scen n_gt5 n_lo_gt5 max_pct       max_scn n_trials
+ 1: k2016           P2      8     0        0    3.97     V2_up_080    10000
+ 2: k2016     G2-A(ii)      8     6        6   24.58 Vmax_down_125    10000
+ 3: k2016         G2-B      8     4        3   15.06   Vmax_up_080    10000
+ 4: k2016     G2-C(ii)      8     0        0    3.85     ke_up_080    10000
+ 5: k2016      G2-A(i)      8     4        4   19.91   Vmax_up_080    10000
+ 6: k2016      G2-C(i)      8     0        0    4.13    F_down_080    10000
+ 7: k2016 AUCinf-A(ii)      8     7        7   35.84   ka_down_080    10000
+ 8: k2016     AUCinf-B      8     5        5   16.02   ka_down_080    10000
+ 9: k2016 AUCinf-C(ii)      8     0        0    4.00   ka_down_080    10000
+10: k2016  AUCinf-A(i)      8     5        5   33.85   ka_down_080    10000
+11: k2016  AUCinf-C(i)      8     0        0    4.60   ka_down_080    10000
+12: k2020           P2      8     1        0    5.18     V2_up_080    20000
+13: k2020     G2-A(ii)      8     6        6   27.60 Vmax_down_125    20000
+14: k2020         G2-B      8     4        3   11.87   Vmax_up_080    20000
+15: k2020     G2-C(ii)      8     1        0    5.00     V2_up_080    20000
+16: k2020      G2-A(i)      8     4        4   17.37   Vmax_up_080    20000
+17: k2020      G2-C(i)      8     0        0    4.62     V2_up_080    20000
+18: k2020 AUCinf-A(ii)      8     7        7   36.53   ka_down_080    20000
+19: k2020     AUCinf-B      8     5        4   16.23   ka_down_080    20000
+20: k2020 AUCinf-C(ii)      8     1        0    5.03     V2_up_080    20000
+21: k2020  AUCinf-A(i)      8     5        5   38.12   ka_down_080    20000
+22: k2020  AUCinf-C(i)      8     1        0    5.01   ka_down_080    20000
+    model        label n_scen n_gt5 n_lo_gt5 max_pct       max_scn n_trials
+written:
+  /home/user/dupilumab-sim/results/oc/g2_rules_flags.csv
+  /home/user/dupilumab-sim/results/oc/g2_decomposition.csv
+  /home/user/dupilumab-sim/results/oc/p2_bias_boundary.csv
+  /home/user/dupilumab-sim/results/oc/g2_rules_conclusion_ko.md
+  /home/user/dupilumab-sim/results/oc/g2_rules_conclusion_en.md

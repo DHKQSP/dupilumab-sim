@@ -10,6 +10,41 @@ Scenario codes (test arm only unless stated; reference arm shared through common
 
 Study design simulated: 300 mg single subcutaneous dose (2 mL of 150 mg/mL), parallel groups, 117 evaluable subjects per arm, body weight 60 to 90 kg, Syneos sampling schedule (B0: Days 1, 2, 4, 6, 8, 11, 15, 22, 29, 36, 43, 50, 57). Equivalence: two one-sided tests via the 90% CI of the GMR from a pooled two-sample t on log scale, limits 80.00% to 125.00%.
 
+## Key conclusion: operating characteristics of the co-primary endpoint configurations
+
+Design fixed before any result in config/oc_design.yaml (commit 779e068, unchanged since). Truth is the population GMR of model-integrated AUC0-inf (no residual error; the same 200,000 virtual subjects receive both products, CRN), not AUClast; the true Cmax ratio is reported alongside. Configurations: P2 = AUClast + Cmax (proposed); F3-A, F3-B, F3-C = P2 + AUCinf under handling rule A, B or C; G2 = AUCinf (rule A) + Cmax (guideline default). Mechanisms F, ka, ke, Vmax, Km and peripheral volume V2 in both directions, with multipliers inverted by bisection to target true AUC0-inf ratios 0.70 to 1.43.
+
+**The point estimate of the boundary type I error of P2 (AUClast + Cmax) exceeds 5% in some cases (the Wilson 95% interval includes 5%: nominal).** Model 1, peripheral volume (V2), true ratio 0.80 (multiplier 2.28): 5.18% (95% CI 4.88 to 5.50, 20,000 trials), Wilson lower bound not above 5%. Adaptive extension (the rule of the 5,000-trial product scenarios applied to every model: a boundary scenario whose P2 Wilson 95% CI at the pre-registered 10,000 trials includes 5% is extended to 20,000 trials; scripts/42): Model 1 V2 up 0.80: 5.32% (95% CI 4.90 to 5.78) at 10,000 trials, then 5.18% (95% CI 4.88 to 5.50) at 20,000 trials.
+
+G2 (AUCinf rule A + Cmax) boundary type I error ranges from 0.0% to 27.6%; above 5% in 12 cases (2016 F 0.80: 7.3%; 2016 F 1.25: 7.4%; 2016 Vmax 1.25: 24.6%; 2016 Vmax 0.80: 22.5%; 2016 ke 1.25: 7.0%; 2016 ke 0.80: 5.7%; Model 1 F 0.80: 8.3%; Model 1 F 1.25: 7.9%; Model 1 Vmax 1.25: 27.6%; Model 1 Vmax 0.80: 23.3%; Model 1 ke 1.25: 10.0%; Model 1 ke 0.80: 5.9%).
+
+2016 model, scenario with the largest G2 error (target-mediated elimination capacity (Vmax), down, true AUC0-inf ratio 1.251): geometric mean of trial GMRs AUCinf rule A 1.190, rule B 1.240, AUClast 1.262, Cmax 1.061 (true 1.054). Non-compartmental AUCinf is biased toward 1 relative to the truth (rule A -4.8%, rule B -0.9%; AUClast +0.9%), so products outside the limits pass more often.
+
+Model 1, scenario with the largest G2 error (target-mediated elimination capacity (Vmax), down, true AUC0-inf ratio 1.251): geometric mean of trial GMRs AUCinf rule A 1.183, rule B 1.242, AUClast 1.260, Cmax 1.058 (true 1.053). Non-compartmental AUCinf is biased toward 1 relative to the truth (rule A -5.4%, rule B -0.7%; AUClast +0.7%), so products outside the limits pass more often.
+
+F3 versus P2: at the boundaries the additional protection of F3-A (P2 passes, F3-A fails; paired within trials) is 0.00 to 4.23 percentage points, outside the limits 0.00 to 0.25 percentage points; inside the limits (true ratio 0.85 to 1.18) the additional failure is 0.00 to 20.50 percentage points. G2 versus P2 at the boundaries: pass-rate difference G2 minus P2 -4.12 to 24.88 percentage points.
+
+Power at true ratio 1.00 (identical products, 10,000 trials): 2016 P2: 99.6% (99.4 to 99.7); 2016 F3-A: 99.1% (98.9 to 99.2); 2016 F3-C: 99.5% (99.4 to 99.6); 2016 G2: 99.3% (99.2 to 99.5); Model 1 P2: 99.0% (98.8 to 99.2); Model 1 F3-A: 98.3% (98.0 to 98.5); Model 1 F3-C: 99.0% (98.8 to 99.1); Model 1 G2: 98.9% (98.7 to 99.1).
+
+Secondary metric: the consumer and producer risks of the random product space depend on the assumed distribution of virtual products (Latin hypercube, log-uniform multipliers F 0.80 to 1.25, ka 0.67 to 1.50, ke 0.80 to 1.25, Vmax 0.67 to 1.50, Km 0.20 to 5, V2 0.90 to 1.11). The primary metric is the boundary type I error (mechanism by direction by configuration by model).
+
+Random product space (secondary metric; 2016 model, 20,000 products, one trial each; true AUC0-inf ratio inside the limits for 57.3%, true AUC0-inf and Cmax both inside for 51.9%): consumer risk (pass among 8,540 products with true AUC0-inf outside) P2 0.14% (0.08 to 0.25), F3-A 0.12% (0.06 to 0.22), F3-C 0.14% (0.08 to 0.25), G2 1.08% (0.88 to 1.32); near the boundaries (0.75 to 0.80 and 1.25 to 1.33, 2,483 products) P2 0.48% (0.28 to 0.84), F3-A 0.40% (0.22 to 0.74), F3-C 0.48% (0.28 to 0.84), G2 3.42% (2.78 to 4.21). Producer risk (failure among 11,460 products with true AUC0-inf inside) P2 49.6% (48.7 to 50.5), F3-A 52.6% (51.7 to 53.5), F3-C 49.8% (48.9 to 50.8), G2 45.4% (44.5 to 46.3); near the boundaries (0.80 to 0.85 and 1.18 to 1.25, 2,763 products) P2 90.7% (89.6 to 91.8), F3-A 92.5% (91.4 to 93.4), F3-C 90.8% (89.7 to 91.9), G2 81.5% (80.1 to 82.9). Against the joint truth (AUC0-inf and Cmax): consumer risk P2 0.30% (0.21 to 0.43), F3-A 0.25% (0.17 to 0.37), F3-C 0.30% (0.21 to 0.43), G2 1.11% (0.92 to 1.34), producer risk P2 44.5% (43.6 to 45.5), F3-A 47.8% (46.8 to 48.7), F3-C 44.8% (43.8 to 45.8), G2 39.9% (39.0 to 40.8).
+
+Random product space (secondary metric; Model 1, 20,000 products, one trial each; true AUC0-inf ratio inside the limits for 57.7%, true AUC0-inf and Cmax both inside for 52.2%): consumer risk (pass among 8,460 products with true AUC0-inf outside) P2 0.18% (0.11 to 0.29), F3-A 0.13% (0.07 to 0.23), F3-C 0.17% (0.10 to 0.28), G2 1.39% (1.17 to 1.67); near the boundaries (0.75 to 0.80 and 1.25 to 1.33, 2,498 products) P2 0.56% (0.33 to 0.94), F3-A 0.44% (0.25 to 0.79), F3-C 0.52% (0.30 to 0.89), G2 4.44% (3.70 to 5.32). Producer risk (failure among 11,540 products with true AUC0-inf inside) P2 50.9% (50.0 to 51.8), F3-A 54.0% (53.1 to 54.9), F3-C 51.2% (50.2 to 52.1), G2 46.2% (45.3 to 47.1); near the boundaries (0.80 to 0.85 and 1.18 to 1.25, 2,756 products) P2 90.1% (89.0 to 91.2), F3-A 91.7% (90.6 to 92.7), F3-C 90.3% (89.2 to 91.4), G2 80.4% (78.8 to 81.8). Against the joint truth (AUC0-inf and Cmax): consumer risk P2 0.39% (0.28 to 0.53), F3-A 0.30% (0.21 to 0.44), F3-C 0.37% (0.26 to 0.51), G2 1.44% (1.22 to 1.70), producer risk P2 46.0% (45.0 to 46.9), F3-A 49.4% (48.4 to 50.3), F3-C 46.2% (45.3 to 47.2), G2 40.7% (39.8 to 41.7).
+
+## Key numbers
+
+The primary metric is the boundary type I error (pass rate at a true AUC0-inf ratio of 0.80 or 1.25; mechanism by direction by configuration by model). The consumer and producer risks of the random product space are a secondary metric that depends on the assumed virtual product distribution. VM150 and KE120 are preliminary scenarios with arbitrary multipliers (primary model, at least 5,000 trials); their AUCinf reliability uses flag set (ii), and their true ratio is the mean trial GMR of the individual model AUC0-inf of the same trial subjects, a different definition from the 200,000-subject integral of the inverted scenarios. Every value below is read from the named result file (proportions with Wilson 95% intervals).
+
+| Item | Estimate (95% CI) | True AUC0-inf ratio | Interpretation | Source (results/) |
+|---|---|---|---|---|
+| Primary metric: P2 (AUClast + Cmax) boundary type I error, largest cell | 5.18% (95% CI 4.88 to 5.50); 20,000 trials (adaptive extension; pre-registered 10,000 trials: 5.32% (95% CI 4.90 to 5.78)) | 0.800 (Model 1, V2 up, target 0.80) | nominal (Wilson interval includes 5%); point estimate above 5% in 1 of 16 boundary cells | oc/boundary_type1.csv |
+| Primary metric: G2 (AUCinf rule A + Cmax) boundary type I error, largest cell | 27.60% (95% CI 26.73 to 28.48); 10,000 trials | 1.251 (Model 1, Vmax down, target 1.25) | exceeding (Wilson lower bound above 5%); point estimate above 5% in 12 of 16 boundary cells | oc/boundary_type1.csv |
+| VM150 (Vmax x1.50): pass rate of AUCinf alone, reliable subjects (flag set (ii), rule A) | 6.50% (95% CI 6.16 to 6.84); 20,000 trials | 0.758 (outside the limits); mean trial GMR of the individual model AUC0-inf of the same trial subjects (fallback/consumer_risk.csv true_ratio = rationale/pillar2_products_B0.csv GMR_mean_AUCinf_true) | exceeds the nominal 5% although the truth is outside the limits (Wilson lower bound also above 5%) | trials5000/products5000_props_base.csv |
+| VM150: pass rate of AUClast alone | 0.075% (95% CI 0.045 to 0.124); 20,000 trials | 0.758 (outside the limits) | the same out-of-limits product passes on AUClast below 5% (Wilson upper bound below 5%) | trials5000/products5000_props_base.csv |
+| KE120 (ke x1.20): AUClast pass, AUCinf (reliable subjects, flag set (ii)) fail | 7.30% (95% CI 6.61 to 8.05); 5,000 trials | 0.905 (inside the limits); same definition (discordance_classification.csv true_ratio) | truth inside the limits, so classified as false negatives of AUCinf | trials5000/products5000_props_base.csv, fallback/discordance_classification.csv |
+| Pillar 3: true AUC0-inf ratio across binding-constant (Km) multipliers | 0.999 to 1.059 for Km x0.01 to x100 | model-integrated truth (200,000 common-random-number subjects) | inside the limits; the only reachable pre-specified target is 1.05 (Km about x84 in the 2016 model, x92 in Model 1) | oc/inversion_all.csv, oc/inversion_scan_k20*_Km.csv |
+
 ## Key conclusion: sampling on the terminal cliff
 
 The cliff (instantaneous half-life below 1 day until the true concentration reaches the LLOQ) lasts a median 1.38 days (5th to 95th percentile 1.33 to 1.43) with the 1-day definition and 2.94 days (2.86 to 3.09) with the 2-day definition (2016 model, 60 to 90 kg, 20,000 subjects; Model 1 1.38 and 2.94 days). It is shorter than the minimum visit interval after Day 22 of any added-sampling schedule (3 days) in 100.0% (1-day) and 79.7% (2-day) of subjects.
@@ -266,6 +301,273 @@ Sample size cross-check (proposed log-scale coefficient of variation 43%, 117 su
 - The AUClast 90% CI reported by Cohen 2022 (0.96 to 1.28, n 62 and 63) implies a log-scale SD of about 0.49 (CV about 52%), above both models (40.3% and 42.8%). The proposed 43% lies between the models and the Cohen estimate.
 - Empirical power with 117 per arm (2016 model, 20,000 trials): identical products 99.5 (99.4 to 99.6)% for AUClast and Cmax jointly and 99.0 (98.8 to 99.1)% with AUCinf (reliable set) added; test bioavailability x0.97 (true AUC ratio about 0.95) 96.8 (96.3 to 97.3)% and 94.8 (94.1 to 95.3)%.
 
+## Operating characteristics, primary metric: boundary type I error (true AUC0-inf ratio 0.80 or 1.25)
+
+The primary metric is the boundary type I error: the pass rate when the true AUC0-inf ratio is exactly at an equivalence limit, by mechanism, direction, configuration and model. Operating characteristic curves, power and the configuration comparison follow; the random product space is a secondary metric (last subsection).
+
+Boundary scenarios: test-arm multiplier giving a true AUC0-inf ratio of 0.80 and 1.25 and the true Cmax ratio at that multiplier (200,000 CRN subjects, 60 to 90 kg, 300 mg, log-multiplier bisection to within 0.1%). Unreachable: the range-end multiplier on the side of the target and its true AUC0-inf ratio.
+
+| Model | Mechanism | True 0.80: multiplier | True 0.80: true Cmax ratio | True 1.25: multiplier | True 1.25: true Cmax ratio |
+|---|---|---|---|---|---|
+| 2016 model | F | x0.872 | 0.852 | x1.151 | 1.176 |
+| 2016 model | ka | x0.440 | 0.632 | unreachable (range end x10: 1.118) |  |
+| 2016 model | ke | x1.471 | 0.929 | x0.633 | 1.067 |
+| 2016 model | Vmax | x1.395 | 0.938 | x0.660 | 1.054 |
+| 2016 model | Km | unreachable (range end x0.01: 0.999) |  | unreachable (range end x100: 1.059) |  |
+| 2016 model | V2 | x3.210 | 0.963 | unreachable (range end x0.1: 1.191) |  |
+| Model 1 | F | x0.871 | 0.852 | x1.153 | 1.176 |
+| Model 1 | ka | x0.424 | 0.633 | unreachable (range end x10: 1.109) |  |
+| Model 1 | ke | x1.457 | 0.933 | x0.643 | 1.064 |
+| Model 1 | Vmax | x1.397 | 0.941 | x0.651 | 1.053 |
+| Model 1 | Km | unreachable (range end x0.01: 0.999) |  | unreachable (range end x100: 1.054) |  |
+| Model 1 | V2 | x2.277 | 0.891 | unreachable (range end x0.1: 1.223) |  |
+
+| Model | Mechanism | Direction | Target | True AUC0-inf ratio | True Cmax ratio | P2 (%) | F3-A (%) | F3-C (%) | G2 (%) |
+|---|---|---|---|---|---|---|---|---|---|
+| 2016 | F | down | 0.80 | 0.800 | 0.852 | 3.71 | 2.69 | 3.51 | 7.35 |
+| 2016 | F | up | 1.25 | 1.250 | 1.176 | 3.24 | 2.63 | 3.14 | 7.40 |
+| 2016 | V2 | up | 0.80 | 0.800 | 0.963 | 3.97 | 1.96 | 3.35 | 4.03 |
+| 2016 | Vmax | down | 1.25 | 1.251 | 1.054 | 2.67 | 2.65 | 2.64 | 24.58 |
+| 2016 | Vmax | up | 0.80 | 0.799 | 0.938 | 2.25 | 2.07 | 2.06 | 22.46 |
+| 2016 | ka | down | 0.80 | 0.799 | 0.632 | 0.00 | 0.00 | 0.00 | 0.00 |
+| 2016 | ke | down | 1.25 | 1.249 | 1.067 | 3.37 | 2.24 | 3.23 | 6.95 |
+| 2016 | ke | up | 0.80 | 0.800 | 0.929 | 3.67 | 2.29 | 3.47 | 5.71 |
+| Model 1 | F | down | 0.80 | 0.800 | 0.852 | 3.70 | 3.03 | 3.56 | 8.33 |
+| Model 1 | F | up | 1.25 | 1.250 | 1.176 | 3.41 | 2.67 | 3.26 | 7.88 |
+| Model 1 | V2 | up | 0.80 | 0.800 | 0.891 | 5.18 | 0.95 | 4.76 | 1.06 |
+| Model 1 | Vmax | down | 1.25 | 1.251 | 1.053 | 2.72 | 2.71 | 2.72 | 27.60 |
+| Model 1 | Vmax | up | 0.80 | 0.800 | 0.941 | 2.76 | 2.64 | 2.72 | 23.29 |
+| Model 1 | ka | down | 0.80 | 0.801 | 0.633 | 0.00 | 0.00 | 0.00 | 0.00 |
+| Model 1 | ke | down | 1.25 | 1.250 | 1.064 | 3.68 | 2.80 | 3.58 | 10.02 |
+| Model 1 | ke | up | 0.80 | 0.800 | 0.933 | 3.77 | 2.54 | 3.65 | 5.88 |
+
+Wilson 95% intervals are in the full report (Appendix B). Trials per scenario: 10,000 each (Model 1 V2 up 0.80: 20,000 by the adaptive extension rule).
+
+![Figure 3-B (Kovalenko 2016 (primary)). Boundary type I error by mechanism and configuration, true AUC0-inf ratio 0.80 or 1.25 (trials per scenario 10,000 each; Wilson 95% intervals; dashed line 5%).](oc/fig3B_boundary_type1_k2016_en.png)
+
+*Figure 3-B (Kovalenko 2016 (primary)). Boundary type I error by mechanism and configuration, true AUC0-inf ratio 0.80 or 1.25 (trials per scenario 10,000 each; Wilson 95% intervals; dashed line 5%).*
+
+![Figure 3-B (Kovalenko 2020 Model 1). Boundary type I error by mechanism and configuration, true AUC0-inf ratio 0.80 or 1.25 (trials per scenario 10,000 each (V2 up 0.80: 20,000 by the adaptive extension rule); Wilson 95% intervals; dashed line 5%).](oc/fig3B_boundary_type1_k2020_en.png)
+
+*Figure 3-B (Kovalenko 2020 Model 1). Boundary type I error by mechanism and configuration, true AUC0-inf ratio 0.80 or 1.25 (trials per scenario 10,000 each (V2 up 0.80: 20,000 by the adaptive extension rule); Wilson 95% intervals; dashed line 5%).*
+
+Relative bias (%) of the geometric mean of trial GMRs against the truth at the boundaries (AUC endpoints against the true AUC0-inf ratio, Cmax against the true Cmax ratio). Rule A combines estimation and selection (flagged subjects excluded), rule B is estimation only, rule C substitutes AUClast for flagged subjects:
+
+| Model | Mechanism | Direction | Target | AUClast | AUCinf rule A | AUCinf rule B | AUCinf rule C | Cmax |
+|---|---|---|---|---|---|---|---|---|
+| 2016 | F | down | 0.80 | -0.5 | 2.0 | 1.1 | -0.4 | -0.2 |
+| 2016 | F | up | 1.25 | 0.5 | -1.7 | -0.6 | 0.3 | 0.3 |
+| 2016 | V2 | up | 0.80 | -0.3 | -0.2 | -0.6 | -0.7 | -1.1 |
+| 2016 | Vmax | up | 0.80 | -1.5 | 5.2 | 3.3 | -1.4 | -0.6 |
+| 2016 | Vmax | down | 1.25 | 0.9 | -4.8 | -0.9 | 0.4 | 0.6 |
+| 2016 | ka | down | 0.80 | -0.2 | 8.0 | 3.7 | -0.7 | 1.2 |
+| 2016 | ke | up | 0.80 | -0.6 | 0.5 | 0.1 | -0.5 | -0.8 |
+| 2016 | ke | down | 1.25 | 0.5 | -1.1 | 0.1 | 0.4 | 0.9 |
+| Model 1 | F | down | 0.80 | -0.5 | 2.1 | 0.8 | -0.2 | -0.1 |
+| Model 1 | F | up | 1.25 | 0.4 | -1.9 | -0.5 | 0.1 | 0.2 |
+| Model 1 | V2 | up | 0.80 | 0.4 | -3.3 | -0.5 | 0.3 | -1.7 |
+| Model 1 | Vmax | up | 0.80 | -1.3 | 5.5 | 2.6 | -1.0 | -0.5 |
+| Model 1 | Vmax | down | 1.25 | 0.7 | -5.4 | -0.7 | 0.1 | 0.5 |
+| Model 1 | ka | down | 0.80 | -0.2 | 8.2 | 3.9 | -0.9 | 0.7 |
+| Model 1 | ke | up | 0.80 | -0.5 | 0.6 | 0.0 | -0.3 | -0.7 |
+| Model 1 | ke | down | 1.25 | 0.3 | -2.1 | 0.3 | 0.1 | 0.7 |
+
+## P2 boundary type I error: interpretation (directive 2026-09-25, section 3)
+
+The P2 boundary type I error split into the baseline of an unbiased estimator (theory and the individual model AUC0-inf of the trial subjects), a classification of each cell (Wilson 95% interval against 5%) and its causes (AUClast bias, Cmax failures), from the saved trial-level results (scripts/43_p2_interpretation.R; no new simulation; numbers in oc/p2_interpretation.csv).
+
+
+Data: saved trial-level results (`results/oc/oc_trials_be_<model>.csv.gz`, scripts/31: 117 per arm, B0, pooled t, 90% CI within 80.00 to 125.00%) plus the adaptive extension rows when present (`oc_trials_ext_be_<model>.csv.gz`, scripts/42). No new simulation. Generated by `scripts/43_p2_interpretation.R`. Numbers: `p2_interpretation.csv` (model by boundary scenario by configuration).
+
+- Trials: Kovalenko 2016 (primary): 8 boundary scenarios, 10,000 trials per scenario (prespecified reps_boundary complete).
+- Trials: Kovalenko 2020 Model 1: 8 boundary scenarios, 10,000-20,000 trials per scenario (prespecified reps_boundary complete); adaptive extension (scripts/42): V2_up_080 20,000 trials (prespecified 10,000 plus extension 10,000).
+
+### Summary
+
+- Baseline (theory): If the estimator is unbiased for the true ratio, the boundary type I error of the two one-sided tests (90% CI within 80.00 to 125.00%) is close to the nominal 5% (t-based, df = 2 x 117 - 2 = 232). When the true ratio is exactly 0.80 (or 1.25), the probability on the near limit is exactly 5%, and the pass probability is 5% minus the probability of failing the far limit (upper bound above 125% at 0.80, lower bound below 80% at 1.25). With the per-scenario standard errors implied by the stored CIs (log scale, median over trials: AUClast 0.0486 to 0.0632, AUCinf_true 0.0455 to 0.0614), that probability is at most 7.8e-08 (7.8e-06 percentage points), so the theoretical value is at least 4.9999922% and below 5%. Because of the inversion tolerance (+/-0.1%), the actual true AUC0-inf ratios of the scenarios are 0.7993 to 1.2509, where the theoretical values are 4.85 to 5.12% for AUClast and 4.84 to 5.12% for AUCinf_true.
+- Empirical reference (AUCinf_true alone, the individual model-integrated AUC0-inf of the trial subjects): boundary pass rate 4.12 to 5.43% (16 model by boundary scenario cells, 14 of them below 5%). The bias is -0.01 to +0.03%, and every 95% CI includes 0 (consistent with unbiasedness). Classification: Kovalenko 2016 (primary) conservative 5, nominal 3, exceeding 0; Kovalenko 2020 Model 1 conservative 4, nominal 3, exceeding 1. Why it leans slightly below 5%: the between-trial SD of log GMR is smaller than the within-trial standard error (median) (ratio 0.961 to 0.993; below 1 in 16 of 16). The 90% CI is therefore wider than the actual variation of the estimator, which lowers the boundary pass rate; the normal approximation (bias 0, between-trial SD, median se) predicts 4.16 to 4.94%. The reason for a ratio below 1 was not tested in this analysis (candidate: 1:1 allocation within weight strata, which the pooled t does not model). Observed and normal-approximation (with bias) values differ by more than the binomial 95% margin in: Kovalenko 2016 (primary) ka_down_080 observed 5.11% above predicted 4.69% (correlation of se with log GMR -0.38, in the direction that gives passing trials a smaller se); Kovalenko 2020 Model 1 ka_down_080 observed 5.43% above predicted 4.99% (correlation of se with log GMR -0.36, in the direction that gives passing trials a smaller se).
+- Classification (Wilson 95% CI versus 5%: upper bound below 5% conservative, lower bound above 5% exceeding, otherwise nominal):
+  - Kovalenko 2016 (primary), 8 boundary scenarios: P2 conservative 8, nominal 0, exceeding 0; AUClast only conservative 7, nominal 1, exceeding 0; AUCinf_true only conservative 5, nominal 3, exceeding 0
+  - Kovalenko 2020 Model 1, 8 boundary scenarios: P2 conservative 7, nominal 1, exceeding 0; AUClast only conservative 6, nominal 2, exceeding 0; AUCinf_true only conservative 4, nominal 3, exceeding 1
+- Nominal and exceeding cells (size, Wilson 95% CI):
+  - P2: Kovalenko 2020 Model 1 V2_up_080 5.18% (95% CI 4.88 to 5.50; nominal, 20,000 trials).
+  - AUClast only: Kovalenko 2016 (primary) ka_down_080 4.74% (95% CI 4.34 to 5.17; nominal, 10,000 trials); Kovalenko 2020 Model 1 V2_up_080 5.20% (95% CI 4.90 to 5.51; nominal, 20,000 trials); Kovalenko 2020 Model 1 ka_down_080 5.07% (95% CI 4.66 to 5.52; nominal, 10,000 trials).
+  - AUCinf_true only: Kovalenko 2016 (primary) Vmax_up_080 4.64% (95% CI 4.24 to 5.07; nominal, 10,000 trials); Kovalenko 2016 (primary) ka_down_080 5.11% (95% CI 4.70 to 5.56; nominal, 10,000 trials); Kovalenko 2016 (primary) ke_up_080 4.62% (95% CI 4.23 to 5.05; nominal, 10,000 trials); Kovalenko 2020 Model 1 F_down_080 4.61% (95% CI 4.22 to 5.04; nominal, 10,000 trials); Kovalenko 2020 Model 1 Vmax_up_080 4.75% (95% CI 4.35 to 5.18; nominal, 10,000 trials); Kovalenko 2020 Model 1 ka_down_080 5.43% (95% CI 5.003 to 5.89; exceeding, 10,000 trials); Kovalenko 2020 Model 1 ke_up_080 4.67% (95% CI 4.27 to 5.10; nominal, 10,000 trials).
+- Causes (P2, largest component per cell): the AUClast effect (AUClast only minus AUCinf_true) in 13, Cmax failures in 2, the gap between the unbiased reference and 5% in 1. Cells where Cmax failures dominate: Kovalenko 2016 (primary) ka_down_080 (Cmax pass 0.00%, P2 0.00%), Kovalenko 2020 Model 1 ka_down_080 (Cmax pass 0.00%, P2 0.00%).
+  - P2 cells that are not conservative: Kovalenko 2020 Model 1 V2_up_080: AUClast bias toward 1 (bias +0.41%; AUClast only minus AUCinf_true +0.61 points) + the unbiased reference is itself below 5% (AUCinf_true 4.58%, -0.41 points); hence P2 5.18%: point estimate above 5% with the Wilson interval including 5% (nominal)
+- Where the final point estimate of P2 exceeds 5%: Kovalenko 2020 Model 1, peripheral volume (V2), up (multiplier x2.28), true ratio 0.80: 5.18% (95% CI 4.88 to 5.50), 20,000 trials (the Wilson interval includes 5%, so classified nominal); prespecified 10,000-trial value 5.32% (95% CI 4.90 to 5.78). The first paragraph of the scripts/33 conclusion (`oc_conclusion_ko.md` and `oc_conclusion_en.md`) and the P2 and AUClast-only values in `boundary_type1.csv` agree with the final values here (cases, multipliers, pass rates and intervals compared at the precision printed by scripts/33, and trial counts when printed; stopifnot).
+
+### 1. Baseline: boundary type I error of an unbiased estimator
+
+- Theory from R/oc_interpret.R `be_boundary_type1_theory` (t-based, se fixed). At a true ratio of exactly 0.80 or 1.25 the theoretical value is 5% minus the far-limit probability (shown in the table on the 0 to 1 scale); theory (actual truth) = at the inverted true ratio of the scenario. Normal approximation = AUCinf_true pass rate from the between-trial mean and SD of log GMR and the median se (`be_pass_prob_normal`). SD / SE = between-trial SD of log GMR divided by the median within-trial se.
+
+#### Kovalenko 2016 (primary)
+
+| Boundary scenario | True AUC0-inf ratio | se AUClast / AUCinf_true | Far-limit probability AUClast / AUCinf_true | Theory (actual truth) AUClast / AUCinf_true % | AUCinf_true pass % [Wilson] | AUCinf_true bias % (MC SE) | SD / SE | Normal approx. % |
+|---|---|---|---|---|---|---|---|---|
+| F_down_080 (true 0.80, x0.872) | 0.7999 | 0.0511 / 0.0481 | 8.1e-12 / 2.9e-13 | 4.97 / 4.97 | 4.48 [4.09 to 4.90] conservative | +0.01 (0.05) | 0.963 | 4.32 |
+| V2_up_080 (true 0.80, x3.21) | 0.7997 | 0.0486 / 0.0455 | 5.7e-13 / 1.1e-14 | 4.93 / 4.92 | 4.39 [4.01 to 4.81] conservative | +0.02 (0.04) | 0.961 | 4.25 |
+| Vmax_up_080 (true 0.80, x1.39) | 0.7994 | 0.0526 / 0.0494 | 3.7e-11 / 1.3e-12 | 4.86 / 4.85 | 4.64 [4.24 to 5.07] nominal | +0.02 (0.05) | 0.966 | 4.27 |
+| ka_down_080 (true 0.80, x0.44) | 0.7993 | 0.0595 / 0.0569 | 8.3e-09 / 1.3e-09 | 4.85 / 4.84 | 5.11 [4.70 to 5.56] nominal | +0.02 (0.06) | 0.993 | 4.69 |
+| ke_up_080 (true 0.80, x1.47) | 0.8003 | 0.0506 / 0.0476 | 5.1e-12 / 1.8e-13 | 5.08 / 5.09 | 4.62 [4.23 to 5.05] nominal | +0.01 (0.05) | 0.964 | 4.43 |
+| F_up_125 (true 1.25, x1.15) | 1.2501 | 0.0497 / 0.0471 | 1.9e-12 / 8.6e-14 | 4.98 / 4.98 | 4.33 [3.95 to 4.75] conservative | +0.01 (0.05) | 0.962 | 4.26 |
+| Vmax_down_125 (true 1.25, x0.66) | 1.2509 | 0.0488 / 0.0466 | 7.4e-13 / 4.9e-14 | 4.85 / 4.85 | 4.12 [3.75 to 4.53] conservative | +0.00 (0.04) | 0.962 | 4.15 |
+| ke_down_125 (true 1.25, x0.633) | 1.2493 | 0.0502 / 0.0476 | 3.4e-12 / 1.7e-13 | 5.11 / 5.12 | 4.55 [4.16 to 4.98] conservative | +0.02 (0.05) | 0.961 | 4.36 |
+
+#### Kovalenko 2020 Model 1
+
+| Boundary scenario | True AUC0-inf ratio | se AUClast / AUCinf_true | Far-limit probability AUClast / AUCinf_true | Theory (actual truth) AUClast / AUCinf_true % | AUCinf_true pass % [Wilson] | AUCinf_true bias % (MC SE) | SD / SE | Normal approx. % |
+|---|---|---|---|---|---|---|---|---|
+| F_down_080 (true 0.80, x0.871) | 0.7996 | 0.0547 / 0.0528 | 2.4e-10 / 4.3e-11 | 4.91 / 4.91 | 4.61 [4.22 to 5.04] nominal | +0.01 (0.05) | 0.967 | 4.32 |
+| V2_up_080 (true 0.80, x2.28) | 0.7998 | 0.0540 / 0.0524 | 1.3e-10 / 3.1e-11 | 4.95 / 4.95 | 4.58 [4.30 to 4.88] conservative | +0.02 (0.04) | 0.971 | 4.43 |
+| Vmax_up_080 (true 0.80, x1.4) | 0.8001 | 0.0567 / 0.0546 | 1.2e-09 / 2.1e-10 | 5.02 / 5.02 | 4.75 [4.35 to 5.18] nominal | +0.02 (0.05) | 0.970 | 4.49 |
+| ka_down_080 (true 0.80, x0.424) | 0.8006 | 0.0632 / 0.0614 | 7.8e-08 / 2.7e-08 | 5.12 / 5.12 | 5.43 [5.003 to 5.89] exceeding | +0.03 (0.06) | 0.993 | 4.99 |
+| ke_up_080 (true 0.80, x1.46) | 0.8002 | 0.0532 / 0.0513 | 6.2e-11 / 1.0e-11 | 5.05 / 5.05 | 4.67 [4.27 to 5.10] nominal | -0.01 (0.05) | 0.967 | 4.42 |
+| F_up_125 (true 1.25, x1.15) | 1.2504 | 0.0527 / 0.0511 | 3.9e-11 / 8.2e-12 | 4.94 / 4.94 | 4.32 [3.94 to 4.74] conservative | +0.00 (0.05) | 0.966 | 4.32 |
+| Vmax_down_125 (true 1.25, x0.651) | 1.2509 | 0.0511 / 0.0499 | 8.5e-12 / 2.5e-12 | 4.85 / 4.85 | 4.24 [3.86 to 4.65] conservative | -0.01 (0.05) | 0.966 | 4.25 |
+| ke_down_125 (true 1.25, x0.643) | 1.2496 | 0.0543 / 0.0528 | 1.6e-10 / 4.4e-11 | 5.06 / 5.07 | 4.42 [4.03 to 4.84] conservative | +0.02 (0.05) | 0.966 | 4.40 |
+
+### 2. Classification (pass rate %, Wilson 95% CI)
+
+#### Kovalenko 2016 (primary)
+
+| Boundary scenario | P2 | AUClast only | AUCinf_true only |
+|---|---|---|---|
+| F_down_080 (true 0.80, x0.872) | 3.71 [3.36 to 4.10] conservative | 3.80 [3.44 to 4.19] conservative | 4.48 [4.09 to 4.90] conservative |
+| V2_up_080 (true 0.80, x3.21) | 3.97 [3.60 to 4.37] conservative | 3.97 [3.60 to 4.37] conservative | 4.39 [4.01 to 4.81] conservative |
+| Vmax_up_080 (true 0.80, x1.39) | 2.25 [1.98 to 2.56] conservative | 2.25 [1.98 to 2.56] conservative | 4.64 [4.24 to 5.07] nominal |
+| ka_down_080 (true 0.80, x0.44) | 0.00 [0.00 to 0.04] conservative | 4.74 [4.34 to 5.17] nominal | 5.11 [4.70 to 5.56] nominal |
+| ke_up_080 (true 0.80, x1.47) | 3.67 [3.32 to 4.06] conservative | 3.67 [3.32 to 4.06] conservative | 4.62 [4.23 to 5.05] nominal |
+| F_up_125 (true 1.25, x1.15) | 3.24 [2.91 to 3.61] conservative | 3.34 [3.01 to 3.71] conservative | 4.33 [3.95 to 4.75] conservative |
+| Vmax_down_125 (true 1.25, x0.66) | 2.67 [2.37 to 3.00] conservative | 2.67 [2.37 to 3.00] conservative | 4.12 [3.75 to 4.53] conservative |
+| ke_down_125 (true 1.25, x0.633) | 3.37 [3.03 to 3.74] conservative | 3.37 [3.03 to 3.74] conservative | 4.55 [4.16 to 4.98] conservative |
+
+#### Kovalenko 2020 Model 1
+
+| Boundary scenario | P2 | AUClast only | AUCinf_true only |
+|---|---|---|---|
+| F_down_080 (true 0.80, x0.871) | 3.70 [3.35 to 4.09] conservative | 3.74 [3.39 to 4.13] conservative | 4.61 [4.22 to 5.04] nominal |
+| V2_up_080 (true 0.80, x2.28) | 5.18 [4.88 to 5.50] nominal | 5.20 [4.90 to 5.51] nominal | 4.58 [4.30 to 4.88] conservative |
+| Vmax_up_080 (true 0.80, x1.4) | 2.76 [2.46 to 3.10] conservative | 2.76 [2.46 to 3.10] conservative | 4.75 [4.35 to 5.18] nominal |
+| ka_down_080 (true 0.80, x0.424) | 0.00 [0.00 to 0.04] conservative | 5.07 [4.66 to 5.52] nominal | 5.43 [5.003 to 5.89] exceeding |
+| ke_up_080 (true 0.80, x1.46) | 3.77 [3.41 to 4.16] conservative | 3.77 [3.41 to 4.16] conservative | 4.67 [4.27 to 5.10] nominal |
+| F_up_125 (true 1.25, x1.15) | 3.41 [3.07 to 3.78] conservative | 3.43 [3.09 to 3.80] conservative | 4.32 [3.94 to 4.74] conservative |
+| Vmax_down_125 (true 1.25, x0.651) | 2.72 [2.42 to 3.06] conservative | 2.72 [2.42 to 3.06] conservative | 4.24 [3.86 to 4.65] conservative |
+| ke_down_125 (true 1.25, x0.643) | 3.68 [3.33 to 4.07] conservative | 3.68 [3.33 to 4.07] conservative | 4.42 [4.03 to 4.84] conservative |
+
+### 3. Causes: bias and Cmax
+
+- Direction: an estimator biased away from 1 relative to the true ratio (negative at 0.80, positive at 1.25) pushes the CI out of the limits and lowers the boundary type I error; a bias toward 1 raises it.
+- Identity (same trials, exact; stopifnot): P2 minus 5 = (AUCinf_true minus 5) + (AUClast only minus AUCinf_true) + (P2 minus AUClast only). The first term is the gap between the unbiased reference and 5%, the second the AUClast effect (bias and variation), the third the effect of Cmax failures (never positive).
+- AUClast bias (versus the true AUC0-inf ratio): away from 1 in 15 (9 at true 0.80, -1.50 to -0.23%, 6 at true 1.25, +0.34 to +0.92%), toward 1 in 1 (Kovalenko 2020 Model 1 V2_up_080 +0.41%), CI including 0 in 0. Of the 16 cells where AUClast only minus AUCinf_true is distinguishable from 0, the sign agrees with the bias direction in 16 (negative when away from 1, positive when toward 1).
+
+#### Kovalenko 2016 (primary)
+
+| Boundary scenario | P2 % | P2 minus 5 | = reference minus 5 | + AUClast only minus AUCinf_true [95%] | + P2 minus AUClast only [95%] | Cmax pass % | AUClast bias % (MC SE) | Cmax bias % (MC SE) |
+|---|---|---|---|---|---|---|---|---|
+| F_down_080 (true 0.80, x0.872) | 3.71 | -1.29 | -0.52 | -0.68 [-0.93 to -0.43] | -0.09 [-0.15 to -0.03] | 39.75 | -0.51 (0.05) | -0.17 (0.04) |
+| V2_up_080 (true 0.80, x3.21) | 3.97 | -1.03 | -0.61 | -0.42 [-0.66 to -0.18] | +0.00 [+0.00 to +0.00] | 99.16 | -0.30 (0.05) | -1.06 (0.04) |
+| Vmax_up_080 (true 0.80, x1.39) | 2.25 | -2.75 | -0.36 | -2.39 [-2.70 to -2.08] | +0.00 [+0.00 to +0.00] | 95.99 | -1.50 (0.05) | -0.57 (0.04) |
+| ka_down_080 (true 0.80, x0.44) | 0.00 | -5.00 | +0.11 | -0.37 [-0.62 to -0.12] | -4.74 [-5.16 to -4.32] | 0.00 | -0.23 (0.06) | +1.22 (0.05) |
+| ke_up_080 (true 0.80, x1.47) | 3.67 | -1.33 | -0.38 | -0.95 [-1.22 to -0.68] | +0.00 [+0.00 to +0.00] | 94.43 | -0.57 (0.05) | -0.84 (0.04) |
+| F_up_125 (true 1.25, x1.15) | 3.24 | -1.76 | -0.67 | -0.99 [-1.26 to -0.72] | -0.10 [-0.16 to -0.04] | 39.23 | +0.48 (0.05) | +0.28 (0.04) |
+| Vmax_down_125 (true 1.25, x0.66) | 2.67 | -2.33 | -0.88 | -1.45 [-1.73 to -1.17] | +0.00 [+0.00 to +0.00] | 98.76 | +0.92 (0.05) | +0.62 (0.04) |
+| ke_down_125 (true 1.25, x0.633) | 3.37 | -1.63 | -0.45 | -1.18 [-1.46 to -0.90] | +0.00 [+0.00 to +0.00] | 96.97 | +0.50 (0.05) | +0.88 (0.04) |
+
+One-line cause (P2; only components whose 95% CI excludes 0 or 5%, largest first):
+
+- F_down_080: AUClast bias away from 1 (bias -0.51%; AUClast only minus AUCinf_true -0.68 points) + the unbiased reference is itself below 5% (AUCinf_true 4.48%, -0.52 points) + Cmax failures (Cmax pass 39.75%; P2 minus AUClast only -0.09 points); hence P2 3.71%: conservative
+- V2_up_080: the unbiased reference is itself below 5% (AUCinf_true 4.39%, -0.61 points) + AUClast bias away from 1 (bias -0.30%; AUClast only minus AUCinf_true -0.42 points); hence P2 3.97%: conservative
+- Vmax_up_080: AUClast bias away from 1 (bias -1.50%; AUClast only minus AUCinf_true -2.39 points); hence P2 2.25%: conservative
+- ka_down_080: Cmax failures dominate (Cmax pass 0.00%; P2 minus AUClast only -4.74 points) + AUClast bias away from 1 (bias -0.23%; AUClast only minus AUCinf_true -0.37 points); hence P2 0.00%: conservative
+- ke_up_080: AUClast bias away from 1 (bias -0.57%; AUClast only minus AUCinf_true -0.95 points); hence P2 3.67%: conservative
+- F_up_125: AUClast bias away from 1 (bias +0.48%; AUClast only minus AUCinf_true -0.99 points) + the unbiased reference is itself below 5% (AUCinf_true 4.33%, -0.67 points) + Cmax failures (Cmax pass 39.23%; P2 minus AUClast only -0.10 points); hence P2 3.24%: conservative
+- Vmax_down_125: AUClast bias away from 1 (bias +0.92%; AUClast only minus AUCinf_true -1.45 points) + the unbiased reference is itself below 5% (AUCinf_true 4.12%, -0.88 points); hence P2 2.67%: conservative
+- ke_down_125: AUClast bias away from 1 (bias +0.50%; AUClast only minus AUCinf_true -1.18 points) + the unbiased reference is itself below 5% (AUCinf_true 4.55%, -0.45 points); hence P2 3.37%: conservative
+
+AUClast only:
+
+- F_down_080: AUClast bias away from 1 (bias -0.51%; AUClast only minus AUCinf_true -0.68 points) + the unbiased reference is itself below 5% (AUCinf_true 4.48%, -0.52 points); hence AUClast only 3.80%: conservative
+- V2_up_080: the unbiased reference is itself below 5% (AUCinf_true 4.39%, -0.61 points) + AUClast bias away from 1 (bias -0.30%; AUClast only minus AUCinf_true -0.42 points); hence AUClast only 3.97%: conservative
+- Vmax_up_080: AUClast bias away from 1 (bias -1.50%; AUClast only minus AUCinf_true -2.39 points); hence AUClast only 2.25%: conservative
+- ka_down_080: AUClast bias away from 1 (bias -0.23%; AUClast only minus AUCinf_true -0.37 points); hence AUClast only 4.74%: nominal
+- ke_up_080: AUClast bias away from 1 (bias -0.57%; AUClast only minus AUCinf_true -0.95 points); hence AUClast only 3.67%: conservative
+- F_up_125: AUClast bias away from 1 (bias +0.48%; AUClast only minus AUCinf_true -0.99 points) + the unbiased reference is itself below 5% (AUCinf_true 4.33%, -0.67 points); hence AUClast only 3.34%: conservative
+- Vmax_down_125: AUClast bias away from 1 (bias +0.92%; AUClast only minus AUCinf_true -1.45 points) + the unbiased reference is itself below 5% (AUCinf_true 4.12%, -0.88 points); hence AUClast only 2.67%: conservative
+- ke_down_125: AUClast bias away from 1 (bias +0.50%; AUClast only minus AUCinf_true -1.18 points) + the unbiased reference is itself below 5% (AUCinf_true 4.55%, -0.45 points); hence AUClast only 3.37%: conservative
+
+#### Kovalenko 2020 Model 1
+
+| Boundary scenario | P2 % | P2 minus 5 | = reference minus 5 | + AUClast only minus AUCinf_true [95%] | + P2 minus AUClast only [95%] | Cmax pass % | AUClast bias % (MC SE) | Cmax bias % (MC SE) |
+|---|---|---|---|---|---|---|---|---|
+| F_down_080 (true 0.80, x0.871) | 3.70 | -1.30 | -0.39 | -0.87 [-1.09 to -0.65] | -0.04 [-0.08 to +0.00] | 40.31 | -0.46 (0.05) | -0.14 (0.04) |
+| V2_up_080 (true 0.80, x2.28) | 5.18 | +0.18 | -0.41 | +0.61 [+0.46 to +0.76] | -0.02 [-0.03 to +0.00] | 65.30 | +0.41 (0.04) | -1.74 (0.03) |
+| Vmax_up_080 (true 0.80, x1.4) | 2.76 | -2.24 | -0.25 | -1.99 [-2.27 to -1.71] | +0.00 [+0.00 to +0.00] | 96.75 | -1.34 (0.06) | -0.45 (0.04) |
+| ka_down_080 (true 0.80, x0.424) | 0.00 | -5.00 | +0.43 | -0.36 [-0.57 to -0.15] | -5.07 [-5.50 to -4.64] | 0.00 | -0.24 (0.06) | +0.67 (0.05) |
+| ke_up_080 (true 0.80, x1.46) | 3.77 | -1.23 | -0.33 | -0.90 [-1.12 to -0.68] | +0.00 [+0.00 to +0.00] | 95.96 | -0.55 (0.05) | -0.67 (0.04) |
+| F_up_125 (true 1.25, x1.15) | 3.41 | -1.59 | -0.68 | -0.89 [-1.11 to -0.67] | -0.02 [-0.05 to +0.01] | 39.33 | +0.40 (0.05) | +0.21 (0.04) |
+| Vmax_down_125 (true 1.25, x0.651) | 2.72 | -2.28 | -0.76 | -1.52 [-1.77 to -1.27] | +0.00 [+0.00 to +0.00] | 98.98 | +0.73 (0.05) | +0.48 (0.04) |
+| ke_down_125 (true 1.25, x0.643) | 3.68 | -1.32 | -0.58 | -0.74 [-0.94 to -0.54] | +0.00 [+0.00 to +0.00] | 97.56 | +0.34 (0.05) | +0.69 (0.04) |
+
+One-line cause (P2; only components whose 95% CI excludes 0 or 5%, largest first):
+
+- F_down_080: AUClast bias away from 1 (bias -0.46%; AUClast only minus AUCinf_true -0.87 points) + Cmax failures (Cmax pass 40.31%; P2 minus AUClast only -0.04 points); hence P2 3.70%: conservative
+- V2_up_080: AUClast bias toward 1 (bias +0.41%; AUClast only minus AUCinf_true +0.61 points) + the unbiased reference is itself below 5% (AUCinf_true 4.58%, -0.41 points); hence P2 5.18%: point estimate above 5% with the Wilson interval including 5% (nominal)
+- Vmax_up_080: AUClast bias away from 1 (bias -1.34%; AUClast only minus AUCinf_true -1.99 points); hence P2 2.76%: conservative
+- ka_down_080: Cmax failures dominate (Cmax pass 0.00%; P2 minus AUClast only -5.07 points) + the unbiased reference is itself above 5% (AUCinf_true 5.43%, +0.43 points) + AUClast bias away from 1 (bias -0.24%; AUClast only minus AUCinf_true -0.36 points); hence P2 0.00%: conservative
+- ke_up_080: AUClast bias away from 1 (bias -0.55%; AUClast only minus AUCinf_true -0.90 points); hence P2 3.77%: conservative
+- F_up_125: AUClast bias away from 1 (bias +0.40%; AUClast only minus AUCinf_true -0.89 points) + the unbiased reference is itself below 5% (AUCinf_true 4.32%, -0.68 points); hence P2 3.41%: conservative
+- Vmax_down_125: AUClast bias away from 1 (bias +0.73%; AUClast only minus AUCinf_true -1.52 points) + the unbiased reference is itself below 5% (AUCinf_true 4.24%, -0.76 points); hence P2 2.72%: conservative
+- ke_down_125: AUClast bias away from 1 (bias +0.34%; AUClast only minus AUCinf_true -0.74 points) + the unbiased reference is itself below 5% (AUCinf_true 4.42%, -0.58 points); hence P2 3.68%: conservative
+
+AUClast only:
+
+- F_down_080: AUClast bias away from 1 (bias -0.46%; AUClast only minus AUCinf_true -0.87 points); hence AUClast only 3.74%: conservative
+- V2_up_080: AUClast bias toward 1 (bias +0.41%; AUClast only minus AUCinf_true +0.61 points) + the unbiased reference is itself below 5% (AUCinf_true 4.58%, -0.41 points); hence AUClast only 5.20%: point estimate above 5% with the Wilson interval including 5% (nominal)
+- Vmax_up_080: AUClast bias away from 1 (bias -1.34%; AUClast only minus AUCinf_true -1.99 points); hence AUClast only 2.76%: conservative
+- ka_down_080: the unbiased reference is itself above 5% (AUCinf_true 5.43%, +0.43 points) + AUClast bias away from 1 (bias -0.24%; AUClast only minus AUCinf_true -0.36 points); hence AUClast only 5.07%: point estimate above 5% with the Wilson interval including 5% (nominal)
+- ke_up_080: AUClast bias away from 1 (bias -0.55%; AUClast only minus AUCinf_true -0.90 points); hence AUClast only 3.77%: conservative
+- F_up_125: AUClast bias away from 1 (bias +0.40%; AUClast only minus AUCinf_true -0.89 points) + the unbiased reference is itself below 5% (AUCinf_true 4.32%, -0.68 points); hence AUClast only 3.43%: conservative
+- Vmax_down_125: AUClast bias away from 1 (bias +0.73%; AUClast only minus AUCinf_true -1.52 points) + the unbiased reference is itself below 5% (AUCinf_true 4.24%, -0.76 points); hence AUClast only 2.72%: conservative
+- ke_down_125: AUClast bias away from 1 (bias +0.34%; AUClast only minus AUCinf_true -0.74 points) + the unbiased reference is itself below 5% (AUCinf_true 4.42%, -0.58 points); hence AUClast only 3.68%: conservative
+
+#### Bias by endpoint (%, MC SE; versus the true AUC0-inf ratio, Cmax versus the true Cmax ratio)
+
+- Equal to the 6 original endpoints in `p2_bias_boundary.csv` (scripts/41) to 1e-9, with the same trial counts.
+
+##### Kovalenko 2016 (primary)
+
+| Boundary scenario | Cmax | AUClast | AUCinf_A | AUCinf_B | AUCinf_C | AUCinf_true | scripts/41 check |
+|---|---|---|---|---|---|---|---|
+| F_down_080 (true 0.80, x0.872) | -0.17 (0.04) | -0.51 (0.05) | +1.95 (0.05) | +1.08 (0.05) | -0.37 (0.05) | +0.01 (0.05) | equal (10,000 trials) |
+| V2_up_080 (true 0.80, x3.21) | -1.06 (0.04) | -0.30 (0.05) | -0.21 (0.05) | -0.59 (0.04) | -0.65 (0.05) | +0.02 (0.04) | equal (10,000 trials) |
+| Vmax_up_080 (true 0.80, x1.39) | -0.57 (0.04) | -1.50 (0.05) | +5.23 (0.05) | +3.35 (0.05) | -1.38 (0.05) | +0.02 (0.05) | equal (10,000 trials) |
+| ka_down_080 (true 0.80, x0.44) | +1.22 (0.05) | -0.23 (0.06) | +7.96 (0.06) | +3.73 (0.05) | -0.69 (0.06) | +0.02 (0.06) | equal (10,000 trials) |
+| ke_up_080 (true 0.80, x1.47) | -0.84 (0.04) | -0.57 (0.05) | +0.45 (0.05) | +0.14 (0.05) | -0.45 (0.05) | +0.01 (0.05) | equal (10,000 trials) |
+| F_up_125 (true 1.25, x1.15) | +0.28 (0.04) | +0.48 (0.05) | -1.71 (0.05) | -0.61 (0.05) | +0.29 (0.05) | +0.01 (0.05) | equal (10,000 trials) |
+| Vmax_down_125 (true 1.25, x0.66) | +0.62 (0.04) | +0.92 (0.05) | -4.83 (0.05) | -0.90 (0.05) | +0.44 (0.05) | +0.00 (0.04) | equal (10,000 trials) |
+| ke_down_125 (true 1.25, x0.633) | +0.88 (0.04) | +0.50 (0.05) | -1.06 (0.05) | +0.10 (0.05) | +0.36 (0.05) | +0.02 (0.05) | equal (10,000 trials) |
+
+##### Kovalenko 2020 Model 1
+
+| Boundary scenario | Cmax | AUClast | AUCinf_A | AUCinf_B | AUCinf_C | AUCinf_true | scripts/41 check |
+|---|---|---|---|---|---|---|---|
+| F_down_080 (true 0.80, x0.871) | -0.14 (0.04) | -0.46 (0.05) | +2.08 (0.05) | +0.84 (0.05) | -0.25 (0.05) | +0.01 (0.05) | equal (10,000 trials) |
+| V2_up_080 (true 0.80, x2.28) | -1.74 (0.03) | +0.41 (0.04) | -3.25 (0.04) | -0.47 (0.04) | +0.31 (0.04) | +0.02 (0.04) | equal (20,000 trials) |
+| Vmax_up_080 (true 0.80, x1.4) | -0.45 (0.04) | -1.34 (0.06) | +5.52 (0.06) | +2.64 (0.05) | -1.00 (0.06) | +0.02 (0.05) | equal (10,000 trials) |
+| ka_down_080 (true 0.80, x0.424) | +0.67 (0.05) | -0.24 (0.06) | +8.22 (0.06) | +3.89 (0.06) | -0.89 (0.06) | +0.03 (0.06) | equal (10,000 trials) |
+| ke_up_080 (true 0.80, x1.46) | -0.67 (0.04) | -0.55 (0.05) | +0.59 (0.05) | +0.02 (0.05) | -0.27 (0.05) | -0.01 (0.05) | equal (10,000 trials) |
+| F_up_125 (true 1.25, x1.15) | +0.21 (0.04) | +0.40 (0.05) | -1.88 (0.05) | -0.50 (0.05) | +0.14 (0.05) | +0.00 (0.05) | equal (10,000 trials) |
+| Vmax_down_125 (true 1.25, x0.651) | +0.48 (0.04) | +0.73 (0.05) | -5.44 (0.05) | -0.67 (0.05) | +0.12 (0.05) | -0.01 (0.05) | equal (10,000 trials) |
+| ke_down_125 (true 1.25, x0.643) | +0.69 (0.04) | +0.34 (0.05) | -2.14 (0.05) | +0.30 (0.05) | +0.11 (0.05) | +0.02 (0.05) | equal (10,000 trials) |
+
+### Premise checks (stopifnot)
+
+- Design values behind the fixed wording: 90% CI, limits 0.80 to 1.25, 117 per arm (df 232), nominal 5%, pooled t. The median per-trial df of AUClast and AUCinf_true is 232.
+- P2 and AUClast only come from config_pass (prespecified definitions), and a P2 pass implies AUClast and Cmax passes. Classes are recomputed from the Wilson intervals (classify_type1). Reported trial counts equal the per-scenario trial counts of the data.
+- Theory: at the boundary the near-limit probability is 5% and the pass probability is 5% minus the far-limit probability. The identity P2 minus 5 = sum of the three terms holds. Bias direction wording follows the sign (negative at 0.80 = away from 1); the "bias" wording is used only when the sign of the AUClast effect agrees with the bias direction, and "Cmax failures dominate" only when the Cmax effect is at least half of the gap.
+- Cross-checked against scripts/41 p2_bias_boundary.csv (1e-9 when the trial counts match) and against scripts/33 boundary_type1.csv and the first conclusion paragraph (exactly, on the same trials). No Korean, em dash, en dash or U+2212 in the English file.
+
 ## G2 boundary type I error by AUCinf handling rule and flag set (review W2, section 2)
 
 G2 (AUCinf + Cmax) re-judged from the saved trial-level results under rules A, B and C and flag sets (i) and (ii) (scripts/41_oc_rules_flags.R; no new simulation). A span ratio of at least 2 is a convention used only by some statistical analysis plans (not a Phoenix feature, D-039); rule B does not depend on the flags. Full tables: oc/g2_rules_flags.csv and oc/g2_decomposition.csv.
@@ -274,9 +576,10 @@ G2 (AUCinf + Cmax) re-judged from the saved trial-level results under rules A, B
 Data: saved trial-level results (`results/oc/oc_trials_be_<model>.csv.gz`, scripts/31: 117 per arm, B0, pooled t, 90% CI within 80.00 to 125.00%); the flag set (i) endpoints come from `oc_rejudge_be_<model>.csv.gz` (scripts/40: boundary scenarios and S00 regenerated with the same seeds). No new simulation. Generated by `scripts/41_oc_rules_flags.R`. Numbers: `g2_rules_flags.csv`, `g2_decomposition.csv`, `p2_bias_boundary.csv`.
 
 - Trials: Kovalenko 2016 (primary): 10,000 trials per scenario (complete).
-- Trials: Kovalenko 2020 Model 1: 5,000 trials per scenario (partial file while scripts/31 is still running; regenerate with the same code when complete).
-- Kovalenko 2016 (primary): no rejudge file, so the flag set (i) configurations (G2-A(i), G2-C(i), AUCinf-A(i), AUCinf-C(i)) are NA. Run `scripts/40_oc_rejudge.R k2016` and regenerate.
-- Kovalenko 2020 Model 1: no rejudge file, so the flag set (i) configurations (G2-A(i), G2-C(i), AUCinf-A(i), AUCinf-C(i)) are NA. Run `scripts/40_oc_rejudge.R k2020` and regenerate.
+- Trials: Kovalenko 2020 Model 1: 10,000 trials per scenario (complete); V2 up 0.80: 20,000 by the adaptive extension rule.
+- Kovalenko 2016 (primary): rejudge file with 10,000 trials (the 6 original endpoints match the stored rows).
+- Kovalenko 2020 Model 1: rejudge file with 10,000 trials (the 6 original endpoints match the stored rows).
+- Adaptive extension: Kovalenko 2020 Model 1 V2_up_080 (10,000 extension trials). The trials of `oc_trials_ext_be_<model>.csv.gz` (scripts/42: boundary scenarios whose P2 boundary type I error Wilson 95% CI at the pre-registered 10,000 trials includes 5%, continued with the same seed rule, all 8 endpoints) are added to every table.
 
 ### Definitions
 
@@ -288,25 +591,21 @@ Data: saved trial-level results (`results/oc/oc_trials_be_<model>.csv.gz`, scrip
 
 - Kovalenko 2016 (primary)
   - G2 family:
-    - Point estimate above 5%: G2-A(ii) 6/8 scenarios (Wilson lower bound above 5%: 6; highest 24.58% (95% CI 23.75 to 25.43), Vmax_down_125); G2-B 4/8 scenarios (Wilson lower bound above 5%: 3; highest 15.06% (95% CI 14.37 to 15.77), Vmax_up_080).
-    - At or below 5% in every boundary scenario: P2 (highest 3.97% (95% CI 3.60 to 4.37), V2_up_080); G2-C(ii) (highest 3.85% (95% CI 3.49 to 4.25), ke_up_080).
-    - Not computed (no rejudge file): G2-A(i), G2-C(i).
+    - Point estimate above 5%: G2-A(ii) 6/8 scenarios (Wilson lower bound above 5%: 6; highest 24.58% (95% CI 23.75 to 25.43), Vmax_down_125); G2-B 4/8 scenarios (Wilson lower bound above 5%: 3; highest 15.06% (95% CI 14.37 to 15.77), Vmax_up_080); G2-A(i) 4/8 scenarios (Wilson lower bound above 5%: 4; highest 19.91% (95% CI 19.14 to 20.70), Vmax_up_080).
+    - At or below 5% in every boundary scenario: P2 (highest 3.97% (95% CI 3.60 to 4.37), V2_up_080); G2-C(ii) (highest 3.85% (95% CI 3.49 to 4.25), ke_up_080); G2-C(i) (highest 4.13% (95% CI 3.76 to 4.54), F_down_080).
   - AUCinf alone:
-    - Point estimate above 5%: AUCinf-A(ii) 7/8 scenarios (Wilson lower bound above 5%: 7; highest 35.84% (95% CI 34.91 to 36.79), ka_down_080); AUCinf-B 5/8 scenarios (Wilson lower bound above 5%: 5; highest 16.02% (95% CI 15.31 to 16.75), ka_down_080).
-    - At or below 5% in every boundary scenario: AUCinf-C(ii) (highest 4.00% (95% CI 3.63 to 4.40), ka_down_080).
-    - Not computed (no rejudge file): AUCinf-A(i), AUCinf-C(i).
+    - Point estimate above 5%: AUCinf-A(ii) 7/8 scenarios (Wilson lower bound above 5%: 7; highest 35.84% (95% CI 34.91 to 36.79), ka_down_080); AUCinf-B 5/8 scenarios (Wilson lower bound above 5%: 5; highest 16.02% (95% CI 15.31 to 16.75), ka_down_080); AUCinf-A(i) 5/8 scenarios (Wilson lower bound above 5%: 5; highest 33.85% (95% CI 32.93 to 34.78), ka_down_080).
+    - At or below 5% in every boundary scenario: AUCinf-C(ii) (highest 4.00% (95% CI 3.63 to 4.40), ka_down_080); AUCinf-C(i) (highest 4.60% (95% CI 4.21 to 5.03), ka_down_080).
 - Kovalenko 2020 Model 1
   - G2 family:
-    - Point estimate above 5%: P2 1/8 scenarios (Wilson lower bound above 5%: 1; highest 5.70% (95% CI 5.09 to 6.38), V2_up_080); G2-A(ii) 6/8 scenarios (Wilson lower bound above 5%: 6; highest 28.54% (95% CI 27.31 to 29.81), Vmax_down_125); G2-B 5/8 scenarios (Wilson lower bound above 5%: 3; highest 11.96% (95% CI 11.09 to 12.89), Vmax_up_080); G2-C(ii) 1/8 scenarios (Wilson lower bound above 5%: 0; highest 5.46% (95% CI 4.86 to 6.12), V2_up_080).
-    - At or below 5% in every boundary scenario: none.
-    - Not computed (no rejudge file): G2-A(i), G2-C(i).
+    - Point estimate above 5%: P2 1/8 scenarios (Wilson lower bound above 5%: 0; highest 5.18% (95% CI 4.88 to 5.50), V2_up_080); G2-A(ii) 6/8 scenarios (Wilson lower bound above 5%: 6; highest 27.60% (95% CI 26.73 to 28.48), Vmax_down_125); G2-B 4/8 scenarios (Wilson lower bound above 5%: 3; highest 11.87% (95% CI 11.25 to 12.52), Vmax_up_080); G2-C(ii) 1/8 scenarios (Wilson lower bound above 5%: 0; highest 5.01% (95% CI 4.71 to 5.32), V2_up_080); G2-A(i) 4/8 scenarios (Wilson lower bound above 5%: 4; highest 17.37% (95% CI 16.64 to 18.13), Vmax_up_080).
+    - At or below 5% in every boundary scenario: G2-C(i) (highest 4.63% (95% CI 4.34 to 4.92), V2_up_080).
   - AUCinf alone:
-    - Point estimate above 5%: AUCinf-A(ii) 7/8 scenarios (Wilson lower bound above 5%: 7; highest 35.80% (95% CI 34.48 to 37.14), ka_down_080); AUCinf-B 6/8 scenarios (Wilson lower bound above 5%: 4; highest 16.10% (95% CI 15.11 to 17.14), ka_down_080); AUCinf-C(ii) 1/8 scenarios (Wilson lower bound above 5%: 0; highest 5.48% (95% CI 4.88 to 6.15), V2_up_080).
+    - Point estimate above 5%: AUCinf-A(ii) 7/8 scenarios (Wilson lower bound above 5%: 7; highest 36.53% (95% CI 35.59 to 37.48), ka_down_080); AUCinf-B 5/8 scenarios (Wilson lower bound above 5%: 4; highest 16.23% (95% CI 15.52 to 16.97), ka_down_080); AUCinf-C(ii) 1/8 scenarios (Wilson lower bound above 5%: 0; highest 5.03% (95% CI 4.73 to 5.34), V2_up_080); AUCinf-A(i) 5/8 scenarios (Wilson lower bound above 5%: 5; highest 38.12% (95% CI 37.17 to 39.08), ka_down_080); AUCinf-C(i) 1/8 scenarios (Wilson lower bound above 5%: 0; highest 5.01% (95% CI 4.60 to 5.46), ka_down_080).
     - At or below 5% in every boundary scenario: none.
-    - Not computed (no rejudge file): AUCinf-A(i), AUCinf-C(i).
 
-- Kovalenko 2016 (primary), ka_down_080: Cmax passed in none of 10,000 trials, so G2 and P2 are 0% whatever the AUC rule. The rule differences show only for AUCinf alone (AUCinf-A(ii) 35.84%, AUCinf-B 16.02%, AUCinf-C(ii) 4.00%).
-- Kovalenko 2020 Model 1, ka_down_080: Cmax passed in none of 5,000 trials, so G2 and P2 are 0% whatever the AUC rule. The rule differences show only for AUCinf alone (AUCinf-A(ii) 35.80%, AUCinf-B 16.10%, AUCinf-C(ii) 4.40%).
+- Kovalenko 2016 (primary), ka_down_080: Cmax passed in none of 10,000 trials, so G2 and P2 are 0% whatever the AUC rule. The rule differences show only for AUCinf alone (AUCinf-A(ii) 35.84%, AUCinf-B 16.02%, AUCinf-C(ii) 4.00%, AUCinf-A(i) 33.85%, AUCinf-C(i) 4.60%).
+- Kovalenko 2020 Model 1, ka_down_080: Cmax passed in none of 10,000 trials, so G2 and P2 are 0% whatever the AUC rule. The rule differences show only for AUCinf alone (AUCinf-A(ii) 36.53%, AUCinf-B 16.23%, AUCinf-C(ii) 4.15%, AUCinf-A(i) 38.12%, AUCinf-C(i) 5.01%).
 
 ### 2. Pass rate by scenario (%, Wilson 95% CI)
 
@@ -314,49 +613,49 @@ Data: saved trial-level results (`results/oc/oc_trials_be_<model>.csv.gz`, scrip
 
 | Boundary scenario | P2 | G2-A(ii) | G2-B | G2-C(ii) | G2-A(i) | G2-C(i) |
 |---|---|---|---|---|---|---|
-| F_down_080 (true 0.80, x0.872) | 3.71 [3.36 to 4.10] | 7.35 [6.85 to 7.88] | 6.45 [5.99 to 6.95] | 3.82 [3.46 to 4.21] | NA | NA |
-| V2_up_080 (true 0.80, x3.21) | 3.97 [3.60 to 4.37] | 4.03 [3.66 to 4.43] | 3.47 [3.13 to 3.85] | 3.39 [3.05 to 3.76] | NA | NA |
-| Vmax_up_080 (true 0.80, x1.39) | 2.25 [1.98 to 2.56] | 22.46 [21.65 to 23.29] | 15.06 [14.37 to 15.77] | 2.27 [2.00 to 2.58] | NA | NA |
-| ka_down_080 (true 0.80, x0.44) | 0.00 [0.00 to 0.04] | 0.00 [0.00 to 0.04] | 0.00 [0.00 to 0.04] | 0.00 [0.00 to 0.04] | NA | NA |
-| ke_up_080 (true 0.80, x1.47) | 3.67 [3.32 to 4.06] | 5.71 [5.27 to 6.18] | 4.93 [4.52 to 5.37] | 3.85 [3.49 to 4.25] | NA | NA |
-| F_up_125 (true 1.25, x1.15) | 3.24 [2.91 to 3.61] | 7.40 [6.90 to 7.93] | 5.32 [4.90 to 5.78] | 3.59 [3.24 to 3.97] | NA | NA |
-| Vmax_down_125 (true 1.25, x0.66) | 2.67 [2.37 to 3.00] | 24.58 [23.75 to 25.43] | 6.37 [5.91 to 6.87] | 3.37 [3.03 to 3.74] | NA | NA |
-| ke_down_125 (true 1.25, x0.633) | 3.37 [3.03 to 3.74] | 6.95 [6.47 to 7.47] | 4.09 [3.72 to 4.50] | 3.63 [3.28 to 4.01] | NA | NA |
+| F_down_080 (true 0.80, x0.872) | 3.71 [3.36 to 4.10] | 7.35 [6.85 to 7.88] | 6.45 [5.99 to 6.95] | 3.82 [3.46 to 4.21] | 7.04 [6.55 to 7.56] | 4.13 [3.76 to 4.54] |
+| V2_up_080 (true 0.80, x3.21) | 3.97 [3.60 to 4.37] | 4.03 [3.66 to 4.43] | 3.47 [3.13 to 3.85] | 3.39 [3.05 to 3.76] | 3.63 [3.28 to 4.01] | 3.10 [2.78 to 3.46] |
+| Vmax_up_080 (true 0.80, x1.39) | 2.25 [1.98 to 2.56] | 22.46 [21.65 to 23.29] | 15.06 [14.37 to 15.77] | 2.27 [2.00 to 2.58] | 19.91 [19.14 to 20.70] | 3.05 [2.73 to 3.41] |
+| ka_down_080 (true 0.80, x0.44) | 0.00 [0.00 to 0.04] | 0.00 [0.00 to 0.04] | 0.00 [0.00 to 0.04] | 0.00 [0.00 to 0.04] | 0.00 [0.00 to 0.04] | 0.00 [0.00 to 0.04] |
+| ke_up_080 (true 0.80, x1.47) | 3.67 [3.32 to 4.06] | 5.71 [5.27 to 6.18] | 4.93 [4.52 to 5.37] | 3.85 [3.49 to 4.25] | 4.86 [4.46 to 5.30] | 3.91 [3.55 to 4.31] |
+| F_up_125 (true 1.25, x1.15) | 3.24 [2.91 to 3.61] | 7.40 [6.90 to 7.93] | 5.32 [4.90 to 5.78] | 3.59 [3.24 to 3.97] | 6.37 [5.91 to 6.87] | 3.83 [3.47 to 4.22] |
+| Vmax_down_125 (true 1.25, x0.66) | 2.67 [2.37 to 3.00] | 24.58 [23.75 to 25.43] | 6.37 [5.91 to 6.87] | 3.37 [3.03 to 3.74] | 12.69 [12.05 to 13.36] | 3.46 [3.12 to 3.84] |
+| ke_down_125 (true 1.25, x0.633) | 3.37 [3.03 to 3.74] | 6.95 [6.47 to 7.47] | 4.09 [3.72 to 4.50] | 3.63 [3.28 to 4.01] | 4.93 [4.52 to 5.37] | 3.52 [3.18 to 3.90] |
 
 | Boundary scenario | AUCinf-A(ii) | AUCinf-B | AUCinf-C(ii) | AUCinf-A(i) | AUCinf-C(i) |
 |---|---|---|---|---|---|
-| F_down_080 (true 0.80, x0.872) | 9.49 [8.93 to 10.08] | 7.05 [6.56 to 7.57] | 3.94 [3.58 to 4.34] | NA | NA |
-| V2_up_080 (true 0.80, x3.21) | 4.03 [3.66 to 4.43] | 3.47 [3.13 to 3.85] | 3.39 [3.05 to 3.76] | NA | NA |
-| Vmax_up_080 (true 0.80, x1.39) | 22.52 [21.71 to 23.35] | 15.06 [14.37 to 15.77] | 2.27 [2.00 to 2.58] | NA | NA |
-| ka_down_080 (true 0.80, x0.44) | 35.84 [34.91 to 36.79] | 16.02 [15.31 to 16.75] | 4.00 [3.63 to 4.40] | NA | NA |
-| ke_up_080 (true 0.80, x1.47) | 5.71 [5.27 to 6.18] | 4.93 [4.52 to 5.37] | 3.85 [3.49 to 4.25] | NA | NA |
-| F_up_125 (true 1.25, x1.15) | 9.10 [8.55 to 9.68] | 5.76 [5.32 to 6.23] | 3.75 [3.40 to 4.14] | NA | NA |
-| Vmax_down_125 (true 1.25, x0.66) | 24.58 [23.75 to 25.43] | 6.37 [5.91 to 6.87] | 3.37 [3.03 to 3.74] | NA | NA |
-| ke_down_125 (true 1.25, x0.633) | 6.95 [6.47 to 7.47] | 4.09 [3.72 to 4.50] | 3.63 [3.28 to 4.01] | NA | NA |
+| F_down_080 (true 0.80, x0.872) | 9.49 [8.93 to 10.08] | 7.05 [6.56 to 7.57] | 3.94 [3.58 to 4.34] | 8.57 [8.04 to 9.13] | 4.29 [3.91 to 4.71] |
+| V2_up_080 (true 0.80, x3.21) | 4.03 [3.66 to 4.43] | 3.47 [3.13 to 3.85] | 3.39 [3.05 to 3.76] | 3.63 [3.28 to 4.01] | 3.10 [2.78 to 3.46] |
+| Vmax_up_080 (true 0.80, x1.39) | 22.52 [21.71 to 23.35] | 15.06 [14.37 to 15.77] | 2.27 [2.00 to 2.58] | 19.95 [19.18 to 20.74] | 3.05 [2.73 to 3.41] |
+| ka_down_080 (true 0.80, x0.44) | 35.84 [34.91 to 36.79] | 16.02 [15.31 to 16.75] | 4.00 [3.63 to 4.40] | 33.85 [32.93 to 34.78] | 4.60 [4.21 to 5.03] |
+| ke_up_080 (true 0.80, x1.47) | 5.71 [5.27 to 6.18] | 4.93 [4.52 to 5.37] | 3.85 [3.49 to 4.25] | 4.86 [4.46 to 5.30] | 3.91 [3.55 to 4.31] |
+| F_up_125 (true 1.25, x1.15) | 9.10 [8.55 to 9.68] | 5.76 [5.32 to 6.23] | 3.75 [3.40 to 4.14] | 7.42 [6.92 to 7.95] | 4.00 [3.63 to 4.40] |
+| Vmax_down_125 (true 1.25, x0.66) | 24.58 [23.75 to 25.43] | 6.37 [5.91 to 6.87] | 3.37 [3.03 to 3.74] | 12.69 [12.05 to 13.36] | 3.46 [3.12 to 3.84] |
+| ke_down_125 (true 1.25, x0.633) | 6.95 [6.47 to 7.47] | 4.09 [3.72 to 4.50] | 3.63 [3.28 to 4.01] | 4.93 [4.52 to 5.37] | 3.52 [3.18 to 3.90] |
 
 #### Kovalenko 2020 Model 1
 
 | Boundary scenario | P2 | G2-A(ii) | G2-B | G2-C(ii) | G2-A(i) | G2-C(i) |
 |---|---|---|---|---|---|---|
-| F_down_080 (true 0.80, x0.871) | 3.92 [3.42 to 4.49] | 8.56 [7.82 to 9.37] | 6.60 [5.94 to 7.32] | 4.20 [3.68 to 4.79] | NA | NA |
-| V2_up_080 (true 0.80, x2.28) | 5.70 [5.09 to 6.38] | 1.18 [0.92 to 1.52] | 3.66 [3.17 to 4.22] | 5.46 [4.86 to 6.12] | NA | NA |
-| Vmax_up_080 (true 0.80, x1.4) | 2.80 [2.38 to 3.29] | 23.10 [21.95 to 24.29] | 11.96 [11.09 to 12.89] | 3.32 [2.86 to 3.85] | NA | NA |
-| ka_down_080 (true 0.80, x0.424) | 0.00 [0.00 to 0.08] | 0.00 [0.00 to 0.08] | 0.00 [0.00 to 0.08] | 0.00 [0.00 to 0.08] | NA | NA |
-| ke_up_080 (true 0.80, x1.46) | 3.96 [3.45 to 4.54] | 6.34 [5.70 to 7.05] | 5.02 [4.45 to 5.66] | 4.32 [3.79 to 4.92] | NA | NA |
-| F_up_125 (true 1.25, x1.15) | 3.42 [2.95 to 3.96] | 8.12 [7.39 to 8.91] | 5.18 [4.60 to 5.83] | 3.78 [3.29 to 4.35] | NA | NA |
-| Vmax_down_125 (true 1.25, x0.651) | 2.68 [2.27 to 3.17] | 28.54 [27.31 to 29.81] | 6.00 [5.37 to 6.69] | 4.06 [3.55 to 4.64] | NA | NA |
-| ke_down_125 (true 1.25, x0.643) | 3.68 [3.19 to 4.24] | 10.34 [9.53 to 11.21] | 3.90 [3.40 to 4.47] | 4.14 [3.62 to 4.73] | NA | NA |
+| F_down_080 (true 0.80, x0.871) | 3.70 [3.35 to 4.09] | 8.33 [7.80 to 8.89] | 6.23 [5.77 to 6.72] | 3.97 [3.60 to 4.37] | 6.88 [6.40 to 7.39] | 4.45 [4.06 to 4.87] |
+| V2_up_080 (true 0.80, x2.28) | 5.18 [4.88 to 5.50] | 1.06 [0.93 to 1.21] | 3.71 [3.46 to 3.98] | 5.01 [4.71 to 5.32] | 2.30 [2.10 to 2.51] | 4.63 [4.34 to 4.92] |
+| Vmax_up_080 (true 0.80, x1.4) | 2.76 [2.46 to 3.10] | 23.29 [22.47 to 24.13] | 11.87 [11.25 to 12.52] | 3.18 [2.85 to 3.54] | 17.37 [16.64 to 18.13] | 4.24 [3.86 to 4.65] |
+| ka_down_080 (true 0.80, x0.424) | 0.00 [0.00 to 0.04] | 0.00 [0.00 to 0.04] | 0.00 [0.00 to 0.04] | 0.00 [0.00 to 0.04] | 0.00 [0.00 to 0.04] | 0.00 [0.00 to 0.04] |
+| ke_up_080 (true 0.80, x1.46) | 3.77 [3.41 to 4.16] | 5.88 [5.44 to 6.36] | 4.83 [4.43 to 5.27] | 4.11 [3.74 to 4.52] | 4.25 [3.87 to 4.66] | 4.30 [3.92 to 4.72] |
+| F_up_125 (true 1.25, x1.15) | 3.41 [3.07 to 3.78] | 7.88 [7.37 to 8.42] | 5.05 [4.64 to 5.50] | 3.86 [3.50 to 4.26] | 6.18 [5.72 to 6.67] | 4.17 [3.80 to 4.58] |
+| Vmax_down_125 (true 1.25, x0.651) | 2.72 [2.42 to 3.06] | 27.60 [26.73 to 28.48] | 5.66 [5.22 to 6.13] | 3.96 [3.60 to 4.36] | 9.69 [9.13 to 10.29] | 4.09 [3.72 to 4.50] |
+| ke_down_125 (true 1.25, x0.643) | 3.68 [3.33 to 4.07] | 10.02 [9.45 to 10.62] | 3.92 [3.56 to 4.32] | 4.17 [3.80 to 4.58] | 4.47 [4.08 to 4.89] | 3.70 [3.35 to 4.09] |
 
 | Boundary scenario | AUCinf-A(ii) | AUCinf-B | AUCinf-C(ii) | AUCinf-A(i) | AUCinf-C(i) |
 |---|---|---|---|---|---|
-| F_down_080 (true 0.80, x0.871) | 9.74 [8.95 to 10.59] | 6.76 [6.10 to 7.49] | 4.22 [3.70 to 4.81] | NA | NA |
-| V2_up_080 (true 0.80, x2.28) | 1.18 [0.92 to 1.52] | 3.68 [3.19 to 4.24] | 5.48 [4.88 to 6.15] | NA | NA |
-| Vmax_up_080 (true 0.80, x1.4) | 23.10 [21.95 to 24.29] | 11.96 [11.09 to 12.89] | 3.32 [2.86 to 3.85] | NA | NA |
-| ka_down_080 (true 0.80, x0.424) | 35.80 [34.48 to 37.14] | 16.10 [15.11 to 17.14] | 4.40 [3.87 to 5.00] | NA | NA |
-| ke_up_080 (true 0.80, x1.46) | 6.34 [5.70 to 7.05] | 5.02 [4.45 to 5.66] | 4.32 [3.79 to 4.92] | NA | NA |
-| F_up_125 (true 1.25, x1.15) | 9.20 [8.43 to 10.03] | 5.36 [4.77 to 6.02] | 3.84 [3.34 to 4.41] | NA | NA |
-| Vmax_down_125 (true 1.25, x0.651) | 28.56 [27.32 to 29.83] | 6.00 [5.37 to 6.69] | 4.06 [3.55 to 4.64] | NA | NA |
-| ke_down_125 (true 1.25, x0.643) | 10.34 [9.53 to 11.21] | 3.90 [3.40 to 4.47] | 4.14 [3.62 to 4.73] | NA | NA |
+| F_down_080 (true 0.80, x0.871) | 9.57 [9.01 to 10.16] | 6.42 [5.96 to 6.92] | 3.99 [3.62 to 4.39] | 7.55 [7.05 to 8.08] | 4.50 [4.11 to 4.92] |
+| V2_up_080 (true 0.80, x2.28) | 1.07 [0.93 to 1.22] | 3.73 [3.47 to 4.00] | 5.03 [4.73 to 5.34] | 2.31 [2.11 to 2.52] | 4.65 [4.37 to 4.95] |
+| Vmax_up_080 (true 0.80, x1.4) | 23.32 [22.50 to 24.16] | 11.87 [11.25 to 12.52] | 3.18 [2.85 to 3.54] | 17.37 [16.64 to 18.13] | 4.24 [3.86 to 4.65] |
+| ka_down_080 (true 0.80, x0.424) | 36.53 [35.59 to 37.48] | 16.23 [15.52 to 16.97] | 4.15 [3.78 to 4.56] | 38.12 [37.17 to 39.08] | 5.01 [4.60 to 5.46] |
+| ke_up_080 (true 0.80, x1.46) | 5.88 [5.44 to 6.36] | 4.83 [4.43 to 5.27] | 4.11 [3.74 to 4.52] | 4.25 [3.87 to 4.66] | 4.30 [3.92 to 4.72] |
+| F_up_125 (true 1.25, x1.15) | 8.94 [8.40 to 9.52] | 5.18 [4.76 to 5.63] | 3.90 [3.54 to 4.30] | 6.58 [6.11 to 7.08] | 4.24 [3.86 to 4.65] |
+| Vmax_down_125 (true 1.25, x0.651) | 27.61 [26.74 to 28.49] | 5.66 [5.22 to 6.13] | 3.96 [3.60 to 4.36] | 9.69 [9.13 to 10.29] | 4.09 [3.72 to 4.50] |
+| ke_down_125 (true 1.25, x0.643) | 10.02 [9.45 to 10.62] | 3.92 [3.56 to 4.32] | 4.17 [3.80 to 4.58] | 4.47 [4.08 to 4.89] | 3.70 [3.35 to 4.09] |
 
 ### 3. Decomposition (paired differences within trials, percentage points, 95% CI)
 
@@ -366,42 +665,44 @@ Data: saved trial-level results (`results/oc/oc_trials_be_<model>.csv.gz`, scrip
 
 - Extrapolation effect (G2-B minus P2): positive in 6 of 8 boundary scenarios (95% CI lower bound above 0), negative in 1 (upper bound below 0), CI including 0 in 1 (range -0.50 to +12.81 points).
 - Flag set (ii) selection effect (G2-B minus G2-A(ii)): negative in 7 of 8 boundary scenarios (95% CI upper bound below 0; excluding flagged subjects raises the pass rate), positive in 0 (lower bound above 0), CI including 0 in 1 (range -18.21 to +0.00 points). The largest total (G2-A(ii) minus P2) is in Vmax_down_125 (+21.91 points) = extrapolation +3.70 points minus selection -18.21 points.
+- Flag set (i) selection effect (G2-B minus G2-A(i)): negative in 5 of 8 boundary scenarios (95% CI upper bound below 0; excluding flagged subjects raises the pass rate), positive in 0 (lower bound above 0), CI including 0 in 3 (range -6.32 to +0.07 points). The largest total (G2-A(i) minus P2) is in Vmax_up_080 (+17.66 points) = extrapolation +12.81 points minus selection -4.85 points.
 
 | Boundary scenario | G2-B minus G2-A(ii) | G2-B minus G2-A(i) | G2-B minus P2 | G2-C(ii) minus P2 | G2-C(i) minus P2 | G2-A(ii) minus P2 | G2-A(i) minus P2 |
 |---|---|---|---|---|---|---|---|
-| F_down_080 (true 0.80, x0.872) | -0.90 [-1.34 to -0.46] | NA | +2.74 [+2.39 to +3.09] | +0.11 [-0.03 to +0.25] | NA | +3.64 [+3.18 to +4.10] | NA |
-| V2_up_080 (true 0.80, x3.21) | -0.56 [-0.89 to -0.23] | NA | -0.50 [-0.77 to -0.23] | -0.58 [-0.74 to -0.42] | NA | +0.06 [-0.34 to +0.46] | NA |
-| Vmax_up_080 (true 0.80, x1.39) | -7.40 [-8.11 to -6.69] | NA | +12.81 [+12.15 to +13.47] | +0.02 [-0.10 to +0.14] | NA | +20.21 [+19.41 to +21.01] | NA |
-| ka_down_080 (true 0.80, x0.44) | +0.00 [+0.00 to +0.00] | NA | +0.00 [+0.00 to +0.00] | +0.00 [+0.00 to +0.00] | NA | +0.00 [+0.00 to +0.00] | NA |
-| ke_up_080 (true 0.80, x1.47) | -0.78 [-1.19 to -0.37] | NA | +1.26 [+0.98 to +1.54] | +0.18 [+0.03 to +0.33] | NA | +2.04 [+1.61 to +2.47] | NA |
-| F_up_125 (true 1.25, x1.15) | -2.08 [-2.50 to -1.66] | NA | +2.08 [+1.78 to +2.38] | +0.35 [+0.20 to +0.50] | NA | +4.16 [+3.71 to +4.61] | NA |
-| Vmax_down_125 (true 1.25, x0.66) | -18.21 [-18.98 to -17.44] | NA | +3.70 [+3.33 to +4.07] | +0.70 [+0.53 to +0.87] | NA | +21.91 [+21.10 to +22.72] | NA |
-| ke_down_125 (true 1.25, x0.633) | -2.86 [-3.32 to -2.40] | NA | +0.72 [+0.47 to +0.97] | +0.26 [+0.12 to +0.40] | NA | +3.58 [+3.11 to +4.05] | NA |
+| F_down_080 (true 0.80, x0.872) | -0.90 [-1.34 to -0.46] | -0.59 [-0.99 to -0.19] | +2.74 [+2.39 to +3.09] | +0.11 [-0.03 to +0.25] | +0.42 [+0.25 to +0.59] | +3.64 [+3.18 to +4.10] | +3.33 [+2.91 to +3.75] |
+| V2_up_080 (true 0.80, x3.21) | -0.56 [-0.89 to -0.23] | -0.16 [-0.46 to +0.14] | -0.50 [-0.77 to -0.23] | -0.58 [-0.74 to -0.42] | -0.87 [-1.06 to -0.68] | +0.06 [-0.34 to +0.46] | -0.34 [-0.70 to +0.02] |
+| Vmax_up_080 (true 0.80, x1.39) | -7.40 [-8.11 to -6.69] | -4.85 [-5.47 to -4.23] | +12.81 [+12.15 to +13.47] | +0.02 [-0.10 to +0.14] | +0.80 [+0.62 to +0.98] | +20.21 [+19.41 to +21.01] | +17.66 [+16.91 to +18.41] |
+| ka_down_080 (true 0.80, x0.44) | +0.00 [+0.00 to +0.00] | +0.00 [+0.00 to +0.00] | +0.00 [+0.00 to +0.00] | +0.00 [+0.00 to +0.00] | +0.00 [+0.00 to +0.00] | +0.00 [+0.00 to +0.00] | +0.00 [+0.00 to +0.00] |
+| ke_up_080 (true 0.80, x1.47) | -0.78 [-1.19 to -0.37] | +0.07 [-0.30 to +0.44] | +1.26 [+0.98 to +1.54] | +0.18 [+0.03 to +0.33] | +0.24 [+0.08 to +0.40] | +2.04 [+1.61 to +2.47] | +1.19 [+0.81 to +1.57] |
+| F_up_125 (true 1.25, x1.15) | -2.08 [-2.50 to -1.66] | -1.05 [-1.41 to -0.69] | +2.08 [+1.78 to +2.38] | +0.35 [+0.20 to +0.50] | +0.59 [+0.42 to +0.76] | +4.16 [+3.71 to +4.61] | +3.13 [+2.73 to +3.53] |
+| Vmax_down_125 (true 1.25, x0.66) | -18.21 [-18.98 to -17.44] | -6.32 [-6.84 to -5.80] | +3.70 [+3.33 to +4.07] | +0.70 [+0.53 to +0.87] | +0.79 [+0.60 to +0.98] | +21.91 [+21.10 to +22.72] | +10.02 [+9.43 to +10.61] |
+| ke_down_125 (true 1.25, x0.633) | -2.86 [-3.32 to -2.40] | -0.84 [-1.21 to -0.47] | +0.72 [+0.47 to +0.97] | +0.26 [+0.12 to +0.40] | +0.15 [-0.01 to +0.31] | +3.58 [+3.11 to +4.05] | +1.56 [+1.17 to +1.95] |
 
 #### Kovalenko 2020 Model 1
 
-- Extrapolation effect (G2-B minus P2): positive in 5 of 8 boundary scenarios (95% CI lower bound above 0), negative in 1 (upper bound below 0), CI including 0 in 2 (range -2.04 to +9.16 points).
-- Flag set (ii) selection effect (G2-B minus G2-A(ii)): negative in 6 of 8 boundary scenarios (95% CI upper bound below 0; excluding flagged subjects raises the pass rate), positive in 1 (lower bound above 0), CI including 0 in 1 (range -22.54 to +2.48 points). The largest total (G2-A(ii) minus P2) is in Vmax_down_125 (+25.86 points) = extrapolation +3.32 points minus selection -22.54 points.
+- Extrapolation effect (G2-B minus P2): positive in 6 of 8 boundary scenarios (95% CI lower bound above 0), negative in 1 (upper bound below 0), CI including 0 in 1 (range -1.47 to +9.11 points).
+- Flag set (ii) selection effect (G2-B minus G2-A(ii)): negative in 6 of 8 boundary scenarios (95% CI upper bound below 0; excluding flagged subjects raises the pass rate), positive in 1 (lower bound above 0), CI including 0 in 1 (range -21.94 to +2.65 points). The largest total (G2-A(ii) minus P2) is in Vmax_down_125 (+24.88 points) = extrapolation +2.94 points minus selection -21.94 points.
+- Flag set (i) selection effect (G2-B minus G2-A(i)): negative in 5 of 8 boundary scenarios (95% CI upper bound below 0; excluding flagged subjects raises the pass rate), positive in 2 (lower bound above 0), CI including 0 in 1 (range -5.50 to +1.42 points). The largest total (G2-A(i) minus P2) is in Vmax_up_080 (+14.61 points) = extrapolation +9.11 points minus selection -5.50 points.
 
 | Boundary scenario | G2-B minus G2-A(ii) | G2-B minus G2-A(i) | G2-B minus P2 | G2-C(ii) minus P2 | G2-C(i) minus P2 | G2-A(ii) minus P2 | G2-A(i) minus P2 |
 |---|---|---|---|---|---|---|---|
-| F_down_080 (true 0.80, x0.871) | -1.96 [-2.57 to -1.35] | NA | +2.68 [+2.21 to +3.15] | +0.28 [+0.08 to +0.48] | NA | +4.64 [+3.97 to +5.31] | NA |
-| V2_up_080 (true 0.80, x2.28) | +2.48 [+2.03 to +2.93] | NA | -2.04 [-2.45 to -1.63] | -0.24 [-0.47 to -0.01] | NA | -4.52 [-5.10 to -3.94] | NA |
-| Vmax_up_080 (true 0.80, x1.4) | -11.14 [-12.13 to -10.15] | NA | +9.16 [+8.36 to +9.96] | +0.52 [+0.30 to +0.74] | NA | +20.30 [+19.18 to +21.42] | NA |
-| ka_down_080 (true 0.80, x0.424) | +0.00 [+0.00 to +0.00] | NA | +0.00 [+0.00 to +0.00] | +0.00 [+0.00 to +0.00] | NA | +0.00 [+0.00 to +0.00] | NA |
-| ke_up_080 (true 0.80, x1.46) | -1.32 [-1.88 to -0.76] | NA | +1.06 [+0.70 to +1.42] | +0.36 [+0.14 to +0.58] | NA | +2.38 [+1.80 to +2.96] | NA |
-| F_up_125 (true 1.25, x1.15) | -2.94 [-3.61 to -2.27] | NA | +1.76 [+1.36 to +2.16] | +0.36 [+0.12 to +0.60] | NA | +4.70 [+4.01 to +5.39] | NA |
-| Vmax_down_125 (true 1.25, x0.651) | -22.54 [-23.70 to -21.38] | NA | +3.32 [+2.82 to +3.82] | +1.38 [+1.06 to +1.70] | NA | +25.86 [+24.65 to +27.07] | NA |
-| ke_down_125 (true 1.25, x0.643) | -6.44 [-7.21 to -5.67] | NA | +0.22 [-0.11 to +0.55] | +0.46 [+0.23 to +0.69] | NA | +6.66 [+5.87 to +7.45] | NA |
+| F_down_080 (true 0.80, x0.871) | -2.10 [-2.54 to -1.66] | -0.65 [-0.99 to -0.31] | +2.53 [+2.20 to +2.86] | +0.27 [+0.12 to +0.42] | +0.75 [+0.56 to +0.94] | +4.63 [+4.16 to +5.10] | +3.18 [+2.78 to +3.58] |
+| V2_up_080 (true 0.80, x2.28) | +2.65 [+2.42 to +2.88] | +1.42 [+1.22 to +1.61] | -1.47 [-1.65 to -1.29] | -0.18 [-0.29 to -0.06] | -0.56 [-0.68 to -0.43] | -4.12 [-4.40 to -3.84] | -2.89 [-3.13 to -2.64] |
+| Vmax_up_080 (true 0.80, x1.4) | -11.42 [-12.13 to -10.71] | -5.50 [-6.06 to -4.94] | +9.11 [+8.55 to +9.67] | +0.42 [+0.28 to +0.56] | +1.48 [+1.24 to +1.72] | +20.53 [+19.73 to +21.33] | +14.61 [+13.92 to +15.30] |
+| ka_down_080 (true 0.80, x0.424) | +0.00 [+0.00 to +0.00] | +0.00 [+0.00 to +0.00] | +0.00 [+0.00 to +0.00] | +0.00 [+0.00 to +0.00] | +0.00 [+0.00 to +0.00] | +0.00 [+0.00 to +0.00] | +0.00 [+0.00 to +0.00] |
+| ke_up_080 (true 0.80, x1.46) | -1.05 [-1.45 to -0.65] | +0.58 [+0.27 to +0.89] | +1.06 [+0.81 to +1.31] | +0.34 [+0.19 to +0.49] | +0.53 [+0.36 to +0.70] | +2.11 [+1.69 to +2.53] | +0.48 [+0.15 to +0.81] |
+| F_up_125 (true 1.25, x1.15) | -2.83 [-3.29 to -2.37] | -1.13 [-1.48 to -0.78] | +1.64 [+1.36 to +1.92] | +0.45 [+0.28 to +0.62] | +0.76 [+0.57 to +0.95] | +4.47 [+4.00 to +4.94] | +2.77 [+2.39 to +3.15] |
+| Vmax_down_125 (true 1.25, x0.651) | -21.94 [-22.76 to -21.12] | -4.03 [-4.45 to -3.61] | +2.94 [+2.61 to +3.27] | +1.24 [+1.02 to +1.46] | +1.37 [+1.14 to +1.60] | +24.88 [+24.03 to +25.73] | +6.97 [+6.47 to +7.47] |
+| ke_down_125 (true 1.25, x0.643) | -6.10 [-6.64 to -5.56] | -0.55 [-0.88 to -0.22] | +0.24 [+0.01 to +0.47] | +0.49 [+0.33 to +0.65] | +0.02 [-0.15 to +0.19] | +6.34 [+5.80 to +6.88] | +0.79 [+0.45 to +1.13] |
 
 ### 4. Rule C and P2
 
 - Kovalenko 2016 (primary)
   - Flag set (ii): "G2-C approaches P2 because it substitutes AUClast" holds in 6 of 8 boundary scenarios (|G2-C minus P2| < |G2-A minus P2|; G2-C minus P2 +0.02 to +0.70 points in those). Exceptions: V2_up_080 (|G2-C minus P2| 0.58 points is not below |G2-A minus P2| 0.06 points); ka_down_080 (both differences are 0: Cmax passed in none of 10,000 trials, so G2 and P2 are 0% whatever the rule).
-  - Flag set (i): no rejudge file (not computed).
+  - Flag set (i): "G2-C approaches P2 because it substitutes AUClast" holds in 6 of 8 boundary scenarios (|G2-C minus P2| < |G2-A minus P2|; G2-C minus P2 +0.15 to +0.80 points in those). Exceptions: V2_up_080 (|G2-C minus P2| 0.87 points is not below |G2-A minus P2| 0.34 points); ka_down_080 (both differences are 0: Cmax passed in none of 10,000 trials, so G2 and P2 are 0% whatever the rule).
 - Kovalenko 2020 Model 1
-  - Flag set (ii): "G2-C approaches P2 because it substitutes AUClast" holds in 7 of 8 boundary scenarios (|G2-C minus P2| < |G2-A minus P2|; G2-C minus P2 -0.24 to +1.38 points in those). Exceptions: ka_down_080 (both differences are 0: Cmax passed in none of 5,000 trials, so G2 and P2 are 0% whatever the rule).
-  - Flag set (i): no rejudge file (not computed).
+  - Flag set (ii): "G2-C approaches P2 because it substitutes AUClast" holds in 7 of 8 boundary scenarios (|G2-C minus P2| < |G2-A minus P2|; G2-C minus P2 -0.18 to +1.24 points in those). Exceptions: ka_down_080 (both differences are 0: Cmax passed in none of 10,000 trials, so G2 and P2 are 0% whatever the rule).
+  - Flag set (i): "G2-C approaches P2 because it substitutes AUClast" holds in 6 of 8 boundary scenarios (|G2-C minus P2| < |G2-A minus P2|; G2-C minus P2 -0.56 to +1.48 points in those). Exceptions: ka_down_080 (both differences are 0: Cmax passed in none of 10,000 trials, so G2 and P2 are 0% whatever the rule); ke_up_080 (|G2-C minus P2| 0.53 points is not below |G2-A minus P2| 0.48 points).
 
 ### 5. Bias (trial GMR versus true ratio, `p2_bias_boundary.csv`)
 
@@ -409,8 +710,8 @@ Data: saved trial-level results (`results/oc/oc_trials_be_<model>.csv.gz`, scrip
   - In 6 of the 6 boundary scenarios where G2-A(ii) exceeds 5%, the AUCinf_A (rule A, flag set (ii)) GMR is biased toward 1, that is into the acceptance range, relative to the true AUC0-inf ratio (by 0.45 to 5.09, 100 x log difference).
   - The AUClast GMR is biased away from 1 (out of the acceptance range) relative to the true AUC0-inf ratio in 8 of 8 boundary scenarios (by 0.23 to 1.51). Reference: the bias of the individual model AUC0-inf of the trial subjects (AUCinf_true) is 0.00 to 0.02 (largest MC SE 0.06).
 - Kovalenko 2020 Model 1
-  - In 6 of the 6 boundary scenarios where G2-A(ii) exceeds 5%, the AUCinf_A (rule A, flag set (ii)) GMR is biased toward 1, that is into the acceptance range, relative to the true AUC0-inf ratio (by 0.59 to 5.64, 100 x log difference).
-  - The AUClast GMR is biased away from 1 (out of the acceptance range) relative to the true AUC0-inf ratio in 7 of 8 boundary scenarios (by 0.29 to 1.38); toward 1 in V2_up_080 (0.39). Reference: the bias of the individual model AUC0-inf of the trial subjects (AUCinf_true) is -0.02 to 0.00 (largest MC SE 0.09).
+  - In 6 of the 6 boundary scenarios where G2-A(ii) exceeds 5%, the AUCinf_A (rule A, flag set (ii)) GMR is biased toward 1, that is into the acceptance range, relative to the true AUC0-inf ratio (by 0.59 to 5.59, 100 x log difference).
+  - The AUClast GMR is biased away from 1 (out of the acceptance range) relative to the true AUC0-inf ratio in 7 of 8 boundary scenarios (by 0.24 to 1.35); toward 1 in V2_up_080 (0.41). Reference: the bias of the individual model AUC0-inf of the trial subjects (AUCinf_true) is -0.01 to 0.03 (largest MC SE 0.06).
 
 ### Premise checks (stopifnot)
 
@@ -422,26 +723,121 @@ Relative bias (%) of the geometric mean of trial GMRs against the truth in the b
 
 | Model | Scenario | Target | AUClast | AUCinf rule A | AUCinf rule B | AUCinf rule C | AUCinf rule A, set (i) | AUCinf rule C, set (i) | AUCinf true | Cmax |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 2016 | F_down_080 | 0.80 | -0.51 | 1.95 | 1.08 | -0.37 | NA | NA | 0.01 | -0.17 |
-| 2016 | V2_up_080 | 0.80 | -0.30 | -0.21 | -0.59 | -0.65 | NA | NA | 0.02 | -1.06 |
-| 2016 | Vmax_up_080 | 0.80 | -1.50 | 5.23 | 3.35 | -1.38 | NA | NA | 0.02 | -0.57 |
-| 2016 | ka_down_080 | 0.80 | -0.23 | 7.96 | 3.73 | -0.69 | NA | NA | 0.02 | 1.22 |
-| 2016 | ke_up_080 | 0.80 | -0.57 | 0.45 | 0.14 | -0.45 | NA | NA | 0.01 | -0.84 |
-| 2016 | F_up_125 | 1.25 | 0.48 | -1.71 | -0.61 | 0.29 | NA | NA | 0.01 | 0.28 |
-| 2016 | Vmax_down_125 | 1.25 | 0.92 | -4.83 | -0.90 | 0.44 | NA | NA | 0.00 | 0.62 |
-| 2016 | ke_down_125 | 1.25 | 0.50 | -1.06 | 0.10 | 0.36 | NA | NA | 0.02 | 0.88 |
-| Model 1 | F_down_080 | 0.80 | -0.49 | 2.05 | 0.81 | -0.28 | NA | NA | -0.01 | -0.17 |
-| Model 1 | V2_up_080 | 0.80 | 0.39 | -3.29 | -0.51 | 0.29 | NA | NA | -0.01 | -1.76 |
-| Model 1 | Vmax_up_080 | 0.80 | -1.37 | 5.47 | 2.59 | -1.03 | NA | NA | 0.00 | -0.48 |
-| Model 1 | ka_down_080 | 0.80 | -0.29 | 8.11 | 3.81 | -0.93 | NA | NA | 0.00 | 0.64 |
-| Model 1 | ke_up_080 | 0.80 | -0.57 | 0.60 | -0.01 | -0.29 | NA | NA | -0.02 | -0.70 |
-| Model 1 | F_up_125 | 1.25 | 0.38 | -1.93 | -0.54 | 0.12 | NA | NA | -0.02 | 0.19 |
-| Model 1 | Vmax_down_125 | 1.25 | 0.71 | -5.48 | -0.71 | 0.10 | NA | NA | -0.02 | 0.46 |
-| Model 1 | ke_down_125 | 1.25 | 0.31 | -2.19 | 0.25 | 0.08 | NA | NA | 0.00 | 0.66 |
+| 2016 | F_down_080 | 0.80 | -0.51 | 1.95 | 1.08 | -0.37 | 1.59 | -0.20 | 0.01 | -0.17 |
+| 2016 | V2_up_080 | 0.80 | -0.30 | -0.21 | -0.59 | -0.65 | -0.49 | -0.85 | 0.02 | -1.06 |
+| 2016 | Vmax_up_080 | 0.80 | -1.50 | 5.23 | 3.35 | -1.38 | 4.51 | -0.93 | 0.02 | -0.57 |
+| 2016 | ka_down_080 | 0.80 | -0.23 | 7.96 | 3.73 | -0.69 | 7.43 | -0.30 | 0.02 | 1.22 |
+| 2016 | ke_up_080 | 0.80 | -0.57 | 0.45 | 0.14 | -0.45 | 0.07 | -0.41 | 0.01 | -0.84 |
+| 2016 | F_up_125 | 1.25 | 0.48 | -1.71 | -0.61 | 0.29 | -1.18 | 0.16 | 0.01 | 0.28 |
+| 2016 | Vmax_down_125 | 1.25 | 0.92 | -4.83 | -0.90 | 0.44 | -2.73 | 0.32 | 0.00 | 0.62 |
+| 2016 | ke_down_125 | 1.25 | 0.50 | -1.06 | 0.10 | 0.36 | -0.11 | 0.43 | 0.02 | 0.88 |
+| Model 1 | F_down_080 | 0.80 | -0.46 | 2.08 | 0.84 | -0.25 | 1.36 | 0.02 | 0.01 | -0.14 |
+| Model 1 | V2_up_080 | 0.80 | 0.41 | -3.25 | -0.47 | 0.31 | -1.57 | 0.14 | 0.02 | -1.74 |
+| Model 1 | Vmax_up_080 | 0.80 | -1.34 | 5.52 | 2.64 | -1.00 | 4.11 | -0.29 | 0.02 | -0.45 |
+| Model 1 | ka_down_080 | 0.80 | -0.24 | 8.22 | 3.89 | -0.89 | 8.13 | -0.22 | 0.03 | 0.67 |
+| Model 1 | ke_up_080 | 0.80 | -0.55 | 0.59 | 0.02 | -0.27 | -0.18 | -0.21 | -0.01 | -0.67 |
+| Model 1 | F_up_125 | 1.25 | 0.40 | -1.88 | -0.50 | 0.14 | -0.96 | -0.02 | 0.00 | 0.21 |
+| Model 1 | Vmax_down_125 | 1.25 | 0.73 | -5.44 | -0.67 | 0.12 | -1.96 | 0.04 | -0.01 | 0.48 |
+| Model 1 | ke_down_125 | 1.25 | 0.34 | -2.14 | 0.30 | 0.11 | 0.18 | 0.37 | 0.02 | 0.69 |
+
+## Operating characteristics: OC curves, power and configuration comparison
+
+![Figure 3-A (Kovalenko 2016 (primary)). Pass probability of P2, F3-A, F3-C and G2 against the true AUC0-inf ratio, by mechanism (B0, 117 per arm, 60 to 90 kg; trials per scenario: boundaries and identical products 10,000 each, elsewhere 2,000 each).](oc/fig3A_oc_curves_k2016_en.png)
+
+*Figure 3-A (Kovalenko 2016 (primary)). Pass probability of P2, F3-A, F3-C and G2 against the true AUC0-inf ratio, by mechanism (B0, 117 per arm, 60 to 90 kg; trials per scenario: boundaries and identical products 10,000 each, elsewhere 2,000 each).*
+
+![Figure 3-A (Kovalenko 2020 Model 1). Pass probability of P2, F3-A, F3-C and G2 against the true AUC0-inf ratio, by mechanism (B0, 117 per arm, 60 to 90 kg; trials per scenario: boundaries and identical products 10,000 each (V2 up 0.80: 20,000 by the adaptive extension rule), elsewhere 2,000 each).](oc/fig3A_oc_curves_k2020_en.png)
+
+*Figure 3-A (Kovalenko 2020 Model 1). Pass probability of P2, F3-A, F3-C and G2 against the true AUC0-inf ratio, by mechanism (B0, 117 per arm, 60 to 90 kg; trials per scenario: boundaries and identical products 10,000 each (V2 up 0.80: 20,000 by the adaptive extension rule), elsewhere 2,000 each).*
+
+Power (pass rate, %, Wilson 95% CI) in scenarios run with at least 5,000 trials; power at true ratios 0.95 and 1.05 (2,000 trials per mechanism) is tabulated in the full report:
+
+| Model | Scenario | Target | True AUC0-inf ratio | Trials | P2 (%) | F3-A (%) | F3-C (%) | G2 (%) |
+|---|---|---|---|---|---|---|---|---|
+| 2016 | S00 | 1.00 | 1.000 | 10,000 | 99.6 (99.4 to 99.7) | 99.1 (98.9 to 99.2) | 99.5 (99.4 to 99.6) | 99.3 (99.2 to 99.5) |
+| Model 1 | S00 | 1.00 | 1.000 | 10,000 | 99.0 (98.8 to 99.2) | 98.3 (98.0 to 98.5) | 99.0 (98.8 to 99.1) | 98.9 (98.7 to 99.1) |
+
+Configuration comparison at the boundaries (paired within the same trials, percentage points, 95% CI): P2 minus F3 is the additional protection of F3 (P2 passes, F3 fails), G2 minus P2 the difference in pass rate; inside and outside the limits the ranges are in the key conclusion and the full table in the full report:
+
+| Model | Mechanism | Direction | Target | Trials | P2 minus F3-A | P2 minus F3-C | G2 minus P2 |
+|---|---|---|---|---|---|---|---|
+| 2016 | F | down | 0.80 | 10,000 | 1.02 (0.82 to 1.22) | 0.20 (0.11 to 0.29) | 3.64 (3.18 to 4.10) |
+| 2016 | F | up | 1.25 | 10,000 | 0.61 (0.46 to 0.76) | 0.10 (0.04 to 0.16) | 4.16 (3.71 to 4.61) |
+| 2016 | V2 | up | 0.80 | 10,000 | 2.01 (1.73 to 2.29) | 0.62 (0.47 to 0.77) | 0.06 (-0.34 to 0.46) |
+| 2016 | Vmax | up | 0.80 | 10,000 | 0.18 (0.10 to 0.26) | 0.19 (0.10 to 0.28) | 20.21 (19.41 to 21.01) |
+| 2016 | Vmax | down | 1.25 | 10,000 | 0.02 (-0.01 to 0.05) | 0.03 (0.00 to 0.06) | 21.91 (21.10 to 22.72) |
+| 2016 | ka | down | 0.80 | 10,000 | 0.00 (0.00 to 0.00) | 0.00 (0.00 to 0.00) | 0.00 (0.00 to 0.00) |
+| 2016 | ke | up | 0.80 | 10,000 | 1.38 (1.15 to 1.61) | 0.20 (0.11 to 0.29) | 2.04 (1.61 to 2.47) |
+| 2016 | ke | down | 1.25 | 10,000 | 1.13 (0.92 to 1.34) | 0.14 (0.07 to 0.21) | 3.58 (3.11 to 4.05) |
+| Model 1 | F | down | 0.80 | 10,000 | 0.67 (0.51 to 0.83) | 0.14 (0.07 to 0.21) | 4.63 (4.16 to 5.10) |
+| Model 1 | F | up | 1.25 | 10,000 | 0.74 (0.57 to 0.91) | 0.15 (0.07 to 0.23) | 4.47 (4.00 to 4.94) |
+| Model 1 | V2 | up | 0.80 | 20,000 | 4.23 (3.95 to 4.51) | 0.43 (0.33 to 0.52) | -4.12 (-4.40 to -3.84) |
+| Model 1 | Vmax | up | 0.80 | 10,000 | 0.12 (0.05 to 0.19) | 0.04 (0.00 to 0.08) | 20.53 (19.73 to 21.33) |
+| Model 1 | Vmax | down | 1.25 | 10,000 | 0.01 (-0.01 to 0.03) | 0.00 (0.00 to 0.00) | 24.88 (24.03 to 25.73) |
+| Model 1 | ka | down | 0.80 | 10,000 | 0.00 (0.00 to 0.00) | 0.00 (0.00 to 0.00) | 0.00 (0.00 to 0.00) |
+| Model 1 | ke | up | 0.80 | 10,000 | 1.23 (1.01 to 1.45) | 0.12 (0.05 to 0.19) | 2.11 (1.69 to 2.53) |
+| Model 1 | ke | down | 1.25 | 10,000 | 0.88 (0.70 to 1.06) | 0.10 (0.04 to 0.16) | 6.34 (5.80 to 6.88) |
+
+![Figure 3-D. Test-arm multiplier needed for each target true AUC0-inf ratio, by mechanism and model (200,000 CRN subjects, 60 to 90 kg, 300 mg; bisection to within 0.1%; x marks targets not reachable within the search range).](oc/fig3D_inversion_multipliers_en.png)
+
+*Figure 3-D. Test-arm multiplier needed for each target true AUC0-inf ratio, by mechanism and model (200,000 CRN subjects, 60 to 90 kg, 300 mg; bisection to within 0.1%; x marks targets not reachable within the search range).*
+
+## Secondary metric: random product space (depends on the assumed virtual product distribution)
+
+Secondary metric. The consumer and producer risks below depend on the assumed distribution of virtual products (Latin hypercube of 20,000 products, log-uniform multipliers F 0.80 to 1.25, ka 0.67 to 1.50, ke 0.80 to 1.25, Vmax 0.67 to 1.50, Km 0.20 to 5, V2 0.90 to 1.11; config/oc_design.yaml). They are averages over that distribution and change if the distribution changes; configurations are judged on the primary metric, the boundary type I error.
+
+Random product space (one trial per product, B0, 117 per arm; truth from 1,000 CRN subjects per product):
+
+| Model | Configuration | Metric | Scope | Rate (%) | Products |
+|---|---|---|---|---|---|
+| 2016 | P2 | Consumer risk (pass when truth outside) | all | 0.14 (0.08 to 0.25) | 8,540 |
+| 2016 | P2 | Consumer risk (pass when truth outside) | near boundary | 0.48 (0.28 to 0.84) | 2,483 |
+| 2016 | P2 | Producer risk (fail when truth inside) | all | 49.59 (48.67 to 50.51) | 11,460 |
+| 2016 | P2 | Producer risk (fail when truth inside) | near boundary | 90.73 (89.60 to 91.76) | 2,763 |
+| 2016 | F3-A | Consumer risk (pass when truth outside) | all | 0.12 (0.06 to 0.22) | 8,540 |
+| 2016 | F3-A | Consumer risk (pass when truth outside) | near boundary | 0.40 (0.22 to 0.74) | 2,483 |
+| 2016 | F3-A | Producer risk (fail when truth inside) | all | 52.57 (51.65 to 53.48) | 11,460 |
+| 2016 | F3-A | Producer risk (fail when truth inside) | near boundary | 92.47 (91.43 to 93.40) | 2,763 |
+| 2016 | F3-C | Consumer risk (pass when truth outside) | all | 0.14 (0.08 to 0.25) | 8,540 |
+| 2016 | F3-C | Consumer risk (pass when truth outside) | near boundary | 0.48 (0.28 to 0.84) | 2,483 |
+| 2016 | F3-C | Producer risk (fail when truth inside) | all | 49.84 (48.93 to 50.76) | 11,460 |
+| 2016 | F3-C | Producer risk (fail when truth inside) | near boundary | 90.84 (89.71 to 91.86) | 2,763 |
+| 2016 | G2 | Consumer risk (pass when truth outside) | all | 1.08 (0.88 to 1.32) | 8,540 |
+| 2016 | G2 | Consumer risk (pass when truth outside) | near boundary | 3.42 (2.78 to 4.21) | 2,483 |
+| 2016 | G2 | Producer risk (fail when truth inside) | all | 45.42 (44.51 to 46.33) | 11,460 |
+| 2016 | G2 | Producer risk (fail when truth inside) | near boundary | 81.54 (80.05 to 82.94) | 2,763 |
+| Model 1 | P2 | Consumer risk (pass when truth outside) | all | 0.18 (0.11 to 0.29) | 8,460 |
+| Model 1 | P2 | Consumer risk (pass when truth outside) | near boundary | 0.56 (0.33 to 0.94) | 2,498 |
+| Model 1 | P2 | Producer risk (fail when truth inside) | all | 50.94 (50.02 to 51.85) | 11,540 |
+| Model 1 | P2 | Producer risk (fail when truth inside) | near boundary | 90.13 (88.96 to 91.19) | 2,756 |
+| Model 1 | F3-A | Consumer risk (pass when truth outside) | all | 0.13 (0.07 to 0.23) | 8,460 |
+| Model 1 | F3-A | Consumer risk (pass when truth outside) | near boundary | 0.44 (0.25 to 0.79) | 2,498 |
+| Model 1 | F3-A | Producer risk (fail when truth inside) | all | 54.02 (53.11 to 54.93) | 11,540 |
+| Model 1 | F3-A | Producer risk (fail when truth inside) | near boundary | 91.69 (90.60 to 92.66) | 2,756 |
+| Model 1 | F3-C | Consumer risk (pass when truth outside) | all | 0.17 (0.10 to 0.28) | 8,460 |
+| Model 1 | F3-C | Consumer risk (pass when truth outside) | near boundary | 0.52 (0.30 to 0.89) | 2,498 |
+| Model 1 | F3-C | Producer risk (fail when truth inside) | all | 51.15 (50.24 to 52.06) | 11,540 |
+| Model 1 | F3-C | Producer risk (fail when truth inside) | near boundary | 90.31 (89.15 to 91.36) | 2,756 |
+| Model 1 | G2 | Consumer risk (pass when truth outside) | all | 1.39 (1.17 to 1.67) | 8,460 |
+| Model 1 | G2 | Consumer risk (pass when truth outside) | near boundary | 4.44 (3.70 to 5.32) | 2,498 |
+| Model 1 | G2 | Producer risk (fail when truth inside) | all | 46.20 (45.29 to 47.11) | 11,540 |
+| Model 1 | G2 | Producer risk (fail when truth inside) | near boundary | 80.37 (78.85 to 81.81) | 2,756 |
+
+![Figure 3-C (Kovalenko 2016 (primary)). Random product space, secondary metric that depends on the assumed virtual product distribution: 20,000 Latin hypercube products with log-uniform multipliers (F 0.80 to 1.25, ka 0.67 to 1.50, ke 0.80 to 1.25, Vmax 0.67 to 1.50, Km 0.20 to 5, V2 0.90 to 1.11), one trial each (B0, 117 per arm); top, distribution of the true AUC0-inf ratio; bottom, pass rate per bin and logistic spline smooth.](oc/fig3C_random_space_k2016_en.png)
+
+*Figure 3-C (Kovalenko 2016 (primary)). Random product space, secondary metric that depends on the assumed virtual product distribution: 20,000 Latin hypercube products with log-uniform multipliers (F 0.80 to 1.25, ka 0.67 to 1.50, ke 0.80 to 1.25, Vmax 0.67 to 1.50, Km 0.20 to 5, V2 0.90 to 1.11), one trial each (B0, 117 per arm); top, distribution of the true AUC0-inf ratio; bottom, pass rate per bin and logistic spline smooth.*
+
+![Figure 3-C (Kovalenko 2020 Model 1). Random product space, secondary metric that depends on the assumed virtual product distribution: 20,000 Latin hypercube products with log-uniform multipliers (F 0.80 to 1.25, ka 0.67 to 1.50, ke 0.80 to 1.25, Vmax 0.67 to 1.50, Km 0.20 to 5, V2 0.90 to 1.11), one trial each (B0, 117 per arm); top, distribution of the true AUC0-inf ratio; bottom, pass rate per bin and logistic spline smooth.](oc/fig3C_random_space_k2020_en.png)
+
+*Figure 3-C (Kovalenko 2020 Model 1). Random product space, secondary metric that depends on the assumed virtual product distribution: 20,000 Latin hypercube products with log-uniform multipliers (F 0.80 to 1.25, ka 0.67 to 1.50, ke 0.80 to 1.25, Vmax 0.67 to 1.50, Km 0.20 to 5, V2 0.90 to 1.11), one trial each (B0, 117 per arm); top, distribution of the true AUC0-inf ratio; bottom, pass rate per bin and logistic spline smooth.*
 
 ## 4. Pillar 3: invisibility of binding-constant differences
 
-Test-arm Km multiplied by 0.5 to 10 (0.005 to 0.1 mg/L) changes the mean GMR of every endpoint by at most 1.45% (2016 model) and 1.16% (Model 1) relative to identical products (paired within the same 500 trials). Km is an MM approximation constant and is not identical to binding affinity.
+**Changing the binding constant (Km) from 0.01 to 100 times keeps the true AUC0-inf ratio within 0.999 to 1.059 (both models; range ends and reachable rows with 200,000 common-random-number subjects, screening scan in between with 20,000). Of the 12 pre-specified targets (0.70 to 1.43) the only reachable one is 1.05 (Km about x84 in the 2016 model and x92 in Model 1).**
+
+Source: oc/inversion_all.csv (range ends and reachable rows) and oc/inversion_scan_<model>_Km.csv (screening scan); boundary multipliers of all mechanisms are in the boundary scenario table above.
+
+Supporting evidence: test-arm Km multiplied by 0.5 to 10 (0.005 to 0.1 mg/L) changes the mean GMR of every endpoint by at most 1.45% (2016 model) and 1.16% (Model 1) relative to identical products (paired within the same 500 trials). Km is an MM approximation constant and is not identical to binding affinity.
 
 ## 5. Body weight generalization (300 mg, B0, 20,000 subjects per uniform weight band)
 
@@ -537,5 +933,5 @@ Rationale: at the pre-specified 20,000-subject level, criterion (d) alone was me
 - Placeholders not yet confirmed: Day 1 post-dose sampling time (0.25 day), weight distribution and stratification split, sampling windows, BMI reference of 26, body weights of the Li 2020 single-arm studies.
 - Development-data body weight ranges are not reported; results above 130 kg are extrapolations.
 - Only the automatic lambda-z Best Fit is simulated; in a real study a pharmacokineticist may review and adjust the lambda-z points.
-- In the random product space the truth of each product is computed from 1,000 common virtual subjects (not 200,000) for computational reasons, as pre-specified; the Monte Carlo standard error of each product's truth is reported.
+- The random product space is a secondary metric: its consumer and producer risks depend on the assumed distribution of virtual products (log-uniform multipliers F 0.80 to 1.25, ka 0.67 to 1.50, ke 0.80 to 1.25, Vmax 0.67 to 1.50, Km 0.20 to 5, V2 0.90 to 1.11). The truth of each product is computed from 1,000 common virtual subjects (not 200,000) for computational reasons, as pre-specified; the Monte Carlo standard error of each product's truth is reported.
 

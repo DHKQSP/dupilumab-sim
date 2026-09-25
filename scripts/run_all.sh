@@ -39,6 +39,11 @@ Rscript scripts/36_cliff_conclusion.R
 for m in k2016 k2020; do Rscript scripts/30_oc_inversion.R $m prep; done   # 공통 난수 200,000명 대조 참값(results/oc/truth_ref_<model>.rds, 저장소 제외)
 bash scripts/run_oc_inversion.sh
 bash scripts/run_oc_followup.sh
+# 통합 지시 2026-09-25: AUCinf 규칙 A·C의 플래그 세트 (i) 재판정(같은 시드 재생성, 저장 행 대조), P2 경계 적응적 연장, 신뢰 기준 두 세트
+for m in k2016 k2020; do Rscript scripts/40_oc_rejudge.R $m 3; done
+Rscript scripts/33_oc_summary.R              # 연장 판정에 쓰는 10,000회 boundary_type1.csv
+Rscript scripts/42_oc_extend.R 3 20000       # Wilson 구간이 5%를 포함한 P2 경계 시나리오만 20,000회로
+Rscript scripts/39_reliability_flags.R
 # 후처리·요약·보고서
 Rscript scripts/14_postprocess.R
 Rscript scripts/26_schedule_extras.R
@@ -48,6 +53,9 @@ Rscript scripts/17_literature_table.R
 Rscript scripts/23_fallback_analyses.R
 Rscript scripts/27_reviewer_reference_round5.R
 Rscript scripts/35_engine_difference_trials.R
+Rscript scripts/33_oc_summary.R
+Rscript scripts/41_oc_rules_flags.R
+Rscript scripts/43_p2_interpretation.R
 Rscript scripts/37_key_numbers_en.R
 Rscript scripts/18_summary_en.R
 Rscript scripts/05_report.R

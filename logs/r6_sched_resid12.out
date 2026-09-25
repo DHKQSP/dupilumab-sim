@@ -1,0 +1,14 @@
+run log: /home/user/dupilumab-sim/logs/trial_schedules_resid12_20260924T143214.log
+variant=resid12 n_trials=500 cores=3 combos=6
+  trial 50 (500개 중) 14:33:02
+  trial 100 (500개 중) 14:33:50
+  trial 150 (500개 중) 14:34:27
+  trial 200 (500개 중) 14:35:15
+  trial 250 (500개 중) 14:36:21
+  trial 300 (500개 중) 14:37:16
+  trial 350 (500개 중) 14:37:58
+  trial 400 (500개 중) 14:38:48
+  trial 450 (500개 중) 14:39:27
+  trial 500 (500개 중) 14:39:59
+elapsed: 7.866588 mins 
+postprocess schedules resid12: 500 trials, 3 scenarios, 2 schedules

@@ -1,0 +1,78 @@
+run_name: oc_extend
+started_utc: 2026-09-25 02:18:47
+run_mode: final
+master_seed: 20260923
+seed_rule_version: 1
+git_sha: 64f53afa96a8dec21df3e3f13c591a61712dde9b
+R_version: R version 4.3.3 (2024-02-29)
+rxode2: 5.1.7
+BEmaster: not installed
+config_sha256:
+  crossval_reference.yaml: 7a0aa327432c1978f539f74910d53125dacc54f1455cb02a7fdb0d4a65e73988
+  design_clot2021.yaml: 4b3ddc374dfbf3f451d3fe3d6a865645b0b5d93b0ea7eea9a3f24cd8d2f05da5
+  gate_decision.yaml: fec8e5a4376e78560e2945be2c69db22e63e6b6731a2413101efa1ac58cb1838
+  nca_rules.yaml: 0f53d9e003bf1df504df24201f06301cabe423babd1078def5c5a4b3b2c1db94
+  oc_design.yaml: 629011b264fbc4c3f03f8a3989bac1f2711d49959f3268f5e8f758c80f93ea0a
+  params_k2020_model1.yaml: b6e3816238f158ab76cda1edfc4ce9ae49b53fdd4836de8be36bd64664dca96f
+  params_typical.yaml: 0661b248227771273d5c58c86c61f35ef655fdeecebe3f188868fd61cff4b801
+  params_variability.yaml: b849a4cc3acc6d47f9833392ac4f47ebacc6ad9fa79fcc5848628fd4b5aa99a9
+  repro_check.yaml: a5e8401417d3dd780a21876356e654a5c6b270f9d50eb47de942105cb34d2756
+  scenarios.yaml: 7243c4f34f21614eccae4c143ba05b8a9eb9183a76770cfce7153ef30a5dc17c
+  schedule_decision.yaml: de62d815c54d33e4016ed7fdb535ede38ae9c0a6350ef8e7e0a26cb5dd9572b2
+  trial_design.yaml: ff6424d371b8f6a6c9bfef3035cf242fa4c9c5c92819cfd699f0c467e8f605db
+extra:
+  rule: P2 boundary type I error Wilson 95% CI at 10000 trials includes 5% (lo <= 5 <= hi) -> extend that boundary scenario to 20000 trials
+  selected: k2020 V2_up_080
+  selected_p2: k2020 V2_up_080: 5.32% [4.90, 5.78] at 10000
+  trial_from: 10001
+  trial_to: 20000
+  cores: 2
+  out_dir: /home/user/dupilumab-sim/results/oc
+session_info:
+  R version 4.3.3 (2024-02-29)
+  Platform: x86_64-pc-linux-gnu (64-bit)
+  Running under: Ubuntu 24.04.4 LTS
+  
+  Matrix products: default
+  BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+  LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0
+  
+  locale:
+   [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       
+   [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   
+   [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          
+  [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   
+  
+  time zone: Etc/UTC
+  tzcode source: system (glibc)
+  
+  attached base packages:
+  [1] stats     graphics  grDevices datasets  utils     methods   base     
+  
+  other attached packages:
+  [1] digest_0.6.34      data.table_1.14.10 yaml_2.3.8        
+  
+  loaded via a namespace (and not attached):
+  [1] compiler_4.3.3 tools_4.3.3    renv_1.2.4    
+[02:18:52] k2020 V2_up_080: trial 10000 reproduced from the stored file (6 original endpoints); extending trials 10001-20000 (P2 at 10000 trials 5.32% [4.90, 5.78])
+[02:21:42] k2020 V2_up_080: trials 10001-10500 (8 endpoints) done in 2.845874 mins
+[02:23:36] k2020 V2_up_080: trials 10501-11000 (8 endpoints) done in 1.897688 mins
+[02:25:18] k2020 V2_up_080: trials 11001-11500 (8 endpoints) done in 1.698619 mins
+[02:27:01] k2020 V2_up_080: trials 11501-12000 (8 endpoints) done in 1.711212 mins
+[02:28:45] k2020 V2_up_080: trials 12001-12500 (8 endpoints) done in 1.727895 mins
+[02:30:28] k2020 V2_up_080: trials 12501-13000 (8 endpoints) done in 1.722738 mins
+[02:32:11] k2020 V2_up_080: trials 13001-13500 (8 endpoints) done in 1.71771 mins
+[02:33:54] k2020 V2_up_080: trials 13501-14000 (8 endpoints) done in 1.711245 mins
+[02:35:37] k2020 V2_up_080: trials 14001-14500 (8 endpoints) done in 1.727573 mins
+[02:37:21] k2020 V2_up_080: trials 14501-15000 (8 endpoints) done in 1.72358 mins
+[02:39:05] k2020 V2_up_080: trials 15001-15500 (8 endpoints) done in 1.728924 mins
+[02:40:49] k2020 V2_up_080: trials 15501-16000 (8 endpoints) done in 1.747332 mins
+[02:42:33] k2020 V2_up_080: trials 16001-16500 (8 endpoints) done in 1.728602 mins
+[02:44:16] k2020 V2_up_080: trials 16501-17000 (8 endpoints) done in 1.715864 mins
+[02:45:59] k2020 V2_up_080: trials 17001-17500 (8 endpoints) done in 1.722352 mins
+[02:47:43] k2020 V2_up_080: trials 17501-18000 (8 endpoints) done in 1.733017 mins
+[02:49:28] k2020 V2_up_080: trials 18001-18500 (8 endpoints) done in 1.737346 mins
+[02:51:11] k2020 V2_up_080: trials 18501-19000 (8 endpoints) done in 1.721838 mins
+[02:52:55] k2020 V2_up_080: trials 19001-19500 (8 endpoints) done in 1.732604 mins
+[02:54:39] k2020 V2_up_080: trials 19501-20000 (8 endpoints) done in 1.730852 mins
+[02:54:39] done: k2020 V2_up_080, 10000 + 10000 = 20000 trials (target 20000), output /home/user/dupilumab-sim/results/oc/oc_trials_ext_be_k2020.csv.gz

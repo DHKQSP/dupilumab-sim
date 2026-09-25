@@ -12,3 +12,32 @@ A individual struct2020 0
 B sched struct2020 0
 A individual iiv150 0
 A individual resid12 0
+A individual weight_alt 0
+A individual ada10 0
+A individual vmax080_both 0
+A individual vmax125_both 0
+A crossval_model1 0
+A curve_shape 143
+B sched vmax080_both 0
+B sched vmax125_both 0
+A weight_bands 0
+B sched iiv150 0
+A weight_bands_nojitter 0
+B sched resid12 0
+A criterion_d base 0
+B sched weight_alt 0
+A criterion_d struct2020 0
+B sched ada10 0
+A criterion_d vmax080_both 0
+A DONE Thu Sep 24 14:59:45 UTC 2026
+B sched noresid 0
+B products base 0
+B products struct2020 0
+B products5000 0
+B weight_trials a 0
+B weight_trials b 0
+B weight_trials d 0
+B pillar2_curvature 0
+B crossval 0
+B DONE Thu Sep 24 22:38:45 UTC 2026
+ALL DONE Thu Sep 24 22:38:45 UTC 2026

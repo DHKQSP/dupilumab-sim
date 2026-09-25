@@ -3,7 +3,7 @@
 cd "$(dirname "$0")/.."
 set -e
 for s in 14_postprocess 26_schedule_extras 19_mc_consistency 15_rationale_summary 17_literature_table 23_fallback_analyses 27_reviewer_reference_round5 \
-         35_engine_difference_trials 36_cliff_conclusion 33_oc_summary 37_key_numbers_en 18_summary_en 05_report; do
+         35_engine_difference_trials 36_cliff_conclusion 39_reliability_flags 33_oc_summary 41_oc_rules_flags 43_p2_interpretation 37_key_numbers_en 18_summary_en 05_report; do
   echo "== $s $(date -u)"; Rscript scripts/$s.R > logs/r6_assembly_$s.out 2>&1 || { echo "FAILED $s (logs/r6_assembly_$s.out)"; exit 1; }
 done
 echo "assembly done $(date -u)"
