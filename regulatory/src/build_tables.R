@@ -40,13 +40,13 @@ asy <- yaml::read_yaml(proj_path("config", "assay.yaml"), fileEncoding = "UTF-8"
 lloq <- data.table(Model = "both", Parameter = "LLOQ (study assay, config/assay.yaml)", Value = asy$lloq_mg_L$value, Unit = "mg/L", Status = "assumption for the sponsor's assay", Source = asy$lloq_mg_L$source)
 pa_ <- yaml::read_yaml(proj_path("config", "population_atopic.yaml")); vb_ <- yaml::read_yaml(proj_path("config", "scenarios.yaml"))$sensitivity_variants$k2016_bmi_vc0817
 premise(!is.null(vb_$ke_bmi$exponent) && !is.null(vb_$theta_WT_override), "phase 3 covariate variant in config/scenarios.yaml")
-AT_SRC <- c(primary = "Kamal 2022 (phase 2b, 379 adults with atopic dermatitis: mean body weight 74.0 to 80.6 kg by dose group); Kovalenko 2021 (adult phase 3 population PK data: BMI SD 5.47 kg/m2); NCT03389893 (71 adults: 80.2 kg, SD 19.0). Phase 3 data of the reference product requested from the sponsor",
+AT_SRC <- c(primary = "Kamal 2022 (phase 2b, 379 adults with atopic dermatitis: mean body weight 74.0 to 80.6 kg by dose group); Kovalenko 2021 (adult phase 3 population PK data: BMI SD 5.47 kg/m2); NCT03389893 (71 adults: 80.2 kg, SD 19.0); used only in the Appendix I robustness check",
             sens_nct03389893 = "NCT03389893 (71 adults with atopic dermatitis: 80.2 kg, SD 19.0)", sens_75_18 = "sensitivity with a lower mean (analyst)")
 premise(identical(sort(names(pa_$distributions)), sort(names(AT_SRC))), "atopic distributions in config/population_atopic.yaml")
 atw <- rbindlist(lapply(names(pa_$distributions), function(d) { x <- pa_$distributions[[d]]
-  data.table(Model = "all (adult atopic dermatitis population, Section 5.8)", Parameter = sprintf("Body weight, %s", if (d == "primary") "primary distribution" else "sensitivity distribution"), Value = x$label, Unit = "kg",
+  data.table(Model = "Appendix I robustness check (adult atopic dermatitis body weight)", Parameter = sprintf("Body weight, %s", if (d == "primary") "primary distribution" else "sensitivity distribution"), Value = x$label, Unit = "kg",
              Status = "placeholder (assumption)", Source = AT_SRC[[d]]) }))
-atw <- rbind(atw, data.table(Model = "all (adult atopic dermatitis population, Section 5.8)", Parameter = c("Height (for BMI)", "Male fraction"),
+atw <- rbind(atw, data.table(Model = "Appendix I robustness check (adult atopic dermatitis body weight)", Parameter = c("Height (for BMI)", "Male fraction"),
                              Value = c(sprintf("normal, mean %s cm, SD %s cm, truncated %s to %s cm, independent of weight", pa_$height$mean, pa_$height$sd, pa_$height$trunc[[1]], pa_$height$trunc[[2]]), as.character(pa_$sex_ratio_male)),
                              Unit = c("cm", ""), Status = "placeholder (assumption)", Source = c("NCT03389893 (172.5 cm, SD 10.4)", "assumption")),
              data.table(Model = "2016 model with phase 3 covariates (weight sensitivity)", Parameter = c("Exponent of BMI on linear elimination (ke)", "Reference BMI", "Weight exponent on Vc (replaces the 2016 value)"),
@@ -70,10 +70,10 @@ lloq_impact <- sprintf("Simulated at 0.02 to 0.5 mg/L with the same subjects (Se
 strat_impact <- sprintf("The pooled t-test (M0) does not model the stratum: between-trial SD / within-trial SE of the unbiased reference %s (M0) against %s with the stratum in the model (M1). AUC0-last + Cmax: M0 %s; M1 %s (Section 5.9).",
                         rg_(ss_[analysis_model == "M0", sd_se_ratio], f3_), rg_(ss_[analysis_model == "M1", sd_se_ratio], f3_), cls_("M0"), cls_("M1"))
 ac_ <- rd("results/atopic/atopic_criteria_by_band.csv")[distribution == "primary" & band == "all"]; ax_ <- rd("results/atopic/atopic_exploratory_height_corr.csv"); aw_ <- rd("results/atopic/atopic_weight_table.csv")
-at_impact <- sprintf("%s%% of simulated patients outside 60 to 90 kg; without a reliable AUC0-inf: %s%% (criteria set (i)) and %s%% (set (iii)) across three model variants; sensitivity distributions (80/19 and 75/18 kg): %s%% and %s%% (Section 5.8).",
+at_impact <- sprintf("%s%% of simulated patients outside 60 to 90 kg; without a reliable AUC0-inf: %s%% (criteria set (i)) and %s%% (set (iii)) across three model variants; sensitivity distributions (80/19 and 75/18 kg): %s%% and %s%% (Appendix I; robustness check, not evidence).",
                      f1_(aw_[distribution == "primary" & grepl("^simulated", source), outside_60_90]), rg_(ac_[set == "i", fail_pct], f1_), rg_(ac_[set == "iii", fail_pct], f1_),
                      rg_(rd("results/atopic/atopic_criteria_by_band.csv")[distribution != "primary" & band == "all" & set == "i", fail_pct], f1_), rg_(rd("results/atopic/atopic_criteria_by_band.csv")[distribution != "primary" & band == "all" & set == "iii", fail_pct], f1_))
-ht_impact <- sprintf("Overstates the BMI SD (%s against 5.45 kg/m2). With the correlation implied by NCT03389893 (%s), failure of the BMI-covariate variant changes from %s%% to %s%% (set (i)); exploratory, not pre-registered (Section 6.5).",
+ht_impact <- sprintf("Overstates the BMI SD (%s against 5.45 kg/m2). With the correlation implied by NCT03389893 (%s), failure of the BMI-covariate variant changes from %s%% to %s%% (set (i)); exploratory, not pre-registered (Appendix I).",
                      f2_(ax_[height_model == "independent", bmi_sd]), f2_(ax_[height_model == "correlated", rho_target]), f2_(ax_[height_model == "independent", fail_pct_i]), f2_(ax_[height_model == "correlated", fail_pct_i]))
 n_impact <- sprintf("P2 power with 117 evaluable per arm at a true GMR of 0.95: %s%% (M0) and %s%% (M1) at CV 43%%, %s%% and %s%% at CV 50%% (Section 5.11).",
                     f1_(pp_[cv == 43 & analysis_model == "M0", analytic_pct]), f1_(pp_[cv == 43 & analysis_model == "M1", analytic_pct]), f1_(pp_[cv == 50 & analysis_model == "M0", analytic_pct]), f1_(pp_[cv == 50 & analysis_model == "M1", analytic_pct]))
@@ -86,7 +86,7 @@ ab <- data.table(
                  "Randomization stratification", "Evaluable subjects per arm; dropout", "Km fixed, without between-subject variability", "No parameter uncertainty layer",
                  "Residual error model", "Immunogenicity (ADA)", "Automated lambda-z selection without manual review", "Presentation of test and reference products", "Population: healthy subjects",
                  "Body weight of single-arm literature studies (validation only)", "BMI reference for the ke-BMI covariate (weight generalization only)",
-                 "Body weight of adults with atopic dermatitis (Section 5.8)", "Height independent of body weight (BMI of the phase 3 covariate variant)"),
+                 "Body weight of adults with atopic dermatitis (Appendix I robustness check)", "Height independent of body weight (Appendix I robustness check)"),
   `Value used` = c(sprintf("%s mg/L", asy$lloq_mg_L$value), sprintf("%s day after dosing", td$day1_postdose_time$value), "plus or minus 2 h to Day 1, 6 h to Day 14, 1 day thereafter",
                    sprintf("normal, mean %s kg, SD %s kg, truncated %s to %s kg; male fraction %s", td$weight$base$mean, td$weight$base$sd, td$weight$base$trunc[1], td$weight$base$trunc[2], td$weight$sex_ratio_male$value),
                    sprintf("two strata split at %s kg, 1:1 within strata", td$stratification$split_kg$value), sprintf("%s evaluable per arm (%s randomized); dropout not simulated", td$n_per_arm, td$n_randomized_per_arm),
@@ -95,7 +95,7 @@ ab <- data.table(
                    "normal, mean 78 kg, SD 10 kg", "26 kg/m2", pa_$distributions$primary$label, sprintf("height normal, mean %s cm, SD %s cm, independent of weight", pa_$height$mean, pa_$height$sd)),
   Basis = c("Clot 2021 (originator's assay)", "placeholder; protocol not final", "placeholder; typical protocol windows", "placeholder based on the inclusion range 60 to 90 kg",
             "placeholder", "sample-size assumption of the protocol", "as published (Km determined by likelihood profiling; the objective function was insensitive below 0.01 mg/L)", "parameter estimation uncertainty was not propagated",
-            "as published", "no ADA model in the published PK models", "standard NCA practice", "study design", "study design", "weights not reported in Li 2020", "phase 3 mean BMI 25.4 to 27.3 (Kamal 2022)", "published summaries (Kamal 2022, Kovalenko 2021, NCT03389893); phase 3 data not accessible from the analysis environment", "specified in the request"),
+            "as published", "no ADA model in the published PK models", "standard NCA practice", "study design", "study design", "weights not reported in Li 2020", "phase 3 mean BMI 25.4 to 27.3 (Kamal 2022)", "published summaries (Kamal 2022, Kovalenko 2021, NCT03389893)", "specified in the request"),
   `Impact evidence` = c(lloq_impact,
                         "Affects Cmax sampling only; terminal-phase results unaffected.", "Simulated in all trial-level analyses; cliff analysis with and without windows.",
                         "Alternative distribution (mean 72, SD 10, 50 to 90 kg) and weight bands 40 to 150 kg: coverage preserved; schedule recommendation unchanged.",
@@ -109,7 +109,7 @@ ab <- data.table(
                                  "Confirm expected enrolment; rerun only if materially different.", "Confirm the randomization plan; select the primary analysis model (M0 or M1) in the SAP.", "Select the target power (90% or 85%) and the sample size (Section 5.11).",
                                  "None; state as limitation.", "None; state as limitation.", "None; report residual-sensitive metrics as two-model ranges.", "Consider the ADA incidence reported for the reference product in healthy subjects; describe ADA handling in the SAP.",
                                  "Pre-specify lambda-z rules in the SAP and document any manual changes.", "Confirm presentations of both products.", "None.", "None.", "None.",
-                                 "Replace with the phase 3 body-weight data (FDA clinical pharmacology review of BLA 761055; EMA assessment report 2017) in config/population_atopic.yaml and regenerate (scripts/52, 53).", "None; state as limitation."))
+                                 "None; robustness check only, not evidence for the proposal (principle of section 6).", "None; robustness check only."))
 fwrite(ab, file.path(out, "assumptions_register.csv"))
 
 # ---- C. verification and QC record ----
@@ -180,23 +180,25 @@ dd <- data.table(
            "Analysis-model re-judgement: M0, M1, M2 on regenerated trials; extension rule per model; expectations and reporting rule (version 1.0.1)",
            "Numeric criteria for the expectation checks", "Single study-LLOQ source and LLOQ sensitivity, including the scaled additive residual variant", "Sample-size table (analytic, simulation, PK-model check)",
            "Criteria sets (iii) and (iv): individual level from stored NCA, AUC0-inf + Cmax by rule and set, bias, decision instability", "Regenerated trials restarted from trial 1 to add the criteria-set endpoints",
-           "Adult atopic dermatitis body-weight analyses (three model variants, three distributions; trials)", "Coverage measure in the summary sentence of the atopic analysis (sampling-window coverage of the true AUC0-inf)", "Weight-height correlation check (BMI covariate variant)"),
+           "Adult atopic dermatitis body-weight analyses (three model variants, three distributions; trials)", "Coverage measure in the summary sentence of the atopic analysis (sampling-window coverage of the true AUC0-inf)", "Weight-height correlation check (BMI covariate variant)",
+           "Principle: the case against AUC0-inf rests on the trial population; atopic and out-of-range results reclassified as robustness checks", "Trial-population analyses: failure by criteria set, strata, treatment-dependent failure, failing-subject characteristics, coverage versus observed-to-true ratio"),
   Status = c("pre-specified", "pre-specified", "post hoc (after the first validation results)", "specified after the first schedule simulations were run, before any result was reported",
              "change after initial results; all dependent outputs regenerated", "pre-specified", "pre-specified", "post hoc", "post hoc", "post hoc (data-dependent)", "post hoc", "post hoc reporting priority; the analysis itself was pre-specified",
              "pre-registered (config/prereg_20260926.yaml section1)", "registered amendment: after the runs started, before any result was read", "pre-registered (section2); the scaled residual variant was added by the analyst, not requested", "pre-registered (section3)",
              "pre-registered (section4)", "registered change before any result of the restarted runs; identity of the earlier rows checked", "pre-registered (section5)",
-             "decided after the first individual-level summary; the pre-registered observed-AUC0-last ratio is reported alongside", "post hoc, exploratory (after the simulated BMI SD was seen)"),
+             "decided after the first individual-level summary; the pre-registered observed-AUC0-last ratio is reported alongside", "post hoc, exploratory (after the simulated BMI SD was seen)",
+             "sponsor decision after the atopic results were seen; no analysis changed, only where the results are reported", "pre-registered (section6); analyses seen before registration are listed in the registration"),
   `Date (evidence)` = c(cdate("8d69d82"), cdate("8d69d82"), cdate("c018729"), cdate("c018729"), cdate("d26f169"), cdate("779e068"), cdate("779e068"), cdate("0f6bf72"), cdate("0f6bf72"), cdate("68be707"), cdate("68be707"), cdate("68be707"),
-                        cdate("521645a"), cdate("c5b304b"), cdate("211e8ed"), cdate("211e8ed"), cdate("325e63b"), cdate("325e63b"), cdate("325e63b"), cdate("167e2f5"), cdate("167e2f5")),
+                        cdate("521645a"), cdate("c5b304b"), cdate("211e8ed"), cdate("211e8ed"), cdate("325e63b"), cdate("325e63b"), cdate("325e63b"), cdate("167e2f5"), cdate("167e2f5"), cdate("bae3574"), cdate("bae3574")),
   `First results` = c(cdate("d2592d7"), cdate("d2592d7"), "same commit as the decision", "first schedule simulations: see Date of the models row; results withheld until validation was accepted",
                       "outputs regenerated before the operating characteristics were run", cdate("b8a5351"), cdate("5f972bd"), cdate("0f6bf72"), cdate("bf9a5b1"), cdate("bf9a5b1"), cdate("bf9a5b1"), cdate("b8a5351"),
                       fcommit("results/oc_models/type1_models.csv"), fcommit("results/oc_models/expectations_check.csv"), fcommit("results/lloq/lloq_trial_type1.csv"), fcommit("results/sample_size/ss_table_n_needed.csv"),
-                      fcommit("results/criteria/criteria_g2_type1.csv"), fcommit("results/criteria/restart_identity_check.csv"), fcommit("results/atopic/atopic_criteria_by_band.csv"), fcommit("results/atopic/atopic_coverage_failing.csv"), fcommit("results/atopic/atopic_exploratory_height_corr.csv")),
+                      fcommit("results/criteria/criteria_g2_type1.csv"), fcommit("results/criteria/restart_identity_check.csv"), fcommit("results/atopic/atopic_criteria_by_band.csv"), fcommit("results/atopic/atopic_coverage_failing.csv"), fcommit("results/atopic/atopic_exploratory_height_corr.csv"), "not applicable (reporting decision)", fcommit("results/trialpop/tp_failure_by_set.csv")),
   `How reported` = c("Appendix A", "Section 4.2", "200 mg data sets reported as external checks with their ratios; re-judgement on fully external data reported", "Section 5.7; recommendation unchanged in every variant",
                      "Previous versus new engine differences tabulated (results/nca_engine/); conclusions unchanged", "Primary metric; every mechanism and configuration reported (Appendix F)", "Section 5.1",
                      "Reported first, with set (ii) alongside (set (ii) is the pre-specified definition)", "Labelled post hoc in Table 5-6; same trials regenerated with the same seeds", "Both the pre-specified 10,000-trial value and the 20,000-trial value are reported",
                      "Section 5.4", "Section 5.5", "Section 5.9; M0 and M1 side by side; primary model left to the sponsor", "Table 5-15", "Section 5.10 (residual as estimated first, scaled variant alongside)", "Section 5.11",
-                     "Sections 5.3 and 5.4 (Tables 5-4 and 5-9)", "Section 3.13; results/criteria/restart_identity_check.csv", "Section 5.8 (Tables 5-12 and 5-13)", "Both measures stated next to the summary sentence (Sections 5.8, 7)", "Section 6.5, labelled exploratory"))
+                     "Sections 5.3 and 5.4", "Section 3.13; results/criteria/restart_identity_check.csv", "Appendix I (robustness check)", "Appendix I", "Appendix I, labelled exploratory", "Sections 5.3, 5.8 and Appendix I", "Sections 5.2 and 5.3"))
 fwrite(dd, file.path(out, "prespecification_register.csv"))
 
 # ---- E. software environment (renv.lock) ----

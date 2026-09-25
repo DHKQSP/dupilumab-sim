@@ -168,7 +168,7 @@ inst <- function(col) { r <- rows(CSf, "analysis_model=='M0' & !scenario %in% c(
   .record(sprintf("decision instability %s, median and maximum over 16 boundary cells, M0", col), CSf, sprintf("analysis_model=='M0' & !scenario in (S00, F097) :: median and max of %s", col), c(median(x), max(x)),
           sprintf("a median of %s%% and up to %s%%", fnum(median(x), 1), fnum(max(x), 1))) }
 cbias <- function(cf, am = "M0") vrange(CBf, sprintf("analysis_model=='%s' & config=='%s'", am, cf), "bias_pct", 2, item = sprintf("AUC0-inf GMR bias against the true AUC0-inf ratio, %s, %s", cf, am), unit = "%")
-sec("5.8 Adult atopic dermatitis population")
+sec("Appendix I Robustness across body weight")
 AWf <- "atopic/atopic_weight_table.csv"; ABNf <- "atopic/atopic_criteria_by_band.csv"; ACFf <- "atopic/atopic_coverage_failing.csv"; ATRf <- "atopic/atopic_criteria_weight_trend.csv"
 AXf <- "atopic/atopic_exploratory_height_corr.csv"; AP1f <- "atopic/atopic_pillar1_by_band.csv"; APCf <- "atopic/atopic_population_characteristics.csv"
 ABf <- "atopic/atopic_trials_bias.csv"; ACCf <- "atopic/atopic_trials_concordance.csv"; AAFf <- "atopic/atopic_trials_arm_failure.csv"; APSf <- "atopic/atopic_trials_pass.csv"
@@ -205,9 +205,8 @@ at_armdiff <- function(sc, s_) vrange(AAFf, sprintf("scenario=='%s' & set=='%s'"
 **Results.**
 
 - **Boundary scenarios in which AUC0-last + Cmax exceeds 5% (point estimate).** `r ov_txt`
-- AUC0-last captures essentially all of the exposure. The true extrapolated fraction beyond the last quantifiable sample has a median of `r ext_med["k2016"]`% (95th percentile `r ext_p95["k2016"]`%) in the primary model and `r ext_med["k2020"]`% (`r ext_p95["k2020"]`%) in the 2020 model. The share of subjects in whom AUC0-last covers less than 80% of total exposure is `r cov80["k2016"]` in the primary model and `r cov80["k2020"]` in the 2020 model.
+- AUC0-last captures essentially all of the exposure. The true extrapolated fraction beyond the last quantifiable sample has a median of `r ext_med["k2016"]`% (95th percentile `r ext_p95["k2016"]`%) in the primary model and `r ext_med["k2020"]`% (`r ext_p95["k2020"]`%) in the 2020 model. The share of subjects whose window coverage (true AUC0-tlast / true AUC0-inf) is below 80% is `r cov80["k2016"]` in the primary model and `r cov80["k2020"]` in the 2020 model.
 - NCA AUC0-inf fails criteria set (i) (adjusted R-squared at least 0.80 and extrapolation at most 20%) in `r cr_st("i")` of subjects of the study population (60 to 90 kg, two models). These criteria are statistical analysis plan conventions, not software defaults: Phoenix WinNonlin applies lambda-z acceptance criteria only when the user enters them, and then only flags the profiles. Set (i) is the lower end of the conventional range. With the commonly used adjusted R-squared of at least 0.90 (set (iii)) the share is `r cr_st("iii")`, and `r cr_st("iv")` if a span of at least 3 half-lives is also required (set (iv)).
-- In the adult atopic dermatitis population (lognormal body weight, mean 78 kg, SD 19 kg, `r aw(AW_S, "outside_60_90")`% outside 60 to 90 kg), a reliable AUC0-inf cannot be obtained in `r at_X`% (criteria set (i)) to `r at_Y`% (criteria set (iii)) of patients (primary model; `r at_rng("i")` and `r at_rng("iii")` across three model variants). The failures are concentrated in heavier patients (set (i), primary model: `r at_band("base", "i", "below 60")`% below 60 kg, `r at_band("base", "i", "above 100")`% above 100 kg), whereas AUC0-last covers at least `r at_Z`% of total exposure in the same patients.
 - With the pooled t-test (M0), AUC0-last + Cmax (proposed) is conservative in `r p2_n_cons`, nominal in `r p2_n_nom` and exceeding in `r p2_n_exc` of the `r p2_n_all` boundary scenarios (Wilson 95% interval versus 5%). The largest value is `r p2_max$k2020$text` (`r nom_n` trials) for a `r nom_mult`-fold peripheral volume in the 2020 model. In the primary model the largest value is `r p2_max$k2016$text`.
 - The randomization is stratified by body weight. With the stratum in the analysis model (M1, ANOVA), AUC0-last + Cmax is conservative in `r CLS$M1[["conservative"]]`, nominal in `r CLS$M1[["nominal"]]` and exceeding in `r CLS$M1[["exceeding"]]` scenarios (`r am_rng("M1")`). M0 ignores the stratum, so its standard error overstates the sampling variability (between-trial SD / within-trial SE of the unbiased reference `r sdse("M0")` under M0 and `r sdse("M1")` under M1).
 - AUC0-inf + Cmax analysed in subjects meeting the reliability criteria (the pre-specified guidance-default configuration) exceeds 5% in `r G$G2_Aii$n_pt` of 16 boundary scenarios, with the Wilson lower bound above 5% in all `r G$G2_Aii$n_lo`. The largest value is `r G$G2_Aii$mx$text`. Including every subject with an estimable lambda-z still exceeds 5% in `r G$G2_B$n_pt` of 16 scenarios (largest `r G$G2_B$mx$text`). Only substituting AUC0-last for subjects failing the criteria restores control (largest `r G$G2_Cii$mx$text`).
@@ -215,7 +214,7 @@ at_armdiff <- function(sc, s_) vrange(AAFf, sprintf("scenario=='%s' & set=='%s'"
 - The inflation has two sources. First, NCA AUC0-inf is biased toward a ratio of 1, because the pre-cliff lambda-z overstates the unobserved tail equally in both arms. Second, excluding subjects who fail the criteria selects a non-random subset.
 - Power for identical products is `r pw$k2016` (primary model) and `r pw$k2020` (2020 model) for AUC0-last + Cmax.
 - Changing the target-binding constant (Km) from 0.01-fold to 100-fold moves the true AUC0-inf ratio only within `r km_rng`. A binding difference is therefore not detectable by any AUC endpoint and must be addressed by the comparative analytical assessment.
-- Between assay LLOQs of 0.02 and 0.5 mg/L, the share of subjects in whom AUC0-last covers less than 80% of total exposure stays within `r lli("k2016", 0.02, "coverage_lt80_pct", 2)`% to `r lli("k2016", 0.5, "coverage_lt80_pct", 2)`% (primary model), and the boundary type I error of AUC0-last + Cmax within `r llt("M0", "P2")` (M0) in the three scenarios examined.
+- Between assay LLOQs of 0.02 and 0.5 mg/L, the share of subjects with window coverage below 80% stays within `r lli("k2016", 0.02, "coverage_lt80_pct", 2)`% to `r lli("k2016", 0.5, "coverage_lt80_pct", 2)`% (primary model), and the boundary type I error of AUC0-last + Cmax within `r llt("M0", "P2")` (M0) in the three scenarios examined.
 - At the protocol CV of 43% and a true GMR of 0.95, `r cfgv("trial_design.yaml", "n_per_arm")` evaluable subjects per arm give P2 power of `r p117(43, "M0")`% (M0) and `r p117(43, "M1")`% (M1); 90% power needs `r nn(43, 0.95, "M0", 90)` (M0) or `r nn(43, 0.95, "M1", 90)` (M1) evaluable per arm, and at a CV of 50% `r nn(50, 0.95, "M0", 90)` or `r nn(50, 0.95, "M1", 90)`.
 - The pre-specified criteria for adding samples were not met in either model. In one sensitivity variant (Vmax x0.8 in both arms), one criterion was met at 20,000 subjects but not on re-evaluation in 200,000 subjects. The cliff is shorter than any feasible visit interval, and denser late sampling does not improve AUC0-inf reliability. The planned schedule is retained, including Day 50.
 
@@ -355,7 +354,7 @@ The NCA engine reproduces the Phoenix WinNonlin rules. It was verified against t
 
 AUC0-inf is AUCINF_obs (AUC0-last + Clast/lambda-z).
 
-**Reliability criteria for AUC0-inf.** Phoenix WinNonlin does not define reliability criteria for lambda-z. Its Lambda Z Acceptance Criteria (Rules tab) are optional entries in which the user sets a minimum adjusted R-squared, a maximum extrapolated percentage and a minimum span; profiles that do not meet them are flagged, not excluded, and no values are applied unless entered (Certara Phoenix 8.2 NCA documentation). The criteria below are therefore statistical analysis plan conventions. An adjusted R-squared of at least 0.80 is one convention; at least 0.90, sometimes with a span of at least 3 half-lives, is common in public statistical analysis plans (for example NCT04117607: adjusted R-squared at least 0.90 and span at least 3.0; NCT04441905: adjusted R-squared at least 0.90). All sets require an estimable lambda-z and an extrapolated area of at most 20%.
+**Reliability criteria for AUC0-inf.** Phoenix WinNonlin does not define reliability criteria for lambda-z. Its Lambda Z Acceptance Criteria (Rules tab) are optional entries in which the user sets a minimum adjusted R-squared, a maximum extrapolated percentage and a minimum span; profiles that do not meet them are flagged, not excluded, and no values are applied unless entered (Certara Phoenix 8.2 NCA documentation). The criteria below are therefore statistical analysis plan conventions. An adjusted R-squared of at least 0.80 is one convention; at least 0.90, sometimes with a span of at least 3 half-lives, is common in public statistical analysis plans (NCT04117607: adjusted R-squared at least 0.90, span at least 3.0 half-lives and at least 3 points after tmax; NCT04441905: adjusted R-squared at least 0.90 and at least 3 points; NCT04700163: adjusted R-squared above 0.90, otherwise AUC0-inf and the other terminal parameters are excluded from the summaries and the statistical analysis; the last was verified from a web-search excerpt because the registry document could not be opened from the analysis environment). All sets require an estimable lambda-z and an extrapolated area of at most 20%.
 
 - Criteria set (i): adjusted R-squared at least 0.80.
 - Criteria set (ii): set (i) plus a span ratio of at least 2, where span ratio = (last time - first time of the lambda-z window) / half-life.
@@ -381,6 +380,8 @@ Each of the three rules defines an endpoint that could be pre-specified in a sta
 The true value is the ratio of the test to the reference population geometric means, using model-integrated AUC0-inf and Cmax without residual error. It is estimated in `r fint(as.numeric(cfgv("oc_design.yaml", c("estimand", "population", "n_subjects"))))` common virtual subjects who receive the reference and the test parameters in turn.
 
 A scenario counts as "inside the limits" when the true AUC0-inf ratio, not the AUC0-last ratio, lies within 0.80 to 1.25. Judging against total exposure is the conservative choice for the proposed endpoint.
+
+At the subject level, the model gives the true concentration-time curve without residual error. Two ratios are computed from it: the window coverage (true AUC from dosing to the observed last quantifiable time divided by the true AUC0-inf) and the observed-to-true ratio (observed AUC0-last, or NCA AUC0-inf, divided by the true AUC0-inf). The first depends only on where sampling ends; the second also contains the proportional residual error and the trapezoidal approximation, which enter both arms in the same way.
 
 ## 3.7 Operating characteristics (pre-specified)
 
@@ -436,16 +437,13 @@ The following analyses were registered in `config/prereg_20260926.yaml` and comm
 - **LLOQ (Section 5.10).** The study LLOQ is set in a single configuration file (`config/assay.yaml`). The same subjects, sampling times and residual draws were re-censored at LLOQs of 0.02, 0.05, 0.078, 0.1, 0.2 and 0.5 mg/L, with the residual error as estimated (primary) and with the additive residual scaled by the LLOQ (secondary). At 0.078 mg/L every result equals the stored result.
 - **Sample size (Section 5.11).** P2 power over a grid of AUC0-last coefficient of variation (CV), true GMR and evaluable subjects per arm, by an analytic approximation and by simulation, for M0 and M1, checked against PK-model trials.
 
-## 3.13 Analyses added in version 1.0.1: criteria convention and patient body weight (pre-registered)
+## 3.13 Analyses added in version 1.0.1: criteria convention and trial-population analyses (pre-registered)
 
-The following analyses were registered in `config/prereg_20260926.yaml` (sections 4 and 5) and committed before any of their results were generated (Appendix D):
+The following analyses were registered in `config/prereg_20260926.yaml` (sections 4 to 6) and committed before any of their results were generated (Appendix D):
 
 - **Criteria convention (Sections 5.3 and 5.4).** Criteria sets (iii) and (iv) were added (Section 3.4). The individual-level failure shares of the study population come from the stored subject-level NCA of 20,000 subjects per model; no new simulation was needed. AUC0-inf + Cmax under rules A and C for each set, and under rule B, was computed on the trials regenerated for Section 3.12 and analysed with M0 and M1. To add these endpoints, the regeneration was restarted from trial 1; the rows of the trials completed before the restart (`r rc_trials`) are identical after it (`r rc_rows` rows).
-- **Adult atopic dermatitis body weight (Section 5.8).** The study enrols healthy subjects of 60 to 90 kg, whereas the patients for whom dupilumab is indicated are heavier and more variable. Their body weight was represented by a lognormal distribution with mean 78 kg and SD 19 kg, truncated to 40 to 180 kg, based on Kamal 2022 (phase 2b, 379 adults with atopic dermatitis: mean body weight 74.0 to 80.6 kg by dose group, mean BMI 25.4 to 27.3 kg/m2), Kovalenko 2021 (adult phase 3 population PK data: BMI SD 5.47 kg/m2) and NCT03389893 (71 adults with atopic dermatitis: body weight 80.2 kg, SD 19.0; height 172.5 cm, SD 10.4; BMI 26.9 kg/m2, SD 5.45). Sensitivity distributions: mean 80 kg with SD 19 kg, and mean 75 kg with SD 18 kg. Height (for BMI) is normal, mean 172 cm, SD 10 cm, truncated to 150 to 200 cm, drawn independently of weight. The distribution is a placeholder until the phase 3 body-weight data of the reference product are checked (Section 6.5).
-  - Model variants: the 2016 model, 2020 Model 1, and the 2016 model with the adult phase 3 covariates of Kovalenko 2020 (linear elimination on BMI, exponent 0.368 at a reference BMI of 26 kg/m2; central volume on body weight, exponent 0.817; Kovalenko 2020 Table 3 and Supplementary Table 3, Model 4).
-  - Individual level: 20,000 subjects per variant and distribution, 300 mg, planned schedule.
-  - Trial level: primary distribution, 117 subjects per arm, `r fint(as.numeric(cfgv("prereg_20260926.yaml", c("section5", "trial", "trials"))))` trials for identical products and for test products with bioavailability x0.90, linear elimination x1.20, Vmax x1.25 and Km x10, randomization strata 40 to 75 kg and above 75 to 180 kg, M0 and M1. True ratios were computed in 20,000 subjects of the same distribution.
-- **Stress test.** The earlier population with body weight normal, mean 100 kg, SD 20 kg, truncated to 60 to 150 kg (version 1.0) is kept as a stress test of a heavier population, not as an estimate of any patient population.
+- **Trial-population analyses (Sections 5.2 and 5.3; registered in section 6 before any of their results).** TRIALPOP_METHODS_PLACEHOLDER
+- **Body weight outside the trial population.** Uniform weight bands, a population with a mean of 100 kg and an adult atopic dermatitis body-weight distribution are robustness checks (Appendix I), not evidence for the proposal.
 
 # 4. Model credibility
 
@@ -546,7 +544,7 @@ lit <- function(src, dose, col) v("literature/literature_numeric.csv", sprintf("
 
 In Clot 2021 (300 mg), the published NCA ratio of mean AUC0-last to mean AUC0-inf was `r lit("Clot 2021 Table 3", 300L, "lit_mean_ratio")`%. The simulated NCA ratio was `r lit("Clot 2021 Table 3", 300L, "nca_mean_ratio_k2016")`% (primary model), and the true simulated ratio (model integral) was `r lit("Clot 2021 Table 3", 300L, "true_mean_ratio_k2016")`%.
 
-At 600 mg, the simulated true coverage (`r lit("Clot 2021 Table 3", 600L, "true_mean_ratio_k2016")`%) is below the published NCA value (`r lit("Clot 2021 Table 3", 600L, "lit_mean_ratio")`%). Published NCA coverage is a lower bound of true coverage because NCA overstates the tail, so the models under-estimate AUC0-last coverage at this dose. That is the conservative direction for the proposal.
+At 600 mg, the simulated window coverage (`r lit("Clot 2021 Table 3", 600L, "true_mean_ratio_k2016")`%) is below the published NCA value (`r lit("Clot 2021 Table 3", 600L, "lit_mean_ratio")`%). Published NCA coverage is a lower bound of true coverage because NCA overstates the tail, so the models under-estimate AUC0-last coverage at this dose. That is the conservative direction for the proposal.
 
 ## 4.4 Credibility summary
 
@@ -596,19 +594,21 @@ fig("cliff/fig2_4_representative_en.png", "Figure 5-2")
 
 ## 5.2 Coverage of total exposure by AUC0-last
 
+Two quantities are kept apart throughout this report. **Window coverage** is the true AUC from dosing to the last quantifiable sample divided by the true AUC0-inf; it states how much of total exposure lies inside the interval that AUC0-last measures, and "coverage" means only this. The **observed-to-true ratio** is the observed AUC0-last (or NCA AUC0-inf) divided by the true AUC0-inf; it also contains the assay (residual) error and the trapezoidal approximation (Table OBS_TRUE_TABLE_REF).
+
 ```{r coverage}
 sec("5.2 Coverage")
 pc <- rows("rationale/pillar1_coverage_B0.csv", "group=='all'")
 tab_src("Table 5-1 coverage", c("rationale/pillar1_coverage_B0.csv", "reliability/reliability_two_flag_sets_summary.csv"))
 t51 <- pc[, .(Model = MODEL_LAB[model], Subjects = fint(n_subjects), `True extrapolated %, median` = fnum(extrap_true_median, 2), `95th percentile` = fnum(extrap_true_p95, 2), Maximum = fnum(extrap_true_max, 1),
-              `Coverage below 80%, % [95% CI]` = coverage_lt80_pct_ci, `NCA extrapolated %, median` = fnum(extrap_nca_median, 1), `NCA extrapolation above 20%, % [95% CI]` = extrap_nca_gt20_pct_ci)]
+              `Window coverage below 80%, % [95% CI]` = coverage_lt80_pct_ci, `NCA extrapolated %, median` = fnum(extrap_nca_median, 1), `NCA extrapolation above 20%, % [95% CI]` = extrap_nca_gt20_pct_ci)]
 kt(t51, caption = "Table 5-1. True extrapolated fraction beyond the last quantifiable sample (model integral) and NCA-estimated extrapolation, planned schedule, 60 to 90 kg.", align = c("l", rep("r", 7)))
 csh <- rows("curve_shape/curve_shape_B0.csv")
 lab_cs <- c(base = "Primary model", km05_both = "Km x0.5", km2_both = "Km x2", km5_both = "Km x5", km10_both = "Km x10", vmax080_both = "Vmax x0.8", vmax125_both = "Vmax x1.25", vmax050_both = "Vmax x0.5 (stress test; fails validation)")
 premise(all(csh$variant %in% names(lab_cs)), "curve-shape variant labels")
 tab_src("Table 5-2 curve shape", "curve_shape/curve_shape_B0.csv")
 t52 <- csh[match(names(lab_cs), variant), .(Variant = lab_cs[variant], `True extrapolated %, median` = fnum(extrap_true_median, 2), `95th percentile` = fnum(extrap_true_p95, 2), Maximum = fnum(extrap_true_max, 1),
-            `Coverage below 80% (%)` = fnum(coverage_lt80_pct, 2), `NCA extrapolated %, median` = fnum(extrap_nca_median, 1), `Reliable, (i) [(ii)] %` = sprintf("%s [%s]", fnum(reliable_rsq_extrap_pct, 1), fnum(reliable_pct, 1)),
+            `Window coverage below 80% (%)` = fnum(coverage_lt80_pct, 2), `NCA extrapolated %, median` = fnum(extrap_nca_median, 1), `Reliable, (i) [(ii)] %` = sprintf("%s [%s]", fnum(reliable_rsq_extrap_pct, 1), fnum(reliable_pct, 1)),
             `Median tlast (day)` = fnum(tlast_median, 1), `AUC0-last vs observed (300 mg, ~78 kg)` = fnum(AUClast_ratio_vs_obs544, 2))]
 ada <- function(g, col, d = 2) v("individual/individual_ada10_by_subgroup.csv", sprintf("ada==%d & schedule=='B0'", g), col, d)
 cs_ok <- rows("curve_shape/curve_shape_B0.csv", "stress_test==FALSE")
@@ -626,8 +626,8 @@ kt(t52, caption = "Table 5-2. Sensitivity of coverage to the unobservable curve 
 
 **Coverage:**
 
-- In 95% of subjects, AUC0-last covers at least `r cov95_txt`% of total exposure. This holds under both models and all curve-shape variants that remain consistent with the observed data (the lowest value is for Vmax x1.25).
-- `r if (lt80_max == 0) "No subject falls below 80% coverage in these variants." else sprintf("At most %s%% of subjects fall below 80%% coverage in these variants.", fnum(lt80_max, 2))`
+- In 95% of subjects the window coverage is at least `r cov95_txt`%. This holds under both models and all curve-shape variants that remain consistent with the observed data (the lowest value is for Vmax x1.25).
+- `r if (lt80_max == 0) "No subject has a window coverage below 80% in these variants." else sprintf("At most %s%% of subjects have a window coverage below 80%% in these variants.", fnum(lt80_max, 2))`
 - In the Vmax x0.5 stress test, which does not match the observed exposure, the 95th percentile rises to `r v("curve_shape/curve_shape_B0.csv", "variant=='vmax050_both'", "extrap_true_p95", 2)`%.
 
 **NCA extrapolation overstates the tail.** The NCA-estimated extrapolation is about `r nca_ratio_txt` times the true value at the median: `r nca_med["k2016"]`% against `r ext_med["k2016"]`% in the primary model. This is the direct consequence of estimating lambda-z before the cliff.
@@ -664,41 +664,7 @@ kt(t53[, c("Model", setdiff(names(t53), c("Model", "variant"))), with = FALSE], 
 fig("reliability/fig_reliability_mechanism_en.png", "Figure 5-3")
 ```
 
-**The failure share depends on the criteria chosen.** Because the criteria are analysis plan conventions (Section 3.4), the share of subjects without a reliable AUC0-inf was computed for all four sets in the stored subject-level NCA (Table 5-4, Figure 5-4).
-
-```{r crit-sets}
-sec("5.3 Criteria convention")
-ci_ <- rows(CIf, "distribution %in% c('study_60_90','primary')")
-tab_src("Table 5-4 criteria sets", CIf)
-VLAB <- c(base = "2016 model", struct2020 = "2020 Model 1", k2016_bmi_vc0817 = "2016 model with phase 3 covariates")
-PLAB <- c(study_60_90 = "Study population, 60 to 90 kg", primary = "Adult atopic dermatitis, lognormal mean 78 kg (SD 19)")
-t54 <- dcast(ci_[, .(Population = PLAB[distribution], Model = VLAB[variant], set, txt = sprintf("%s (%s)", fnum(fail_pct, 1), fnum(fail_per_arm, 1)))], Population + Model ~ set, value.var = "txt")
-t54 <- merge(t54, ci_[set == "i", .(Population = PLAB[distribution], Model = VLAB[variant], `lambda-z not estimable, %` = fnum(lz_fail_pct, 2))], by = c("Population", "Model"))
-setnames(t54, c("i", "ii", "iii", "iv"), c("Set (i)", "Set (ii)", "Set (iii)", "Set (iv)"))
-t54 <- t54[order(-(Population == PLAB[["study_60_90"]]), match(Model, VLAB))]
-chk53 <- merge(rows("reliability/reliability_two_flag_sets_summary.csv", "variant %in% c('base','struct2020')")[, .(variant, f_i = 100 - reliable_i_pct, f_ii = 100 - reliable_ii_pct)],
-               dcast(ci_[distribution == "study_60_90"], variant ~ set, value.var = "fail_pct"), by = "variant")
-premise(nrow(chk53) == 2 && all(abs(chk53$f_i - chk53$i) < 0.05) && all(abs(chk53$f_ii - chk53$ii) < 0.05), "criteria sets (i) and (ii) of the study population equal Table 5-3")
-kt(t54, caption = "Table 5-4. Subjects without a reliable AUC0-inf by criteria set: % of subjects (expected number per arm of 117). Planned schedule, 300 mg, 20,000 subjects per population and model. All sets require an estimable lambda-z and extrapolation of at most 20%; (i) adjusted R-squared at least 0.80; (ii) (i) and span ratio at least 2; (iii) adjusted R-squared at least 0.90; (iv) (iii) and span ratio at least 3. Sets (i) and (ii) of the study population are those of Table 5-3.", align = c("l", "l", rep("r", 5)))
-```
-
-- The share under set (i), `r cr_st("i")` in the study population, is the lower end of the conventional range. Under the commonly used adjusted R-squared of at least 0.90 (set (iii)) it is `r cr_st("iii")`, that is `r cr_st("iii", "fail_per_arm", 1, "")` subjects per arm of 117, and `r cr_st("iv")` under set (iv).
-- In the adult atopic dermatitis population the shares are `r cr_at("i")` (set (i)) and `r cr_at("iii")` (set (iii)) across the three model variants.
-- Most failures have an estimable lambda-z that does not meet the criteria; lambda-z itself is not estimable in `r cr_st("i", "lz_fail_pct", 2)` of the study population.
-- In failing subjects the sampling window still captures a median of `r at_cf("iii", "window_fail_median")` of the true AUC0-inf (atopic population, set (iii)). The observed AUC0-last, which also carries assay error and the trapezoidal approximation, is a median of `r cr_st("i", "auclast_over_true_fail_median", 1, "%", 100)` of the true AUC0-inf in failing subjects of the study population (set (i)).
-
-```{r fig-crit, fig.cap = "Figure 5-4. Share of subjects without a reliable AUC0-inf by criteria set, split into lambda-z not estimable and estimable but not meeting the criteria (planned schedule, 300 mg, 20,000 subjects per population and model; top: study population 60 to 90 kg; bottom: adult atopic dermatitis, primary weight distribution). Analysis figure results/criteria/fig_criteria_failure.png."}
-fig("criteria/fig_criteria_failure.png", "Figure 5-4")
-```
-
-**Failures are not random.** The primary evidence is the adult atopic dermatitis population (Section 5.8), whose body weight extends well beyond the study range:
-
-- Under set (i), the share failing rises from `r at_band("base", "i", "below 60")`% below 60 kg to `r at_band("base", "i", "above 100")`% above 100 kg in the primary model (set (iii): `r at_band("base", "iii", "below 60")`% to `r at_band("base", "iii", "above 100")`%). The odds of failing increase by a factor of `r at_or("i")` per 10 kg of body weight under set (i) and `r at_or("iii")` under set (iii) (three model variants; logistic regression, descriptive).
-- Failing patients are `r cr_at("i", "wt_diff", 1, " kg")` heavier than retained patients under set (i), and their AUC0-last is lower (geometric mean ratio, failing to retained, `r cr_at("i", "auclast_gm_ratio_fail_to_retained", 3, "")`).
-- Within the study inclusion range the weight difference is smaller (`r cr_st("i", "wt_diff", 2, " kg")`) because the range is narrow, while the AUC0-last difference remains (`r cr_st("i", "auclast_gm_ratio_fail_to_retained", 3, "")`).
-- Stress test (body weight normal, mean 100 kg, SD 20 kg, 60 to 150 kg; not a population estimate): in simulated trials, subjects failing the criteria are `r sprintf("%s to %s", fnum(dw[1], 1), fnum(dw[2], 1))` kg heavier than those retained. Across uniform weight bands of the primary model, reliability under set (i) falls from `r fnum(wb_lo$reliable_rsq_extrap_pct, 1)`% at `r wb_lo$band` kg to `r fnum(wb_hi$reliable_rsq_extrap_pct, 1)`% at `r wb_hi$band` kg.
-- An analysis restricted to reliable subjects therefore changes the population compared, and the change depends on the product's own PK. In trials of the atopic population, a test product with Vmax x1.25 has `r at_armdiff("VM125", "i")` percentage points more subjects failing set (i) than the reference arm, and `r at_armdiff("VM125", "iii")` points more under set (iii) (mean over trials; Section 5.8).
-
+TRIALPOP_RESULTS_PLACEHOLDER
 
 ## 5.4 Operating characteristics
 
@@ -958,82 +924,9 @@ The results below cover both models and all six sensitivity variants: Vmax x0.8 
 - The planned schedule is retained.
 - Removing Day 50 is not recommended. It would narrow the CI by only `r bm_w`% (below the 2% threshold of criterion (a)), while the share of subjects with NCA extrapolation above 20% would be `r bm_d` times that of the planned schedule, weakening AUC0-inf as a secondary endpoint.
 
-## 5.8 Body weight: adult atopic dermatitis population
+## 5.8 Body weight outside the trial population
 
-```{r weight}
-sec("5.8 Adult atopic dermatitis population")
-wbx <- rows("weight_generalization/weight_bands_B0_abcd.csv", "model=='a'")
-tab_src("weight bands", "weight_generalization/weight_bands_B0_abcd.csv")
-w_cov <- max(wbx$coverage_lt80_pct); .record("largest coverage below 80% across weight bands (%)", "weight_generalization/weight_bands_B0_abcd.csv", "model=='a' :: max(coverage_lt80_pct)", w_cov, fnum(w_cov, 2))
-w_med <- range(wbx$extrap_true_median); .record("true extrapolation median range across weight bands", "weight_generalization/weight_bands_B0_abcd.csv", "model=='a' :: range(extrap_true_median)", w_med, sprintf("%s to %s", fnum(w_med[1], 2), fnum(w_med[2], 2)))
-ref_dev <- { r <- rows(AWf, "distribution=='primary'"); u <- r[source == AW_U]; rf <- r[grepl("^reference", source)]
-  x <- max(abs(c(u$below_60 - rf$below_60, u$above_90 - rf$above_90, u$above_100 - rf$above_100, u$outside_60_90 - rf$outside_60_90)))
-  premise(x < 0.06, "analytic shares equal the directive's independent reference within rounding"); .record("largest difference between analytic and reference shares (points)", AWf, "primary: analytic untruncated minus reference", x, fnum(x, 2)) }
-sens_out <- vrange(AWf, "distribution!='primary' & grepl('^simulated', source)", "outside_60_90", 1, item = "sensitivity distributions, simulated share outside 60 to 90 kg", unit = "%")
-p130 <- local({ x <- .read("config/population_atopic.yaml")$distributions$primary; sl <- sqrt(log(1 + (x$sd / x$mean)^2)); ml <- log(x$mean) - sl^2 / 2; tr <- as.numeric(unlist(x$trunc))
-  pp <- 100 * (plnorm(tr[2], ml, sl) - plnorm(130, ml, sl)) / (plnorm(tr[2], ml, sl) - plnorm(tr[1], ml, sl))
-  .record("share of the primary distribution above 130 kg (analytic, truncated)", "config/population_atopic.yaml", "distributions.primary :: lognormal share above 130 kg within the truncation", pp, fnum(pp, 1)) })
-BL <- c("below 60" = "below 60 kg", "60-90" = "60 to 90 kg", "above 90-100" = "above 90 to 100 kg", "above 100" = "above 100 kg", all = "all")
-p1b <- rows(AP1f, "population=='adult atopic dermatitis' & distribution=='primary' & band %in% c('below 60','60-90','above 90-100','above 100','all')")
-cbb <- rows(ABNf, "distribution=='primary' & band %in% c('below 60','60-90','above 90-100','above 100','all') & set %in% c('i','iii')")
-tab_src("Table 5-12 atopic population by weight band", c(AP1f, ABNf))
-t512 <- merge(p1b[, .(variant, band, `Share of population, %` = fnum(100 * n / max(n), 1), `True extrapolated %, median (maximum)` = sprintf("%s (%s)", fnum(extrap_true_median, 2), fnum(extrap_true_max, 1)),
-                      `Coverage below 80%, %` = fnum(coverage_lt80_pct, 2))],
-              dcast(cbb[, .(variant, band, set, txt = sprintf("%s [%s, %s]", fnum(fail_pct, 1), fnum(fail_lo, 1), fnum(fail_hi, 1)))], variant + band ~ set, value.var = "txt"), by = c("variant", "band"))
-setnames(t512, c("i", "iii"), c("Failing set (i), % [95% CI]", "Failing set (iii), % [95% CI]"))
-t512 <- t512[order(match(variant, names(VLAB)), match(band, names(BL)))][, `:=`(Model = VLAB[variant], `Body weight` = BL[band])]
-t512 <- t512[, c("Model", "Body weight", setdiff(names(t512), c("Model", "Body weight", "variant", "band"))), with = FALSE]
-```
-
-**Population.** The adult atopic dermatitis weight distribution (Section 3.13) places `r aw(AW_S, "outside_60_90")`% of patients outside the study range of 60 to 90 kg: `r aw(AW_S, "below_60")`% below 60 kg, `r aw(AW_S, "above_90")`% above 90 kg and `r aw(AW_S, "above_100")`% above 100 kg (20,000 simulated patients; mean `r aw(AW_S, "wt_mean")` kg, SD `r aw(AW_S, "wt_sd")` kg). Before truncation, the shares are `r aw(AW_U, "below_60")`%, `r aw(AW_U, "above_90")`% and `r aw(AW_U, "above_100")`%, equal to an independent calculation (16.5%, 23.7% and 12.4%) within `r ref_dev` percentage points. The sensitivity distributions place `r sens_out` outside 60 to 90 kg (Figure 5-7).
-
-```{r fig-atw, fig.cap = "Figure 5-7. Adult atopic dermatitis body weight distributions (lognormal, truncated 40 to 180 kg): primary (mean 78 kg, SD 19 kg) and sensitivity distributions, with the study inclusion range shaded; histogram of 20,000 simulated patients from the primary distribution. Analysis figure results/atopic/fig_atopic_weight.png."}
-fig("atopic/fig_atopic_weight.png", "Figure 5-7")
-```
-
-```{r t512}
-kt(t512, caption = "Table 5-12. Adult atopic dermatitis population by body weight band (primary weight distribution, planned schedule, 300 mg, 20,000 patients per model): coverage of total exposure and share without a reliable AUC0-inf (Wilson 95% interval).", align = c("l", "l", rep("r", 5)))
-```
-
-**Coverage.** AUC0-last remains close to total exposure across the patient weight range: the median true extrapolated fraction is `r vrange(AP1f, "population=='adult atopic dermatitis' & distribution=='primary' & band=='all'", "extrap_true_median", 2, item = "atopic, all, median true extrapolation", unit = "%")` in the three model variants and `r vrange(AP1f, "population=='adult atopic dermatitis' & distribution=='primary' & band=='above 100'", "extrap_true_median", 2, item = "atopic, above 100 kg, median true extrapolation", unit = "%")` above 100 kg, and the share of patients whose coverage is below 80% is `r vrange(AP1f, "population=='adult atopic dermatitis' & distribution=='primary' & band=='all'", "coverage_lt80_pct", 2, item = "atopic, all, coverage below 80%", unit = "%")`.
-
-**Reliability of AUC0-inf.** In this population, a reliable AUC0-inf cannot be obtained in `r at_X`% (criteria set (i)) to `r at_Y`% (criteria set (iii)) of patients in the primary model (`r at_rng("i")` and `r at_rng("iii")` across the three model variants). The failures are concentrated in heavier patients (Table 5-12, Figure 5-8), whereas the sampling window of AUC0-last covers at least `r at_Z`% of the true AUC0-inf in every patient failing set (iii) (median `r at_cf("iii", "window_fail_median")`). The sensitivity weight distributions give `r at_sens("i")` (set (i)) and `r at_sens("iii")` (set (iii)).
-
-```{r fig-atf, fig.cap = "Figure 5-8. Share of patients without a reliable AUC0-inf by body weight band and criteria set, adult atopic dermatitis population (primary weight distribution, 20,000 patients per model; bars: Wilson 95% intervals). Analysis figure results/atopic/fig_atopic_failure_by_band.png."}
-fig("atopic/fig_atopic_failure_by_band.png", "Figure 5-8")
-```
-
-```{r atopic-trials}
-sec("5.8 Adult atopic dermatitis population: trials")
-tb_b <- rows(ABf, "analysis_model=='M0' & endpoint %in% c('AUClast','AUCinf_Ai','AUCinf_Aiii','AUCinf_B','AUCinf_Ci')")
-tb_c <- rows(ACCf, "analysis_model=='M0' & config %in% c('A_i','A_iii','C_i')")
-tb_a <- rows(AAFf, "set %in% c('i','iii')")
-tb_p <- rows(APSf, "analysis_model=='M0' & decision=='P2'")
-tab_src("Table 5-13 atopic trials", c(ABf, ACCf, AAFf, APSf))
-SCL <- c(S00 = "identical", F090 = "F x0.90", KE120 = "ke x1.20", VM125 = "Vmax x1.25", KM10 = "Km x10")
-t513 <- dcast(tb_b[, .(variant, scenario, endpoint, b = fnum(bias_pct, 2))], variant + scenario ~ endpoint, value.var = "b")
-t513 <- merge(t513, unique(tb_b[endpoint == "AUClast", .(variant, scenario, tr = fnum(true_ratio, 3))]), by = c("variant", "scenario"))
-t513 <- merge(t513, tb_p[, .(variant, scenario, p2 = fnum(pass_pct, 1))], by = c("variant", "scenario"))
-t513 <- merge(t513, dcast(tb_c[, .(variant, scenario, config, a = fnum(agree_pct, 1))], variant + scenario ~ config, value.var = "a"), by = c("variant", "scenario"))
-t513 <- merge(t513, dcast(tb_a[, .(variant, scenario, set, d = fnum(diff_mean, 2))], variant + scenario ~ set, value.var = "d"), by = c("variant", "scenario"))
-t513 <- t513[order(match(variant, names(VLAB)), match(scenario, names(SCL)))]
-t513 <- t513[, .(Model = VLAB[variant], Scenario = SCL[scenario], `True AUC0-inf ratio` = tr, `AUC0-last` = AUClast, `AUC0-inf A (i)` = AUCinf_Ai, `AUC0-inf A (iii)` = AUCinf_Aiii, `AUC0-inf B` = AUCinf_B, `AUC0-inf C (i)` = AUCinf_Ci,
-                 `P2 pass, %` = p2, `Agreement A (i), %` = A_i, `Agreement A (iii), %` = A_iii, `Agreement C (i), %` = C_i, `Arm difference (i), points` = i, `Arm difference (iii), points` = iii)]
-```
-
-**Trials in the patient population** (Table 5-13; 117 patients per arm, `r fint(as.numeric(cfgv("prereg_20260926.yaml", c("section5", "trial", "trials"))))` trials per scenario, M0):
-
-- The AUC0-last GMR is biased by `r at_bias("AUClast")` against the true AUC0-inf ratio. AUC0-inf is biased by `r at_bias("AUCinf_Ai")` under rule A with set (i), `r at_bias("AUCinf_Aiii")` with set (iii), and `r at_bias("AUCinf_B")` under rule B; rule C with set (i) gives `r at_bias("AUCinf_Ci")`.
-- The decision of AUC0-last + Cmax agrees with that of AUC0-inf + Cmax in `r at_agree("A_i")` of trials under rule A with set (i), `r at_agree("A_iii")` with set (iii), and `r at_agree("C_i")` under rule C with set (i).
-- The share of subjects failing the criteria differs between arms when the products differ: set (i) `r at_armdiff("S00", "i")` points for identical products, `r at_armdiff("F090", "i")` for F x0.90 and `r at_armdiff("VM125", "i")` for Vmax x1.25 (set (iii): `r at_armdiff("S00", "iii")`, `r at_armdiff("F090", "iii")` and `r at_armdiff("VM125", "iii")`). Rule A therefore compares different patients in the two arms, in a way that depends on the product difference.
-
-```{r t513}
-kt(t513, caption = "Table 5-13. Trials in the adult atopic dermatitis population (primary weight distribution, 117 patients per arm, pooled t-test M0): bias (%) of the geometric mean of trial GMRs against the true ratio (AUC endpoints against the true AUC0-inf ratio), pass rate of AUC0-last + Cmax (P2), agreement of the P2 decision with AUC0-inf + Cmax under rule A (criteria (i) or (iii)) and rule C (criteria (i)), and the mean difference between arms (test minus reference) in the share of subjects failing criteria set (i) or (iii).", align = c("l", "l", rep("r", 12)))
-```
-
-**Stress test and weight bands.** Earlier analyses of a heavier population (body weight normal, mean 100 kg, SD 20 kg, 60 to 150 kg) are kept as a stress test, not as a population estimate; their direction is the same (Section 5.3). Across uniform body-weight bands from 40 to 150 kg (primary model, 20,000 subjects per band), the median true extrapolated fraction ranges from `r sprintf("%s to %s", fnum(w_med[1], 2), fnum(w_med[2], 2))`%, and coverage below 80% is at most `r fnum(w_cov, 2)`%.
-
-The body-weight ranges of the models' development data are not reported, so results above about 130 kg (`r p130`% of the primary distribution) may be extrapolations.
+The endpoint proposal rests on the trial population: healthy adults of 60 to 90 kg, randomized within two body-weight strata (Sections 5.2 to 5.4). Results for body weights outside this range (uniform bands from 40 to 150 kg, a population with a mean of 100 kg, and a body-weight distribution of adults with atopic dermatitis) are robustness checks and are not part of the evidence. They are reported in Appendix I.
 
 ## 5.9 Analysis model: pooled t-test versus stratified ANOVA
 
@@ -1076,7 +969,7 @@ tab_src("Table 5-16", c(LIf, LCf))
 li <- rows(LIf, "resid=='fixed'"); lc <- rows(LCf, "timing=='nominal' & definition_day==1")
 tl <- merge(li, lc[, .(model, lloq, lloq_studyday_median, pct_ge2, pct_ge3)], by = c("model", "lloq"))
 kt(tl[order(model, lloq), .(Model = c(k2016 = "2016", k2020 = "2020")[model], `LLOQ (mg/L)` = format(lloq), `Reliable (i) (%)` = fnum(reliable_no_span_pct, 1), `Reliable (ii) (%)` = fnum(reliable_pct, 1),
-                        `Lambda-z not estimable (%)` = fnum(lambda_fail_pct, 2), `True coverage below 80% (%)` = fnum(coverage_lt80_pct, 2), `True extrapolation, median (%)` = fnum(extrap_true_median, 2),
+                        `Lambda-z not estimable (%)` = fnum(lambda_fail_pct, 2), `Window coverage below 80% (%)` = fnum(coverage_lt80_pct, 2), `True extrapolation, median (%)` = fnum(extrap_true_median, 2),
                         `tlast, median (days)` = fnum(tlast_median, 1), `LLOQ reached, study day` = fnum(lloq_studyday_median, 1), `2 or more cliff samples (%)` = fnum(pct_ge2, 1))],
    caption = "Table 5-16. Individual-level metrics by LLOQ (planned schedule, 60 to 90 kg, 20,000 subjects per model, same subjects and residual draws; residual error as estimated). Cliff columns: cliff populations, nominal days, 1-day definition.")
 ```
@@ -1092,7 +985,7 @@ kt(w_, caption = sprintf("Table 5-17. Boundary type I error (%%) by LLOQ (column
 ```
 
 - With the residual error as estimated, lowering the LLOQ below 0.078 mg/L lets measurement noise near zero become quantifiable (additive SD 0.03 mg/L): reliability under criteria (i) is `r lli("k2016", 0.02, "reliable_no_span_pct")`% at 0.02 mg/L against `r lli("k2016", 0.078, "reliable_no_span_pct")`% at 0.078 mg/L in the primary model. With the additive error scaled with the LLOQ (constant precision at the LLOQ) it is `r lli("k2016", 0.02, "reliable_no_span_pct", rv = "scaled")`%.
-- Coverage of total exposure by AUC0-last does not depend materially on the LLOQ in this range: true coverage below 80% in `r lli("k2016", 0.02, "coverage_lt80_pct", 2)`% (0.02 mg/L) to `r lli("k2016", 0.5, "coverage_lt80_pct", 2)`% (0.5 mg/L) of subjects, median true extrapolation `r lli("k2016", 0.02, "extrap_true_median", 2)`% to `r lli("k2016", 0.5, "extrap_true_median", 2)`%, because the true concentration falls through the whole range within the cliff (LLOQ reached at a median of study Day `r llc("k2016", 0.02, "lloq_studyday_median")` at 0.02 mg/L and Day `r llc("k2016", 0.5, "lloq_studyday_median")` at 0.5 mg/L).
+- Window coverage does not depend materially on the LLOQ in this range: window coverage below 80% in `r lli("k2016", 0.02, "coverage_lt80_pct", 2)`% (0.02 mg/L) to `r lli("k2016", 0.5, "coverage_lt80_pct", 2)`% (0.5 mg/L) of subjects, median true extrapolation `r lli("k2016", 0.02, "extrap_true_median", 2)`% to `r lli("k2016", 0.5, "extrap_true_median", 2)`%, because the true concentration falls through the whole range within the cliff (LLOQ reached at a median of study Day `r llc("k2016", 0.02, "lloq_studyday_median")` at 0.02 mg/L and Day `r llc("k2016", 0.5, "lloq_studyday_median")` at 0.5 mg/L).
 - Boundary type I error of P2 across the LLOQs: `r llt("M0", "P2")` (M0) and `r llt("M1", "P2")` (M1); AUC0-inf (rule A, criteria (ii)) + Cmax `r llt("M0", "G2_Aii")` and `r llt("M1", "G2_Aii")`; rule B + Cmax `r llt("M0", "G2_B")` and `r llt("M1", "G2_B")`.
 
 ```{r fig-lloq, fig.cap = "Figure 5-10. Individual-level metrics by LLOQ, both models, residual error as estimated and scaled. Analysis figure results/lloq/fig_lloq_individual.png."}
@@ -1164,7 +1057,7 @@ The planned `r n_samp`-sample schedule to Day 57 is retained. No added-sampling 
 - **200 mg presentation.** The faster absorption of the 200 mg (175 mg/mL) presentation is not reproduced. The study uses the 300 mg (150 mg/mL, 2 mL) presentation, whose absorption timing and exposure are reproduced.
 - **Design placeholders.** Several study-design inputs are placeholders pending confirmation (Appendix B), in particular the bioanalytical LLOQ of the sponsor's assay (its effect between 0.02 and 0.5 mg/L is shown in Section 5.10, and the value is set in one configuration file for regeneration), the Day 1 post-dose sampling time, the visit windows, the weight distribution and the stratification.
 - **Analysis model.** The primary analysis model (pooled t-test or ANOVA with the randomization stratum) is not yet selected; both are reported (Section 5.9).
-- **Patient body weight.** The adult atopic dermatitis weight distribution is a placeholder built from published summaries (Section 3.13). The phase 3 body-weight data of the reference product (FDA clinical pharmacology review of BLA 761055; EMA assessment report, 2017) could not be accessed from the analysis environment and are requested from the sponsor; the distribution is set in one configuration file for regeneration. Height was drawn independently of weight, which overstates the BMI SD (`r at_bmi` kg/m2 against 5.45 kg/m2 in NCT03389893). With the weight-height correlation implied by NCT03389893 (`r at_rho`), the BMI SD is `r at_bmi_c` kg/m2 and the failure share of the BMI-covariate model changes from `r at_x_i[["ind"]]`% to `r at_x_i[["cor"]]`% under set (i) and from `r at_x_iii[["ind"]]`% to `r at_x_iii[["cor"]]`% under set (iii) (exploratory, not pre-registered; the other two model variants do not use BMI).
+- **Body weight outside the trial population.** The proposal is judged in the trial population of healthy adults of 60 to 90 kg. Results for heavier or lighter subjects and for an adult atopic dermatitis body-weight distribution (a placeholder built from published summaries) are robustness checks in Appendix I. The body-weight ranges of the models' development data are not reported, so results above about 130 kg may be extrapolations.
 - **Manual lambda-z review.** The automated Best Fit is simulated. In the study, a pharmacokineticist may review the lambda-z windows; this is not simulated.
 - **Dropout.** Dropout is not simulated: `r cfgv("trial_design.yaml", "n_per_arm")` evaluable subjects per arm are assumed.
 - **Immunogenicity.** Anti-drug antibodies are represented only by an ADA-like subgroup sensitivity analysis, not in the operating characteristics.
@@ -1174,7 +1067,7 @@ The planned `r n_samp`-sample schedule to Day 57 is retained. No added-sampling 
 
 1. Boundary scenarios in which AUC0-last + Cmax exceeds 5% (point estimate) under any analysis model: `r ov_txt` Facts relevant to plausibility are stated in Section 6.2.
 2. Under the planned schedule, AUC0-last captures essentially all of the total exposure to dupilumab after a 300 mg subcutaneous dose (median true extrapolation `r ext_med["k2016"]`% and `r ext_med["k2020"]`% in the two models), and this holds for assay LLOQs between 0.02 and 0.5 mg/L.
-3. In the adult atopic dermatitis population, a reliable AUC0-inf cannot be obtained in `r at_X`% (criteria set (i)) to `r at_Y`% (criteria set (iii)) of patients (primary model), concentrated in heavier patients, whereas AUC0-last covers at least `r at_Z`% of total exposure in the same patients. The share under set (i) is the lower end of the conventional range; in the study population it is `r cr_st("i")` under set (i) and `r cr_st("iii")` under set (iii).
+3. TRIALPOP_CONCLUSION_PLACEHOLDER
 4. With the pooled t-test (M0), AUC0-last + Cmax is `r p2_n_cons` conservative, `r p2_n_nom` nominal and `r p2_n_exc` exceeding of `r p2_n_all` boundary cells; with the weight stratum in the model (M1), `r CLS$M1[["conservative"]]`, `r CLS$M1[["nominal"]]` and `r CLS$M1[["exceeding"]]`. M1 corrects the standard error of M0, which ignores the stratified randomization. Power for identical products is `r pwr("k2016", "S00", "M0")` (M0) and `r pwr("k2016", "S00", "M1")` (M1) in the primary model.
 5. Configurations based on NCA AUC0-inf exceed 5% in `r g_rng_txt` of 16 boundary scenarios under the usual handling rules, because of extrapolation and selection bias; under the stricter criteria set (iii), rule A exceeds 5% in `r GC$M0$A_iii$n_pt` of 16 (M0), and the decision changes with the handling rule or criteria set in `r inst("inst_all")` of trials per boundary scenario. They add little protection at the limits and cause additional failures of similar products.
 6. Target-binding differences do not change exposure enough to be detected by any PK endpoint.
@@ -1280,17 +1173,110 @@ Tables list their source files. `regulatory/manifest_sha256.csv` gives the SHA-2
 # Appendix H. Terms and configurations {-}
 
 ```{r appH}
-gl <- data.table(Term = c("AUC0-last", "AUC0-inf", "True AUC0-inf ratio", "Boundary type I error", "Conservative / nominal / exceeding", "Criteria set (i) / (ii)", "Rule A / B / C", "Common random numbers", "Cliff", "Planned schedule"),
+gl <- data.table(Term = c("AUC0-last", "AUC0-inf", "True AUC0-inf ratio", "Window coverage", "Observed-to-true ratio", "Trial population", "Boundary type I error", "Conservative / nominal / exceeding", "Criteria set (i) / (ii) / (iii) / (iv)", "Rule A / B / C", "Common random numbers", "Cliff", "Planned schedule"),
                  Definition = c("Area under the concentration-time curve from dosing to the last quantifiable concentration (linear-up log-down); AUC0-t in FDA terminology.",
                                 "AUC0-last + Clast/lambda-z (AUCINF_obs) from NCA.",
                                 "Ratio of test to reference population geometric means of model-integrated AUC0-inf without residual error (200,000 common subjects).",
+                                "True AUC from dosing to the last quantifiable sample divided by the true AUC0-inf (subject level); the only meaning of coverage in this report.",
+                                "Observed AUC0-last, or NCA AUC0-inf, divided by the true AUC0-inf (subject level); contains the residual error and the trapezoidal approximation.",
+                                "Healthy adults of 60 to 90 kg, randomized 1:1 within two body-weight strata (60 to 75 kg, above 75 to 90 kg); the population in which the proposal is judged.",
                                 "Proportion of simulated trials concluding similarity when the true AUC0-inf ratio is 0.80 or 1.25.",
                                 "Wilson 95% interval of the boundary type I error entirely below 5% / including 5% / entirely above 5%.",
-                                "(i) lambda-z estimable, adjusted R-squared at least 0.80, extrapolation at most 20%; (ii) = (i) and span ratio at least 2.",
+                                "All require an estimable lambda-z and extrapolation at most 20%. (i) adjusted R-squared at least 0.80; (ii) = (i) and span ratio at least 2; (iii) adjusted R-squared at least 0.90; (iv) = (iii) and span ratio at least 3.",
                                 "Handling of subjects failing the criteria: A exclude; B include all with lambda-z; C substitute AUC0-last.",
                                 "The same virtual subjects, allocation, sampling-time deviations and residual errors are used across scenarios and schedules within a trial.",
                                 "From the first time after tmax at which the instantaneous half-life falls below 1 day until the true concentration reaches the LLOQ.",
                                 "Pre-dose and study Days 1, 2, 4, 6, 8, 11, 15, 22, 29, 36, 43, 50 and 57."))
 kt(gl, align = c("l", "l"))
+```
+
+# Appendix I. Robustness across body weight {-}
+
+These analyses are not part of the evidence for the endpoint proposal, which rests on the trial population (healthy adults of 60 to 90 kg, randomization stratified by body weight; Sections 5.2 to 5.4). They check whether the conclusions change when body weight extends beyond the study range.
+
+**Methods.**
+
+- Uniform body-weight bands from 40 to 150 kg (primary model, 20,000 subjects per band) and a population with body weight normal, mean 100 kg, SD 20 kg, truncated to 60 to 150 kg (2,000 trials of 117 subjects per arm; version 1.0).
+- An adult atopic dermatitis body-weight distribution: lognormal, mean 78 kg, SD 19 kg, truncated to 40 to 180 kg, a placeholder based on Kamal 2022 (phase 2b, 379 adults with atopic dermatitis: mean body weight 74.0 to 80.6 kg by dose group, mean BMI 25.4 to 27.3 kg/m2), Kovalenko 2021 (adult phase 3 population PK data: BMI SD 5.47 kg/m2) and NCT03389893 (71 adults with atopic dermatitis: body weight 80.2 kg, SD 19.0; height 172.5 cm, SD 10.4; BMI 26.9 kg/m2, SD 5.45), with sensitivity distributions of mean 80 kg (SD 19 kg) and mean 75 kg (SD 18 kg). Height (for BMI) is normal, mean 172 cm, SD 10 cm, truncated to 150 to 200 cm, drawn independently of weight. Model variants: the 2016 model, 2020 Model 1, and the 2016 model with the adult phase 3 covariates of Kovalenko 2020 (linear elimination on BMI, exponent 0.368 at a reference BMI of 26 kg/m2; central volume on body weight, exponent 0.817; Kovalenko 2020 Table 3 and Supplementary Table 3, Model 4). 20,000 subjects per variant and distribution; trials of 117 subjects per arm, `r fint(as.numeric(cfgv("prereg_20260926.yaml", c("section5", "trial", "trials"))))` per scenario, randomization strata 40 to 75 kg and above 75 to 180 kg. Pre-registered in `config/prereg_20260926.yaml` section 5 (Appendix D); reclassified as a robustness check by the sponsor before the trial-population analyses were run (section 6).
+- Height drawn independently of weight overstates the BMI SD (`r at_bmi` kg/m2 against 5.45 kg/m2 in NCT03389893). With the weight-height correlation implied by NCT03389893 (`r at_rho`), the BMI SD is `r at_bmi_c` kg/m2, and the failure share of the BMI-covariate variant changes from `r at_x_i[["ind"]]`% to `r at_x_i[["cor"]]`% under set (i) and from `r at_x_iii[["ind"]]`% to `r at_x_iii[["cor"]]`% under set (iii) (exploratory, not pre-registered; the other two variants do not use BMI).
+
+
+```{r appI-weight}
+sec("Appendix I Robustness across body weight")
+VLAB <- c(base = "2016 model", struct2020 = "2020 Model 1", k2016_bmi_vc0817 = "2016 model with phase 3 covariates")
+wbx <- rows("weight_generalization/weight_bands_B0_abcd.csv", "model=='a'")
+tab_src("weight bands", "weight_generalization/weight_bands_B0_abcd.csv")
+w_cov <- max(wbx$coverage_lt80_pct); .record("largest coverage below 80% across weight bands (%)", "weight_generalization/weight_bands_B0_abcd.csv", "model=='a' :: max(coverage_lt80_pct)", w_cov, fnum(w_cov, 2))
+w_med <- range(wbx$extrap_true_median); .record("true extrapolation median range across weight bands", "weight_generalization/weight_bands_B0_abcd.csv", "model=='a' :: range(extrap_true_median)", w_med, sprintf("%s to %s", fnum(w_med[1], 2), fnum(w_med[2], 2)))
+ref_dev <- { r <- rows(AWf, "distribution=='primary'"); u <- r[source == AW_U]; rf <- r[grepl("^reference", source)]
+  x <- max(abs(c(u$below_60 - rf$below_60, u$above_90 - rf$above_90, u$above_100 - rf$above_100, u$outside_60_90 - rf$outside_60_90)))
+  premise(x < 0.06, "analytic shares equal the directive's independent reference within rounding"); .record("largest difference between analytic and reference shares (points)", AWf, "primary: analytic untruncated minus reference", x, fnum(x, 2)) }
+sens_out <- vrange(AWf, "distribution!='primary' & grepl('^simulated', source)", "outside_60_90", 1, item = "sensitivity distributions, simulated share outside 60 to 90 kg", unit = "%")
+p130 <- local({ x <- .read("config/population_atopic.yaml")$distributions$primary; sl <- sqrt(log(1 + (x$sd / x$mean)^2)); ml <- log(x$mean) - sl^2 / 2; tr <- as.numeric(unlist(x$trunc))
+  pp <- 100 * (plnorm(tr[2], ml, sl) - plnorm(130, ml, sl)) / (plnorm(tr[2], ml, sl) - plnorm(tr[1], ml, sl))
+  .record("share of the primary distribution above 130 kg (analytic, truncated)", "config/population_atopic.yaml", "distributions.primary :: lognormal share above 130 kg within the truncation", pp, fnum(pp, 1)) })
+BL <- c("below 60" = "below 60 kg", "60-90" = "60 to 90 kg", "above 90-100" = "above 90 to 100 kg", "above 100" = "above 100 kg", all = "all")
+p1b <- rows(AP1f, "population=='adult atopic dermatitis' & distribution=='primary' & band %in% c('below 60','60-90','above 90-100','above 100','all')")
+cbb <- rows(ABNf, "distribution=='primary' & band %in% c('below 60','60-90','above 90-100','above 100','all') & set %in% c('i','iii')")
+tab_src("Table I-1 atopic population by weight band", c(AP1f, ABNf))
+t512 <- merge(p1b[, .(variant, band, `Share of population, %` = fnum(100 * n / max(n), 1), `True extrapolated %, median (maximum)` = sprintf("%s (%s)", fnum(extrap_true_median, 2), fnum(extrap_true_max, 1)),
+                      `Window coverage below 80%, %` = fnum(coverage_lt80_pct, 2))],
+              dcast(cbb[, .(variant, band, set, txt = sprintf("%s [%s, %s]", fnum(fail_pct, 1), fnum(fail_lo, 1), fnum(fail_hi, 1)))], variant + band ~ set, value.var = "txt"), by = c("variant", "band"))
+setnames(t512, c("i", "iii"), c("Failing set (i), % [95% CI]", "Failing set (iii), % [95% CI]"))
+t512 <- t512[order(match(variant, names(VLAB)), match(band, names(BL)))][, `:=`(Model = VLAB[variant], `Body weight` = BL[band])]
+t512 <- t512[, c("Model", "Body weight", setdiff(names(t512), c("Model", "Body weight", "variant", "band"))), with = FALSE]
+```
+
+**Adult atopic dermatitis body-weight distribution.** The distribution (methods above) places `r aw(AW_S, "outside_60_90")`% of patients outside the study range of 60 to 90 kg: `r aw(AW_S, "below_60")`% below 60 kg, `r aw(AW_S, "above_90")`% above 90 kg and `r aw(AW_S, "above_100")`% above 100 kg (20,000 simulated patients; mean `r aw(AW_S, "wt_mean")` kg, SD `r aw(AW_S, "wt_sd")` kg). Before truncation, the shares are `r aw(AW_U, "below_60")`%, `r aw(AW_U, "above_90")`% and `r aw(AW_U, "above_100")`%, equal to an independent calculation (16.5%, 23.7% and 12.4%) within `r ref_dev` percentage points. The sensitivity distributions place `r sens_out` outside 60 to 90 kg (Figure I-1).
+
+```{r appI-fig-atw, fig.cap = "Figure I-1. Adult atopic dermatitis body weight distributions (lognormal, truncated 40 to 180 kg): primary (mean 78 kg, SD 19 kg) and sensitivity distributions, with the study inclusion range shaded; histogram of 20,000 simulated patients from the primary distribution. Analysis figure results/atopic/fig_atopic_weight.png."}
+fig("atopic/fig_atopic_weight.png", "Figure I-1")
+```
+
+```{r appI-t512}
+kt(t512, caption = "Table I-1. Adult atopic dermatitis population by body weight band (primary weight distribution, planned schedule, 300 mg, 20,000 patients per model): coverage of total exposure and share without a reliable AUC0-inf (Wilson 95% interval).", align = c("l", "l", rep("r", 5)))
+```
+
+**Coverage.** AUC0-last remains close to total exposure across the patient weight range: the median true extrapolated fraction is `r vrange(AP1f, "population=='adult atopic dermatitis' & distribution=='primary' & band=='all'", "extrap_true_median", 2, item = "atopic, all, median true extrapolation", unit = "%")` in the three model variants and `r vrange(AP1f, "population=='adult atopic dermatitis' & distribution=='primary' & band=='above 100'", "extrap_true_median", 2, item = "atopic, above 100 kg, median true extrapolation", unit = "%")` above 100 kg, and the share of patients whose coverage is below 80% is `r vrange(AP1f, "population=='adult atopic dermatitis' & distribution=='primary' & band=='all'", "coverage_lt80_pct", 2, item = "atopic, all, coverage below 80%", unit = "%")`.
+
+**Reliability of AUC0-inf.** In this population, a reliable AUC0-inf cannot be obtained in `r at_X`% (criteria set (i)) to `r at_Y`% (criteria set (iii)) of patients in the primary model (`r at_rng("i")` and `r at_rng("iii")` across the three model variants). The failures are concentrated in heavier patients (Table I-1, Figure I-2), whereas the sampling window of AUC0-last covers at least `r at_Z`% of the true AUC0-inf in every patient failing set (iii) (median `r at_cf("iii", "window_fail_median")`). The sensitivity weight distributions give `r at_sens("i")` (set (i)) and `r at_sens("iii")` (set (iii)).
+
+```{r appI-fig-atf, fig.cap = "Figure I-2. Share of patients without a reliable AUC0-inf by body weight band and criteria set, adult atopic dermatitis population (primary weight distribution, 20,000 patients per model; bars: Wilson 95% intervals). Analysis figure results/atopic/fig_atopic_failure_by_band.png."}
+fig("atopic/fig_atopic_failure_by_band.png", "Figure I-2")
+```
+
+```{r appI-atopic-trials}
+sec("Appendix I Robustness across body weight: atopic trials")
+tb_b <- rows(ABf, "analysis_model=='M0' & endpoint %in% c('AUClast','AUCinf_Ai','AUCinf_Aiii','AUCinf_B','AUCinf_Ci')")
+tb_c <- rows(ACCf, "analysis_model=='M0' & config %in% c('A_i','A_iii','C_i')")
+tb_a <- rows(AAFf, "set %in% c('i','iii')")
+tb_p <- rows(APSf, "analysis_model=='M0' & decision=='P2'")
+tab_src("Table I-2 atopic trials", c(ABf, ACCf, AAFf, APSf))
+SCL <- c(S00 = "identical", F090 = "F x0.90", KE120 = "ke x1.20", VM125 = "Vmax x1.25", KM10 = "Km x10")
+t513 <- dcast(tb_b[, .(variant, scenario, endpoint, b = fnum(bias_pct, 2))], variant + scenario ~ endpoint, value.var = "b")
+t513 <- merge(t513, unique(tb_b[endpoint == "AUClast", .(variant, scenario, tr = fnum(true_ratio, 3))]), by = c("variant", "scenario"))
+t513 <- merge(t513, tb_p[, .(variant, scenario, p2 = fnum(pass_pct, 1))], by = c("variant", "scenario"))
+t513 <- merge(t513, dcast(tb_c[, .(variant, scenario, config, a = fnum(agree_pct, 1))], variant + scenario ~ config, value.var = "a"), by = c("variant", "scenario"))
+t513 <- merge(t513, dcast(tb_a[, .(variant, scenario, set, d = fnum(diff_mean, 2))], variant + scenario ~ set, value.var = "d"), by = c("variant", "scenario"))
+t513 <- t513[order(match(variant, names(VLAB)), match(scenario, names(SCL)))]
+t513 <- t513[, .(Model = VLAB[variant], Scenario = SCL[scenario], `True AUC0-inf ratio` = tr, `AUC0-last` = AUClast, `AUC0-inf A (i)` = AUCinf_Ai, `AUC0-inf A (iii)` = AUCinf_Aiii, `AUC0-inf B` = AUCinf_B, `AUC0-inf C (i)` = AUCinf_Ci,
+                 `P2 pass, %` = p2, `Agreement A (i), %` = A_i, `Agreement A (iii), %` = A_iii, `Agreement C (i), %` = C_i, `Arm difference (i), points` = i, `Arm difference (iii), points` = iii)]
+```
+
+**Trials with the atopic dermatitis body-weight distribution** (Table I-2; 117 patients per arm, `r fint(as.numeric(cfgv("prereg_20260926.yaml", c("section5", "trial", "trials"))))` trials per scenario, M0):
+
+- The AUC0-last GMR is biased by `r at_bias("AUClast")` against the true AUC0-inf ratio. AUC0-inf is biased by `r at_bias("AUCinf_Ai")` under rule A with set (i), `r at_bias("AUCinf_Aiii")` with set (iii), and `r at_bias("AUCinf_B")` under rule B; rule C with set (i) gives `r at_bias("AUCinf_Ci")`.
+- The decision of AUC0-last + Cmax agrees with that of AUC0-inf + Cmax in `r at_agree("A_i")` of trials under rule A with set (i), `r at_agree("A_iii")` with set (iii), and `r at_agree("C_i")` under rule C with set (i).
+- The share of subjects failing the criteria differs between arms when the products differ: set (i) `r at_armdiff("S00", "i")` points for identical products, `r at_armdiff("F090", "i")` for F x0.90 and `r at_armdiff("VM125", "i")` for Vmax x1.25 (set (iii): `r at_armdiff("S00", "iii")`, `r at_armdiff("F090", "iii")` and `r at_armdiff("VM125", "iii")`). Rule A therefore compares different patients in the two arms, in a way that depends on the product difference.
+
+```{r appI-t513}
+kt(t513, caption = "Table I-2. Trials in the adult atopic dermatitis population (primary weight distribution, 117 patients per arm, pooled t-test M0): bias (%) of the geometric mean of trial GMRs against the true ratio (AUC endpoints against the true AUC0-inf ratio), pass rate of AUC0-last + Cmax (P2), agreement of the P2 decision with AUC0-inf + Cmax under rule A (criteria (i) or (iii)) and rule C (criteria (i)), and the mean difference between arms (test minus reference) in the share of subjects failing criteria set (i) or (iii).", align = c("l", "l", rep("r", 12)))
+```
+
+**Population with a mean of 100 kg and uniform weight bands.** In simulated trials of a heavier population (body weight normal, mean 100 kg, SD 20 kg, 60 to 150 kg; a stress test, not a population estimate), subjects failing the criteria are `r sprintf("%s to %s", fnum(dw[1], 1), fnum(dw[2], 1))` kg heavier than those retained. Across uniform weight bands of the primary model, reliability under set (i) falls from `r fnum(wb_lo$reliable_rsq_extrap_pct, 1)`% at `r wb_lo$band` kg to `r fnum(wb_hi$reliable_rsq_extrap_pct, 1)`% at `r wb_hi$band` kg. Across uniform body-weight bands from 40 to 150 kg (primary model, 20,000 subjects per band), the median true extrapolated fraction ranges from `r sprintf("%s to %s", fnum(w_med[1], 2), fnum(w_med[2], 2))`%, and coverage below 80% is at most `r fnum(w_cov, 2)`%.
+
+The body-weight ranges of the models' development data are not reported, so results above about 130 kg (`r p130`% of the primary distribution) may be extrapolations.
+
+```{r trace, include=FALSE}
 reg_trace_write(file.path("..", "tables", "trace_MS_report.csv"))
 ```

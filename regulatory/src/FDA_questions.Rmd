@@ -84,29 +84,14 @@ top_txt <- function(am) { r <- rows(T1f, sprintf("analysis_model=='%s' & config=
 ```
 
 ```{r facts102, include=FALSE}
-sec("facts 1.0.1, criteria convention and patient body weight")
+sec("facts 1.0.1, criteria convention (trial population)")
 CIf <- "criteria/criteria_individual.csv"; CGf <- "criteria/criteria_g2_type1.csv"; CSf <- "criteria/criteria_instability.csv"
-ABNf <- "atopic/atopic_criteria_by_band.csv"; ACFf <- "atopic/atopic_coverage_failing.csv"; ATRf <- "atopic/atopic_criteria_weight_trend.csv"; AWf <- "atopic/atopic_weight_table.csv"
-AP1f <- "atopic/atopic_pillar1_by_band.csv"; ABf <- "atopic/atopic_trials_bias.csv"; AAFf <- "atopic/atopic_trials_arm_failure.csv"; ACCf <- "atopic/atopic_trials_concordance.csv"
 cr_st <- function(s_, col = "fail_pct", d = 1, unit = "%") vrange(CIf, sprintf("distribution=='study_60_90' & set=='%s'", s_), col, d, item = sprintf("study population, set %s, %s", s_, col), unit = unit)
-cr_at <- function(s_, col = "fail_pct", d = 1, unit = "%") vrange(CIf, sprintf("distribution=='primary' & set=='%s'", s_), col, d, item = sprintf("atopic population, set %s, %s", s_, col), unit = unit)
 g2n <- function(am, cf) vcount(CGf, sprintf("analysis_model=='%s' & config=='%s' & pass_pct > 5", am, cf), sprintf("%s %s cells above 5%%", am, cf))
 g2r <- function(am, cf) vrange(CGf, sprintf("analysis_model=='%s' & config=='%s'", am, cf), "pass_pct", 2, item = sprintf("%s %s range", am, cf), unit = "%")
 inst <- function(col) { r <- rows(CSf, "analysis_model=='M0' & !scenario %in% c('S00','F097')"); premise(nrow(r) == 16, "16 boundary cells in the instability file"); x <- r[[col]]
   .record(sprintf("decision instability %s, median and maximum over 16 boundary cells, M0", col), CSf, sprintf("analysis_model=='M0' & !scenario in (S00, F097) :: median and max of %s", col), c(median(x), max(x)),
           sprintf("a median of %s%% and up to %s%%", fnum(median(x), 1), fnum(max(x), 1))) }
-at_X <- v(ABNf, "variant=='base' & distribution=='primary' & band=='all' & set=='i'", "fail_pct", 1, item = "atopic, 2016 model, set (i)")
-at_Y <- v(ABNf, "variant=='base' & distribution=='primary' & band=='all' & set=='iii'", "fail_pct", 1, item = "atopic, 2016 model, set (iii)")
-at_Z <- { r <- rows(ACFf, "distribution=='primary' & set=='iii'"); premise(nrow(r) == 3, "three model variants")
-  .record("smallest window coverage in patients failing set (iii), rounded down (%)", ACFf, "distribution=='primary' & set=='iii' :: floor(100 * min(window_fail_min))", 100 * min(r$window_fail_min), as.character(floor(100 * min(r$window_fail_min)))) }
-at_rng <- function(s_) vrange(ABNf, sprintf("distribution=='primary' & band=='all' & set=='%s'", s_), "fail_pct", 1, item = sprintf("atopic, three variants, set %s", s_), unit = "%")
-at_band <- function(s_, b) v(ABNf, sprintf("variant=='base' & distribution=='primary' & band=='%s' & set=='%s'", b, s_), "fail_pct", 1, item = sprintf("atopic, 2016 model, set %s, %s", s_, b))
-at_or <- function(s_) vrange(ATRf, sprintf("distribution=='primary' & set=='%s'", s_), "or_per_10kg", 2, item = sprintf("odds ratio per 10 kg, set %s", s_))
-at_out <- v(AWf, "distribution=='primary' & source=='simulated (20,000 subjects)'", "outside_60_90", 1, item = "atopic, share outside 60 to 90 kg")
-at_p1 <- function(b, col, d = 2) vrange(AP1f, sprintf("population=='adult atopic dermatitis' & distribution=='primary' & band=='%s'", b), col, d, item = sprintf("atopic, %s, %s", b, col), unit = "%")
-at_bias <- function(ep) vrange(ABf, sprintf("analysis_model=='M0' & endpoint=='%s'", ep), "bias_pct", 2, item = sprintf("atopic trials, %s bias", ep), unit = "%")
-at_armdiff <- function(sc, s_) vrange(AAFf, sprintf("scenario=='%s' & set=='%s'", sc, s_), "diff_mean", 2, item = sprintf("atopic trials, arm difference set %s, %s", s_, sc))
-at_agree <- function(cf) vrange(ACCf, sprintf("analysis_model=='M0' & config=='%s'", cf), "agree_pct", 1, item = sprintf("atopic trials, agreement %s", cf), unit = "%")
 ```
 
 ## Q1. The 2016 FDA guidance names AUC0-inf and Cmax as the primary parameters of a single-dose PK similarity study. Why do you propose AUC0-last?
@@ -322,14 +307,12 @@ AUC0-inf will not be used for the equivalence decision.
 
 ## Q16. Do the results hold for heavier subjects?
 
-**Short answer.** Coverage by AUC0-last holds across 40 to 150 kg, but the reliability of AUC0-inf declines with weight. The patient population is addressed in Q20; the analyses below are stress tests.
+**Short answer.** The endpoint proposal is judged in the trial population (healthy adults of 60 to 90 kg), where the heavier randomization stratum already fails the reliability criteria more often (Q20). Results for heavier subjects outside the study range are robustness checks (report Appendix I), not evidence for the proposal.
 
-**Evidence** (report Sections 5.3 and 5.8; uniform weight bands of 20,000 subjects each, primary model):
+**Robustness check** (report Appendix I; uniform weight bands of 20,000 subjects each, primary model):
 
-- The median true extrapolation ranges from `r sprintf("%s to %s", fnum(min(wb$extrap_true_median), 2), fnum(max(wb$extrap_true_median), 2))`%.
-- AUC0-inf reliability falls from `r fnum(wb[which.min(as.numeric(sub("-.*", "", band)))]$reliable_rsq_extrap_pct, 1)`% to `r fnum(wb[which.max(as.numeric(sub("-.*", "", band)))]$reliable_rsq_extrap_pct, 1)`% across the bands.
-
-**Implication.** An analysis restricted to reliable subjects would under-represent heavier subjects.
+- The median true extrapolated fraction ranges from `r sprintf("%s to %s", fnum(min(wb$extrap_true_median), 2), fnum(max(wb$extrap_true_median), 2))`% across the bands.
+- AUC0-inf reliability under criteria set (i) falls from `r fnum(wb[which.min(as.numeric(sub("-.*", "", band)))]$reliable_rsq_extrap_pct, 1)`% to `r fnum(wb[which.max(as.numeric(sub("-.*", "", band)))]$reliable_rsq_extrap_pct, 1)`% across the bands.
 
 ## Q17. The randomization is stratified by body weight. Why is the stratum not in the analysis model?
 
@@ -354,11 +337,11 @@ AUC0-inf will not be used for the equivalence decision.
 
 ## Q19. Is an adjusted R-squared of at least 0.80 a Phoenix WinNonlin criterion?
 
-**Short answer.** No. Phoenix WinNonlin does not define reliability criteria for lambda-z. Its Lambda Z Acceptance Criteria (Rules tab) are optional entries in which the user sets a minimum adjusted R-squared, a maximum extrapolated percentage and a minimum span. Profiles that do not meet them are flagged (Accepted or Not_Accepted), not excluded, and no values are applied unless entered (Certara Phoenix 8.2 NCA documentation). A minimum of 0.80 is a statistical analysis plan convention; 0.90, sometimes with a span of at least 3 half-lives, is common in public statistical analysis plans (for example NCT04117607 and NCT04441905). The analyses were therefore repeated for four criteria sets, and the share without a reliable AUC0-inf under 0.80 is the lower end of the conventional range.
+**Short answer.** No. Phoenix WinNonlin does not define reliability criteria for lambda-z. Its Lambda Z Acceptance Criteria (Rules tab) are optional entries in which the user sets a minimum adjusted R-squared, a maximum extrapolated percentage and a minimum span. Profiles that do not meet them are flagged (Accepted or Not_Accepted), not excluded, and no values are applied unless entered (Certara Phoenix 8.2 NCA documentation). A minimum of 0.80 is a statistical analysis plan convention; 0.90, sometimes with a span of at least 3 half-lives, is common in public statistical analysis plans: NCT04117607 (adjusted R-squared at least 0.90, span at least 3.0 half-lives, at least 3 points after tmax), NCT04441905 (adjusted R-squared at least 0.90, at least 3 points) and NCT04700163 (adjusted R-squared above 0.90, otherwise AUC0-inf and the other terminal parameters are excluded from summaries and statistical analysis; verified from a web-search excerpt). The analyses were therefore repeated for four criteria sets, and the share without a reliable AUC0-inf under 0.80 is the lower end of the conventional range.
 
-**Evidence** (report Sections 3.4, 5.3 and 5.4; 20,000 subjects per model; 16 boundary scenarios):
+**Evidence** (trial population; report Sections 3.4, 5.3 and 5.4; 20,000 subjects per model; 16 boundary scenarios):
 
-- Subjects without a reliable AUC0-inf, study population (60 to 90 kg, two models): `r cr_st("i")` with adjusted R-squared at least 0.80 (set (i)); `r cr_st("iii")` with at least 0.90 (set (iii)); `r cr_st("iv")` with at least 0.90 and a span of at least 3 (set (iv)). Adult atopic dermatitis population: `r cr_at("i")`, `r cr_at("iii")` and `r cr_at("iv")`.
+- Subjects without a reliable AUC0-inf, trial population (healthy, 60 to 90 kg, two models): `r cr_st("i")` with adjusted R-squared at least 0.80 (set (i)); `r cr_st("iii")` with at least 0.90 (set (iii)); `r cr_st("iv")` with at least 0.90 and a span of at least 3 (set (iv)).
 - AUC0-inf + Cmax with rule A exceeds 5% in `r g2n("M0", "G2_A_i")` (set (i)), `r g2n("M0", "G2_A_ii")` (set (ii)), `r g2n("M0", "G2_A_iii")` (set (iii)) and `r g2n("M0", "G2_A_iv")` (set (iv)) of 16 boundary scenarios (M0). With rule C the range is `r g2r("M0", "G2_C_i")` (set (i)) and `r g2r("M0", "G2_C_iii")` (set (iii)).
 - On the same trials, the AUC0-inf + Cmax decision changes between rules A, B and C in `r inst("inst_rules_i")` of trials with set (i) and `r inst("inst_rules_iii")` with set (iii), and between criteria sets within rule A in `r inst("inst_sets_A")`.
 
@@ -366,16 +349,11 @@ AUC0-inf will not be used for the equivalence decision.
 
 ## Q20. Do the conclusions hold for patients outside the study weight range?
 
-**Short answer.** Yes, and the reasons for AUC0-last become stronger as body weight increases. The study enrols healthy subjects of 60 to 90 kg, while `r at_out`% of adults with atopic dermatitis lie outside that range (lognormal body weight, mean 78 kg, SD 19 kg; a placeholder until the phase 3 data are checked). In the adult atopic dermatitis population, a reliable AUC0-inf cannot be obtained in `r at_X`% (criteria set (i)) to `r at_Y`% (criteria set (iii)) of patients, concentrated in heavier patients, whereas AUC0-last covers at least `r at_Z`% of total exposure in the same patients.
+**Short answer.** The validity of the endpoints is judged in the population in which similarity is tested: healthy adults of 60 to 90 kg, the population most sensitive to a product difference. The case against AUC0-inf as a primary endpoint is made there (report Sections 5.2 to 5.4). That the conclusions remain when the body-weight range is widened is a robustness check reported in Appendix I; it is not part of the evidence.
 
-**Evidence** (report Section 5.8; 20,000 patients per model variant; trials of 117 patients per arm):
+**Within the trial population** (report Section 5.3): TRIALPOP_Q20_PLACEHOLDER
 
-- Coverage: the median true extrapolated fraction beyond the last sample is `r at_p1("all", "extrap_true_median")` overall and `r at_p1("above 100", "extrap_true_median")` above 100 kg (three model variants).
-- Reliability of AUC0-inf: `r at_rng("i")` fail set (i) and `r at_rng("iii")` fail set (iii) across the three model variants. Under set (i), `r at_band("i", "below 60")`% fail below 60 kg and `r at_band("i", "above 100")`% above 100 kg (primary model); the odds of failing rise by a factor of `r at_or("i")` per 10 kg.
-- Trials: the AUC0-last GMR is biased by `r at_bias("AUClast")` against the true AUC0-inf ratio, AUC0-inf under rule A (set (i)) by `r at_bias("AUCinf_Ai")`. The test arm of a product with Vmax x1.25 has `r at_armdiff("VM125", "i")` percentage points more subjects failing set (i) than the reference arm, so rule A compares different patients in the two arms.
-- The earlier population with body weight normal, mean 100 kg, SD 20 kg, is reported as a stress test (report Section 5.8); its results point the same way (Q16).
-
-**Caveats.** The models' development data do not report body-weight ranges, so results above about 130 kg may be extrapolations. The phase 3 body-weight data of the reference product are requested; the distribution is set in one configuration file, and the analyses can be regenerated.
+**Robustness check** (report Appendix I): uniform weight bands from 40 to 150 kg, a population with a mean of 100 kg and an adult atopic dermatitis body-weight distribution (a placeholder built from published summaries) were simulated with the same models. The body-weight ranges of the models' development data are not reported, so results above about 130 kg may be extrapolations.
 
 ```{r trace, include=FALSE}
 reg_trace_write(file.path("..", "tables", "trace_FDA_questions.csv"))
