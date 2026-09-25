@@ -201,3 +201,32 @@ section5:
   stress_test: "the earlier population normal(100, 20) kg truncated 60-150 kg (scripts/25) is reported as a stress test, not as a population estimate"
   phase3_data: "FDA BLA 761055 clinical pharmacology review and EMA Dupixent EPAR (2017) population PK sections could not be accessed from the analysis environment (egress blocked); the distribution stays a placeholder and the check is listed as a sponsor request"
   scripts: [scripts/52_atopic_population.R]
+
+section6:
+  directive: "정정 지시 2026-09-26: 근거 모집단 원칙과 시험 내 분석 보완"
+  principle: "The case for not using AUC0-inf rests only on the trial population that demonstrates equivalence (healthy adults, 60-90 kg, randomization stratified by body weight). Patient-population and out-of-range body-weight results are not evidence; they are robustness checks in an appendix."
+  demotion: "section5 (adult atopic dermatitis) results move to the appendix 'Robustness across body weight' with the 40-150 kg bands and the mean-100-kg population; no atopic number or sentence is cited in the synopsis, results, discussion, conclusions, SAP text or FDA question bodies; the phase 3 body-weight request is withdrawn; the atopic distribution stays an appendix placeholder with its sources"
+  population: "trial_design.yaml weight base (normal 75 kg, SD 9 kg, truncated 60-90 kg); strata 60-75 and above 75-90 kg; planned schedule B0; 300 mg"
+  s2_1_failure_by_set:
+    individual: "stored subject-level NCA, results/individual/nca_base_20000.rds (2016 model) and nca_struct2020_20000.rds (Model 1), schedule B0: per criteria set (i)-(iv) the share failing with Wilson 95% interval, split into lambda-z not estimable and estimable but failing; reasons both hierarchical (not estimable, then adjusted R-squared below the set threshold, then extrapolation above 20%, then span below the set threshold) and as non-exclusive flag shares"
+    trial: "section1 regenerated trials, scenario S00, trials 1-10,000, both models: retained subjects per arm of 117 under rule A = n_R and n_T of the M0 rows of AUCinf_Ai (set i), AUCinf_A (set ii), AUCinf_Aiii (set iii), AUCinf_Aiv (set iv); median and 5th-95th percentiles over arms and trials; lambda-z estimable from AUCinf_B"
+    residual: "two-model range (proportional residual 24.2% in the 2016 model, 15.0% in Model 1) with a one-sentence reason; supporting evidence: stored 2016-model variant with proportional residual 12% (results/individual/nca_resid12_20000.rds)"
+    public_saps: "NCT04117607 (adjusted R-squared at least 0.90, span at least 3.0 half-lives, at least 3 points after tmax; verified), NCT04441905 (adjusted R-squared at least 0.90, at least 3 points; verified), NCT04700163 (adjusted R-squared above 0.90, otherwise AUC(INF) and other terminal parameters excluded from summaries and statistical analysis; verified from a web-search excerpt, the site being blocked)"
+  s2_2_strata:
+    individual: "share failing each set by randomization stratum (60-75, above 75-90 kg) with Wilson 95% intervals and the difference (heavier minus lighter) with a Newcombe 95% interval, both models"
+    trial: "regenerated trials (section6 n_trials_regen, section1 seed rule, both models): per trial, arm and stratum, the counts of the AUClast analysis set and of the rule A AUC0-inf analysis set for sets (i)-(iv); share of the heavier stratum per arm, its deviation from the randomized composition, and the between-arm difference; distribution over trials (median, 5th-95th percentiles) per scenario"
+  s2_3_treatment_dependent:
+    scenarios: [S00, F097, KE110, KE120, VM125, boundary_8_per_model]
+    metric: "test minus reference share failing each set, mean over trials with 95% interval (mean plus or minus 1.96 standard errors) and 5th-95th percentiles of the per-trial difference; sets (i) and (iii) in the text, (ii) and (iv) in the tables"
+    relation_to_truth: "scenario-level table against the true AUC0-inf ratio and a descriptive linear fit of the mean difference on log true ratio per model and set"
+    truth: "boundary cells from results/oc/inversion_all.csv; F097, KE110, KE120, VM125 computed as F097 in section1 (200,000 common subjects, results/oc/truth_ref_<model>.rds, derive_seed(20260924, 'truth200k', model))"
+    identity_check: "for S00, F097 and the boundary cells, the per-arm counts of the regenerated trials must equal n_R and n_T of section1 endpoints AUCinf_Ai, AUCinf_A, AUCinf_Aiii, AUCinf_Aiv and AUCinf_B for every regenerated trial; otherwise the run stops"
+  s2_4_characteristics: "failing minus retained per set (i)-(iv), both models, study population: body weight difference (Welch 95% interval), geometric mean ratio of the true AUC0-inf and of AUClast (Welch on the log scale, 95% interval)"
+  s3_coverage:
+    definitions: "window coverage = true AUC0-tlast / true AUC0-inf (the only meaning of 'coverage' in the documents); observed-to-true ratio = observed AUClast / true AUC0-inf (includes the proportional residual and the trapezoidal approximation)"
+    individual: "study population, both models: window coverage, and observed-to-true ratios of AUClast, AUCinf under rule B (lambda-z estimable) and AUCinf under rule A (set i): median, 5th and 95th percentiles, minimum, maximum and SD of the log ratio; log(AUCinf/true) = log(AUClast/true) + log(AUCinf/AUClast)"
+    trial: "largest absolute difference between the geometric mean of trial AUClast GMRs and the true AUC0-inf ratio over the 16 boundary cells, S00 and F097 (section1, M0)"
+  s4: "section1 as registered; headline counts (at or below nominal in X of 16 cells) generated from the results; any P2 cell above 5% stated first with mechanism, multiplier, magnitude, interval and the AUClast bias toward 1"
+  n_trials_regen: 2000
+  seen_before_registration: "study population: failure share by set and the weight difference and AUClast ratio of failing subjects (scripts/51 dry run); true AUC0-inf ratio of excluded subjects under set (i) (sap/sap_exclusion_support.csv); section1 partial data (dry run); arm differences in failure in the atopic and mean-100-kg populations. Not seen: failure by stratum, arm by stratum composition, arm differences in the study population, confidence intervals of the failing-subject characteristics, observed-to-true ratios of AUCinf"
+  scripts: [scripts/54_trial_population_drop.R, scripts/55_trial_population_summary.R]
