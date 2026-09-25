@@ -1,0 +1,100 @@
+scope,file,test,judgment,skipped,failed,error,real_s,cpu_s,skip_reason,unexpected_skip
+full,test-be-stats.R,pooled t 90% CI는 t.test(var.equal=TRUE)와 일치하고 80–125% 판정이 맞다,FALSE,FALSE,FALSE,FALSE,0.135,0.135,"",FALSE
+full,test-be-stats.R,ANCOVA(체중) CI는 lm/confint와 일치,FALSE,FALSE,FALSE,FALSE,0.037,0.037,"",FALSE
+full,test-be-stats.R,be_analyze는 평가변수별·부분집합별로 계산한다,FALSE,FALSE,FALSE,FALSE,0.063,0.063,"",FALSE
+full,test-config-schema.R,모든 config에 YAML 불리언 예약어 키가 없다 (원문 검사 + 파싱 결과 검사),FALSE,FALSE,FALSE,FALSE,2.277,2.211,"",FALSE
+full,test-config-schema.R,파라미터 config 자료형,FALSE,FALSE,FALSE,FALSE,0.158,0.158,"",FALSE
+full,test-config-schema.R,시험 설계 config 자료형,FALSE,FALSE,FALSE,FALSE,0.123,0.122,"",FALSE
+full,test-config-schema.R,시나리오·gate·검증 config 자료형,FALSE,FALSE,FALSE,FALSE,0.267,0.265,"",FALSE
+full,test-criteria.R,"기준 세트 (i)·(ii)는 NCA 출력의 기존 플래그와 같고, (iii) ⊂ (i), (iv) ⊂ (iii)",FALSE,FALSE,FALSE,FALSE,0.701,0.705,"",FALSE
+full,test-criteria.R,"로그정규 체중: 절단 구간 안, 산술 평균·SD 매개변수화, 기존 분포의 난수열 불변",FALSE,FALSE,FALSE,FALSE,0.094,0.094,"",FALSE
+full,test-extend.R,"연장 규칙: 사전 고정 수에서 P2 Wilson 95% 구간이 5%를 포함하는(lo ≤ 5 ≤ hi, 경계 포함) 시나리오만 목표 수로 늘린다",FALSE,FALSE,FALSE,FALSE,0.059,0.058,"",FALSE
+full,test-extend.R,"연장 규칙은 시나리오를 코드에 적지 않고 표에서 정하며, 입력이 규칙의 전제와 어긋나면 중단한다",FALSE,FALSE,FALSE,FALSE,0.072,0.071,"",FALSE
+full,test-extend.R,"시험 수 문구는 최빈 수와 예외(적응적 연장, 진행 중)를 실제 수로 적는다",FALSE,FALSE,FALSE,FALSE,0.109,0.14,"",FALSE
+full,test-extend.R,시험 수 문구의 예외만 모드,FALSE,FALSE,FALSE,FALSE,0.021,0.028,"",FALSE
+full,test-key-facts.R,key_facts: 결과가 없으면 원소가 NULL,FALSE,FALSE,FALSE,FALSE,0.22,0.217,"",FALSE
+full,test-key-facts.R,"key_facts: 저장 결과에서 Km 범위·도달 목표, 역산 경계표, VM150·KE120",FALSE,FALSE,FALSE,FALSE,0.193,0.191,"",FALSE
+full,test-key-facts.R,key_facts: 문구의 전제와 어긋나면 중단,FALSE,FALSE,FALSE,FALSE,0.336,0.334,"",FALSE
+full,test-key-facts.R,key_facts: 연장 문구의 시험 수는 boundary_type1.csv가 연장 파일을 모두 반영했을 때만(아니면 중단),FALSE,FALSE,FALSE,FALSE,0.32,0.316,"",FALSE
+full,test-key-facts.R,"key_trials_text: 연장 없음, 미실행, 진행 중, 완료",FALSE,FALSE,FALSE,FALSE,0.025,0.024,"",FALSE
+full,test-key-facts.R,random_space_ranges_text: config 범위 문구,FALSE,FALSE,FALSE,FALSE,0.014,0.014,"",FALSE
+full,test-lint-datatable-scope.R,R/와 scripts/의 함수에서 인자-열 이름 충돌이 없다,FALSE,FALSE,FALSE,FALSE,0.693,0.691,"",FALSE
+full,test-lint-datatable-scope.R,검사기가 실제로 위반을 잡는다(자기 검증),FALSE,FALSE,FALSE,FALSE,0.006,0.006,"",FALSE
+full,test-lloq.R,"재검열은 모의 LLOQ에서 원래 관측과 같고, 잔차 배율 1은 y_raw를 그대로 재현하며, y_raw는 BLQ 행에도 남는다",FALSE,FALSE,FALSE,FALSE,3.541,2.247,"",FALSE
+full,test-lloq.R,절벽 도달 시각은 LLOQ를 벡터로 줘도 하나씩 줄 때와 같고 LLOQ가 낮을수록 늦다,FALSE,FALSE,FALSE,FALSE,0.336,0.379,"",FALSE
+full,test-model-structure.R,Vmax=0이면 해석적 선형 2구획 해와 일치,FALSE,FALSE,FALSE,FALSE,1.322,1.287,"",FALSE
+full,test-model-structure.R,"질량 보존, F 반영, MM 0차 극한, auc 상태",FALSE,FALSE,FALSE,FALSE,0.279,0.292,"",FALSE
+full,test-model-structure.R,MM 소실로 용량당 AUCinf가 용량과 함께 증가; 다개체 일관성,FALSE,FALSE,FALSE,FALSE,0.273,0.268,"",FALSE
+full,test-model-structure.R,"ADA 스위치: onset 이전 동일, 이후 ke 배율만큼 소실 증가",FALSE,FALSE,FALSE,FALSE,0.13,0.129,"",FALSE
+full,test-model-structure.R,"Kovalenko 2020 transit 모델: 질량 보존, 평균 통과 시간 = MTT, 대표 프로파일이 2016 모델과 같은 자릿수",FALSE,FALSE,FALSE,FALSE,1.133,0.138,"",FALSE
+full,test-nca-wnl.R,Phoenix 표기 출력 변수와 Clast_pred·AUCINF_pred·span ratio,FALSE,FALSE,FALSE,FALSE,0.052,0.05,"",FALSE
+full,test-nca-wnl.R,"BLQ: 첫 정량값 이전은 0, 첫 정량 이후 tmax 이전의 BLQ는 결측(이전 엔진은 0)",FALSE,FALSE,FALSE,FALSE,0.197,0.192,"",FALSE
+full,test-nca-wnl.R,"BLQ 2회 연속 뒤의 정량값은 결측(그 이후 전부 제외), 단일 BLQ는 결측으로 연결",FALSE,FALSE,FALSE,FALSE,0.085,0.085,"",FALSE
+full,test-nca-wnl.R,"동률 판정은 엄격 부등호(|최대 − adj R²| < 1e-4), 기울기 > 0 창은 선택 전에 제외",FALSE,FALSE,FALSE,FALSE,0.053,0.052,"",FALSE
+full,test-nca-wnl.R,"신뢰 플래그 세 가지와 reliable, 규칙 C 대체값",FALSE,FALSE,FALSE,FALSE,0.053,0.052,"",FALSE
+full,test-nca-wnl.R,무작위 모의 프로필 50개에서 NonCompart와 λz 점·파라미터 일치,FALSE,FALSE,FALSE,FALSE,0.63,0.616,"",FALSE
+full,test-nca-wnl.R,"NonCompart 문서 예제 Theoph(12명)·Indometh(6명, 혈관외 규칙): λz 선택 점 전부 일치, 파라미터 상대 차이 ≤ 1e-6 (scripts/28과 같은 설정)",FALSE,FALSE,FALSE,FALSE,0.794,0.784,"",FALSE
+full,test-nca.R,"AUClast: linear-up/log-down 손계산과 일치, (0,0) 앵커 포함",FALSE,FALSE,FALSE,FALSE,0.036,0.035,"",FALSE
+full,test-nca.R,"λz: 마지막 k점 후보 중 adjusted R² 최대 창 선택, AUCinf·외삽률·신뢰 기준",FALSE,FALSE,FALSE,FALSE,0.043,0.043,"",FALSE
+full,test-nca.R,λz 동률(정확한 단일지수)이면 점 수가 많은 창을 택한다; Cmax 점은 후보 제외,FALSE,FALSE,FALSE,FALSE,0.03,0.029,"",FALSE
+full,test-nca.R,"BLQ 규칙: tmax 이전 0, 중간 결측(인접점 연결), tlast 이후 제외",FALSE,FALSE,FALSE,FALSE,0.031,0.03,"",FALSE
+full,test-nca.R,λz 산출 불가: tmax 이후 정량점 3개 미만 또는 기울기 ≥ 0,FALSE,FALSE,FALSE,FALSE,0.068,0.069,"",FALSE
+full,test-nca.R,정량치가 전혀 없는 개체는 NA 행으로 남고 여러 개체를 한 번에 처리한다,FALSE,FALSE,FALSE,FALSE,0.042,0.043,"",FALSE
+full,test-nca.R,"BEmaster 호환 모드: 선형 사다리꼴, BLQ=0, 마지막 3점 λz",FALSE,FALSE,FALSE,FALSE,0.03,0.03,"",FALSE
+full,test-nca.R,참값 지표 부착,FALSE,FALSE,FALSE,FALSE,0.013,0.013,"",FALSE
+full,test-oc-models.R,M1(처리 + 체중 층)과 M2(처리 + log 체중)의 GMR·90% CI·자유도가 lm/confint와 일치한다,FALSE,FALSE,FALSE,FALSE,0.298,0.298,"",FALSE
+full,test-oc-models.R,층별 군 인원이 같으면 M1 점추정은 M0(군 평균 차)와 같고 SE는 층 효과만큼 작다,FALSE,FALSE,FALSE,FALSE,0.056,0.055,"",FALSE
+full,test-oc-models.R,"be_m0_fast는 be_pooled_t와 같고, 층이 비면 M1은 NA(불통과)다",FALSE,FALSE,FALSE,FALSE,0.045,0.045,"",FALSE
+full,test-oc-models.R,"run_trial_oc_models의 M0는 run_trial_oc_ext와 같고, M1은 층 균형 시 점추정이 M0와 같으며, LLOQ 재검열은 모의 LLOQ에서 원래 결과와 같다",FALSE,FALSE,FALSE,FALSE,3.529,3.812,"",FALSE
+full,test-oc-models.R,"연구 LLOQ는 config/assay.yaml 한 곳에서 읽고, 민감도 격자는 연구 LLOQ를 포함하며, 옵션으로만 고정할 수 있다",FALSE,FALSE,FALSE,FALSE,0.048,0.037,"",FALSE
+full,test-oc.R,bisect_log는 단조 함수의 목표 배율을 허용오차 안에서 찾는다,FALSE,FALSE,FALSE,FALSE,0.027,0.026,"",FALSE
+full,test-oc.R,.parabola_max는 간격이 다른 세 점에서도 포물선 꼭짓점을 돌려준다,FALSE,FALSE,FALSE,FALSE,0.022,0.022,"",FALSE
+full,test-oc.R,V2 기전은 k21만 나누고(Q = k12·Vc 고정) F 배율은 F <= 1을 강제한다,FALSE,FALSE,FALSE,FALSE,0.02,0.019,"",FALSE
+full,test-oc.R,truth_metrics의 AUC0-inf는 선형 소실만 있을 때 F·Dose/(Vc·ke)와 같다(느슨한 참값 허용오차 포함),FALSE,FALSE,FALSE,FALSE,0.118,0.118,"",FALSE
+full,test-oc.R,"truth_ratio는 같은 제품에서 1, 알려진 배율에서 그 배율을 준다",FALSE,FALSE,FALSE,FALSE,0.023,0.023,"",FALSE
+full,test-oc.R,config_pass는 사전 고정 구성 정의대로 계산하고 NA는 불통과로 본다,FALSE,FALSE,FALSE,FALSE,0.054,0.052,"",FALSE
+full,test-p2-interpretation.R,"classify_type1은 Wilson 구간을 5%와 비교해 보수적·명목·초과로 나누고, 끝점이 5%와 같으면 명목이다",FALSE,FALSE,FALSE,FALSE,0.065,0.065,"",FALSE
+full,test-p2-interpretation.R,be_boundary_type1_theory: 참값이 정확히 경계면 가까운 한계 확률이 5%이고 통과 = 5% − 반대쪽 한계 확률,FALSE,FALSE,FALSE,FALSE,0.1,0.101,"",FALSE
+full,test-p2-interpretation.R,"be_boundary_type1_theory: 참값에 따른 단조성, 구간이 너무 넓으면 0, 벡터 입력과 입력 검사",FALSE,FALSE,FALSE,FALSE,0.036,0.036,"",FALSE
+full,test-p2-interpretation.R,"be_pass_prob_normal은 SD = se, df → ∞에서 이론값과 같고, 1 쪽 편향은 올리고 SD < se는 내린다",FALSE,FALSE,FALSE,FALSE,0.027,0.028,"",FALSE
+full,test-p2-interpretation.R,"bias_direction: 참값 < 1이면 음이 1에서 멀어짐, 참값 > 1이면 양이 멀어짐, 95% 구간이 0을 포함하면 none",FALSE,FALSE,FALSE,FALSE,0.019,0.019,"",FALSE
+full,test-params.R,기본 파라미터는 Kovalenko 2016 Table 2 값이고 전부 confirmed,FALSE,FALSE,FALSE,FALSE,0.025,0.025,"",FALSE
+full,test-params.R,Kovalenko 2020 Model 1 파라미터와 IIV 차용,FALSE,FALSE,FALSE,FALSE,0.011,0.011,"",FALSE
+full,test-params.R,시나리오 배율과 민감도 변형,FALSE,FALSE,FALSE,FALSE,0.03,0.03,"",FALSE
+full,test-params.R,CV <-> omega 변환과 log-CV,FALSE,FALSE,FALSE,FALSE,0.011,0.012,"",FALSE
+full,test-population.R,체중: 절단 정규분포와 성별 하한,FALSE,FALSE,FALSE,FALSE,0.024,0.028,"",FALSE
+full,test-population.R,"eta 표본 SD = omega, IIV 없는 파라미터는 0",FALSE,FALSE,FALSE,FALSE,0.011,0.014,"",FALSE
+full,test-population.R,"개체 파라미터: 체중 공변량 지수 0.705, F는 고정 0.607, ADA 열",FALSE,FALSE,FALSE,FALSE,0.008,0.007,"",FALSE
+full,test-population.R,층 경계는 체중 절단 범위에서 자동 생성된다 (D-024),FALSE,FALSE,FALSE,FALSE,0.014,0.014,"",FALSE
+full,test-population.R,"층화 무작위배정: 각 arm 정확히 n, 층 내 1:1(±1), 층 밖 대상자는 오류",FALSE,FALSE,FALSE,FALSE,0.054,0.047,"",FALSE
+full,test-rejudge.R,"재판정 구성 정의는 사전 고정 구성(P2, G2, AUCinf_only)과 같고 G2 계열은 모두 Cmax를 포함한다",FALSE,FALSE,FALSE,FALSE,0.03,0.021,"",FALSE
+full,test-rejudge.R,"config_pass_ext는 규칙 × 플래그 세트 조합을 평가변수 통과의 논리곱으로 계산하고, pass NA는 불통과, 행 없음은 미평가(NA)로 둔다",FALSE,FALSE,FALSE,FALSE,0.221,0.222,"",FALSE
+full,test-rejudge.R,run_trial_oc_ext는 원래 6개 평가변수를 run_trial_oc와 비트 단위로 재현하고 세트 (i) 포함 수는 세트 (ii) 이상이다,FALSE,FALSE,FALSE,FALSE,1.089,1.091,"",FALSE
+full,test-reliability-text.R,"fmt_flag_pair: (i) 주값, (ii) 병기, 범위·원소별·부호·반올림",FALSE,FALSE,FALSE,FALSE,0.024,0.024,"",FALSE
+full,test-reliability-text.R,"reliability_facts: 39 결과가 없으면 NULL, 전제와 어긋나면 중단",FALSE,FALSE,FALSE,FALSE,0.135,0.134,"",FALSE
+full,test-round5.R,"2020 Model 1: 자체 IIV(분산 = SD²)와 잔차, MTT IIV 포함 (D-029)",FALSE,FALSE,FALSE,FALSE,0.02,0.02,"",FALSE
+full,test-round5.R,MTT 개체간 변동이 ktr에 반영된다,FALSE,FALSE,FALSE,FALSE,0.01,0.01,"",FALSE
+full,test-round5.R,체중 밴드 균등분포와 키·BMI,FALSE,FALSE,FALSE,FALSE,0.055,0.055,"",FALSE
+full,test-round5.R,"ke~BMI 공변량과 Vc 체중 지수 대체 (§6 c, d)",FALSE,FALSE,FALSE,FALSE,0.026,0.025,"",FALSE
+full,test-round5.R,"Wilson 구간, MC 평균 구간, 쌍대 비율 차이",FALSE,FALSE,FALSE,FALSE,0.025,0.025,"",FALSE
+full,test-round5.R,trial_ids: 같은 시험 번호는 묶음과 무관하게 같은 결과(적응적 상향의 전제),FALSE,FALSE,FALSE,FALSE,3.043,3.28,"",FALSE
+full,test-samplesize.R,log 체중 분산 분해는 절단 정규 표본과 맞고 층 간 + 층 안 = 전체,FALSE,FALSE,FALSE,FALSE,0.142,0.14,"",FALSE
+full,test-samplesize.R,"P2 검정력은 n에 대해 증가하고, CV에 대해 감소하며, M1이 M0 이상이다",FALSE,FALSE,FALSE,FALSE,0.069,0.069,"",FALSE
+full,test-samplesize.R,"분석식은 같은 자료 생성 모형의 직접 모의(M1, 4,000회)와 모의 오차 안에서 같다",FALSE,FALSE,FALSE,FALSE,5.316,5.152,"",FALSE
+full,test-sampling.R,채혈 일정 정의(지시서 §5),FALSE,FALSE,FALSE,FALSE,0.031,0.032,"",FALSE
+full,test-sampling.R,"채혈 편차는 허용창 안, 시점 0 고정, 순서 유지",FALSE,FALSE,FALSE,FALSE,0.336,0.331,"",FALSE
+full,test-scenario-propagation.R,모든 제품 시나리오: 시험군 개체 파라미터 기하평균이 해당 배율만큼만 이동하고 대조군은 불변,FALSE,FALSE,FALSE,FALSE,1.468,1.51,"",FALSE
+full,test-scenario-propagation.R,양 군 공통 배율(곡률 민감도)은 대조군과 시험군 모두에 적용된다,FALSE,FALSE,FALSE,FALSE,0.668,0.672,"",FALSE
+full,test-seeds.R,시드 파생은 결정적이고 인자에 민감하다,FALSE,FALSE,FALSE,FALSE,0.015,0.012,"",FALSE
+full,test-seeds.R,with_seed는 바깥 RNG 상태를 복원한다,FALSE,FALSE,FALSE,FALSE,0.006,0.006,"",FALSE
+full,test-simulate.R,잔차·BLQ 규칙과 시드 재현,FALSE,FALSE,FALSE,FALSE,0.046,0.045,"",FALSE
+full,test-simulate.R,일정 부분집합과 참값 부착,FALSE,FALSE,FALSE,FALSE,0.062,0.06,"",FALSE
+full,test-simulate.R,"시험 엔진: 대조군은 시나리오 간 동일(공통 난수), 시험군은 같은 eta로 배율만 다름, 각 arm 정확히 n",FALSE,FALSE,FALSE,FALSE,2.504,2.706,"",FALSE
+full,test-step1-clot2021.R,"gate 범위: 연구 제형(300 mg, 600 mg)만 gate, 200 mg 1.14 mL 제형은 external (gate_decision.yaml)",FALSE,FALSE,FALSE,FALSE,0.026,0.018,"",FALSE
+full,test-step1-clot2021.R,"[판정] (a) 연구 용량 300·600 mg: 관측 중앙값 tlast가 8명 코호트 2,000회 중앙값 분포의 5–95 백분위 안",TRUE,FALSE,FALSE,FALSE,23.189,23.205,"",FALSE
+full,test-step1-clot2021.R,"[판정] (b) 연구 제형 데이터셋: AUClast 평균 ±15%, log-CV 35–51%",TRUE,FALSE,FALSE,FALSE,72.981,72.365,"",FALSE
+full,test-step1-clot2021.R,[판정] (c) 체중 기울기: 5 kg당 AUClast 약 50 mg·day/L 감소 (허용 ±50%는 확정 전 가정),TRUE,FALSE,FALSE,FALSE,13.083,13.227,"",FALSE
+full,test-step1-clot2021.R,[판정] (f) 300 mg 개별 arm 외부 점검: 모델 평균(약 78 kg)이 Li 2020 arm 평균 범위 안,TRUE,FALSE,FALSE,FALSE,13.236,13.13,"",FALSE
+full,test-summarize.R,개인 수준 대응 비교: McNemar 불일치 쌍과 신뢰 충족률 차이,FALSE,FALSE,FALSE,FALSE,0.086,0.062,"",FALSE
+full,test-summarize.R,시험 수준 대응 비교와 판정 규칙 (a)–(d) (검토 의견 3차 §5),FALSE,FALSE,FALSE,FALSE,0.183,0.182,"",FALSE
+full,test-summarize.R,시나리오·방법이 섞인 결과에서도 필터가 정확하다 (D-022 회귀 테스트),FALSE,FALSE,FALSE,FALSE,0.081,0.08,"",FALSE
