@@ -150,6 +150,35 @@ if (!is.null(nnt) && !is.null(tpw)) {
               n_(43, "M0", 90), n_(43, "M1", 90), n_(50, "M0", 90), n_(50, "M1", 90), n_(43, "M0", 85), n_(43, "M1", 85)), "")
 }
 
+# 두 번째 추가 지시 2026-09-26(v1.0.1): λz 신뢰 기준 관행값(section4), 아토피 성인 체중 분포(section5)
+cri <- R("criteria", "criteria_individual.csv"); cg <- R("criteria", "criteria_g2_type1.csv"); cs <- R("criteria", "criteria_instability.csv")
+if (!is.null(cri) && !is.null(cg) && !is.null(cs)) {
+  fr <- function(dist, s_, col = "fail_pct", d = 1) { x <- cri[distribution == dist & set == s_][[col]]; sprintf("%s to %s", fd(min(x), d), fd(max(x), d)) }
+  gn <- function(a, cf) { x <- cg[analysis_model == a & config == cf]; sprintf("%d of 16 above 5%% (%d with the Wilson lower bound above 5%%), %s%% to %s%%", sum(x$pass_pct > 5), sum(x$lo > 5), f2(min(x$pass_pct)), f2(max(x$pass_pct))) }
+  ir <- function(col) { x <- cs[analysis_model == "M0" & !scenario %in% c("S00", "F097")][[col]]; sprintf("median %s%%, maximum %s%%", f1(median(x)), f1(max(x))) }
+  add("Lambda-z reliability criteria convention: sets (i) adj. R-squared 0.80, (ii) (i) + span 2, (iii) adj. R-squared 0.90, (iv) (iii) + span 3 (all with extrapolation at most 20%)",
+      sprintf("- Without a reliable AUCinf, study population 60 to 90 kg (two models): (i) %s%%, (ii) %s%%, (iii) %s%%, (iv) %s%% (criteria/criteria_individual.csv).", fr("study_60_90", "i"), fr("study_60_90", "ii"), fr("study_60_90", "iii"), fr("study_60_90", "iv")),
+      sprintf("- Adult atopic dermatitis, primary weight distribution (three model variants): (i) %s%%, (iii) %s%%, (iv) %s%% (criteria/criteria_individual.csv).", fr("primary", "i"), fr("primary", "iii"), fr("primary", "iv")),
+      sprintf("- G2 (AUCinf + Cmax), M0: rule A (i) %s; rule A (iii) %s; rule A (iv) %s; rule B %s; rule C (iii) %s (criteria/criteria_g2_type1.csv).", gn("M0", "G2_A_i"), gn("M0", "G2_A_iii"), gn("M0", "G2_A_iv"), gn("M0", "G2_B"), gn("M0", "G2_C_iii")),
+      sprintf("- Decision instability, M0, 16 boundary cells: across all 9 variants %s; across rules with set (i) %s, with set (iii) %s; across sets within rule A %s (criteria/criteria_instability.csv).", ir("inst_all"), ir("inst_rules_i"), ir("inst_rules_iii"), ir("inst_sets_A")), "")
+}
+acb <- R("atopic", "atopic_criteria_by_band.csv"); acf <- R("atopic", "atopic_coverage_failing.csv"); awt <- R("atopic", "atopic_weight_table.csv"); abi <- R("atopic", "atopic_trials_bias.csv"); aaf <- R("atopic", "atopic_trials_arm_failure.csv")
+if (!is.null(acb) && !is.null(acf) && !is.null(awt)) {
+  b_ <- function(v, s_, b) f1(acb[variant == v & distribution == "primary" & band == b & set == s_, fail_pct])
+  rgp <- function(s_) { x <- acb[distribution == "primary" & band == "all" & set == s_, fail_pct]; sprintf("%s%% to %s%%", f1(min(x)), f1(max(x))) }
+  ws <- awt[distribution == "primary" & grepl("^simulated", source)]
+  add("Adult atopic dermatitis body weight (lognormal mean 78 kg, SD 19 kg, 40 to 180 kg; placeholder), 20,000 patients per model variant, B0, 300 mg",
+      sprintf("- Simulated shares: below 60 kg %s%%, 60 to 90 kg %s%%, above 90 kg %s%%, above 100 kg %s%% (atopic/atopic_weight_table.csv).", f1(ws$below_60), f1(ws$in_60_90), f1(ws$above_90), f1(ws$above_100)),
+      sprintf("- Without a reliable AUCinf, 2016 model: %s%% (set (i)) to %s%% (set (iii)); three variants %s and %s. Set (i) by band, 2016 model: %s%% below 60 kg, %s%% at 60 to 90 kg, %s%% above 90 kg, %s%% above 100 kg (atopic/atopic_criteria_by_band.csv).",
+              b_("base", "i", "all"), b_("base", "iii", "all"), rgp("i"), rgp("iii"), b_("base", "i", "below 60"), b_("base", "i", "60-90"), b_("base", "i", "above 90"), b_("base", "i", "above 100")),
+      sprintf("- Sampling-window coverage of the true AUCinf in patients failing set (iii): minimum %s%%, median %s%% to %s%%; observed AUClast / true AUCinf in the same patients: median %s%% to %s%% (atopic/atopic_coverage_failing.csv).",
+              f1(100 * min(acf[distribution == "primary" & set == "iii", window_fail_min])), f1(100 * min(acf[distribution == "primary" & set == "iii", window_fail_median])), f1(100 * max(acf[distribution == "primary" & set == "iii", window_fail_median])),
+              f1(100 * min(acf[distribution == "primary" & set == "iii", obs_fail_median])), f1(100 * max(acf[distribution == "primary" & set == "iii", obs_fail_median]))),
+      if (!is.null(abi) && !is.null(aaf)) sprintf("- Trials (M0): AUClast bias %s%% to %s%%, AUCinf rule A (i) %s%% to %s%%; arm difference in failing set (i) at Vmax x1.25 %s to %s points (atopic/atopic_trials_bias.csv, atopic_trials_arm_failure.csv).",
+              f2(min(abi[analysis_model == "M0" & endpoint == "AUClast", bias_pct])), f2(max(abi[analysis_model == "M0" & endpoint == "AUClast", bias_pct])), f2(min(abi[analysis_model == "M0" & endpoint == "AUCinf_Ai", bias_pct])),
+              f2(max(abi[analysis_model == "M0" & endpoint == "AUCinf_Ai", bias_pct])), f2(min(aaf[scenario == "VM125" & set == "i", diff_mean])), f2(max(aaf[scenario == "VM125" & set == "i", diff_mean]))), "")
+}
+
 txt <- paste(out, collapse = "\n")
 if (grepl("—|–|\u2212", txt)) stop("key_numbers_en.md contains an em-dash, en-dash or minus sign (U+2212)")
 if (grepl("[가-힣]", txt)) { bad <- regmatches(txt, gregexpr("[^\n]*[가-힣][^\n]*", txt))[[1]]; stop("key_numbers_en.md contains Korean text: ", paste(head(bad, 3), collapse = " || ")) }

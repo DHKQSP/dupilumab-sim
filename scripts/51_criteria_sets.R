@@ -6,6 +6,7 @@
 #   restart_identity_check.csv        section1 재시작 전후 같은 시험의 행 일치
 #   criteria_individual.csv           모집단(60–90 kg 두 모델, 아토피 3 변형 × 3 분포) × 세트: 미달(λz 산출 불가 / 산출되나 미달), arm당 인원, 미달 대 잔류 비교
 #   criteria_g2_type1.csv             경계 16칸 × 분석 모형 × G2 변형(규칙 A·C × 세트 i–iv, 규칙 B): 통과율, Wilson, 분류
+#   criteria_check_vs_v10.csv         M0의 기존 변형 5개가 v1.0 저장값(oc/g2_rules_flags.csv)과 같은지(시험 수가 같은 칸)
 #   criteria_g2_power.csv             S00·F097 검정력
 #   criteria_bias.csv                 칸 × 분석 모형 × AUC0-inf 평가변수: 참 AUC0-inf 비 대비 편향
 #   criteria_instability.csv          칸 × 분석 모형: 규칙·세트만 바꿀 때 판정이 뒤집히는 시험 비율
@@ -21,6 +22,7 @@ SETS <- names(CRIT_SETS); PK <- c("k2016", "k2020"); n_bnd <- as.integer(oc$tria
 MODEL_EN <- c(k2016 = "2016 model", k2020 = "Model 1", base = "2016 model", struct2020 = "Model 1", k2016_bmi_vc0817 = "2016 model + BMI and weight covariates")
 f1 <- function(x) formatC(round(x, 1) + 0, format = "f", digits = 1); f2 <- function(x) formatC(round(x, 2) + 0, format = "f", digits = 2); f3 <- function(x) formatC(round(x, 3) + 0, format = "f", digits = 3)
 rg <- function(x, f = f1, u = "%", sep = " to ") sprintf("%s%s%s%s%s", f(min(x)), u, sep, f(max(x)), u)
+mm <- function(x) sprintf("a median of %s%% and up to %s%%", f1(median(x)), f1(max(x))); mmk <- function(x) sprintf("%s%%/%s%%", f1(median(x)), f1(max(x)))
 
 # ---- 0) 재시작 전후 일치(section1) ----------------------------------------------------------------------------------------
 RC <- rbindlist(lapply(PK, function(m) {
@@ -66,8 +68,16 @@ L <- melt(W, id.vars = c("pk_model", "trial", "scenario", "model"), measure.vars
 rate <- function(x) { w <- wilson_ci(sum(x), length(x)); list(n_trials = length(x), pass_pct = w$est, lo = w$lo, hi = w$hi) }
 T1 <- L[scenario %in% sc_meta$scenario, rate(ok), by = .(pk_model, scenario, analysis_model = model, config)]
 T1 <- sc_meta[T1, on = c("pk_model", "scenario"), nomatch = NULL][, class := classify_type1(lo, hi, 5)]
+T1[, config := as.character(config)]
 T1[, `:=`(rule = sub("^G2_([ABC]).*$", "\\1", config), set = fifelse(config == "G2_B", "any", sub("^G2_[AC]_", "", config)))]
 fwrite(T1, file.path(out_dir, "criteria_g2_type1.csv"))
+# v1.0 저장본(oc/g2_rules_flags.csv)과 대조: M0의 규칙 A·C 세트 (i)·(ii)와 규칙 B는 같은 시험이므로, 시험 수가 같은 칸은 통과율이 같아야 한다
+V10 <- fread(file.path(oc_dir, "g2_rules_flags.csv"))[region == "boundary" & config %in% c("G2_Ai", "G2_Aii", "G2_B", "G2_Ci", "G2_Cii")]
+V10[, config := c(G2_Ai = "G2_A_i", G2_Aii = "G2_A_ii", G2_B = "G2_B", G2_Ci = "G2_C_i", G2_Cii = "G2_C_ii")[config]]
+VC <- merge(T1[analysis_model == "M0", .(pk_model, scenario, config, n_trials, pass_pct)], V10[, .(pk_model = model, scenario, config, n_trials_v10 = n_trials, pass_pct_v10 = pass_pct)], by = c("pk_model", "scenario", "config"))
+VC[, `:=`(same_n = n_trials == n_trials_v10, identical = n_trials == n_trials_v10 & abs(pass_pct - pass_pct_v10) < 1e-9)]
+fwrite(VC, file.path(out_dir, "criteria_check_vs_v10.csv"))
+if (nrow(VC) != 80 || !any(VC$same_n) || !all(VC[same_n == TRUE, identical])) stop("v1.0 저장 G2와 불일치: ", paste(VC[same_n == TRUE & identical == FALSE, sprintf("%s %s %s", pk_model, scenario, config)], collapse = ", "))
 PWt <- L[scenario %in% c("S00", "F097"), rate(ok), by = .(pk_model, scenario, analysis_model = model, config)]
 fwrite(PWt, file.path(out_dir, "criteria_g2_power.csv"))
 BI <- TR[endpoint %in% G2V & is.finite(est) & scenario %in% sc_meta$scenario, .(n = .N, mean_log_gmr = mean(est), sd_log_gmr = sd(est)), by = .(pk_model, scenario, analysis_model = model, endpoint)]
@@ -122,9 +132,9 @@ en <- c("# Sensitivity to the conventional lambda-z reliability criteria", "",
   "## Boundary type I error of AUC0-inf + Cmax by rule and criteria set (16 boundary scenarios)", "",
   sprintf("- M0: %s.", g2line("M0")), sprintf("- M1: %s.", g2line("M1")), "",
   "## Decision instability (same trials, only the rule or criteria set changed; 16 boundary scenarios, M0)", "",
-  sprintf("- Across all 9 variants the G2 decision changes in %s of trials; across rules A, B, C with set (i) in %s, with set (iii) in %s; across sets within rule A in %s, within rule C in %s.",
-          rg(ins$inst_all, f1), rg(ins$inst_rules_i, f1), rg(ins$inst_rules_iii, f1), rg(ins$inst_sets_A, f1), rg(ins$inst_sets_C, f1)), "",
-  if (nrow(RC)) sprintf("Restart check: the section1 rows of %s trials completed before the restart are identical after the restart (%s rows).", paste(sprintf("%s %s", RC$trials_compared, MODEL_EN[RC$pk_model]), collapse = " and "), format(sum(RC$rows_matched), big.mark = ",")) else "")
+  sprintf("- Across all 9 variants the G2 decision changes in %s of trials per cell; across rules A, B, C with set (i) in %s, with set (iii) in %s; across sets within rule A in %s, within rule C in %s.",
+          mm(ins$inst_all), mm(ins$inst_rules_i), mm(ins$inst_rules_iii), mm(ins$inst_sets_A), mm(ins$inst_sets_C)), "",
+  if (nrow(RC)) sprintf("Restart check: the section1 rows of the trials completed before the restart (%s) are identical after the restart (%s rows).", paste(sprintf("%s, %s", MODEL_EN[RC$pk_model], format(RC$trials_compared, big.mark = ",")), collapse = "; "), format(sum(RC$rows_matched), big.mark = ",")) else "")
 ko <- c("# λz 신뢰 기준 관행값 민감도", "",
   "Phoenix WinNonlin은 λz 신뢰 기준을 정하지 않는다: Rules 탭의 Lambda Z Acceptance Criteria는 사용자가 넣는 선택 항목(최소 adjusted R², 최대 외삽 %, span)이며 미달 프로필은 표시만 된다. 0.80은 SAP 관행값이고, 공개 SAP에서는 0.90(span 3 이상 병기 포함)도 흔하다.", "",
   "## 신뢰할 수 있는 AUC0-inf를 얻지 못하는 대상자 (B0, 300 mg, 모델당 20,000명)", "",
@@ -135,8 +145,8 @@ ko <- c("# λz 신뢰 기준 관행값 민감도", "",
   sprintf("- 미달자는 잔류자보다 체중 %s kg 높고 AUClast 기하평균비 %s(연구 모집단, 세트 (i)). 미달자에서 AUClast/참 AUC0-inf 중앙값 %s(5백분위 %s).",
           rg(c6[set == "i", wt_diff], f2, "", " ~ "), rg(c6[set == "i", auclast_gm_ratio_fail_to_retained], f3, "", " ~ "), rg(100 * c6[set == "i", auclast_over_true_fail_median], f1, "%", " ~ "), rg(100 * c6[set == "i", auclast_over_true_fail_p05], f1, "%", " ~ ")), "",
   "## 규칙·세트별 G2 경계 1종 오류(16칸)", "", sprintf("- M0: %s.", g2line("M0")), sprintf("- M1: %s.", g2line("M1")), "",
-  sprintf("## 판정 불안정성(M0): 9개 변형 전체 %s, 세트 (i)에서 규칙만 %s, (iii)에서 %s, 규칙 A에서 세트만 %s, 규칙 C에서 %s.", rg(ins$inst_all, f1, "%", " ~ "), rg(ins$inst_rules_i, f1, "%", " ~ "), rg(ins$inst_rules_iii, f1, "%", " ~ "),
-          rg(ins$inst_sets_A, f1, "%", " ~ "), rg(ins$inst_sets_C, f1, "%", " ~ ")))
+  sprintf("## 판정 불안정성(M0, 칸별 중앙값/최대): 9개 변형 전체 %s, 세트 (i)에서 규칙만 %s, (iii)에서 %s, 규칙 A에서 세트만 %s, 규칙 C에서 %s.", mmk(ins$inst_all), mmk(ins$inst_rules_i), mmk(ins$inst_rules_iii),
+          mmk(ins$inst_sets_A), mmk(ins$inst_sets_C)))
 writeLines(en, file.path(out_dir, "criteria_conclusion_en.md")); writeLines(ko, file.path(out_dir, "criteria_conclusion_ko.md"))
 if (grepl("[ㄱ-ㆎ가-힣]|–|—|−", paste(en, collapse = "\n"))) stop("영문 결론 규칙 위반")
 cat(en, sep = "\n")

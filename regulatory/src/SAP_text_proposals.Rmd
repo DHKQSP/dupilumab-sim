@@ -81,13 +81,16 @@ sp_txt <- .record("increase in span-only exclusions with added samples D1 to D4 
 EX <- "sap/sap_exclusion_support.csv"
 ex_i <- function(m, col, d = 1, scale = 1) v(EX, sprintf("model=='%s' & set=='criteria_i'", m), col, d, item = sprintf("criteria (i) exclusion %s %s", m, col), scale = scale)
 gc0 <- max_t1("M0", "G2_Ci"); gc1 <- max_t1("M1", "G2_Ci")
+CIf <- "criteria/criteria_individual.csv"
+cr_st <- function(s_) vrange(CIf, sprintf("distribution=='study_60_90' & set=='%s'", s_), "fail_pct", 1, item = sprintf("study population, share failing set %s", s_), unit = "%")
+cr_at <- function(s_) vrange(CIf, sprintf("distribution=='primary' & set=='%s'", s_), "fail_pct", 1, item = sprintf("atopic population, share failing set %s", s_), unit = "%")
 ```
 
 **Proposed text.**
 
 > AUC from time zero to infinity (AUC0-inf) is a secondary endpoint. AUC0-inf = AUC0-last + Clast/lambda-z, where Clast is the last observed quantifiable concentration and lambda-z the terminal elimination rate constant (Phoenix WinNonlin AUCINF_obs). Lambda-z is estimated by unweighted log-linear regression using the Best Fit method: candidate windows are the last 3, 4, 5 or more positive concentrations after Cmax; windows with a positive slope are excluded; the window with the largest adjusted coefficient of determination (adjusted R-squared) is selected, ties within 0.0001 going to the window with more points. Lambda-z is not estimable if fewer than 3 positive concentrations follow Cmax.
 >
-> AUC0-inf is considered reliable if the adjusted R-squared of the lambda-z regression is at least 0.80 and the extrapolated area (Clast/lambda-z) is at most 20% of AUC0-inf. No criterion on the span of the lambda-z window is applied.
+> AUC0-inf is considered reliable if the adjusted R-squared of the lambda-z regression is at least 0.80 and the extrapolated area (Clast/lambda-z) is at most 20% of AUC0-inf. No criterion on the span of the lambda-z window is applied. These criteria are entered as the Lambda Z Acceptance Criteria of Phoenix WinNonlin (Rules tab), which applies no criteria by default and flags, rather than excludes, profiles that do not meet them. As a supplementary summary, the number of subjects meeting an adjusted R-squared of at least 0.90 is also reported for each treatment.
 >
 > The GMR and 90% CI of AUC0-inf are reported for two analysis sets: (1) all subjects with an estimable lambda-z; (2) subjects meeting the reliability criteria. For each treatment, the number of subjects with lambda-z not estimable and the number not meeting each criterion are reported, with the body weight and AUC0-last of the excluded and retained subjects. Individual lambda-z windows are listed.
 >
@@ -96,6 +99,7 @@ gc0 <- max_t1("M0", "G2_Ci"); gc1 <- max_t1("M1", "G2_Ci")
 **Evidence.**
 
 - Lambda-z is estimable in `r lzok` of simulated subjects (planned schedule, 60 to 90 kg, 20,000 subjects per model). The reliability criteria above are met by `r ri`; adding a span-ratio criterion (window of at least 2 half-lives) lowers this to `r rii`.
+- The threshold is a convention: 0.80 is the lower end of the conventional range, and 0.90, sometimes with a span of at least 3 half-lives, is common in public statistical analysis plans. The share of subjects without a reliable AUC0-inf is `r cr_st("i")` with 0.80 and `r cr_st("iii")` with 0.90 in the study population (two models), and `r cr_at("i")` and `r cr_at("iii")` in the adult atopic dermatitis population (three model variants; report Sections 5.3 and 5.8). Reporting both counts shows the reader how much the secondary analysis depends on the convention.
 - A span criterion penalizes denser sampling rather than poor estimation: adding late samples (4 alternative schedules, two models) increased the share excluded by the span criterion alone by `r sp_txt` percentage points, because Best Fit then selects a later and shorter window.
 - Exclusion is not random. Subjects failing the criteria are heavier (by `r ex_i("k2016", "wt_diff", 1)` kg in the 2016 model and `r ex_i("k2020", "wt_diff", 1)` kg in Model 1) and have lower exposure (ratio of geometric mean true AUC0-inf, excluded to retained: `r ex_i("k2016", "aucinf_true_gm_ratio_excluded_to_retained", 2)` and `r ex_i("k2020", "aucinf_true_gm_ratio_excluded_to_retained", 2)`); `r ex_i("k2016", "excluded_pct", 1)`% and `r ex_i("k2020", "excluded_pct", 1)`% of subjects are excluded. Reporting both analysis sets, with the characteristics of the excluded subjects, lets the reader judge the effect of the exclusion.
 - The sensitivity rule (AUC0-last substituted) keeps the boundary type I error close to that of the primary endpoints: with AUC0-inf and Cmax its highest boundary value is `r gc0$text` (M0) and `r gc1$text` (M1).
@@ -187,6 +191,7 @@ tp <- function(cv, am) v(TPW, sprintf("input_model=='k2016' & cv==%s & gmr==0.95
 | Item | Status |
 |---|---|
 | AUC0-inf as a secondary endpoint (Section 2) | confirmed by the sponsor's clinical pharmacology |
+| Reliability criteria: adjusted R-squared at least 0.80 as the definition, count at 0.90 reported alongside (Section 2) | proposed (sponsor to confirm) |
 | Disclosure of the boundary scenario whose type I error is above 5% | confirmed |
 | Fallback if AUC0-inf is required as co-primary: all subjects with estimable lambda-z, flagged subjects listed (Section 3) | confirmed |
 | CV 43% as the base assumption, 50% as sensitivity | confirmed |
