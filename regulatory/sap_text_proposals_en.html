@@ -12,7 +12,7 @@
 
 <meta name="date" content="2026-09-25" />
 
-<title>Anticipated FDA Questions and Evidence-Based Responses</title>
+<title>Statistical Analysis Plan: Proposed Text for the Pharmacokinetic Analyses</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -389,583 +389,354 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Anticipated FDA Questions and
-Evidence-Based Responses</h1>
-<h3 class="subtitle">PK similarity study of a proposed dupilumab
-biosimilar: AUC0-last and Cmax as co-primary endpoints and the sampling
-schedule</h3>
+<h1 class="title toc-ignore">Statistical Analysis Plan: Proposed Text
+for the Pharmacokinetic Analyses</h1>
+<h3 class="subtitle">Single-dose pharmacokinetic similarity study of a
+proposed dupilumab biosimilar</h3>
 <h4 class="date">2026-09-25</h4>
 
 </div>
 
 <div id="TOC">
 <ul>
-<li><a href="#q1.-the-2016-fda-guidance-names-auc0-inf-and-cmax-as-the-primary-parameters-of-a-single-dose-pk-similarity-study.-why-do-you-propose-auc0-last" id="toc-q1.-the-2016-fda-guidance-names-auc0-inf-and-cmax-as-the-primary-parameters-of-a-single-dose-pk-similarity-study.-why-do-you-propose-auc0-last">Q1.
-The 2016 FDA guidance names AUC0-inf and Cmax as the primary parameters
-of a single-dose PK similarity study. Why do you propose
-AUC0-last?</a></li>
-<li><a href="#q2.-auc0-last-depends-on-each-subjects-last-quantifiable-time.-could-it-be-biased-when-the-products-differ" id="toc-q2.-auc0-last-depends-on-each-subjects-last-quantifiable-time.-could-it-be-biased-when-the-products-differ">Q2.
-AUC0-last depends on each subject’s last quantifiable time. Could it be
-biased when the products differ?</a></li>
-<li><a href="#q3.-why-not-extend-sampling-beyond-day-57-so-that-auc0-inf-becomes-reliable" id="toc-q3.-why-not-extend-sampling-beyond-day-57-so-that-auc0-inf-becomes-reliable">Q3.
-Why not extend sampling beyond Day 57 so that AUC0-inf becomes
-reliable?</a></li>
-<li><a href="#q4.-why-not-add-samples-in-the-terminal-phase-to-improve-lambda-z" id="toc-q4.-why-not-add-samples-in-the-terminal-phase-to-improve-lambda-z">Q4.
-Why not add samples in the terminal phase to improve lambda-z?</a></li>
-<li><a href="#q5.-the-terminal-phase-lies-below-the-lloq.-how-credible-are-published-models-for-it" id="toc-q5.-the-terminal-phase-lies-below-the-lloq.-how-credible-are-published-models-for-it">Q5.
-The terminal phase lies below the LLOQ. How credible are published
-models for it?</a></li>
-<li><a href="#q6.-the-models-over-predict-cmax-and-do-not-reproduce-the-200-mg-presentation.-does-this-undermine-the-conclusions" id="toc-q6.-the-models-over-predict-cmax-and-do-not-reproduce-the-200-mg-presentation.-does-this-undermine-the-conclusions">Q6.
-The models over-predict Cmax and do not reproduce the 200 mg
-presentation. Does this undermine the conclusions?</a></li>
-<li><a href="#q7.-what-is-the-boundary-type-i-error-of-the-proposed-endpoints-and-why-is-one-value-above-5" id="toc-q7.-what-is-the-boundary-type-i-error-of-the-proposed-endpoints-and-why-is-one-value-above-5">Q7.
-What is the boundary type I error of the proposed endpoints, and why is
-one value above 5%?</a></li>
-<li><a href="#q8.-why-would-auc0-inf-inflate-the-type-i-error-is-it-not-the-more-complete-measure" id="toc-q8.-why-would-auc0-inf-inflate-the-type-i-error-is-it-not-the-more-complete-measure">Q8.
-Why would AUC0-inf inflate the type I error? Is it not the more complete
-measure?</a></li>
-<li><a href="#q9.-what-if-auc0-inf-were-analysed-in-all-subjects-with-a-lambda-z-or-with-auc0-last-substituted-for-unreliable-subjects" id="toc-q9.-what-if-auc0-inf-were-analysed-in-all-subjects-with-a-lambda-z-or-with-auc0-last-substituted-for-unreliable-subjects">Q9.
-What if AUC0-inf were analysed in all subjects with a lambda-z, or with
-AUC0-last substituted for unreliable subjects?</a></li>
-<li><a href="#q10.-could-a-product-that-differs-in-target-binding-pass-on-auc0-last-but-differ-in-auc0-inf" id="toc-q10.-could-a-product-that-differs-in-target-binding-pass-on-auc0-last-but-differ-in-auc0-inf">Q10.
-Could a product that differs in target binding pass on AUC0-last but
-differ in AUC0-inf?</a></li>
-<li><a href="#q11.-how-will-auc0-inf-be-reported" id="toc-q11.-how-will-auc0-inf-be-reported">Q11. How will AUC0-inf be
-reported?</a></li>
-<li><a href="#q12.-is-the-study-adequately-powered" id="toc-q12.-is-the-study-adequately-powered">Q12. Is the study
-adequately powered?</a></li>
-<li><a href="#q13.-were-the-analyses-pre-specified-what-changed-after-results-were-seen" id="toc-q13.-were-the-analyses-pre-specified-what-changed-after-results-were-seen">Q13.
-Were the analyses pre-specified? What changed after results were
-seen?</a></li>
-<li><a href="#q14.-how-was-the-software-verified-and-can-fda-reproduce-the-results" id="toc-q14.-how-was-the-software-verified-and-can-fda-reproduce-the-results">Q14.
-How was the software verified, and can FDA reproduce the
-results?</a></li>
-<li><a href="#q15.-anti-drug-antibodies-can-accelerate-late-clearance.-does-that-affect-auc0-last" id="toc-q15.-anti-drug-antibodies-can-accelerate-late-clearance.-does-that-affect-auc0-last">Q15.
-Anti-drug antibodies can accelerate late clearance. Does that affect
-AUC0-last?</a></li>
-<li><a href="#q16.-do-the-results-hold-for-heavier-subjects" id="toc-q16.-do-the-results-hold-for-heavier-subjects">Q16. Do the
-results hold for heavier subjects?</a></li>
-<li><a href="#q17.-the-randomization-is-stratified-by-body-weight.-why-is-the-stratum-not-in-the-analysis-model" id="toc-q17.-the-randomization-is-stratified-by-body-weight.-why-is-the-stratum-not-in-the-analysis-model">Q17.
-The randomization is stratified by body weight. Why is the stratum not
-in the analysis model?</a></li>
-<li><a href="#q18.-the-lloq-of-the-sponsors-assay-may-differ-from-the-originators.-do-the-conclusions-depend-on-it" id="toc-q18.-the-lloq-of-the-sponsors-assay-may-differ-from-the-originators.-do-the-conclusions-depend-on-it">Q18.
-The LLOQ of the sponsor’s assay may differ from the originator’s. Do the
-conclusions depend on it?</a></li>
-<li><a href="#q19.-is-an-adjusted-r-squared-of-at-least-0.80-a-phoenix-winnonlin-criterion" id="toc-q19.-is-an-adjusted-r-squared-of-at-least-0.80-a-phoenix-winnonlin-criterion">Q19.
-Is an adjusted R-squared of at least 0.80 a Phoenix WinNonlin
-criterion?</a></li>
-<li><a href="#q20.-do-the-conclusions-hold-for-patients-outside-the-study-weight-range" id="toc-q20.-do-the-conclusions-hold-for-patients-outside-the-study-weight-range">Q20.
-Do the conclusions hold for patients outside the study weight
-range?</a></li>
+<li><a href="#primary-pharmacokinetic-endpoints-and-primary-analysis-model" id="toc-primary-pharmacokinetic-endpoints-and-primary-analysis-model">1.
+Primary pharmacokinetic endpoints and primary analysis model</a></li>
+<li><a href="#auc0-inf-as-a-secondary-endpoint" id="toc-auc0-inf-as-a-secondary-endpoint">2. AUC0-inf as a secondary
+endpoint</a></li>
+<li><a href="#fallback-if-fda-requires-auc0-inf-as-a-co-primary-endpoint" id="toc-fallback-if-fda-requires-auc0-inf-as-a-co-primary-endpoint">3.
+Fallback if FDA requires AUC0-inf as a co-primary endpoint</a></li>
+<li><a href="#anti-drug-antibodies" id="toc-anti-drug-antibodies">4.
+Anti-drug antibodies</a></li>
+<li><a href="#concentrations-below-the-lower-limit-of-quantification-and-calculation-of-pk-parameters" id="toc-concentrations-below-the-lower-limit-of-quantification-and-calculation-of-pk-parameters">5.
+Concentrations below the lower limit of quantification and calculation
+of PK parameters</a></li>
+<li><a href="#sample-size" id="toc-sample-size">6. Sample size</a></li>
+<li><a href="#summary-of-decisions" id="toc-summary-of-decisions">7.
+Summary of decisions</a></li>
 </ul>
 </div>
 
-<p>This briefing aid prepares the sponsor for review questions from FDA
-clinical pharmacology, pharmacometrics and biostatistics reviewers. Each
-response gives the short answer, the supporting numbers and the section
-of the Modeling and Simulation Report (the “report”) that contains the
-evidence.</p>
 <ul>
+<li><strong>Status:</strong> 1.0.1 (draft for sponsor review). Proposed
+text for review by the sponsor’s clinical pharmacology and biostatistics
+functions; not approved.</li>
 <li><strong>Source commit:</strong>
-8d0ebc6b88e7f378b65f3fdc6c74c8ea98708e21.</li>
-<li><strong>Status:</strong> 1.0.1 (draft for sponsor review).</li>
-<li><strong>Numbers:</strong> read from the result files at generation
-time and traced in regulatory/traceability.csv.</li>
+8d0ebc6b88e7f378b65f3fdc6c74c8ea98708e21. Every number below is read
+from a committed result or configuration file when this document is
+generated, and is listed with its source in
+regulatory/traceability.csv.</li>
+<li><strong>Use:</strong> each section gives the proposed statistical
+analysis plan (SAP) text, the simulation evidence that supports it, and
+the decisions left to the sponsor. Text in square brackets is to be
+completed by the sponsor.</li>
 </ul>
-<div id="q1.-the-2016-fda-guidance-names-auc0-inf-and-cmax-as-the-primary-parameters-of-a-single-dose-pk-similarity-study.-why-do-you-propose-auc0-last" class="section level2">
-<h2>Q1. The 2016 FDA guidance names AUC0-inf and Cmax as the primary
-parameters of a single-dose PK similarity study. Why do you propose
-AUC0-last?</h2>
-<p><strong>Short answer.</strong> For dupilumab, the NCA estimate of
-AUC0-inf does not measure total exposure better than AUC0-last, and
-using it as a primary endpoint inflates the probability of concluding
-similarity at the equivalence limits.</p>
-<p><strong>Why AUC0-inf from NCA is not the better measure
-here.</strong></p>
-<ul>
-<li><strong>The true tail is negligible.</strong> AUC0-last already
-contains all but a median of 0.65% of total exposure (95th percentile
-3.63%) under the planned schedule (report Section 5.2).</li>
-<li><strong>The NCA tail is overstated.</strong> NCA estimates the tail
-with a lambda-z fitted before the terminal cliff and overstates it: the
-median NCA extrapolation is 2.7%.</li>
-<li><strong>The tail estimate is unreliable in many subjects.</strong>
-In the trial population it fails the reliability criteria in 8.2% to
-13.4% of subjects with an adjusted R-squared of at least 0.80 (criteria
-set (i), the lower end of the conventional range) and in 33.2% to 38.8%
-with at least 0.90 (set (iii)), two models (Q19, Q20).</li>
-</ul>
-<p><strong>Operating characteristics at the equivalence limits</strong>
-(the pre-specified primary metric, report Section 5.4):</p>
-<ul>
-<li><strong>Proposed configuration.</strong> With the pooled t-test
-(M0), AUC0-last + Cmax is 15 conservative, 1 nominal and 0 exceeding of
-16 boundary scenarios; with the weight stratum in the model (M1), 15, 0
-and 1 (Q7, Q17).</li>
-<li><strong>Guidance-default configuration.</strong> AUC0-inf (reliable
-subjects) + Cmax exceeds 5% in 12 of 16 scenarios. The largest value is
-27.60% (95% CI 26.73 to 28.48).</li>
-</ul>
-<p><strong>Consistency with the originator’s own practice.</strong></p>
-<ul>
-<li>Its population PK analysis concluded that a meaningful terminal
-half-life cannot be calculated (Kovalenko 2020).</li>
-<li>A published device study did not calculate AUC0-inf for this reason
-(Cohen 2022).</li>
-</ul>
-<p><strong>What the sponsor proposes.</strong> AUC0-inf will be reported
-as a secondary endpoint (Q11).</p>
-</div>
-<div id="q2.-auc0-last-depends-on-each-subjects-last-quantifiable-time.-could-it-be-biased-when-the-products-differ" class="section level2">
-<h2>Q2. AUC0-last depends on each subject’s last quantifiable time.
-Could it be biased when the products differ?</h2>
-<p><strong>Short answer.</strong> A product with faster elimination
-reaches the LLOQ earlier and has a smaller AUC0-last, so tlast
-differences are part of the exposure difference that AUC0-last
-measures.</p>
-<p><strong>Evidence.</strong></p>
-<ul>
-<li>The true comparison is the ratio of model-integrated AUC0-inf
-(Q7).</li>
-<li>Against that ratio, the AUC0-last ratio is biased by at most 1.5%
-across the 16 boundary scenarios.</li>
-<li>In 15 of the 16 scenarios the bias points away from 1, which makes
-the test conservative (report Table 5-10).</li>
-</ul>
-</div>
-<div id="q3.-why-not-extend-sampling-beyond-day-57-so-that-auc0-inf-becomes-reliable" class="section level2">
-<h2>Q3. Why not extend sampling beyond Day 57 so that AUC0-inf becomes
-reliable?</h2>
-<p><strong>Short answer.</strong> Later samples would almost all be
-below the LLOQ, and the problem with AUC0-inf is the shape of the
-decline, not the sampling duration.</p>
-<p><strong>When concentrations reach the LLOQ</strong> (report Section
-5.1):</p>
-<ul>
-<li>The true concentration reaches the LLOQ at a median of study Day
-38.5 in the primary model (Day 40.8 in the 2020 model).</li>
-<li>Only 2.5% (4.6%) of subjects remain above the LLOQ after Day
-58.</li>
-</ul>
-<p><strong>Why AUC0-inf stays unreliable.</strong> The decline
-accelerates before the LLOQ is reached, so lambda-z is always estimated
-before the cliff, however long sampling continues. Extending sampling
-would add visits without improving either endpoint.</p>
-</div>
-<div id="q4.-why-not-add-samples-in-the-terminal-phase-to-improve-lambda-z" class="section level2">
-<h2>Q4. Why not add samples in the terminal phase to improve
-lambda-z?</h2>
-<p><strong>Short answer.</strong> The accelerating decline is shorter
-than any feasible visit interval, and denser late sampling makes
-AUC0-inf less reliable, not more.</p>
-<p><strong>The cliff cannot be sampled</strong> (report Sections 5.1,
-5.3 and 5.7):</p>
-<ul>
-<li>The cliff (instantaneous half-life below 1 day, until the LLOQ)
-lasts a median of 1.38 days.</li>
-<li>Even daily sampling from Day 29 to Day 57 places three samples on it
-in 0.0% of subjects (nominal days).</li>
-</ul>
-<p><strong>Added samples reduce reliability.</strong> They make Best Fit
-choose a shorter, later window, and a span ratio of at least 2 then
-fails more often.</p>
-<p><strong>The pre-specified decision rule was not met.</strong> None of
-the four criteria for adding samples between Day 36 and Day 50 was met
-in either model. In one sensitivity variant (Vmax x0.8 in both arms),
-one criterion was met at 20,000 subjects but not on re-evaluation in
-200,000 subjects.</p>
-</div>
-<div id="q5.-the-terminal-phase-lies-below-the-lloq.-how-credible-are-published-models-for-it" class="section level2">
-<h2>Q5. The terminal phase lies below the LLOQ. How credible are
-published models for it?</h2>
-<p><strong>Short answer.</strong> The conclusions do not depend on the
-unobservable curve shape within any range consistent with the observed
-data.</p>
-<p><strong>How the models were built.</strong> The primary model was
-estimated with below-LLOQ observations (M3 method), because the steep
-target-mediated phase could not be characterised otherwise.</p>
-<p><strong>How the uncertainty was tested:</strong></p>
-<ul>
-<li>Two structural models were used.</li>
-<li>Km (x0.5 to x10) and Vmax (x0.8, x1.25, and a x0.5 stress test) were
-varied in both arms.</li>
-<li>Km was varied from x0.01 to x100 in the test arm.</li>
-</ul>
-<p><strong>Results</strong> (report Sections 4 and 5.2):</p>
-<ul>
-<li>AUC0-last coverage is preserved in every variant.</li>
-<li>The operating-characteristic conclusions are the same in both
-models.</li>
-</ul>
-</div>
-<div id="q6.-the-models-over-predict-cmax-and-do-not-reproduce-the-200-mg-presentation.-does-this-undermine-the-conclusions" class="section level2">
-<h2>Q6. The models over-predict Cmax and do not reproduce the 200 mg
-presentation. Does this undermine the conclusions?</h2>
-<p><strong>Short answer.</strong> No. Neither issue affects the
-terminal-phase or AUC conclusions for the 300 mg study presentation.</p>
-<p><strong>Study presentation (300 mg, 2 mL of 150 mg/mL).</strong>
-Simulated/observed AUC0-last is 0.94 to 1.07 (primary model) across the
-five data sets of this presentation.</p>
-<p><strong>Cmax over-prediction.</strong> Simulated/observed Cmax is
-1.08 to 1.27. This is listed as a limitation. It concerns the absorption
-phase, not the terminal phase.</p>
-<p><strong>200 mg presentation (1.14 mL of 175 mg/mL).</strong> It is
-absorbed faster (median tmax 3 days, against 7 days). It is not the
-study presentation, and its data sets are reported as external checks
-(report Section 4.2 and Appendix D).</p>
-</div>
-<div id="q7.-what-is-the-boundary-type-i-error-of-the-proposed-endpoints-and-why-is-one-value-above-5" class="section level2">
-<h2>Q7. What is the boundary type I error of the proposed endpoints, and
-why is one value above 5%?</h2>
-<p><strong>Short answer.</strong> With the pooled t-test (M0), 15 of 16
-boundary cells are conservative, 1 nominal and 0 exceeding. With the
-weight stratum in the model (M1), they are 15, 0 and 1. The highest cell
-is the same under both analysis models, the 2020-model cell with
-peripheral volume up (multiplier 2.28): 5.18% (95% CI 4.88 to 5.50)
-under M0 and 5.63% (95% CI 5.31 to 5.95) under M1.</p>
-<p><strong>Overall result</strong> (report Sections 5.4 and 5.9):</p>
-<ul>
-<li>M0: 0.00% to 5.18%; primary model maximum 3.97% (95% CI 3.60 to
-4.37), 2020 model maximum 5.18% (95% CI 4.88 to 5.50).</li>
-<li>M1: 0.00% to 5.63%.</li>
-</ul>
-<p><strong>The highest cell</strong> (2020 model, peripheral volume
-x2.28; x3.21 in the primary model for the same true ratio):</p>
-<ul>
-<li>M0: 5.18% (95% CI 4.88 to 5.50) (20,000 trials), nominal; at the
-pre-specified 10,000 trials the value was 5.32% (95% CI 4.90 to
-5.78).</li>
-<li>M1: 5.63% (95% CI 5.31 to 5.95) (20,000 trials), exceeding. M2:
-5.75% (95% CI 5.43 to 6.08), exceeding.</li>
-<li>Cause (M1): the AUC0-last GMR is biased by 0.41% relative to the
-true AUC0-inf ratio, toward 1. This moves the pass rate from 4.94% for
-the unbiased reference to 5.65% for AUC0-last alone; Cmax failures
-change it by -0.02 percentage points.</li>
-<li>Facts relevant to plausibility: a proposed biosimilar has the same
-amino-acid sequence as the reference IgG4 antibody; this cell requires
-its peripheral volume of distribution to be 2.28 times (2020 model) or
-3.21 times (primary model) that of the reference, with absorption and
-clearance unchanged.</li>
-</ul>
-</div>
-<div id="q8.-why-would-auc0-inf-inflate-the-type-i-error-is-it-not-the-more-complete-measure" class="section level2">
-<h2>Q8. Why would AUC0-inf inflate the type I error? Is it not the more
-complete measure?</h2>
-<p><strong>Short answer.</strong> NCA AUC0-inf is not the true AUC0-inf.
-Two biases push the test and reference ratio toward 1 (report Section
-5.4, Table 5-11).</p>
-<p><strong>Two sources of bias.</strong></p>
-<ul>
-<li><strong>Extrapolation bias.</strong> The extrapolated tail is
-estimated with a lambda-z that is too small in both arms and dilutes
-differences toward 1.</li>
-<li><strong>Selection bias.</strong> Excluding subjects who fail the
-reliability criteria removes a subset that depends on the product
-difference.</li>
-</ul>
-<p><strong>Resulting type I error</strong> (reliable subjects, criteria
-as pre-specified):</p>
-<ul>
-<li>AUC0-inf + Cmax exceeds 5% in 12 of 16 boundary scenarios.</li>
-<li>The Wilson lower bound is above 5% in 12 of them.</li>
-<li>The largest value is 27.60% (95% CI 26.73 to 28.48).</li>
-</ul>
-</div>
-<div id="q9.-what-if-auc0-inf-were-analysed-in-all-subjects-with-a-lambda-z-or-with-auc0-last-substituted-for-unreliable-subjects" class="section level2">
-<h2>Q9. What if AUC0-inf were analysed in all subjects with a lambda-z,
-or with AUC0-last substituted for unreliable subjects?</h2>
-<p><strong>Short answer.</strong> Including all subjects with a lambda-z
-still inflates the type I error; substituting AUC0-last gives a type I
-error close to that of AUC0-last + Cmax, because the substituted
-endpoint is mostly AUC0-last, but it is no longer a pure AUC0-inf
+<p>Abbreviations are defined at first use. The simulations are described
+in the Modeling and Simulation Report (regulatory/MS_report).</p>
+<div id="primary-pharmacokinetic-endpoints-and-primary-analysis-model" class="section level1">
+<h1>1. Primary pharmacokinetic endpoints and primary analysis model</h1>
+<p><strong>Proposed text.</strong></p>
+<blockquote>
+<p>The co-primary pharmacokinetic (PK) endpoints are the area under the
+serum concentration-time curve from time zero to the last quantifiable
+concentration (AUC0-last, also written AUC0-t) and the maximum observed
+serum concentration (Cmax). PK similarity is concluded if, for both
+endpoints, the 90% confidence interval (CI) of the ratio of geometric
+means (test/reference; geometric mean ratio, GMR) lies within 80.00% to
+125.00%.</p>
+<p>Option M0: the natural-log-transformed endpoint is compared between
+treatments with a two-sample t-test with pooled variance (equivalently,
+an analysis of variance (ANOVA) with treatment as the only factor).</p>
+<p>Option M1: the natural-log-transformed endpoint is analysed with an
+ANOVA with treatment and body-weight stratum (60 to 75 kg, above 75 to
+90 kg; the stratification factor of the randomization) as fixed effects.
+The difference in least-squares means between treatments and its 90% CI
+are back-transformed to the GMR and its 90% CI.</p>
+<p>Primary analysis model: [M0 or M1, to be selected by the sponsor].
+The other option is a sensitivity analysis. An analysis of covariance
+(ANCOVA) with treatment and log body weight is a further sensitivity
 analysis.</p>
+</blockquote>
+<p><strong>Evidence.</strong> In 16 boundary scenarios (true AUC0-inf
+ratio of exactly 0.80 or 1.25, 8 mechanisms and directions in each of
+two PK models), the probability of concluding similarity with AUC0-last
+and Cmax (P2), i.e. the boundary type I error, was:</p>
 <ul>
-<li><strong>All subjects with an estimable lambda-z (rule B).</strong>
-Exceeds 5% in 8 of 16 scenarios (largest 15.06% (95% CI 14.37 to
-15.77)), because the extrapolation bias remains.</li>
-<li><strong>AUC0-last substituted for subjects failing the criteria
-(rule C).</strong> Close to AUC0-last + Cmax: largest 5.01% (95% CI 4.71
-to 5.32) with the span criterion and 4.63% (95% CI 4.34 to 4.92) without
-it (pooled t-test); 5.39% (95% CI 5.09 to 5.71) with the span criterion
-under the ANOVA with the weight stratum, in the same peripheral-volume
-scenario in which AUC0-last + Cmax is highest.</li>
+<li>M0: 0.00% to 5.18%; 15 cells conservative (Wilson 95% upper bound
+below 5%), 1 nominal and 0 exceeding (lower bound above 5%). Highest:
+2020 model, peripheral volume up (multiplier 2.28), 5.18% (95% CI 4.88
+to 5.50).</li>
+<li>M1: 0.00% to 5.63%; 15 conservative, 0 nominal and 1 exceeding.
+Highest: 2020 model, peripheral volume up (multiplier 2.28), 5.63% (95%
+CI 5.31 to 5.95). Cells with a point estimate above 5%: 1 under M1 and 1
+under M0.</li>
+<li>Why M1 differs: the randomization is stratified by body weight,
+which explains part of the between-subject variance, and M0 does not
+model the stratum. With M0 the between-trial standard deviation (SD) of
+the log GMR is smaller than the within-trial standard error (SE) (ratio
+0.961 to 0.993 for the unbiased reference, the true AUC0-inf of each
+subject); with M1 the ratio is 0.991 to 1.020. The unbiased reference
+passes in 4.12% to 5.43% of trials under M0 and 4.53% to 5.83% under M1,
+against 5% expected for an unbiased estimator with a correctly sized
+SE.</li>
+<li>Power of P2 for identical products: 99.6% (95% CI 99.4 to 99.7) (M0)
+and 99.7% (95% CI 99.5 to 99.7) (M1), 2016 model; for a test product
+with bioavailability x0.97: 96.8% (95% CI 96.4 to 97.1) and 97.1% (95%
+CI 96.7 to 97.4).</li>
+<li>Basis: ICH E9 (section 5.7, covariates and subgroups) states that
+factors on which the randomization has been stratified should be
+accounted for in the analysis, and the FDA guidance Adjusting for
+Covariates in Randomized Clinical Trials for Drugs and Biological
+Products (2023) states that a covariate adjustment model should
+generally include the strata variables. Under M0 the stratification is
+not reflected in the analysis.</li>
 </ul>
-<p><strong>Proposal.</strong> Rule C mixes two endpoints, so the sponsor
-proposes it only as a sensitivity analysis of the secondary
-endpoint.</p>
+<p><strong>Decision left to the sponsor:</strong> the primary analysis
+model (M0 or M1).</p>
 </div>
-<div id="q10.-could-a-product-that-differs-in-target-binding-pass-on-auc0-last-but-differ-in-auc0-inf" class="section level2">
-<h2>Q10. Could a product that differs in target binding pass on
-AUC0-last but differ in AUC0-inf?</h2>
-<p><strong>Short answer.</strong> No AUC endpoint can detect
-target-binding differences in this product, so binding is addressed
-analytically rather than through the choice of AUC endpoint.</p>
+<div id="auc0-inf-as-a-secondary-endpoint" class="section level1">
+<h1>2. AUC0-inf as a secondary endpoint</h1>
+<p><strong>Proposed text.</strong></p>
+<blockquote>
+<p>AUC from time zero to infinity (AUC0-inf) is a secondary endpoint.
+AUC0-inf = AUC0-last + Clast/lambda-z, where Clast is the last observed
+quantifiable concentration and lambda-z the terminal elimination rate
+constant (Phoenix WinNonlin AUCINF_obs). Lambda-z is estimated by
+unweighted log-linear regression using the Best Fit method: candidate
+windows are the last 3, 4, 5 or more positive concentrations after Cmax;
+windows with a positive slope are excluded; the window with the largest
+adjusted coefficient of determination (adjusted R-squared) is selected,
+ties within 0.0001 going to the window with more points. Lambda-z is not
+estimable if fewer than 3 positive concentrations follow Cmax.</p>
+<p>AUC0-inf is considered reliable if the adjusted R-squared of the
+lambda-z regression is at least 0.80 and the extrapolated area
+(Clast/lambda-z) is at most 20% of AUC0-inf. No criterion on the span of
+the lambda-z window is applied. These criteria are entered as the Lambda
+Z Acceptance Criteria of Phoenix WinNonlin (Rules tab), which applies no
+criteria by default and flags, rather than excludes, profiles that do
+not meet them. As a supplementary summary, the number of subjects
+meeting an adjusted R-squared of at least 0.90 is also reported for each
+treatment.</p>
+<p>The GMR and 90% CI of AUC0-inf are reported for two analysis sets:
+(1) all subjects with an estimable lambda-z; (2) subjects meeting the
+reliability criteria. For each treatment, the number of subjects with
+lambda-z not estimable and the number not meeting each criterion are
+reported, with the body weight and AUC0-last of the excluded and
+retained subjects. Individual lambda-z windows are listed.</p>
+<p>Sensitivity analysis: AUC0-last is substituted for AUC0-inf in
+subjects whose AUC0-inf is not reliable. AUC0-inf does not enter the
+similarity decision.</p>
+</blockquote>
 <p><strong>Evidence.</strong></p>
 <ul>
-<li>Varying Km from 0.01-fold to 100-fold in the test arm moves the true
-AUC0-inf ratio only within 0.999 to 1.059 (report Section 5.6).</li>
-<li>AUC0-inf offers no more sensitivity to binding than AUC0-last.</li>
-</ul>
-<p><strong>Where binding similarity is shown.</strong> In the
-comparative analytical assessment (binding kinetics and functional
-assays).</p>
-</div>
-<div id="q11.-how-will-auc0-inf-be-reported" class="section level2">
-<h2>Q11. How will AUC0-inf be reported?</h2>
-<p><strong>Short answer.</strong> As a secondary endpoint.</p>
-<p><strong>Pre-specified methods:</strong></p>
-<ul>
-<li>lambda-z by Best Fit;</li>
-<li>reliability criteria of adjusted R-squared at least 0.80 and
-extrapolation at most 20% (criteria set (i)) as the primary definition,
-with adjusted R-squared at least 0.90 (set (iii)) reported alongside,
-because both are conventional and neither is a software default (Q19);
-no span-ratio criterion.</li>
-</ul>
-<p><strong>Reporting:</strong></p>
-<ul>
-<li>the GMR and 90% CI, both in all subjects with an estimable lambda-z
-and in subjects meeting the criteria;</li>
-<li>the number, arm and body weight of the excluded subjects;</li>
-<li>a listing of the individual lambda-z windows;</li>
-<li>substitution of AUC0-last (rule C) as a sensitivity analysis.</li>
-</ul>
-<p>AUC0-inf will not be used for the equivalence decision.</p>
-</div>
-<div id="q12.-is-the-study-adequately-powered" class="section level2">
-<h2>Q12. Is the study adequately powered?</h2>
-<p><strong>Short answer.</strong> At the protocol CV of 43% and a true
-GMR of 0.95, 117 evaluable subjects per arm give P2 power of 94.0% (M0)
-and 94.5% (M1). At a CV of 50%, power falls to 87.2% and 88.0%.</p>
-<p><strong>Variability assumptions.</strong></p>
-<ul>
-<li>The simulated log-scale CV of AUC0-last is 40% (primary model) and
-43% (2020 model); the protocol assumes 43%.</li>
-<li>Li 2020 (Table 3, 300 mg arms) reports SD/mean of 35% to 51%. The
-AUC0-last CI of a 200 mg device comparison implies about 52% (Cohen
-2022; different presentation, heavier population, possible device
-effect).</li>
-</ul>
-<p><strong>Evaluable subjects per arm for P2 at GMR 0.95</strong>
-(report Section 5.11; randomized per arm in parentheses, 117/130
-evaluable):</p>
-<ul>
-<li>90% power: CV 43% 100 (112) with M0, 97 (108) with M1; CV 50% 129
-(144) and 126 (140).</li>
-<li>85% power: CV 43% 85 and 83; CV 50% 110 and 107.</li>
-</ul>
-<p><strong>Identical products,</strong> PK-model trials with 117 per
-arm: 99.6% (95% CI 99.4 to 99.7) (primary model) and 99.0% (95% CI 98.8
-to 99.2) (2020 model) with M0.</p>
-<p><strong>The target power and the sample size are sponsor
-decisions.</strong></p>
-</div>
-<div id="q13.-were-the-analyses-pre-specified-what-changed-after-results-were-seen" class="section level2">
-<h2>Q13. Were the analyses pre-specified? What changed after results
-were seen?</h2>
-<p><strong>Short answer.</strong> The operating-characteristic design
-was committed before any result; everything added or changed afterwards
-is listed and reported alongside the pre-specified analyses.</p>
-<p><strong>Pre-specified.</strong> The design (mechanisms, targets,
-trials, configurations, seeds and the definition of truth) was committed
-before any result was generated: commit 779e068, unchanged since.</p>
-<p><strong>Added or changed afterwards</strong>, with dates and commits
-in report Appendix D:</p>
-<ul>
-<li>the reliability criteria set without the span ratio;</li>
-<li>rules B and C for AUC0-inf + Cmax;</li>
-<li>the extension to 20,000 trials of one scenario;</li>
-<li>restricting the model validation to the study presentation;</li>
-<li>replacing the NCA engine by a Phoenix-compatible engine, with all
-outputs regenerated.</li>
-</ul>
-<p><strong>Version 1.0.1.</strong> The analysis models with the weight
-stratum or log body weight, the LLOQ sensitivity, the sample-size grid,
-criteria sets (iii) and (iv) and the trial-population analyses were
-registered in config/prereg_20260926.yaml and committed before they were
-run (report Sections 3.12 and 3.13). Results seen before each
-registration are disclosed in report Appendix D.</p>
-<p><strong>Reporting.</strong> Pre-specified values are always reported
-alongside.</p>
-</div>
-<div id="q14.-how-was-the-software-verified-and-can-fda-reproduce-the-results" class="section level2">
-<h2>Q14. How was the software verified, and can FDA reproduce the
-results?</h2>
-<p><strong>Verification</strong> (report Section 4.1 and Appendices C
-and E):</p>
-<ul>
-<li>automated tests against analytical solutions and hand
-calculations;</li>
-<li>identical lambda-z windows and parameters compared with NonCompart
-and PKNCA;</li>
-<li>an independent re-implementation by a reviewer.</li>
-</ul>
-<p><strong>Reproducing the results.</strong></p>
-<ul>
-<li>The locked package versions (renv.lock), the configuration files,
-the seeds and the run logs allow every result to be regenerated with one
-command.</li>
-<li>A clean-environment rerun reproduced the committed values within
-pre-specified tolerances and identical to 8 significant digits.</li>
-<li>The code, configuration files and results can be provided with the
-submission; programs can be supplied as text files per the FDA Study
-Data Technical Conformance Guide.</li>
-</ul>
-</div>
-<div id="q15.-anti-drug-antibodies-can-accelerate-late-clearance.-does-that-affect-auc0-last" class="section level2">
-<h2>Q15. Anti-drug antibodies can accelerate late clearance. Does that
-affect AUC0-last?</h2>
-<p><strong>Short answer.</strong> In an ADA-like sensitivity subgroup,
-AUC0-last still captured essentially all exposure.</p>
-<p><strong>Evidence</strong> (report Section 5.2; the subgroup’s linear
-clearance doubles after Day 14 in 10% of subjects):</p>
-<ul>
-<li>The median true extrapolation was 0.65% (0.68% in the other
-subjects).</li>
-<li>The median tlast was 28.4 days (34.7 days in the other
-subjects).</li>
-</ul>
-<p><strong>In the study,</strong> immunogenicity will be assessed
-descriptively, and the SAP will specify an analysis by ADA status. ADA
-is not part of the operating-characteristic simulations; this is stated
-as a limitation.</p>
-</div>
-<div id="q16.-do-the-results-hold-for-heavier-subjects" class="section level2">
-<h2>Q16. Do the results hold for heavier subjects?</h2>
-<p><strong>Short answer.</strong> The endpoint proposal is judged in the
-trial population (healthy adults of 60 to 90 kg), where the heavier
-randomization stratum already fails the reliability criteria more often
-(Q20). Results for heavier subjects outside the study range are
-robustness checks (report Appendix I), not evidence for the
-proposal.</p>
-<p><strong>Robustness check</strong> (report Appendix I; uniform weight
-bands of 20,000 subjects each, primary model):</p>
-<ul>
-<li>The median true extrapolated fraction ranges from 0.51 to 1.40%
-across the bands.</li>
-<li>AUC0-inf reliability under criteria set (i) falls from 90.8% to
-70.9% across the bands.</li>
-</ul>
-</div>
-<div id="q17.-the-randomization-is-stratified-by-body-weight.-why-is-the-stratum-not-in-the-analysis-model" class="section level2">
-<h2>Q17. The randomization is stratified by body weight. Why is the
-stratum not in the analysis model?</h2>
-<p><strong>Short answer.</strong> Both analyses were evaluated on the
-same simulated trials, and the choice is left to the sponsor’s SAP. ICH
-E9 (section 5.7) states that factors used to stratify the randomization
-should be accounted for in the analysis, and the FDA guidance on
-covariate adjustment (2023) states that an adjustment model should
-generally include the strata variables. Including the stratum (M1) makes
-the standard error match the sampling variability. On the same trials,
-this changes the boundary type I error of AUC0-last + Cmax by 0.00 to
-0.45 percentage points (mean 0.30) and the power for identical products
-by 0.10 percentage points (primary model).</p>
-<p><strong>Evidence</strong> (report Section 5.9):</p>
-<ul>
-<li>Between-trial SD of the log GMR divided by the median within-trial
-SE, unbiased reference: 0.961 to 0.993 (M0) and 0.991 to 1.020
-(M1).</li>
-<li>AUC0-last + Cmax: M0 15 conservative, 1 nominal, 0 exceeding (0.00%
-to 5.18%); M1 15, 0, 1 (0.00% to 5.63%).</li>
-<li>Power, identical products: 99.6% (95% CI 99.4 to 99.7) (M0) and
-99.7% (95% CI 99.5 to 99.7) (M1), primary model.</li>
-<li>Sample size at CV 43%, 90% power: 100 (M0) and 97 (M1) evaluable per
-arm. The stratum explains only a small part of the variance, so the gain
-in precision is small.</li>
-</ul>
-</div>
-<div id="q18.-the-lloq-of-the-sponsors-assay-may-differ-from-the-originators.-do-the-conclusions-depend-on-it" class="section level2">
-<h2>Q18. The LLOQ of the sponsor’s assay may differ from the
-originator’s. Do the conclusions depend on it?</h2>
-<p><strong>Short answer.</strong> Coverage of total exposure by
-AUC0-last and the boundary type I error of AUC0-last + Cmax change
-little between 0.02 and 0.5 mg/L. A lower LLOQ with the same assay noise
-makes AUC0-inf less reliable, not more. The LLOQ is set in one
-configuration file, and all results can be regenerated with the
-validated value.</p>
-<p><strong>Evidence</strong> (report Section 5.10; same subjects and
-residual draws re-censored at each LLOQ; simulations used 0.078
-mg/L):</p>
-<ul>
-<li>Window coverage (true AUC0-tlast / true AUC0-inf) below 80%: 0.00%
-of subjects at 0.02 mg/L to 0.01% at 0.5 mg/L (primary model). The true
-concentration reaches 0.02 mg/L and 0.5 mg/L within about 38.6 and 37.7
-study days (medians), inside the cliff.</li>
-<li>AUC0-inf reliability (criteria (i)): 84.2% at 0.02 mg/L, 86.6% at
-0.078 mg/L and 88.0% at 0.5 mg/L with the residual error as estimated;
-84.6% at 0.02 mg/L if the assay noise scales with the LLOQ.</li>
-<li>Boundary type I error of AUC0-last + Cmax over the six LLOQs (three
-boundary scenarios, primary model): 2.22% to 4.22% (M0) and 2.60% to
-4.62% (M1).</li>
-</ul>
-</div>
-<div id="q19.-is-an-adjusted-r-squared-of-at-least-0.80-a-phoenix-winnonlin-criterion" class="section level2">
-<h2>Q19. Is an adjusted R-squared of at least 0.80 a Phoenix WinNonlin
-criterion?</h2>
-<p><strong>Short answer.</strong> No. Phoenix WinNonlin does not define
-reliability criteria for lambda-z. Its Lambda Z Acceptance Criteria
-(Rules tab) are optional entries in which the user sets a minimum
-adjusted R-squared, a maximum extrapolated percentage and a minimum
-span. Profiles that do not meet them are flagged (Accepted or
-Not_Accepted), not excluded, and no values are applied unless entered
-(Certara Phoenix 8.2 NCA documentation). A minimum of 0.80 is a
-statistical analysis plan convention; 0.90, sometimes with a span of at
-least 3 half-lives, is common in public statistical analysis plans:
-NCT04117607 (adjusted R-squared at least 0.90, span at least 3.0
-half-lives, at least 3 points after tmax), NCT04441905 (adjusted
-R-squared at least 0.90, at least 3 points) and NCT04700163 (adjusted
+<li>Lambda-z is estimable in 98.5% to 99.4% of simulated subjects
+(planned schedule, 60 to 90 kg, 20,000 subjects per model). The
+reliability criteria above are met by 86.6% to 91.8%; adding a
+span-ratio criterion (window of at least 2 half-lives) lowers this to
+80.7% to 83.9%.</li>
+<li>The threshold is a convention: 0.80 is the lower end of the
+conventional range, and 0.90 is common in public statistical analysis
+plans (NCT04117607: adjusted R-squared at least 0.90, span at least 3.0
+half-lives, at least 3 points after tmax; NCT04441905: adjusted
+R-squared at least 0.90, at least 3 points; NCT04700163: adjusted
 R-squared above 0.90, otherwise AUC0-inf and the other terminal
-parameters are excluded from summaries and statistical analysis;
-verified from a web-search excerpt). The analyses were therefore
-repeated for four criteria sets, and the share without a reliable
-AUC0-inf under 0.80 is the lower end of the conventional range.</p>
-<p><strong>Evidence</strong> (trial population; report Sections 3.4, 5.3
-and 5.4; 20,000 subjects per model; 16 boundary scenarios):</p>
-<ul>
-<li>Subjects without a reliable AUC0-inf, trial population (healthy, 60
-to 90 kg, two models): 8.2% to 13.4% with adjusted R-squared at least
-0.80 (set (i)); 33.2% to 38.8% with at least 0.90 (set (iii)); 65.9% to
-72.5% with at least 0.90 and a span of at least 3 (set (iv)).</li>
-<li>AUC0-inf + Cmax with rule A exceeds 5% in 8 (set (i)), 12 (set
-(ii)), 9 (set (iii)) and 12 (set (iv)) of 16 boundary scenarios (M0).
-With rule C the range is 0.00% to 4.63% (set (i)) and 0.00% to 5.21%
-(set (iii)).</li>
-<li>On the same trials, the AUC0-inf + Cmax decision changes between
-rules A, B and C in a median of 4.7% and up to 19.7% of trials with set
-(i) and a median of 6.2% and up to 20.7% with set (iii), and between
-criteria sets within rule A in a median of 11.4% and up to 37.5%.</li>
+parameters are excluded from summaries and statistical analysis,
+verified from a web-search excerpt). In the trial population (healthy
+adults, 60 to 90 kg, two models) the share of subjects without a
+reliable AUC0-inf is 8.2% to 13.4% with 0.80 and 33.2% to 38.8% with
+0.90 (report Section 5.3). Reporting both counts shows the reader how
+much the secondary analysis depends on the convention.</li>
+<li>A span criterion penalizes denser sampling rather than poor
+estimation: adding late samples (4 alternative schedules, two models)
+increased the share excluded by the span criterion alone by 0.50 to 3.17
+percentage points, because Best Fit then selects a later and shorter
+window.</li>
+<li>Exclusion is not random. Subjects failing the criteria are heavier
+(by 1.1 kg in the 2016 model and 0.8 kg in the 2020 model) and have
+lower exposure (ratio of geometric mean true AUC0-inf, excluded to
+retained: 0.81 and 0.79); 13.4% and 8.2% of subjects are excluded.
+Reporting both analysis sets, with the characteristics of the excluded
+subjects, lets the reader judge the effect of the exclusion.</li>
+<li>The sensitivity rule (AUC0-last substituted) keeps the boundary type
+I error close to that of the primary endpoints: with AUC0-inf and Cmax
+its highest boundary value is 4.63% (95% CI 4.34 to 4.92) (M0) and 5.06%
+(95% CI 4.76 to 5.37) (M1).</li>
 </ul>
-<p><strong>Implication.</strong> The sponsor proposes set (i) as the
-primary definition for the secondary AUC0-inf endpoint and reports set
-(iii) alongside (Q11). Because AUC0-inf is not used for the equivalence
-decision, the choice between conventions does not change the study
-conclusion.</p>
 </div>
-<div id="q20.-do-the-conclusions-hold-for-patients-outside-the-study-weight-range" class="section level2">
-<h2>Q20. Do the conclusions hold for patients outside the study weight
-range?</h2>
-<p><strong>Short answer.</strong> The validity of the endpoints is
-judged in the population in which similarity is tested: healthy adults
-of 60 to 90 kg, the population most sensitive to a product difference.
-The case against AUC0-inf as a primary endpoint is made there (report
-Sections 5.2 to 5.4). That the conclusions remain when the body-weight
-range is widened is a robustness check reported in Appendix I; it is not
-part of the evidence.</p>
-<p><strong>Within the trial population</strong> (report Section 5.3): a
-reliable AUC0-inf cannot be obtained in 8.2% to 13.4% of subjects under
-criteria set (i) and in 33.2% to 38.8% under criteria set (iii) (two
-models). Failing subjects have a lower true AUC0-inf (geometric mean
-ratio to retained subjects 0.786 to 0.815 under set (i)), the heavier
-randomization stratum fails more often (by 1.5 to 2.7 percentage
-points), and when the products differ the share failing differs between
-the arms by up to 12.3 percentage points. These are the conditions under
-which similarity is tested.</p>
-<p><strong>Robustness check</strong> (report Appendix I): uniform weight
-bands from 40 to 150 kg, a population with a mean of 100 kg and an adult
-atopic dermatitis body-weight distribution (a placeholder built from
-published summaries) were simulated with the same models. The
-body-weight ranges of the models’ development data are not reported, so
-results above about 130 kg may be extrapolations.</p>
+<div id="fallback-if-fda-requires-auc0-inf-as-a-co-primary-endpoint" class="section level1">
+<h1>3. Fallback if FDA requires AUC0-inf as a co-primary endpoint</h1>
+<p><strong>Proposed text (to be used only if AUC0-inf is required as a
+co-primary endpoint).</strong></p>
+<blockquote>
+<p>The co-primary PK endpoints are AUC0-last, AUC0-inf and Cmax. PK
+similarity is concluded if the 90% CI of the GMR lies within 80.00% to
+125.00% for all three endpoints. For AUC0-inf, all subjects with an
+estimable lambda-z are included; subjects whose AUC0-inf does not meet
+the reliability criteria of Section 2 are flagged and listed but not
+excluded.</p>
+<p>Sensitivity analyses of AUC0-inf: (A) excluding the flagged subjects;
+(C) substituting AUC0-last for AUC0-inf in the flagged subjects.</p>
+</blockquote>
+<p><strong>Evidence.</strong></p>
+<ul>
+<li>Including all subjects with an estimable lambda-z excludes only 1.5%
+(2016 model) and 0.6% (2020 model) of subjects, and keeps the analysis
+set closest to the randomized set.</li>
+<li>Keeping AUC0-last as a co-primary endpoint bounds the boundary type
+I error of the three-endpoint decision by that of P2: with AUC0-inf
+under this rule it is 0.00% to 3.57% under M0 (16 conservative, 0
+nominal, 0 exceeding; highest 3.57% (95% CI 3.32 to 3.84)) and 0.00% to
+3.95% under M1 (16, 0, 0; highest 3.95% (95% CI 3.59 to 4.35)).</li>
+<li>Without AUC0-last (AUC0-inf under this rule with Cmax only), 8 of 16
+cells exceed 5% under M0 (highest 15.06% (95% CI 14.37 to 15.77)) and 10
+under M1 (highest 16.03% (95% CI 15.32 to 16.76)): the NCA AUC0-inf of
+this product is biased toward a ratio of 1 at the boundaries.</li>
+<li>Under M1 the three-endpoint decision with sensitivity rule A gives
+0.00% to 3.39% and with rule C 0.00% to 5.16%.</li>
+<li>Power for identical products: 99.5% (95% CI 99.4 to 99.7) (M0) and
+99.6% (95% CI 99.5 to 99.7) (M1), against 99.7% (95% CI 99.5 to 99.7)
+for P2 under M1 (2016 model).</li>
+</ul>
+</div>
+<div id="anti-drug-antibodies" class="section level1">
+<h1>4. Anti-drug antibodies</h1>
+<p><strong>Proposed text.</strong></p>
+<blockquote>
+<p>Serum samples for anti-drug antibodies (ADA) are collected before
+dosing on Day 1 and on Days 15, 29 and 57 (or at early termination). ADA
+status is classified as negative, or positive with treatment-emergent or
+treatment-boosted status and titer; neutralizing activity is reported if
+assessed.</p>
+<p>PK parameters are summarized descriptively by treatment and ADA
+status (negative; positive at any post-dose time point; by titer
+category). The primary PK analysis includes all subjects irrespective of
+ADA status. A sensitivity analysis repeats the primary analysis after
+excluding, in both treatments, subjects who are ADA-positive at any
+post-dose time point.</p>
+</blockquote>
+<p><strong>Evidence.</strong> In a simulated ADA-like subgroup (10% of
+subjects whose linear clearance doubles after Day 14; an assumption, not
+estimated from data), the median time of the last quantifiable
+concentration was 28.4 days after dosing, against 34.7 days in the other
+subjects, and the median true extrapolated share of AUC0-inf was 0.65%
+against 0.68%. ADA mainly shortens the terminal phase, which is where
+AUC0-inf is least reliable; AUC0-last remains close to total exposure.
+Sampling on Day 15 detects early responses and Days 29 and 57 cover the
+period over which clearance could change.</p>
+</div>
+<div id="concentrations-below-the-lower-limit-of-quantification-and-calculation-of-pk-parameters" class="section level1">
+<h1>5. Concentrations below the lower limit of quantification and
+calculation of PK parameters</h1>
+<p><strong>Proposed text.</strong></p>
+<blockquote>
+<p>Serum dupilumab is measured with a validated assay with a lower limit
+of quantification (LLOQ) of [LLOQ of the validated assay, mg/L]. PK
+parameters are calculated by non-compartmental analysis (NCA) with
+actual sampling times.</p>
+<p>Concentrations below the LLOQ (BLQ) are handled as follows: BLQ
+values before the first quantifiable concentration are set to zero (the
+pre-dose value is set to zero); a BLQ value between two quantifiable
+concentrations is set to missing; after two consecutive BLQ values, all
+later values are set to missing; BLQ values after the last quantifiable
+concentration are excluded. [Handling of a quantifiable pre-dose
+concentration: to be specified by the sponsor.]</p>
+<p>Cmax and the time of Cmax are the observed values (first occurrence).
+AUC0-last is calculated with the linear-up log-down trapezoidal rule
+from time zero to the time of the last quantifiable concentration.
+Lambda-z and AUC0-inf are as in Section 2. No concentrations are
+imputed.</p>
+</blockquote>
+<p><strong>Evidence.</strong> The simulations used an LLOQ of 0.078 mg/L
+(the originator’s assay, Clot 2021), set in a single configuration file
+so that all analyses can be regenerated with the sponsor’s assay value.
+Across LLOQs of 0.02 to 0.5 mg/L (same subjects and residual draws,
+residual error as estimated), in the 2016 model the share of subjects
+meeting the reliability criteria of Section 2 ranged from 84.2% (LLOQ
+0.02) to 88.0% (LLOQ 0.5), the share with window coverage (true
+AUC0-tlast / true AUC0-inf) below 80% from 0.00% to 0.01%, and the
+boundary type I error of P2 at the three boundary scenarios examined
+(target-mediated elimination capacity in both directions,
+bioavailability down) ranged 2.22% to 4.22% under M0 and 2.60% to 4.62%
+under M1.</p>
+</div>
+<div id="sample-size" class="section level1">
+<h1>6. Sample size</h1>
+<p><strong>Proposed text.</strong></p>
+<blockquote>
+<p>Assuming a between-subject coefficient of variation (CV) of 43% for
+AUC0-last, the CV and correlation of Cmax from the PK model, and a true
+GMR of 0.95 for both endpoints, [n] evaluable subjects per arm give
+[target]% power to conclude similarity on both co-primary endpoints with
+the primary analysis model. [n randomized] subjects per arm are
+randomized to allow for [10]% non-evaluable subjects.</p>
+</blockquote>
+<p><strong>Evidence</strong> (P2 power; evaluable n per arm for the
+target power; randomized n assumes 117 evaluable of 130 randomized):</p>
+<ul>
+<li>With 117 evaluable subjects per arm and a CV of 43%, power is 94.0%
+(M0) and 94.5% (M1); with a CV of 50%, 87.2% and 88.0%.</li>
+<li>For 90% power at CV 43%: 100 (M0) or 97 (M1) evaluable subjects per
+arm; at CV 50%: 129 or 126.</li>
+<li>For 85% power at CV 43%: 85 (M0) or 83 (M1); at CV 50%: 110 or
+107.</li>
+<li>CV sources: Li 2020 Table 3 (300 mg arms, SD/mean 35% to 51%); Cohen
+2022 (about 52%, 200 mg, different presentation, device comparison); PK
+model 40% (2016 model) and 43% (2020 model). The full table is in
+results/sample_size/ss_table_n_needed.csv.</li>
+</ul>
+<p><strong>Decisions left to the sponsor:</strong> target power (90% or
+85%) and the sample size.</p>
+</div>
+<div id="summary-of-decisions" class="section level1">
+<h1>7. Summary of decisions</h1>
+<table>
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Item</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>AUC0-inf as a secondary endpoint (Section 2)</td>
+<td>confirmed by the sponsor’s clinical pharmacology</td>
+</tr>
+<tr class="even">
+<td>Reliability criteria: adjusted R-squared at least 0.80 as the
+definition, count at 0.90 reported alongside (Section 2)</td>
+<td>proposed (sponsor to confirm)</td>
+</tr>
+<tr class="odd">
+<td>Disclosure of the boundary scenario whose type I error is above
+5%</td>
+<td>confirmed</td>
+</tr>
+<tr class="even">
+<td>Fallback if AUC0-inf is required as co-primary: all subjects with
+estimable lambda-z, flagged subjects listed (Section 3)</td>
+<td>confirmed</td>
+</tr>
+<tr class="odd">
+<td>CV 43% as the base assumption, 50% as sensitivity</td>
+<td>confirmed</td>
+</tr>
+<tr class="even">
+<td>Primary analysis model (M0 or M1)</td>
+<td>pending (sponsor)</td>
+</tr>
+<tr class="odd">
+<td>LLOQ of the validated assay</td>
+<td>pending (sponsor)</td>
+</tr>
+<tr class="even">
+<td>Target power and sample size</td>
+<td>pending (sponsor)</td>
+</tr>
+</tbody>
+</table>
 </div>
 
 

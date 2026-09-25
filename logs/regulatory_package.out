@@ -1,0 +1,7 @@
+source commit 8d0ebc6b88e7f378b65f3fdc6c74c8ea98708e21, tracked tree outside regulatory/ clean: TRUE
+regulatory tables written to /home/user/dupilumab-sim/regulatory/tables 
+rendered MS_report 
+rendered FDA_questions 
+rendered SAP_text_proposals 
+regulatory package: 656 traced values, 262 files in the manifest
+release notes written for v1.0.1 

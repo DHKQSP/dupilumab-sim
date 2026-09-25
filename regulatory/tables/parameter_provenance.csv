@@ -42,4 +42,12 @@ Kovalenko 2020 Model 1 (sensitivity),IIV variance F,0,log-scale variance (SD 0),
 Kovalenko 2020 Model 1 (sensitivity),IIV variance Km,0,log-scale variance (SD 0),confirmed,not estimated in Kovalenko 2020 Model 1
 Kovalenko 2020 Model 1 (sensitivity),Residual proportional,0.15,fraction (SD),confirmed,Kovalenko 2020 Supplementary Table 2 (proportional 15.0%)
 Kovalenko 2020 Model 1 (sensitivity),Residual additive,0.03,mg/L (SD),confirmed,"Kovalenko 2020 Supplementary Table 2 (additive 0.03 mg/L, fixed)"
-both,LLOQ,0.078,mg/L,assumption for the sponsor's assay,Clot 2021 section 2.4 (assay of the originator; sponsor assay to be confirmed)
+both,"LLOQ (study assay, config/assay.yaml)",0.078,mg/L,assumption for the sponsor's assay,"Clot 2021 section 2.4 (originator's assay, the LLOQ of the data used to develop the PK models); placeholder until the sponsor's validated assay LLOQ is fixed"
+Appendix I robustness check (adult atopic dermatitis body weight),"Body weight, primary distribution","lognormal mean 78 kg, SD 19 kg, 40 to 180 kg",kg,placeholder (assumption),"Kamal 2022 (phase 2b, 379 adults with atopic dermatitis: mean body weight 74.0 to 80.6 kg by dose group); Kovalenko 2021 (adult phase 3 population PK data: BMI SD 5.47 kg/m2); NCT03389893 (71 adults: 80.2 kg, SD 19.0); used only in the Appendix I robustness check"
+Appendix I robustness check (adult atopic dermatitis body weight),"Body weight, sensitivity distribution","lognormal mean 80 kg, SD 19 kg, 40 to 180 kg",kg,placeholder (assumption),"NCT03389893 (71 adults with atopic dermatitis: 80.2 kg, SD 19.0)"
+Appendix I robustness check (adult atopic dermatitis body weight),"Body weight, sensitivity distribution","lognormal mean 75 kg, SD 18 kg, 40 to 180 kg",kg,placeholder (assumption),sensitivity with a lower mean (analyst)
+Appendix I robustness check (adult atopic dermatitis body weight),Height (for BMI),"normal, mean 172 cm, SD 10 cm, truncated 150 to 200 cm, independent of weight",cm,placeholder (assumption),"NCT03389893 (172.5 cm, SD 10.4)"
+Appendix I robustness check (adult atopic dermatitis body weight),Male fraction,0.5,"",placeholder (assumption),assumption
+2016 model with phase 3 covariates (weight sensitivity),Exponent of BMI on linear elimination (ke),0.368,"",confirmed,Kovalenko 2020 Table 3 and Supplementary Table 3 (Model 4)
+2016 model with phase 3 covariates (weight sensitivity),Reference BMI,26,kg/m2,assumption,phase 3 mean BMI 25.4 to 27.3 (Kamal 2022)
+2016 model with phase 3 covariates (weight sensitivity),Weight exponent on Vc (replaces the 2016 value),0.817,"",confirmed,Kovalenko 2020 Table 3 and Supplementary Table 3 (Model 4)
