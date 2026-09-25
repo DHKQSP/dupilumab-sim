@@ -3,7 +3,6 @@
 Generated 2026-09-25 from repository results (branch claude/epic-bardeen-axbreo). Every number below is read from the result files used by the full report.
 
 Abbreviations: area under the concentration-time curve to the last quantifiable concentration (AUClast), to infinity (AUCinf); maximum concentration (Cmax); non-compartmental analysis (NCA); geometric mean ratio (GMR); confidence interval (CI); lower limit of quantification (LLOQ, 0.078 mg/L); inter-individual variability (IIV); target-mediated drug disposition (TMDD); Michaelis-Menten (MM); Monte Carlo (MC); body mass index (BMI); operating characteristic (OC); terminal elimination rate constant (lambda-z); common random numbers (CRN).
-
 Models: primary model Kovalenko et al. 2016 (CPT Pharmacometrics Syst Pharmacol 5:617, Table 2, BLQ-included column): two-compartment, first-order absorption, parallel linear and MM elimination, Km fixed at 0.01 mg/L, central volume scaled by (weight/75)^0.705. Sensitivity model Kovalenko et al. 2020 Model 1 (Clin Pharmacol Drug Dev 9:756, Table 1 and Supplementary Table 2): transit absorption (3 compartments, mean transit time 0.105 day), its own IIV and residual error (proportional 15.0%, additive 0.03 mg/L).
 
 Scenario codes (test arm only unless stated; reference arm shared through common random numbers): S00 identical products; F085, F090, F097, F110 bioavailability x0.85, x0.90, x0.97, x1.10; KE110, KE120 linear elimination rate constant (ke) x1.10, x1.20; VM080, VM125, VM150 maximum MM elimination rate (Vmax) x0.80, x1.25, x1.50; KM05, KM2, KM5, KM10 MM constant (Km) x0.5, x2, x5, x10; KA075 absorption rate constant x0.75. Sampling schedules: B0 Syneos baseline; D1 to D4 add two to four samples between Day 32 and Day 53 (D1: Days 39, 46; D2: Days 39, 46, 53; D3: Days 32, 39, 46, 53; D4: Days 40, 47); B- removes Day 50.
@@ -200,7 +199,7 @@ Curve-shape and weight-band results were compared with the reviewer's independen
 
 ## 2. Pillar 1: coverage of total exposure by AUClast (B0, 60 to 90 kg, 20,000 virtual subjects per model)
 
-| Model | True extrapolated %: median | 95th percentile | Max | True coverage below 80% (%, 95% CI) | NCA extrapolated %: median | NCA extrapolation above 20% (%, 95% CI) | AUCinf reliability met, flag set (i) (%, 95% CI) | AUCinf reliability met, flag set (ii) (%, 95% CI) |
+| Model | True extrapolated %: median | 95th percentile | Max | Window coverage below 80% (%, 95% CI) | NCA extrapolated %: median | NCA extrapolation above 20% (%, 95% CI) | AUCinf reliability met, flag set (i) (%, 95% CI) | AUCinf reliability met, flag set (ii) (%, 95% CI) |
 |---|---|---|---|---|---|---|---|---|
 | 2016 (primary) | 0.65 | 3.63 | 15.22 | 0.00 [0.00, 0.02] | 2.74 | 1.10 [0.96, 1.25] | 86.57 [86.09, 87.03] | 80.74 [80.18, 81.28] |
 | Model 1 | 0.64 | 3.54 | 15.68 | 0.00 [0.00, 0.02] | 2.95 | 0.80 [0.69, 0.94] | 91.84 [91.45, 92.21] | 83.92 [83.40, 84.42] |
@@ -209,7 +208,7 @@ Residual-sensitive metrics are stated as the two-model range: AUCinf reliability
 
 Curve shape below the LLOQ cannot be observed; sensitivity to Km and Vmax (both arms, 20,000 subjects each):
 
-| Variant | True extrapolated %: median | 95th pct | Max | Coverage below 80% (%) | NCA extrap. median (%) | NCA extrap. >20% (%) | AUCinf reliable, (i) [(ii)] (%) | Lambda-z not estimable (%) | Median last quantifiable day | AUClast geometric mean | 300 mg ~78 kg AUClast vs observed 544 |
+| Variant | True extrapolated %: median | 95th pct | Max | Window coverage below 80% (%) | NCA extrap. median (%) | NCA extrap. >20% (%) | AUCinf reliable, (i) [(ii)] (%) | Lambda-z not estimable (%) | Median last quantifiable day | AUClast geometric mean | 300 mg ~78 kg AUClast vs observed 544 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | Primary model | 0.65 | 3.59 | 16.59 | 0.00 | 2.73 | 1.14 | 86.0 [80.8] | 1.36 | 34.7 | 546 | 1.04 |
 | Km x0.5 | 0.67 | 3.67 | 17.61 | 0.00 | 2.79 | 1.10 | 86.3 [80.3] | 1.45 | 34.7 | 542 | 1.03 |
@@ -221,6 +220,40 @@ Curve shape below the LLOQ cannot be observed; sensitivity to Km and Vmax (both 
 | Vmax x0.5 (stress test, fails gate) | 0.63 | 6.41 | 23.08 | 0.04 | 2.33 | 2.20 | 92.9 [80.9] | 0.02 | 55.0 | 775 | 1.48 |
 
 Kovalenko 2020 reported that excluding below-LLOQ values makes the model predict a less steep TMDD phase with Vm and Km increasing together; this motivates the Km-increase sensitivity.
+
+## 2A. Reliability of AUCinf in the trial population (healthy adults, 60 to 90 kg, weight-stratified randomization)
+
+Window coverage is the true AUC from dosing to the last quantifiable sample divided by the true AUCinf; the observed-to-true ratio is the observed AUClast (or NCA AUCinf) divided by the true AUCinf and also contains the residual error and the trapezoidal approximation.
+
+
+### Failure by criteria set (planned schedule, 300 mg, 20,000 subjects per model; two models)
+
+- Set (i) adjusted R-squared at least 0.80: 8.2% to 13.4% fail (lambda-z not estimable 0.62% to 1.46%; estimable but failing 7.6% to 12.0%). Set (ii) with span ratio at least 2: 16.1% to 19.3%. Set (iii) adjusted R-squared at least 0.90: 33.2% to 38.8%. Set (iv) with span at least 3: 65.9% to 72.5%.
+- Retained subjects per arm of 117 under rule A in the trials (identical products, 10,000 trials per model): set (i) median 101 to 107 (5th to 95th percentile 95 to 112); set (iii) median 72 to 78 (5th to 95th percentile 63 to 86); set (iv) median 32 to 40 (5th to 95th percentile 24 to 48).
+- Residual sensitivity: with the 2016 model's proportional residual of 24.2% the set (iii) failure share is 38.8%; with the same model and a residual of 12.0% it is 27.2%; Model 1 (15.0%) gives 33.2%. A larger proportional residual scatters the terminal log concentrations around the regression line and lowers the adjusted R-squared, so a stricter threshold removes more subjects.
+
+### Failure by randomization stratum
+
+- Heavier stratum (above 75 to 90 kg) minus lighter stratum (60 to 75 kg), percentage points: set (i) 1.48 to 2.69; set (iii) 2.05 to 2.30 (Newcombe 95% intervals in the table).
+- Between-arm difference (test minus reference) in the share of the heavier stratum, identical products, median (5th to 95th percentile over trials), percentage points, 2016 model / Model 1: AUClast analysis set 0.0 (-0.9 to 0.9) / 0.0 (-0.9 to 0.9) (at most 0.85 by the stratified randomization); rule A set (i) 0.1 (-4.4 to 4.6) / 0.0 (-3.3 to 3.4), more than 5 points in 1.6% to 6.5% of trials; rule A set (iii) -0.1 (-8.7 to 8.5) / 0.0 (-7.9 to 7.7), more than 5 points in 28.6% to 33.4% of trials.
+
+### Treatment-dependent failure (test minus reference, percentage points, mean over trials)
+
+- Product scenarios (ranges over the two models): identical products set (i) -0.09 to 0.00, set (iii) -0.17 to 0.06; F x0.97 0.36 to 0.58, 0.45 to 0.61; ke x1.10 -0.11 to -0.10, -0.48 to -0.46; ke x1.20 -0.16 to 0.05, -0.76 to -0.60; Vmax x1.25 4.27 to 6.64, 4.53 to 5.58.
+- Boundary scenarios at a true AUC0-inf ratio of 0.80, set (i): Vmax increased 7.29 to 11.03; absorption rate decreased 10.26 to 12.29; bioavailability decreased 2.21 to 3.54; linear elimination increased -0.47 to 0.29; peripheral volume increased -4.06 to -3.49. At 1.25: Vmax decreased -6.41 to -4.08; bioavailability increased -2.90 to -1.54.
+- The true exposure ratio explains little of the difference: a descriptive linear fit across the 13 test scenarios of each model has an R-squared of 0.23 to 0.36 under set (i) and 0.17 to 0.18 under set (iii); the difference depends on how the mechanism changes the terminal profile (it is negative when the peripheral volume increases).
+
+### Failing versus retained subjects
+
+- Body weight difference, failing minus retained: set (i) 0.81 to 1.13 kg, set (iv) 0.40 to 0.48 kg; true AUC0-inf geometric mean ratio, failing to retained: set (i) 0.786 to 0.815, set (iii) 0.895 to 0.928 (ranges over the two models).
+
+### Window coverage and the observed-to-true ratio
+
+- Window coverage (true AUC0-tlast / true AUC0-inf): median 99.3% to 99.4%, minimum 84.3% to 84.8%.
+- Observed-to-true ratio, subjects with an estimable lambda-z: AUClast median 96.3% to 96.7%, 5th percentile 81.1% to 87.4%, 95th percentile 105.8% to 111.2%, SD of log 0.058 to 0.096; AUCinf rule B median 100.3% to 100.7%, 5th percentile 84.7% to 90.9%, 95th percentile 111.7% to 116.5%, SD of log 0.063 to 0.101 (ranges over the two models).
+- Geometric mean of the trial AUClast GMRs against the true AUC0-inf ratio (20 scenarios, pooled t-test): largest absolute difference 0.012.
+
+Source: results/trialpop/ (scripts/54_trial_population_drop.R, scripts/55_trial_population_summary.R; registered in config/prereg_20260926.yaml section 6).
 
 ## 3. Pillar 2: decision concordance between AUClast and AUCinf (B0, 117 per arm)
 
@@ -394,7 +427,7 @@ Data: saved trial-level results (`results/oc/oc_trials_be_<model>.csv.gz`, scrip
   - AUClast only: Kovalenko 2016 (primary) ka_down_080 4.74% (95% CI 4.34 to 5.17; nominal, 10,000 trials); Kovalenko 2020 Model 1 V2_up_080 5.20% (95% CI 4.90 to 5.51; nominal, 20,000 trials); Kovalenko 2020 Model 1 ka_down_080 5.07% (95% CI 4.66 to 5.52; nominal, 10,000 trials).
   - AUCinf_true only: Kovalenko 2016 (primary) Vmax_up_080 4.64% (95% CI 4.24 to 5.07; nominal, 10,000 trials); Kovalenko 2016 (primary) ka_down_080 5.11% (95% CI 4.70 to 5.56; nominal, 10,000 trials); Kovalenko 2016 (primary) ke_up_080 4.62% (95% CI 4.23 to 5.05; nominal, 10,000 trials); Kovalenko 2020 Model 1 F_down_080 4.61% (95% CI 4.22 to 5.04; nominal, 10,000 trials); Kovalenko 2020 Model 1 Vmax_up_080 4.75% (95% CI 4.35 to 5.18; nominal, 10,000 trials); Kovalenko 2020 Model 1 ka_down_080 5.43% (95% CI 5.003 to 5.89; exceeding, 10,000 trials); Kovalenko 2020 Model 1 ke_up_080 4.67% (95% CI 4.27 to 5.10; nominal, 10,000 trials).
 - Causes (P2, largest component per cell): the AUClast effect (AUClast only minus AUCinf_true) in 13, Cmax failures in 2, the gap between the unbiased reference and 5% in 1. Cells where Cmax failures dominate: Kovalenko 2016 (primary) ka_down_080 (Cmax pass 0.00%, P2 0.00%), Kovalenko 2020 Model 1 ka_down_080 (Cmax pass 0.00%, P2 0.00%).
-  - P2 cells that are not conservative: Kovalenko 2020 Model 1 V2_up_080: AUClast bias toward 1 (bias +0.41%; AUClast only minus AUCinf_true +0.61 points) + the unbiased reference is itself below 5% (AUCinf_true 4.58%, -0.41 points); hence P2 5.18%: point estimate above 5% with the Wilson interval including 5% (nominal)
+  - P2 cells that are not conservative: Kovalenko 2020 Model 1 V2_up_080: AUClast bias toward 1 (bias +0.41%; AUClast only minus AUCinf_true +0.61 points) + the unbiased reference is itself below 5% (AUCinf_true 4.59%, -0.42 points); hence P2 5.18%: point estimate above 5% with the Wilson interval including 5% (nominal)
 - Where the final point estimate of P2 exceeds 5%: Kovalenko 2020 Model 1, peripheral volume (V2), up (multiplier x2.28), true ratio 0.80: 5.18% (95% CI 4.88 to 5.50), 20,000 trials (the Wilson interval includes 5%, so classified nominal); prespecified 10,000-trial value 5.32% (95% CI 4.90 to 5.78). The first paragraph of the scripts/33 conclusion (`oc_conclusion_ko.md` and `oc_conclusion_en.md`) and the P2 and AUClast-only values in `boundary_type1.csv` agree with the final values here (cases, multipliers, pass rates and intervals compared at the precision printed by scripts/33, and trial counts when printed; stopifnot).
 
 ### 1. Baseline: boundary type I error of an unbiased estimator
@@ -419,7 +452,7 @@ Data: saved trial-level results (`results/oc/oc_trials_be_<model>.csv.gz`, scrip
 | Boundary scenario | True AUC0-inf ratio | se AUClast / AUCinf_true | Far-limit probability AUClast / AUCinf_true | Theory (actual truth) AUClast / AUCinf_true % | AUCinf_true pass % [Wilson] | AUCinf_true bias % (MC SE) | SD / SE | Normal approx. % |
 |---|---|---|---|---|---|---|---|---|
 | F_down_080 (true 0.80, x0.871) | 0.7996 | 0.0547 / 0.0528 | 2.4e-10 / 4.3e-11 | 4.91 / 4.91 | 4.61 [4.22 to 5.04] nominal | +0.01 (0.05) | 0.967 | 4.32 |
-| V2_up_080 (true 0.80, x2.28) | 0.7998 | 0.0540 / 0.0524 | 1.3e-10 / 3.1e-11 | 4.95 / 4.95 | 4.58 [4.30 to 4.88] conservative | +0.02 (0.04) | 0.971 | 4.43 |
+| V2_up_080 (true 0.80, x2.28) | 0.7998 | 0.0540 / 0.0524 | 1.3e-10 / 3.1e-11 | 4.95 / 4.95 | 4.59 [4.30 to 4.88] conservative | +0.02 (0.04) | 0.971 | 4.43 |
 | Vmax_up_080 (true 0.80, x1.4) | 0.8001 | 0.0567 / 0.0546 | 1.2e-09 / 2.1e-10 | 5.02 / 5.02 | 4.75 [4.35 to 5.18] nominal | +0.02 (0.05) | 0.970 | 4.49 |
 | ka_down_080 (true 0.80, x0.424) | 0.8006 | 0.0632 / 0.0614 | 7.8e-08 / 2.7e-08 | 5.12 / 5.12 | 5.43 [5.003 to 5.89] exceeding | +0.03 (0.06) | 0.993 | 4.99 |
 | ke_up_080 (true 0.80, x1.46) | 0.8002 | 0.0532 / 0.0513 | 6.2e-11 / 1.0e-11 | 5.05 / 5.05 | 4.67 [4.27 to 5.10] nominal | -0.01 (0.05) | 0.967 | 4.42 |
@@ -447,7 +480,7 @@ Data: saved trial-level results (`results/oc/oc_trials_be_<model>.csv.gz`, scrip
 | Boundary scenario | P2 | AUClast only | AUCinf_true only |
 |---|---|---|---|
 | F_down_080 (true 0.80, x0.871) | 3.70 [3.35 to 4.09] conservative | 3.74 [3.39 to 4.13] conservative | 4.61 [4.22 to 5.04] nominal |
-| V2_up_080 (true 0.80, x2.28) | 5.18 [4.88 to 5.50] nominal | 5.20 [4.90 to 5.51] nominal | 4.58 [4.30 to 4.88] conservative |
+| V2_up_080 (true 0.80, x2.28) | 5.18 [4.88 to 5.50] nominal | 5.20 [4.90 to 5.51] nominal | 4.59 [4.30 to 4.88] conservative |
 | Vmax_up_080 (true 0.80, x1.4) | 2.76 [2.46 to 3.10] conservative | 2.76 [2.46 to 3.10] conservative | 4.75 [4.35 to 5.18] nominal |
 | ka_down_080 (true 0.80, x0.424) | 0.00 [0.00 to 0.04] conservative | 5.07 [4.66 to 5.52] nominal | 5.43 [5.003 to 5.89] exceeding |
 | ke_up_080 (true 0.80, x1.46) | 3.77 [3.41 to 4.16] conservative | 3.77 [3.41 to 4.16] conservative | 4.67 [4.27 to 5.10] nominal |
@@ -501,7 +534,7 @@ AUClast only:
 | Boundary scenario | P2 % | P2 minus 5 | = reference minus 5 | + AUClast only minus AUCinf_true [95%] | + P2 minus AUClast only [95%] | Cmax pass % | AUClast bias % (MC SE) | Cmax bias % (MC SE) |
 |---|---|---|---|---|---|---|---|---|
 | F_down_080 (true 0.80, x0.871) | 3.70 | -1.30 | -0.39 | -0.87 [-1.09 to -0.65] | -0.04 [-0.08 to +0.00] | 40.31 | -0.46 (0.05) | -0.14 (0.04) |
-| V2_up_080 (true 0.80, x2.28) | 5.18 | +0.18 | -0.41 | +0.61 [+0.46 to +0.76] | -0.02 [-0.03 to +0.00] | 65.30 | +0.41 (0.04) | -1.74 (0.03) |
+| V2_up_080 (true 0.80, x2.28) | 5.18 | +0.18 | -0.42 | +0.61 [+0.46 to +0.76] | -0.02 [-0.03 to +0.00] | 65.30 | +0.41 (0.04) | -1.74 (0.03) |
 | Vmax_up_080 (true 0.80, x1.4) | 2.76 | -2.24 | -0.25 | -1.99 [-2.27 to -1.71] | +0.00 [+0.00 to +0.00] | 96.75 | -1.34 (0.06) | -0.45 (0.04) |
 | ka_down_080 (true 0.80, x0.424) | 0.00 | -5.00 | +0.43 | -0.36 [-0.57 to -0.15] | -5.07 [-5.50 to -4.64] | 0.00 | -0.24 (0.06) | +0.67 (0.05) |
 | ke_up_080 (true 0.80, x1.46) | 3.77 | -1.23 | -0.33 | -0.90 [-1.12 to -0.68] | +0.00 [+0.00 to +0.00] | 95.96 | -0.55 (0.05) | -0.67 (0.04) |
@@ -512,7 +545,7 @@ AUClast only:
 One-line cause (P2; only components whose 95% CI excludes 0 or 5%, largest first):
 
 - F_down_080: AUClast bias away from 1 (bias -0.46%; AUClast only minus AUCinf_true -0.87 points) + Cmax failures (Cmax pass 40.31%; P2 minus AUClast only -0.04 points); hence P2 3.70%: conservative
-- V2_up_080: AUClast bias toward 1 (bias +0.41%; AUClast only minus AUCinf_true +0.61 points) + the unbiased reference is itself below 5% (AUCinf_true 4.58%, -0.41 points); hence P2 5.18%: point estimate above 5% with the Wilson interval including 5% (nominal)
+- V2_up_080: AUClast bias toward 1 (bias +0.41%; AUClast only minus AUCinf_true +0.61 points) + the unbiased reference is itself below 5% (AUCinf_true 4.59%, -0.42 points); hence P2 5.18%: point estimate above 5% with the Wilson interval including 5% (nominal)
 - Vmax_up_080: AUClast bias away from 1 (bias -1.34%; AUClast only minus AUCinf_true -1.99 points); hence P2 2.76%: conservative
 - ka_down_080: Cmax failures dominate (Cmax pass 0.00%; P2 minus AUClast only -5.07 points) + the unbiased reference is itself above 5% (AUCinf_true 5.43%, +0.43 points) + AUClast bias away from 1 (bias -0.24%; AUClast only minus AUCinf_true -0.36 points); hence P2 0.00%: conservative
 - ke_up_080: AUClast bias away from 1 (bias -0.55%; AUClast only minus AUCinf_true -0.90 points); hence P2 3.77%: conservative
@@ -523,7 +556,7 @@ One-line cause (P2; only components whose 95% CI excludes 0 or 5%, largest first
 AUClast only:
 
 - F_down_080: AUClast bias away from 1 (bias -0.46%; AUClast only minus AUCinf_true -0.87 points); hence AUClast only 3.74%: conservative
-- V2_up_080: AUClast bias toward 1 (bias +0.41%; AUClast only minus AUCinf_true +0.61 points) + the unbiased reference is itself below 5% (AUCinf_true 4.58%, -0.41 points); hence AUClast only 5.20%: point estimate above 5% with the Wilson interval including 5% (nominal)
+- V2_up_080: AUClast bias toward 1 (bias +0.41%; AUClast only minus AUCinf_true +0.61 points) + the unbiased reference is itself below 5% (AUCinf_true 4.59%, -0.42 points); hence AUClast only 5.20%: point estimate above 5% with the Wilson interval including 5% (nominal)
 - Vmax_up_080: AUClast bias away from 1 (bias -1.34%; AUClast only minus AUCinf_true -1.99 points); hence AUClast only 2.76%: conservative
 - ka_down_080: the unbiased reference is itself above 5% (AUCinf_true 5.43%, +0.43 points) + AUClast bias away from 1 (bias -0.24%; AUClast only minus AUCinf_true -0.36 points); hence AUClast only 5.07%: point estimate above 5% with the Wilson interval including 5% (nominal)
 - ke_up_080: AUClast bias away from 1 (bias -0.55%; AUClast only minus AUCinf_true -0.90 points); hence AUClast only 3.77%: conservative
@@ -839,11 +872,13 @@ Source: oc/inversion_all.csv (range ends and reachable rows) and oc/inversion_sc
 
 Supporting evidence: test-arm Km multiplied by 0.5 to 10 (0.005 to 0.1 mg/L) changes the mean GMR of every endpoint by at most 1.45% (2016 model) and 1.16% (Model 1) relative to identical products (paired within the same 500 trials). Km is an MM approximation constant and is not identical to binding affinity.
 
-## 5. Body weight generalization (300 mg, B0, 20,000 subjects per uniform weight band)
+## 5. Robustness across body weight (300 mg, B0, 20,000 subjects per uniform weight band)
+
+These results are robustness checks, not evidence for the endpoint proposal, which rests on the trial population (healthy adults of 60 to 90 kg, randomization stratified by body weight; section 2A). The adult atopic dermatitis body-weight distribution is reported only in Appendix I of the Modeling and Simulation Report.
 
 Covariate variants (c) and (d) use the adult coefficients of Kovalenko 2020 Model 4 (elimination rate constant ke proportional to (BMI/26)^0.368, central volume exponent 0.817); the BMI reference of 26 is a placeholder based on phase 3 mean BMI 25.4 to 27.3 (Kamal 2022). Height is simulated as normal (mean 170 cm, SD 9, truncated 150 to 195 cm). Development-data weight ranges are not reported in the source publications; bands above 130 kg are flagged as possible extrapolation.
 
-| Model | Band (kg) | Median BMI | True extrap. median (%) | 95th pct | Coverage <80% (%) | AUCinf reliable, (i) [(ii)] (%) | Lambda-z not estimable (%) | AUClast geometric mean | Note |
+| Model | Band (kg) | Median BMI | True extrap. median (%) | 95th pct | Window coverage <80% (%) | AUCinf reliable, (i) [(ii)] (%) | Lambda-z not estimable (%) | AUClast geometric mean | Note |
 |---|---|---|---|---|---|---|---|---|---|
 | (a) 2016 | 40-60 | 17.2 | 0.51 | 2.69 | 0.005 | 90.8 [84.9] | 0.23 | 860 |  |
 | (a) 2016 | 60-75 | 23.2 | 0.61 | 3.24 | 0.000 | 88.1 [82.4] | 0.75 | 614 |  |
@@ -870,7 +905,7 @@ Covariate variants (c) and (d) use the adult coefficients of Kovalenko 2020 Mode
 | (d) 2016 + ke~BMI + Vc~weight 0.817 | 110-130 | 41.4 | 1.38 | 8.14 | 0.015 | 72.6 [64.3] | 7.87 | 256 |  |
 | (d) 2016 + ke~BMI + Vc~weight 0.817 | 130-150 | 48.3 | 1.80 | 9.91 | 0.010 | 65.6 [56.5] | 11.59 | 198 | outside confirmed development range |
 
-Trial level in a population with many obese subjects (weight normal mean 100 kg, SD 20, truncated 60 to 150 kg; 2,000 trials per scenario; mean GMR and dropout weights only):
+Trial level in a heavier population (stress test, not a population estimate; weight normal mean 100 kg, SD 20, truncated 60 to 150 kg; 2,000 trials per scenario; mean GMR and dropout weights only):
 
 | Model | Scenario | GMR AUClast | GMR true AUCinf | GMR NCA AUCinf reliable | Subjects failing AUCinf reliability, flag set (ii) (%) | Mean weight retained (kg) | Mean weight failing (kg) |
 |---|---|---|---|---|---|---|---|
@@ -948,4 +983,116 @@ Pre-specified tolerances (config/repro_check.yaml), script scripts/38_repro_chec
 | True AUC0-inf ratio at the Vmax inversion multiplier: first 20,000 of the 200,000 common virtual subjects | 1.2508839 | 1.2501589 | 0.00162 absolute log ratio | yes | 1.2501589 | yes |
 | Inversion screening consistency on the same 20,000 subjects | 1.25 | 1.2501589 | 2e-04 relative | yes | 1.2501589 | yes |
 | Median true extrapolated share at B0 (%): 2,000 new subjects versus the committed 20,000 | 0.65205005 | 0.68475085 | 0.13 absolute (pct) | yes | 0.68475085 | yes |
+
+## 10. Version 1.0.1 analyses (pre-registered in config/prereg_20260926.yaml)
+
+The trial population is the evidence base (section 2A); the adult atopic dermatitis results in 10.2 are a robustness check only.
+
+### 10.1 Analysis model: pooled t-test (M0), weight-stratum ANOVA (M1), log-weight ANCOVA (M2)
+
+
+Generated by `scripts/45_oc_models_summary.R` from `results/oc_models/` (pre-registered in `config/prereg_20260926.yaml`, section1). Trials: 10,000 per cell and model (the extended cells at 20,000).
+
+#### Conclusions
+
+1. Kovalenko 2020 Model 1, peripheral volume (V2) up (multiplier x2.28, true AUC0-inf ratio 0.7998): P2 boundary type I error M0 5.18% [4.88, 5.50], nominal; M1 5.63% [5.31, 5.95], exceeding; M2 5.75% [5.43, 6.08], exceeding. Quantitative cause: under M0 the AUClast GMR is biased toward 1 by +0.41% (95% interval +0.34 to +0.49) relative to the true AUC0-inf ratio, which moves the pass rate from the unbiased reference 4.59% (-0.42 points versus 5%) to 5.20% for AUClast alone (+0.61 points); Cmax failures change it by -0.02 points to the P2 value; under M1 the AUClast GMR is biased toward 1 by +0.41% (95% interval +0.34 to +0.48) relative to the true AUC0-inf ratio, which moves the pass rate from the unbiased reference 4.94% (-0.06 points versus 5%) to 5.65% for AUClast alone (+0.71 points); Cmax failures change it by -0.02 points to the P2 value; under M2 the AUClast GMR is biased toward 1 by +0.41% (95% interval +0.34 to +0.48) relative to the true AUC0-inf ratio, which moves the pass rate from the unbiased reference 4.97% (-0.04 points versus 5%) to 5.77% for AUClast alone (+0.81 points); Cmax failures change it by -0.03 points to the P2 value. The cell corresponds to a proposed biosimilar with the same amino acid sequence as the reference IgG4 antibody whose peripheral volume of distribution is 2.28 times that of the reference, all other parameters being equal (in the 2016 model the same true ratio requires 3.21 times).
+
+2. Classification of P2 over the 16 boundary cells: M0 conservative 15, nominal 1, exceeding 0; M1 conservative 15, nominal 0, exceeding 1; M2 conservative 15, nominal 0, exceeding 1. P2 ranges 0.00 to 5.18% (M0), 0.00 to 5.63% (M1) and 0.00 to 5.75% (M2). On the same trials M1 minus M0 is +0.00 to +0.45 points (mean +0.30; positive in 14 of 16 cells) and M2 minus M0 is +0.00 to +0.57 points (mean +0.33). Cells whose P2 class changes from M0 to M1: Model 1 V2_up_080 (nominal to exceeding).
+
+3. Unbiased reference (AUCinf_true only, the true AUC0-inf of each subject analysed like an endpoint): 4.12 to 5.43% under M0, 4.53 to 5.83% under M1 and 4.54 to 5.81% under M2. The between-trial SD of the log GMR divided by the median within-trial SE is 0.961 to 0.993 (M0), 0.991 to 1.020 (M1) and 0.991 to 1.021 (M2) for AUCinf_true, and 0.965 to 1.001 (M0), 0.992 to 1.026 (M1) and 0.992 to 1.028 (M2) for AUClast. The SE of M0 ignores the weight stratum used in the randomization, so it overstates the sampling variability of the treatment difference; M1 includes the stratum.
+
+4. Configurations with AUC0-inf under M1 (cells with point estimate above 5% / with Wilson lower bound above 5%, maximum): G2-A(ii) 12/16 (12), 27.44%; G2-A(i) 10/16 (8), 20.27%; G2-B 10/16 (8), 16.03%; G2-C(ii) 1/16 (1), 5.39%; G2-C(i) 1/16 (0), 5.06%; F3-A 0/16 (0), 3.39%; F3-B 0/16 (0), 3.95%; F3-C 1/16 (0), 5.16%.
+   Under M0 the same counts are: G2-A(ii) 12/16 (12), 27.60%; G2-A(i) 8/16 (8), 19.91%; G2-B 8/16 (6), 15.06%; G2-C(ii) 1/16 (0), 5.01%; G2-C(i) 0/16 (0), 4.63%; F3-A 0/16 (0), 3.03%; F3-B 0/16 (0), 3.57%; F3-C 0/16 (0), 4.76%.
+
+5. Power of P2: identical products (S00) 99.55% (M0), 99.65% (M1), 99.66% (M2) for the 2016 model and 99.00%, 99.15%, 99.19% for Model 1; F x0.97 (true AUC0-inf ratio 0.9521 and 0.9524, Cmax ratio 0.9653 and 0.9655) 96.78%, 97.06%, 97.31% (2016 model) and 94.68%, 95.29%, 95.60% (Model 1).
+
+6. Expectations recorded before the results:
+
+   - M1: unbiased reference (AUCinf_true only) close to 5%: pooled 5.01% [4.90, 5.11]; cells 4.53 to 5.83% (M0 4.12 to 5.43%) (criterion: pooled 16-cell Wilson 95% interval includes 5% and every cell within 4-6%): consistent
+   - M1: between-trial SD / within-trial SE close to 1: M1 0.991 to 1.020 (M0 0.961 to 0.993) (criterion: every cell within 0.97-1.03 (AUCinf_true)): consistent
+   - P2 rises slightly under M1: M1 minus M0 > 0 in 14 of 16 cells; mean +0.30 points (range +0.00 to +0.45) (criterion: M1 minus M0 > 0 in at least 14 of 16 cells and mean rise above 0 and at most 1.5 points): consistent
+   - Model 1 V2 x2.28 cell about 5.6% under M1 (exceeding): 5.63% [5.31, 5.95], exceeding, 20,000 trials (M0 5.18% [4.88, 5.50], nominal) (criterion: point estimate within 5.6 +/- 0.3%): consistent
+   - Note: in 2 cells (absorption rate down) Cmax fails in every trial, so P2 passes in no trial under any model and cannot rise; the registered criterion counts them as not rising.
+
+7. Verification: the regenerated M0 equals the stored results in 1,553,000 rows (oc_rejudge_be_k2016.csv.gz 720,000 rows, products5000_be_raw_base.csv.gz 30,000 rows, oc_rejudge_be_k2020.csv.gz 720,000 rows, oc_trials_ext_be_k2020.csv.gz 80,000 rows, products_be_raw_struct2020.csv.gz 3,000 rows); maximum relative difference 5.0e-07.
+
+8. Not estimable (pass counted as not passing): M1 0 trial-endpoint results, M2 0, M0 0, out of 240,000 each.
+
+The choice of the primary analysis model is the sponsor's; M0 and M1 are reported side by side.
+
+### 10.2 Lambda-z reliability criteria convention (sets (i) to (iv))
+
+
+Phoenix WinNonlin does not define reliability criteria for lambda-z: the Lambda Z Acceptance Criteria on the Rules tab are optional user entries (minimum adjusted R-squared, maximum extrapolated percentage, span), and profiles that do not meet them are only flagged. The value 0.80 is a statistical analysis plan convention; 0.90, sometimes with a span of at least 3 half-lives, is common in public statistical analysis plans.
+
+#### Subjects without a reliable AUC0-inf (planned schedule, 300 mg, 20,000 subjects per model)
+
+- Study population (60 to 90 kg, 2016 model and Model 1): set (i) 8.2% to 13.4%; set (ii) 16.1% to 19.3%; set (iii) 33.2% to 38.8%; set (iv) 65.9% to 72.5%. Per arm of 117 subjects: 9.6 to 15.7 under set (i) and 38.9 to 45.3 under set (iii).
+- The failure share under set (i) is therefore the lower end of the conventional range; under the commonly used 0.90 it is 33.2% to 38.8% in the study population.
+- Lambda-z itself is not estimable in 0.62% to 1.46% of subjects (study population); the rest of the failures have an estimable lambda-z that does not meet the criteria.
+- Failing subjects differ from retained subjects (study population, set (i)): body weight 0.81 to 1.13 kg higher, geometric mean AUClast ratio 0.772 to 0.783. In failing subjects the observed-to-true ratio of AUClast (observed AUClast / true AUC0-inf) has a median of 92.9% to 95.4% (5th percentile 77.4% to 84.8%).
+- Robustness check only (report Appendix I; not evidence for the endpoint choice): with an adult atopic dermatitis body-weight distribution (placeholder from published summaries) and three model variants, set (i) 8.9% to 15.3%; set (iii) 33.6% to 39.8%; set (iv) 66.4% to 72.7%.
+
+#### Boundary type I error of AUC0-inf + Cmax by rule and criteria set (16 boundary scenarios)
+
+- M0: A i 8/16 above 5% (max 19.91%); A ii 12/16 above 5% (max 27.60%); A iii 9/16 above 5% (max 17.04%); A iv 12/16 above 5% (max 27.04%); B 8/16 above 5% (max 15.06%); C i 0/16 above 5% (max 4.63%); C ii 1/16 above 5% (max 5.01%); C iii 1/16 above 5% (max 5.21%); C iv 1/16 above 5% (max 6.05%).
+- M1: A i 10/16 above 5% (max 20.27%); A ii 12/16 above 5% (max 27.44%); A iii 10/16 above 5% (max 17.47%); A iv 12/16 above 5% (max 27.19%); B 10/16 above 5% (max 16.03%); C i 1/16 above 5% (max 5.06%); C ii 1/16 above 5% (max 5.39%); C iii 1/16 above 5% (max 5.65%); C iv 1/16 above 5% (max 6.65%).
+
+#### Decision instability (same trials, only the rule or criteria set changed; 16 boundary scenarios, M0)
+
+- Across all 9 variants the G2 decision changes in a median of 12.6% and up to 39.6% of trials per cell; across rules A, B, C with set (i) in a median of 4.7% and up to 19.7%, with set (iii) in a median of 6.2% and up to 20.7%; across sets within rule A in a median of 11.4% and up to 37.5%, within rule C in a median of 1.2% and up to 1.7%.
+
+Restart check: the section1 rows of the trials completed before the restart (2016 model, 5,000; Model 1, 3,500) are identical after the restart (2,040,000 rows).
+
+### 10.3 Study-assay LLOQ sensitivity
+
+
+Generated by `scripts/48_lloq_summary.R` from `results/lloq/` (pre-registered in `config/prereg_20260926.yaml`, section2; the study LLOQ is set in `config/assay.yaml`, currently 0.078 mg/L). The same subjects, sampling times and residual draws are re-censored at each LLOQ (paired). Primary residual variant: as estimated (additive SD 0.03 mg/L); secondary: additive SD scaled by LLOQ/0.078.
+
+#### Individual level (B0, 60 to 90 kg, 20,000 subjects per model)
+
+- 2016 model: reliability under criteria (i) 84.2% (LLOQ 0.02) to 88.0% (LLOQ 0.5) (residual as estimated) [84.6% (LLOQ 0.02) to 87.8% (LLOQ 0.5) with the scaled residual]; criteria (ii) 80.9% (LLOQ 0.02) to 79.8% (LLOQ 0.5); lambda-z not estimable 0.73% (LLOQ 0.02) to 1.88% (LLOQ 0.5); window coverage below 80% in 0.00% (LLOQ 0.02) to 0.01% (LLOQ 0.5) of subjects; median true extrapolated share 0.03% (LLOQ 0.02) to 1.00% (LLOQ 0.5); median tlast 41.6 days (LLOQ 0.02) to 34.5 days (LLOQ 0.5).
+- Model 1: reliability under criteria (i) 85.9% (LLOQ 0.02) to 95.0% (LLOQ 0.5) (residual as estimated) [89.4% (LLOQ 0.02) to 94.9% (LLOQ 0.5) with the scaled residual]; criteria (ii) 81.4% (LLOQ 0.02) to 83.6% (LLOQ 0.5); lambda-z not estimable 0.28% (LLOQ 0.02) to 0.83% (LLOQ 0.5); window coverage below 80% in 0.00% (LLOQ 0.02) to 0.00% (LLOQ 0.5) of subjects; median true extrapolated share 0.05% (LLOQ 0.02) to 0.96% (LLOQ 0.5); median tlast 42.2 days (LLOQ 0.02) to 35.1 days (LLOQ 0.5).
+
+#### Cliff capture (current schedule)
+
+- 2016 model: the true concentration reaches the LLOQ at a median of study Day 38.6 (LLOQ 0.02 mg/L), 38.5 (0.078) and 37.7 (0.5); median cliff length 1.52, 1.38 and 0.63 days; subjects with 1 or more samples in the cliff (1-day definition, nominal days): 22.2%, 20.0% and 8.8%; 2 or more: 0.0%, 0.0%, 0.0%.
+- Model 1: the true concentration reaches the LLOQ at a median of study Day 40.9 (LLOQ 0.02 mg/L), 40.8 (0.078) and 40.0 (0.5); median cliff length 1.53, 1.38 and 0.64 days; subjects with 1 or more samples in the cliff (1-day definition, nominal days): 20.9%, 18.8% and 8.6%; 2 or more: 0.0%, 0.0%, 0.0%.
+
+#### Boundary type I error, 2016 model (5,000 trials; Vmax both directions and F down; residual as estimated)
+
+- P2: M0 2.22% to 4.22% (maximum F down, LLOQ 0.02, 4.22 [3.70, 4.81]); M1 2.60% to 4.62% (maximum F down, LLOQ 0.02, 4.62 [4.07, 5.24]); cells (of 3 cells x 6 LLOQs) with Wilson lower bound above 5%: M0 0, M1 0.
+- G2-A(ii): M0 6.74% to 28.70% (maximum Vmax down, LLOQ 0.5, 28.70 [27.46, 29.97]); M1 6.84% to 28.52% (maximum Vmax down, LLOQ 0.5, 28.52 [27.29, 29.79]); cells (of 3 cells x 6 LLOQs) with Wilson lower bound above 5%: M0 18, M1 18.
+- G2-B: M0 3.58% to 17.54% (maximum Vmax up, LLOQ 0.5, 17.54 [16.51, 18.62]); M1 3.92% to 18.36% (maximum Vmax up, LLOQ 0.5, 18.36 [17.31, 19.46]); cells (of 3 cells x 6 LLOQs) with Wilson lower bound above 5%: M0 16, M1 17.
+- Largest paired change of P2 versus LLOQ 0.078: M1, Vmax up, LLOQ 0.02: +0.72 points [+0.49, +0.95].
+- Power of P2 for identical products: M0 99.48% to 99.60%, M1 99.60% to 99.66% across the LLOQs.
+
+Verification: at LLOQ 0.078 with the residual as estimated, the individual-level results equal the stored results (subject level and summary), the cliff results equal the stored cliff files, and the trial-level M0 equals the stored operating-characteristic trials; the scaled residual at 0.078 equals the unscaled one.
+
+### 10.4 Sample size
+
+
+Generated by `scripts/49_sample_size_summary.R` from `results/sample_size/` (pre-registered in `config/prereg_20260926.yaml`, section3). n is the number of evaluable subjects per arm; the randomized number per arm (in parentheses) assumes the protocol ratio 117/130 evaluable.
+
+Inputs (2016 model, B0, 60 to 90 kg, 20,000 subjects): Cmax log-scale CV 34.3%, correlation of log AUClast and log Cmax 0.75, slopes on log body weight -1.18 (AUClast) and -0.86 (Cmax); the weight stratum explains 5.5% of the AUClast variance. Model 1 inputs (sensitivity): Cmax CV 33.9%, correlation 0.81.
+
+CV sources: Li 2020 Table 3, 300 mg arms, SD/mean 35.4 to 51.4% (pooled 42.0%); Cohen 2022 about 52% (200 mg, different presentation, device comparison); protocol assumption 43%; PK models 40.3% (2016 model) and 42.8% (Model 1).
+
+#### Evaluable n per arm for P2 power at true GMR 0.95 (randomized n per arm)
+
+- 90% power, M0: 35%: 76 (85); 40%: 89 (99); 43%: 100 (112); 46%: 112 (125); 50%: 129 (144); 52%: 138 (154).
+- 90% power, M1: 35%: 73 (82); 40%: 87 (97); 43%: 97 (108); 46%: 109 (122); 50%: 126 (140); 52%: 135 (150).
+- 85% power, M0: 35%: 65 (73); 40%: 77 (86); 43%: 85 (95); 46%: 95 (106); 50%: 110 (123); 52%: 118 (132).
+- 85% power, M1: 35%: 63 (70); 40%: 74 (83); 43%: 83 (93); 46%: 93 (104); 50%: 107 (119); 52%: 115 (128).
+
+At the protocol CV of 43% with n = 117, P2 power at GMR 0.95 is 94.0% (M0) and 94.5% (M1); at the sensitivity CV of 50% it is 87.2% and 88.0%. M1 needs 3 (90%) and 2 (85%) fewer evaluable subjects per arm than M0 at CV 43%.
+
+At GMR 0.90, 90% power requires (M0 / M1): CV 35% 160 / 154; CV 40% 188 / 183; CV 43% 210 / 204; CV 46% 235 / 229; CV 50% 272 / 266; CV 52% 292 / 286. At GMR 1.00: CV 35% 55 / 54; CV 40% 66 / 64; CV 43% 74 / 72; CV 46% 83 / 81; CV 50% 96 / 94; CV 52% 103 / 101.
+
+Sensitivity (90% power, GMR 0.95, CV 43%, M1): Model 1 inputs 96; Cmax CV proportional to AUClast CV 99; Cmax GMR mechanistic (log Cmax ratio = 0.72 x log AUC ratio) 95.
+
+#### Checks
+
+- Statistical simulation (5,000 trials per cell, 288 cells): the analytic power lies within the Wilson 95% interval in 277 cells; maximum absolute difference 1.50 points.
+- PK-model trials at n = 117 and the models' own CV (empirical [Wilson 95%] vs analytic): 2016 model F097 M0 96.78% [96.42, 97.11] vs 96.57%; 2016 model F097 M1 97.06% [96.71, 97.37] vs 96.94%; 2016 model F_down_090 M0 73.52% [72.28, 74.72] vs 75.02%; 2016 model F_down_090 M1 75.46% [74.25, 76.63] vs 76.61%; 2016 model F_down_095 M0 96.36% [95.80, 96.84] vs 96.21%; 2016 model F_down_095 M1 96.80% [96.28, 97.25] vs 96.61%; 2016 model S00 M0 99.55% [99.40, 99.66] vs 99.52%; 2016 model S00 M1 99.65% [99.51, 99.75] vs 99.59%; Model 1 F097 M0 94.68% [94.22, 95.10] vs 94.93%; Model 1 F097 M1 95.29% [94.86, 95.69] vs 95.37%; Model 1 F_down_090 M0 68.54% [67.24, 69.81] vs 71.02%; Model 1 F_down_090 M1 70.02% [68.74, 71.27] vs 72.47%; Model 1 F_down_095 M0 93.80% [93.10, 94.44] vs 94.41%; Model 1 F_down_095 M1 94.44% [93.77, 95.04] vs 94.88%; Model 1 S00 M0 99.00% [98.79, 99.18] vs 99.00%; Model 1 S00 M1 99.15% [98.95, 99.31] vs 99.12%.
 

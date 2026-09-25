@@ -113,7 +113,7 @@ if (!is.null(dec)) { d3 <- dec[schedule == "D3"]
 p1 <- R("rationale", "pillar1_coverage_B0.csv")
 if (!is.null(p1)) { x <- p1[group == "전체"]
   add("Coverage of total exposure by AUClast (B0, 60 to 90 kg, 20,000 subjects per model)",
-      sprintf("- True extrapolated share median %s%% (2016) and %s%% (Model 1); 95th percentile %s%% and %s%%; true coverage below 80%%: %s and %s (rationale/pillar1_coverage_B0.csv).",
+      sprintf("- True extrapolated share median %s%% (2016) and %s%% (Model 1); 95th percentile %s%% and %s%%; window coverage (true AUC0-tlast / true AUCinf) below 80%%: %s and %s (rationale/pillar1_coverage_B0.csv).",
               f2(x[model == "k2016", extrap_true_median]), f2(x[model == "k2020", extrap_true_median]), f2(x[model == "k2016", extrap_true_p95]), f2(x[model == "k2020", extrap_true_p95]),
               x[model == "k2016", coverage_lt80_pct_ci], x[model == "k2020", coverage_lt80_pct_ci]), "") }
 
@@ -137,7 +137,7 @@ if (!is.null(lit) && !is.null(ltt)) {
   rr <- function(a) { x <- ltt[model == a & resid == "fixed" & config == "P2", pass_pct]; sprintf("%s%% to %s%%", f2(min(x)), f2(max(x))) }
   add("Sensitivity to the study-assay LLOQ (0.02 to 0.5 mg/L; same subjects and residual draws; residual error as estimated unless stated)",
       sprintf("- Reliability, flag set (i), 2016 model: %s%% (0.02), %s%% (0.078), %s%% (0.5); with the additive residual scaled to the LLOQ %s%% at 0.02 (lloq/lloq_individual_table.csv).", g("k2016", 0.02, "reliable_no_span_pct"), g("k2016", 0.078, "reliable_no_span_pct"), g("k2016", 0.5, "reliable_no_span_pct"), g("k2016", 0.02, "reliable_no_span_pct", rv = "scaled")),
-      sprintf("- True coverage below 80%%, 2016 model: %s%% (0.02) to %s%% (0.5); median true extrapolated share %s%% to %s%% (lloq/lloq_individual_table.csv).", g("k2016", 0.02, "coverage_lt80_pct", 2), g("k2016", 0.5, "coverage_lt80_pct", 2), g("k2016", 0.02, "extrap_true_median", 2), g("k2016", 0.5, "extrap_true_median", 2)),
+      sprintf("- Window coverage below 80%%, 2016 model: %s%% (0.02) to %s%% (0.5); median true extrapolated share %s%% to %s%% (lloq/lloq_individual_table.csv).", g("k2016", 0.02, "coverage_lt80_pct", 2), g("k2016", 0.5, "coverage_lt80_pct", 2), g("k2016", 0.02, "extrap_true_median", 2), g("k2016", 0.5, "extrap_true_median", 2)),
       sprintf("- P2 boundary type I error over six LLOQs and three boundary cells (2016 model): M0 %s, M1 %s (lloq/lloq_trial_type1.csv).", rr("M0"), rr("M1")), "")
 }
 nnt <- R("sample_size", "ss_table_n_needed.csv"); tpw <- R("sample_size", "ss_table_power.csv")
@@ -158,9 +158,41 @@ if (!is.null(cri) && !is.null(cg) && !is.null(cs)) {
   ir <- function(col) { x <- cs[analysis_model == "M0" & !scenario %in% c("S00", "F097")][[col]]; sprintf("median %s%%, maximum %s%%", f1(median(x)), f1(max(x))) }
   add("Lambda-z reliability criteria convention: sets (i) adj. R-squared 0.80, (ii) (i) + span 2, (iii) adj. R-squared 0.90, (iv) (iii) + span 3 (all with extrapolation at most 20%)",
       sprintf("- Without a reliable AUCinf, study population 60 to 90 kg (two models): (i) %s%%, (ii) %s%%, (iii) %s%%, (iv) %s%% (criteria/criteria_individual.csv).", fr("study_60_90", "i"), fr("study_60_90", "ii"), fr("study_60_90", "iii"), fr("study_60_90", "iv")),
-      sprintf("- Adult atopic dermatitis, primary weight distribution (three model variants): (i) %s%%, (iii) %s%%, (iv) %s%% (criteria/criteria_individual.csv).", fr("primary", "i"), fr("primary", "iii"), fr("primary", "iv")),
       sprintf("- G2 (AUCinf + Cmax), M0: rule A (i) %s; rule A (iii) %s; rule A (iv) %s; rule B %s; rule C (iii) %s (criteria/criteria_g2_type1.csv).", gn("M0", "G2_A_i"), gn("M0", "G2_A_iii"), gn("M0", "G2_A_iv"), gn("M0", "G2_B"), gn("M0", "G2_C_iii")),
       sprintf("- Decision instability, M0, 16 boundary cells: across all 9 variants %s; across rules with set (i) %s, with set (iii) %s; across sets within rule A %s (criteria/criteria_instability.csv).", ir("inst_all"), ir("inst_rules_i"), ir("inst_rules_iii"), ir("inst_sets_A")), "")
+}
+
+# 정정 지시 2026-09-26(section6): 시험 모집단 근거
+tpf <- R("trialpop", "tp_failure_by_set.csv"); tpa <- R("trialpop", "tp_retained_per_arm.csv"); tsi <- R("trialpop", "tp_strata_individual.csv"); tad <- R("trialpop", "tp_arm_difference.csv")
+tch <- R("trialpop", "tp_characteristics.csv"); tcv <- R("trialpop", "tp_coverage_individual.csv"); tga <- R("trialpop", "tp_gmr_agreement.csv")
+if (!is.null(tpf) && !is.null(tpa) && !is.null(tsi) && !is.null(tad) && !is.null(tch)) {
+  r2 <- function(x, f = f1, u = "%") sprintf("%s%s to %s%s", f(min(x)), u, f(max(x)), u)
+  add("Trial population (healthy adults, 60 to 90 kg, weight-stratified randomization, B0, 300 mg): evidence for not using AUCinf as a primary endpoint",
+      sprintf("- Without a reliable AUCinf (two models; 20,000 subjects each): set (i) %s, (ii) %s, (iii) %s, (iv) %s (trialpop/tp_failure_by_set.csv).", r2(tpf[set == "i", fail_pct]), r2(tpf[set == "ii", fail_pct]), r2(tpf[set == "iii", fail_pct]), r2(tpf[set == "iv", fail_pct])),
+      sprintf("- Retained per arm of 117 under rule A, identical-product trials: set (i) median %s, 5th to 95th percentile %s to %s; set (iii) median %s, %s to %s (trialpop/tp_retained_per_arm.csv).",
+              paste(unique(tpa[set == "i", retained_median]), collapse = "/"), min(tpa[set == "i", retained_p05]), max(tpa[set == "i", retained_p95]), paste(unique(tpa[set == "iii", retained_median]), collapse = "/"), min(tpa[set == "iii", retained_p05]), max(tpa[set == "iii", retained_p95])),
+      sprintf("- Heavier minus lighter stratum, failing (percentage points): set (i) %s, set (iii) %s (trialpop/tp_strata_individual.csv).", r2(tsi[set == "i", diff_pp], f2, ""), r2(tsi[set == "iii", diff_pp], f2, "")),
+      sprintf("- Test minus reference, failing set (i) (percentage points): Vmax x1.25 %s, ke x1.20 %s, F x0.97 %s, identical %s (trialpop/tp_arm_difference.csv).", r2(tad[scenario == "VM125" & set == "i", diff_mean], f2, ""), r2(tad[scenario == "KE120" & set == "i", diff_mean], f2, ""),
+              r2(tad[scenario == "F097" & set == "i", diff_mean], f2, ""), r2(tad[scenario == "S00" & set == "i", diff_mean], f2, "")),
+      sprintf("- Failing minus retained, set (i): body weight %s kg; true AUCinf geometric mean ratio %s (trialpop/tp_characteristics.csv).", r2(tch[set == "i", wt_diff_kg], f2, ""), r2(tch[set == "i", true_aucinf_gmr], f3, "")),
+      if (!is.null(tga)) sprintf("- Geometric mean of trial AUClast GMRs versus the true AUCinf ratio: largest absolute difference %s over %d scenarios (trialpop/tp_gmr_agreement.csv).", f3(max(tga$abs_diff)), nrow(tga)))
+}
+tfr <- R("trialpop", "tp_failure_reasons.csv"); tsc <- R("trialpop", "tp_strata_composition.csv"); trs <- R("trialpop", "tp_residual_sensitivity.csv")
+if (!is.null(tpf) && !is.null(tsc) && !is.null(tcv) && !is.null(trs)) {
+  r2 <- function(x, f = f1, u = "%") sprintf("%s%s to %s%s", f(min(x)), u, f(max(x)), u)
+  sc_ <- function(sc, s_ = "i") tsc[scenario == sc & analysis_set == s_]
+  add(NULL,
+      sprintf("- Lambda-z not estimable %s; estimable but failing set (i) %s, set (iii) %s (trialpop/tp_failure_by_set.csv).", r2(tpf[set == "i", lz_pct], f2), r2(tpf[set == "i", est_fail_pct]), r2(tpf[set == "iii", est_fail_pct])),
+      sprintf("- Residual sensitivity, 2016 model: proportional residual 24.2%% versus 12%%: set (i) %s%% versus %s%%, set (iii) %s%% versus %s%%, set (iv) %s%% versus %s%% (trialpop/tp_residual_sensitivity.csv).",
+              f1(trs[variant == "k2016" & set == "i", fail_pct]), f1(trs[variant == "resid12" & set == "i", fail_pct]), f1(trs[variant == "k2016" & set == "iii", fail_pct]), f1(trs[variant == "resid12" & set == "iii", fail_pct]),
+              f1(trs[variant == "k2016" & set == "iv", fail_pct]), f1(trs[variant == "resid12" & set == "iv", fail_pct])),
+      sprintf("- Arm difference in the share of the heavier stratum (test minus reference), identical products: AUClast analysis set at most %s points (randomization); rule A set (i) 5th to 95th percentile %s to %s points, more than 5 points in %s of trials; set (iii) more than 5 points in %s of trials (trialpop/tp_strata_composition.csv).",
+              f2(max(tsc[scenario == "S00" & analysis_set == "auclast", rand_armdiff_abs_max])), f2(min(sc_("S00")$armdiff_p05)), f2(max(sc_("S00")$armdiff_p95)), r2(sc_("S00")$armdiff_abs_gt5_pct), r2(sc_("S00", "iii")$armdiff_abs_gt5_pct)),
+      sprintf("- Test minus reference, failing set (i), boundary scenarios (percentage points): Vmax increased to 0.80 %s, absorption rate decreased to 0.80 %s, bioavailability decreased to 0.80 %s, peripheral volume increased to 0.80 %s (trialpop/tp_arm_difference.csv).",
+              r2(tad[scenario == "Vmax_up_080" & set == "i", diff_mean], f2, ""), r2(tad[scenario == "ka_down_080" & set == "i", diff_mean], f2, ""), r2(tad[scenario == "F_down_080" & set == "i", diff_mean], f2, ""), r2(tad[scenario == "V2_up_080" & set == "i", diff_mean], f2, "")),
+      sprintf("- Failing minus retained, true AUCinf geometric mean ratio: set (ii) %s, set (iii) %s, set (iv) %s (trialpop/tp_characteristics.csv).", r2(tch[set == "ii", true_aucinf_gmr], f3, ""), r2(tch[set == "iii", true_aucinf_gmr], f3, ""), r2(tch[set == "iv", true_aucinf_gmr], f3, "")),
+      sprintf("- Window coverage (true AUC0-tlast / true AUCinf): median %s, smallest subject %s; observed-to-true ratio of AUClast (observed AUClast / true AUCinf): smallest subject %s, symmetric between arms (trialpop/tp_coverage_individual.csv).",
+              r2(100 * tcv[grepl("^window", metric), median]), sprintf("%s%%", f1(floor(1000 * min(tcv[grepl("^window", metric), min])) / 10)), r2(tcv[grepl("AUClast \\(all", metric), min], f3, "")), "")
 }
 acb <- R("atopic", "atopic_criteria_by_band.csv"); acf <- R("atopic", "atopic_coverage_failing.csv"); awt <- R("atopic", "atopic_weight_table.csv"); abi <- R("atopic", "atopic_trials_bias.csv"); aaf <- R("atopic", "atopic_trials_arm_failure.csv")
 if (!is.null(acb) && !is.null(acf) && !is.null(awt)) {
@@ -177,22 +209,6 @@ if (!is.null(acb) && !is.null(acf) && !is.null(awt)) {
       if (!is.null(abi) && !is.null(aaf)) sprintf("- Trials (M0): AUClast bias %s%% to %s%%, AUCinf rule A (i) %s%% to %s%%; arm difference in failing set (i) at Vmax x1.25 %s to %s points (atopic/atopic_trials_bias.csv, atopic_trials_arm_failure.csv).",
               f2(min(abi[analysis_model == "M0" & endpoint == "AUClast", bias_pct])), f2(max(abi[analysis_model == "M0" & endpoint == "AUClast", bias_pct])), f2(min(abi[analysis_model == "M0" & endpoint == "AUCinf_Ai", bias_pct])),
               f2(max(abi[analysis_model == "M0" & endpoint == "AUCinf_Ai", bias_pct])), f2(min(aaf[scenario == "VM125" & set == "i", diff_mean])), f2(max(aaf[scenario == "VM125" & set == "i", diff_mean]))), "")
-}
-
-# 정정 지시 2026-09-26(section6): 시험 모집단 근거
-tpf <- R("trialpop", "tp_failure_by_set.csv"); tpa <- R("trialpop", "tp_retained_per_arm.csv"); tsi <- R("trialpop", "tp_strata_individual.csv"); tad <- R("trialpop", "tp_arm_difference.csv")
-tch <- R("trialpop", "tp_characteristics.csv"); tcv <- R("trialpop", "tp_coverage_individual.csv"); tga <- R("trialpop", "tp_gmr_agreement.csv")
-if (!is.null(tpf) && !is.null(tpa) && !is.null(tsi) && !is.null(tad) && !is.null(tch)) {
-  r2 <- function(x, f = f1, u = "%") sprintf("%s%s to %s%s", f(min(x)), u, f(max(x)), u)
-  add("Trial population (healthy adults, 60 to 90 kg, weight-stratified randomization, B0, 300 mg): evidence for not using AUCinf as a primary endpoint",
-      sprintf("- Without a reliable AUCinf (two models; 20,000 subjects each): set (i) %s, (ii) %s, (iii) %s, (iv) %s (trialpop/tp_failure_by_set.csv).", r2(tpf[set == "i", fail_pct]), r2(tpf[set == "ii", fail_pct]), r2(tpf[set == "iii", fail_pct]), r2(tpf[set == "iv", fail_pct])),
-      sprintf("- Retained per arm of 117 under rule A, identical-product trials: set (i) median %s, 5th to 95th percentile %s to %s; set (iii) median %s, %s to %s (trialpop/tp_retained_per_arm.csv).",
-              paste(unique(tpa[set == "i", retained_median]), collapse = "/"), min(tpa[set == "i", retained_p05]), max(tpa[set == "i", retained_p95]), paste(unique(tpa[set == "iii", retained_median]), collapse = "/"), min(tpa[set == "iii", retained_p05]), max(tpa[set == "iii", retained_p95])),
-      sprintf("- Heavier minus lighter stratum, failing (percentage points): set (i) %s, set (iii) %s (trialpop/tp_strata_individual.csv).", r2(tsi[set == "i", diff_pp], f2, ""), r2(tsi[set == "iii", diff_pp], f2, "")),
-      sprintf("- Test minus reference, failing set (i) (percentage points): Vmax x1.25 %s, ke x1.20 %s, F x0.97 %s, identical %s (trialpop/tp_arm_difference.csv).", r2(tad[scenario == "VM125" & set == "i", diff_mean], f2, ""), r2(tad[scenario == "KE120" & set == "i", diff_mean], f2, ""),
-              r2(tad[scenario == "F097" & set == "i", diff_mean], f2, ""), r2(tad[scenario == "S00" & set == "i", diff_mean], f2, "")),
-      sprintf("- Failing minus retained, set (i): body weight %s kg; true AUCinf geometric mean ratio %s (trialpop/tp_characteristics.csv).", r2(tch[set == "i", wt_diff_kg], f2, ""), r2(tch[set == "i", true_aucinf_gmr], f3, "")),
-      if (!is.null(tga)) sprintf("- Geometric mean of trial AUClast GMRs versus the true AUCinf ratio: largest absolute difference %s over %d scenarios (trialpop/tp_gmr_agreement.csv).", f3(max(tga$abs_diff)), nrow(tga)), "")
 }
 
 txt <- paste(out, collapse = "\n")

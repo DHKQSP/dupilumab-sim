@@ -103,4 +103,4 @@ Generated 2026-09-25. Each line names its source file under results/.
 - Without a reliable AUCinf, 2016 model: 14.9% (set (i)) to 39.5% (set (iii)); three variants 8.9% to 15.3% and 33.6% to 39.8%. Set (i) by band, 2016 model: 9.7% below 60 kg, 13.8% at 60 to 90 kg, 21.2% above 90 kg, 23.6% above 100 kg (atopic/atopic_criteria_by_band.csv).
 - Sampling-window coverage of the true AUCinf in patients failing set (iii): minimum 79.0%, median 99.5% to 99.8%; observed AUClast / true AUCinf in the same patients: median 95.1% to 96.3% (atopic/atopic_coverage_failing.csv).
 - Trials (M0): AUClast bias -0.94% to 0.39%, AUCinf rule A (i) -2.56% to 3.97%; arm difference in failing set (i) at Vmax x1.25 4.59 to 6.99 points (atopic/atopic_trials_bias.csv, atopic_trials_arm_failure.csv).
-
+ 

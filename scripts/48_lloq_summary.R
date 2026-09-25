@@ -78,8 +78,8 @@ fwrite(DRs, file.path(out_dir, "lloq_trial_drop.csv"))
 COLS <- c(k2016 = "#2a78d6", k2020 = "#eb6834")
 fi <- melt(ind, id.vars = c("model", "resid", "lloq"), measure.vars = c("reliable_no_span_pct", "reliable_pct", "lambda_fail_pct", "coverage_lt80_pct", "extrap_true_median", "tlast_median"))
 fi[, panel := factor(c(reliable_no_span_pct = "AUC0-inf reliable, criteria (i) (%)", reliable_pct = "AUC0-inf reliable, criteria (ii) (%)", lambda_fail_pct = "Lambda-z not estimable (%)",
-                       coverage_lt80_pct = "True coverage below 80% (%)", extrap_true_median = "True extrapolated share, median (%)", tlast_median = "tlast, median (days after dose)")[as.character(variable)],
-                     c("AUC0-inf reliable, criteria (i) (%)", "AUC0-inf reliable, criteria (ii) (%)", "Lambda-z not estimable (%)", "True coverage below 80% (%)", "True extrapolated share, median (%)", "tlast, median (days after dose)"))]
+                       coverage_lt80_pct = "Window coverage below 80% (%)", extrap_true_median = "True extrapolated share, median (%)", tlast_median = "tlast, median (days after dose)")[as.character(variable)],
+                     c("AUC0-inf reliable, criteria (i) (%)", "AUC0-inf reliable, criteria (ii) (%)", "Lambda-z not estimable (%)", "Window coverage below 80% (%)", "True extrapolated share, median (%)", "tlast, median (days after dose)"))]
 fi[, residual := factor(fifelse(resid == "fixed", "residual error as estimated (primary)", "additive error scaled with LLOQ"), c("residual error as estimated (primary)", "additive error scaled with LLOQ"))]
 g1 <- ggplot(fi, aes(lloq, value, colour = model, linetype = residual)) + geom_vline(xintercept = L0, colour = "#8a8984", linewidth = 0.3) +
   geom_line(linewidth = 0.6) + geom_point(size = 1.6) + facet_wrap(~panel, scales = "free_y", ncol = 3) + scale_x_log10(breaks = LL, labels = fl) +
@@ -106,10 +106,10 @@ p2r <- T1[config == "P2"]; g2a <- T1[config == "G2_Aii"]; g2b <- T1[config == "G
 mx <- function(x) x[which.max(pass_pct)]
 cellname <- function(r) sprintf("%s %s", r$mechanism, r$direction)
 line_ind <- function(m, lang) {
-  if (lang == "en") sprintf("- %s: reliability under criteria (i) %s (residual as estimated) [%s with the scaled residual]; criteria (ii) %s; lambda-z not estimable %s; true coverage below 80%% in %s of subjects; median true extrapolated share %s; median tlast %s.",
+  if (lang == "en") sprintf("- %s: reliability under criteria (i) %s (residual as estimated) [%s with the scaled residual]; criteria (ii) %s; lambda-z not estimable %s; window coverage below 80%% in %s of subjects; median true extrapolated share %s; median tlast %s.",
                             MODEL_EN[[m]], rng_l(m, "fixed", "reliable_no_span_pct"), rng_l(m, "scaled", "reliable_no_span_pct"), rng_l(m, "fixed", "reliable_pct"), rng_l(m, "fixed", "lambda_fail_pct", f2),
                             rng_l(m, "fixed", "coverage_lt80_pct", f2), rng_l(m, "fixed", "extrap_true_median", f2), rng_l(m, "fixed", "tlast_median", u = " days"))
-  else sprintf("- %s: 신뢰 기준 (i) 충족 %s(잔차 그대로) [잔차 비례 %s]; 기준 (ii) %s; λz 산출 불가 %s; 실제 커버리지 80%% 미만 %s; 실제 외삽 중앙값 %s; tlast 중앙값 %s.",
+  else sprintf("- %s: 신뢰 기준 (i) 충족 %s(잔차 그대로) [잔차 비례 %s]; 기준 (ii) %s; λz 산출 불가 %s; 채혈 구간 커버리지 80%% 미만 %s; 실제 외삽 중앙값 %s; tlast 중앙값 %s.",
                MODEL_KO[[m]], rng_l(m, "fixed", "reliable_no_span_pct"), rng_l(m, "scaled", "reliable_no_span_pct"), rng_l(m, "fixed", "reliable_pct"), rng_l(m, "fixed", "lambda_fail_pct", f2),
                rng_l(m, "fixed", "coverage_lt80_pct", f2), rng_l(m, "fixed", "extrap_true_median", f2), rng_l(m, "fixed", "tlast_median", u = "일"))
 }

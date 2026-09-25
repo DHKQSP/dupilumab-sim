@@ -175,6 +175,7 @@ fbr <- function(s_, col = "fail_pct", f = f1, u = "%") rg(FB[set == s_][[col]], 
 rpr <- function(s_) { x <- RP[set == s_]; sprintf("median %s (5th to 95th percentile %s to %s)", rg(x$retained_median, function(v) formatC(v, format = "f", digits = 0), ""), min(x$retained_p05), max(x$retained_p95)) }
 sir <- function(s_, col, f = f1) rg(SI[set == s_][[col]], f, "")
 adr <- function(sc, s_, col = "diff_mean") rg(AD[scenario == sc & set == s_][[col]], f2, "")
+if (nrow(AD)) stopifnot(all(AD[scenario == "V2_up_080" & set == "i", diff_mean] < 0))   # 문구 "negative when the peripheral volume increases"의 전제
 en <- c("# Trial population (healthy adults, 60 to 90 kg, weight-stratified randomization): why AUC0-inf is not a reliable primary endpoint", "",
   "## Failure by criteria set (planned schedule, 300 mg, 20,000 subjects per model; two models)", "",
   sprintf("- Set (i) adjusted R-squared at least 0.80: %s fail (lambda-z not estimable %s; estimable but failing %s). Set (ii) with span ratio at least 2: %s. Set (iii) adjusted R-squared at least 0.90: %s. Set (iv) with span at least 3: %s.",
@@ -184,19 +185,22 @@ en <- c("# Trial population (healthy adults, 60 to 90 kg, weight-stratified rand
           f1(100 * sig[["k2016"]]), sprintf("%s%%", f1(RSD[variant == "k2016" & set == "iii", fail_pct])), f1(100 * sig[["resid12"]]), sprintf("%s%%", f1(RSD[variant == "resid12" & set == "iii", fail_pct])), f1(100 * sig[["k2020"]]), sprintf("%s%%", f1(RSD[variant == "k2020" & set == "iii", fail_pct]))), "",
   "## Failure by randomization stratum", "",
   sprintf("- Heavier stratum (above 75 to 90 kg) minus lighter stratum (60 to 75 kg), percentage points: set (i) %s; set (iii) %s (Newcombe 95%% intervals in the table).", sir("i", "diff_pp", f2), sir("iii", "diff_pp", f2)),
-  { x <- CP[scenario == "S00" & analysis_set %in% c("auclast", "i", "iii")]; if (nrow(x)) sprintf("- Between-arm difference in the share of the heavier stratum, identical products (median; 5th to 95th percentile over trials, percentage points): AUClast analysis set %s; rule A set (i) %s; rule A set (iii) %s.",
-      paste(sprintf("%s (%s to %s)", f1(x[analysis_set == "auclast", armdiff_median]), f1(x[analysis_set == "auclast", armdiff_p05]), f1(x[analysis_set == "auclast", armdiff_p95])), collapse = "; "),
-      paste(sprintf("%s (%s to %s)", f1(x[analysis_set == "i", armdiff_median]), f1(x[analysis_set == "i", armdiff_p05]), f1(x[analysis_set == "i", armdiff_p95])), collapse = "; "),
-      paste(sprintf("%s (%s to %s)", f1(x[analysis_set == "iii", armdiff_median]), f1(x[analysis_set == "iii", armdiff_p05]), f1(x[analysis_set == "iii", armdiff_p95])), collapse = "; ")) else "" }, "",
+  { x <- CP[scenario == "S00" & analysis_set %in% c("auclast", "i", "iii")]
+    cpm <- function(m, a) { y <- x[pk_model == m & analysis_set == a]; sprintf("%s (%s to %s)", f1(y$armdiff_median), f1(y$armdiff_p05), f1(y$armdiff_p95)) }
+    cpg <- function(a) rg(x[analysis_set == a, armdiff_abs_gt5_pct], f1)
+    if (nrow(x)) sprintf("- Between-arm difference (test minus reference) in the share of the heavier stratum, identical products, median (5th to 95th percentile over trials), percentage points, 2016 model / Model 1: AUClast analysis set %s / %s (at most %s by the stratified randomization); rule A set (i) %s / %s, more than 5 points in %s of trials; rule A set (iii) %s / %s, more than 5 points in %s of trials.",
+                     cpm("k2016", "auclast"), cpm("k2020", "auclast"), f2(max(x$rand_armdiff_abs_max)), cpm("k2016", "i"), cpm("k2020", "i"), cpg("i"), cpm("k2016", "iii"), cpm("k2020", "iii"), cpg("iii")) else "" }, "",
   "## Treatment-dependent failure (test minus reference, percentage points, mean over trials)", "",
-  if (nrow(AD)) sprintf("- Set (i): identical products %s; F x0.97 %s; ke x1.10 %s; ke x1.20 %s; Vmax x1.25 %s. Set (iii): %s; %s; %s; %s; %s.", adr("S00", "i"), adr("F097", "i"), adr("KE110", "i"), adr("KE120", "i"), adr("VM125", "i"),
-                        adr("S00", "iii"), adr("F097", "iii"), adr("KE110", "iii"), adr("KE120", "iii"), adr("VM125", "iii")) else "",
-  if (nrow(AF)) sprintf("- Across the scenarios, each 10%% lower true AUC0-inf ratio goes with %s percentage points more test-arm failures under set (i) and %s under set (iii) (descriptive linear fit; R-squared %s and %s).",
-                        rg(AF[set == "i", pp_per_10pct_lower], f2, ""), rg(AF[set == "iii", pp_per_10pct_lower], f2, ""), rg(AF[set == "i", r_squared], f2, ""), rg(AF[set == "iii", r_squared], f2, "")) else "", "",
+  if (nrow(AD)) sprintf("- Product scenarios (ranges over the two models): identical products set (i) %s, set (iii) %s; F x0.97 %s, %s; ke x1.10 %s, %s; ke x1.20 %s, %s; Vmax x1.25 %s, %s.",
+                        adr("S00", "i"), adr("S00", "iii"), adr("F097", "i"), adr("F097", "iii"), adr("KE110", "i"), adr("KE110", "iii"), adr("KE120", "i"), adr("KE120", "iii"), adr("VM125", "i"), adr("VM125", "iii")) else "",
+  if (nrow(AD)) sprintf("- Boundary scenarios at a true AUC0-inf ratio of 0.80, set (i): Vmax increased %s; absorption rate decreased %s; bioavailability decreased %s; linear elimination increased %s; peripheral volume increased %s. At 1.25: Vmax decreased %s; bioavailability increased %s.",
+                        adr("Vmax_up_080", "i"), adr("ka_down_080", "i"), adr("F_down_080", "i"), adr("ke_up_080", "i"), adr("V2_up_080", "i"), adr("Vmax_down_125", "i"), adr("F_up_125", "i")) else "",
+  if (nrow(AF)) sprintf("- The true exposure ratio explains little of the difference: a descriptive linear fit across the 13 test scenarios of each model has an R-squared of %s under set (i) and %s under set (iii); the difference depends on how the mechanism changes the terminal profile (it is negative when the peripheral volume increases).",
+                        rg(AF[set == "i", r_squared], f2, ""), rg(AF[set == "iii", r_squared], f2, "")) else "", "",
   "## Failing versus retained subjects", "",
   sprintf("- Body weight difference, failing minus retained: set (i) %s kg, set (iv) %s kg; true AUC0-inf geometric mean ratio, failing to retained: set (i) %s, set (iii) %s (ranges over the two models).",
           rg(CH[set == "i", wt_diff_kg], f2, ""), rg(CH[set == "iv", wt_diff_kg], f2, ""), rg(CH[set == "i", true_aucinf_gmr], f3, ""), rg(CH[set == "iii", true_aucinf_gmr], f3, "")), "",
-  "## Coverage and the observed-to-true ratio", "",
+  "## Window coverage and the observed-to-true ratio", "",
   sprintf("- Window coverage (true AUC0-tlast / true AUC0-inf): median %s, minimum %s.", rg(100 * CV[metric == "window coverage (true AUC0-tlast / true AUC0-inf)", median], f1), rg(100 * CV[metric == "window coverage (true AUC0-tlast / true AUC0-inf)", min], f1)),
   sprintf("- Observed-to-true ratio, subjects with an estimable lambda-z: AUClast median %s, 5th percentile %s, 95th percentile %s, SD of log %s; AUCinf rule B median %s, 5th percentile %s, 95th percentile %s, SD of log %s (ranges over the two models).",
           rg(100 * CV[metric == "observed-to-true, AUClast (lambda-z estimable)", median], f1), rg(100 * CV[metric == "observed-to-true, AUClast (lambda-z estimable)", p05], f1), rg(100 * CV[metric == "observed-to-true, AUClast (lambda-z estimable)", p95], f1),

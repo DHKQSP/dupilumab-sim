@@ -439,6 +439,16 @@ if (!is.null(rl_)) {
               substr(kv_(rlm_, "commit"), 1, 7), kv_(rlm_, "r_version"), kv_(rlm_, "rxode2_version"), sum(rl_$pass), nrow(rl_), gh_txt), "",
       md_table(tb_))
 }
+# 10. v1.0.1 추가 분석(config/prereg_20260926.yaml section1-4): 분석 모형, 기준 관행, LLOQ, 표본 수. 각 요약 스크립트가 만든 영문 결론을 그대로 넣는다
+v101 <- list(c("10.1 Analysis model: pooled t-test (M0), weight-stratum ANOVA (M1), log-weight ANCOVA (M2)", proj_path("results", "oc_models", "oc_models_conclusion_en.md")),
+             c("10.2 Lambda-z reliability criteria convention (sets (i) to (iv))", proj_path("results", "criteria", "criteria_conclusion_en.md")),
+             c("10.3 Study-assay LLOQ sensitivity", proj_path("results", "lloq", "lloq_conclusion_en.md")),
+             c("10.4 Sample size", proj_path("results", "sample_size", "ss_conclusion_en.md")))
+if (any(vapply(v101, function(z) file.exists(z[2]), TRUE))) {
+  add("## 10. Version 1.0.1 analyses (pre-registered in config/prereg_20260926.yaml)", "",
+      "The trial population is the evidence base (section 2A); the adult atopic dermatitis results in 10.2 are a robustness check only.", "")
+  for (z in v101) if (file.exists(z[2])) add(paste0("### ", z[1]), "", md_body(z[2], shift = 2))
+}
 txt <- paste(out, collapse = "\n")
 if (grepl("—|–|\u2212", txt)) { bad <- regmatches(txt, gregexpr("[^\n]*(—|–|\u2212)[^\n]*", txt))[[1]]; stop("summary_en.md contains an em-dash, en-dash or minus sign (U+2212): ", paste(substr(head(bad, 3), 1, 160), collapse = " || ")) }
 if (grepl("[가-힣]", txt)) { bad <- regmatches(txt, gregexpr("[^\n]*[가-힣][^\n]*", txt))[[1]]; stop("summary_en.md contains Korean text: ", paste(head(bad, 3), collapse = " || ")) }
