@@ -1,0 +1,3 @@
+pk_model,rows_compared,identical_rows,trials,scenarios,ok
+k2016,132000,132000,2000,11,TRUE
+k2020,132000,132000,2000,11,TRUE

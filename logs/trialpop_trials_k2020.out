@@ -1,0 +1,10 @@
+run log: /home/user/dupilumab-sim/logs/trialpop_trials_k2020_20260925T124537.log
+k2020 trials 1-250 done in 17.84056 mins; per-arm counts equal section1 for 16500 arm x endpoint rows 
+k2020 trials 251-500 done in 18.49694 mins; per-arm counts equal section1 for 16500 arm x endpoint rows 
+k2020 trials 501-750 done in 19.2595 mins; per-arm counts equal section1 for 16500 arm x endpoint rows 
+k2020 trials 751-1000 done in 21.34629 mins; per-arm counts equal section1 for 16500 arm x endpoint rows 
+k2020 trials 1001-1250 done in 21.51379 mins; per-arm counts equal section1 for 16500 arm x endpoint rows 
+k2020 trials 1251-1500 done in 20.48741 mins; per-arm counts equal section1 for 16500 arm x endpoint rows 
+k2020 trials 1501-1750 done in 11.51457 mins; per-arm counts equal section1 for 16500 arm x endpoint rows 
+k2020 trials 1751-2000 done in 8.320556 mins; per-arm counts equal section1 for 16500 arm x endpoint rows 
+done: /home/user/dupilumab-sim/results/trialpop/trialpop_counts_k2020.csv.gz 

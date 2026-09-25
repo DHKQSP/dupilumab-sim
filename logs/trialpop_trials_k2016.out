@@ -1,0 +1,10 @@
+run log: /home/user/dupilumab-sim/logs/trialpop_trials_k2016_20260925T124538.log
+k2016 trials 1-250 done in 13.70853 mins; per-arm counts equal section1 for 16500 arm x endpoint rows 
+k2016 trials 251-500 done in 13.72157 mins; per-arm counts equal section1 for 16500 arm x endpoint rows 
+k2016 trials 501-750 done in 14.62449 mins; per-arm counts equal section1 for 16500 arm x endpoint rows 
+k2016 trials 751-1000 done in 14.56996 mins; per-arm counts equal section1 for 16500 arm x endpoint rows 
+k2016 trials 1001-1250 done in 15.92105 mins; per-arm counts equal section1 for 16500 arm x endpoint rows 
+k2016 trials 1251-1500 done in 16.71802 mins; per-arm counts equal section1 for 16500 arm x endpoint rows 
+k2016 trials 1501-1750 done in 16.49559 mins; per-arm counts equal section1 for 16500 arm x endpoint rows 
+k2016 trials 1751-2000 done in 15.13287 mins; per-arm counts equal section1 for 16500 arm x endpoint rows 
+done: /home/user/dupilumab-sim/results/trialpop/trialpop_counts_k2016.csv.gz 

@@ -1,0 +1,73 @@
+run_name: lloq_trials_k2016
+started_utc: 2026-09-25 13:43:23
+run_mode: final
+master_seed: 20260923
+seed_rule_version: 1
+git_sha: 83efca4790040712cbf42485a14232800c7947c1
+git_code_clean: TRUE
+R_version: R version 4.3.3 (2024-02-29)
+rxode2: 5.1.7
+BEmaster: not installed
+config_sha256:
+  assay.yaml: 13bb4e6e5a604962f3e30a9f31dffb53fcfcaa71272e41d6a12413c1cec26604
+  crossval_reference.yaml: 4a8ee97a00c6c0ecc2c42373c8d21099adbfc833d3b6e4b1abfbf714653549de
+  design_clot2021.yaml: 4b3ddc374dfbf3f451d3fe3d6a865645b0b5d93b0ea7eea9a3f24cd8d2f05da5
+  gate_decision.yaml: fec8e5a4376e78560e2945be2c69db22e63e6b6731a2413101efa1ac58cb1838
+  nca_rules.yaml: 0f53d9e003bf1df504df24201f06301cabe423babd1078def5c5a4b3b2c1db94
+  oc_design.yaml: 629011b264fbc4c3f03f8a3989bac1f2711d49959f3268f5e8f758c80f93ea0a
+  params_k2020_model1.yaml: b6e3816238f158ab76cda1edfc4ce9ae49b53fdd4836de8be36bd64664dca96f
+  params_typical.yaml: 0661b248227771273d5c58c86c61f35ef655fdeecebe3f188868fd61cff4b801
+  params_variability.yaml: b849a4cc3acc6d47f9833392ac4f47ebacc6ad9fa79fcc5848628fd4b5aa99a9
+  population_atopic.yaml: a5e5356587a4727996496d247df2f1b007adb6fe7e7a9f98ce81388040495abb
+  prereg_20260926.yaml: dc2c9f1bd4d62e13ad9f5f551dcf97eb7ee1359ba13aaa3af8efc063dfc6303e
+  repro_check.yaml: a5e8401417d3dd780a21876356e654a5c6b270f9d50eb47de942105cb34d2756
+  repro_request.yaml: 0e85501d9e970a1b51dfa4f347f196c7fbd38b3908c4e629ce54451938094eb3
+  scenarios.yaml: 7243c4f34f21614eccae4c143ba05b8a9eb9183a76770cfce7153ef30a5dc17c
+  schedule_decision.yaml: de62d815c54d33e4016ed7fdb535ede38ae9c0a6350ef8e7e0a26cb5dd9572b2
+  trial_design.yaml: 553eceab74155a3497fef1ab587f3b8d2be1319704e17ae1f0e177601726e84f
+extra:
+  model: k2016
+  scenarios: S00,Vmax_up_080,Vmax_down_125,F_down_080
+  lloqs: 0.020,0.050,0.078,0.100,0.200,0.500
+  resid: fixed ,scaled
+  trial_from: 1
+  trial_to: 5000
+  cores: 2
+session_info:
+  R version 4.3.3 (2024-02-29)
+  Platform: x86_64-pc-linux-gnu (64-bit)
+  Running under: Ubuntu 24.04.4 LTS
+  
+  Matrix products: default
+  BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+  LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0
+  
+  locale:
+   [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       
+   [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   
+   [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          
+  [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   
+  
+  time zone: Etc/UTC
+  tzcode source: system (glibc)
+  
+  attached base packages:
+  [1] stats     graphics  grDevices datasets  utils     methods   base     
+  
+  other attached packages:
+  [1] digest_0.6.34      data.table_1.14.10 yaml_2.3.8        
+  
+  loaded via a namespace (and not attached):
+  [1] compiler_4.3.3    tools_4.3.3       R.methodsS3_1.8.2 R.utils_2.12.3   
+  [5] renv_1.2.4        R.oo_1.26.0      
+[13:52:20] trials 1-500 (6 LLOQs x 2 residual variants x 4 scenarios) done in 8.904921 mins; M0 at 0.078 matched oc_rejudge_be
+[14:01:01] trials 501-1000 (6 LLOQs x 2 residual variants x 4 scenarios) done in 8.685651 mins; M0 at 0.078 matched oc_rejudge_be
+[14:09:40] trials 1001-1500 (6 LLOQs x 2 residual variants x 4 scenarios) done in 8.656652 mins; M0 at 0.078 matched oc_rejudge_be
+[14:18:25] trials 1501-2000 (6 LLOQs x 2 residual variants x 4 scenarios) done in 8.752927 mins; M0 at 0.078 matched oc_rejudge_be
+[14:27:05] trials 2001-2500 (6 LLOQs x 2 residual variants x 4 scenarios) done in 8.655244 mins; M0 at 0.078 matched oc_rejudge_be
+[14:35:47] trials 2501-3000 (6 LLOQs x 2 residual variants x 4 scenarios) done in 8.701723 mins; M0 at 0.078 matched oc_rejudge_be
+[14:46:38] trials 3001-3500 (6 LLOQs x 2 residual variants x 4 scenarios) done in 10.86205 mins; M0 at 0.078 matched oc_rejudge_be
+[14:56:46] trials 3501-4000 (6 LLOQs x 2 residual variants x 4 scenarios) done in 10.12639 mins; M0 at 0.078 matched oc_rejudge_be
+[15:05:02] trials 4001-4500 (6 LLOQs x 2 residual variants x 4 scenarios) done in 8.263829 mins; M0 at 0.078 matched oc_rejudge_be
+[15:13:11] trials 4501-5000 (6 LLOQs x 2 residual variants x 4 scenarios) done in 8.151029 mins; M0 at 0.078 matched oc_rejudge_be
+[15:13:11] done: 100000 stored rows matched; output /home/user/dupilumab-sim/results/lloq/lloq_trials_be_k2016.csv.gz

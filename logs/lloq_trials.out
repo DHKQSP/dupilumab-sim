@@ -1,0 +1,12 @@
+run log: /home/user/dupilumab-sim/logs/lloq_trials_k2016_20260925T134323.log
+trials 1-500 (6 LLOQs x 2 residual variants x 4 scenarios) done in 8.904921 mins; M0 at 0.078 matched oc_rejudge_be 
+trials 501-1000 (6 LLOQs x 2 residual variants x 4 scenarios) done in 8.685651 mins; M0 at 0.078 matched oc_rejudge_be 
+trials 1001-1500 (6 LLOQs x 2 residual variants x 4 scenarios) done in 8.656652 mins; M0 at 0.078 matched oc_rejudge_be 
+trials 1501-2000 (6 LLOQs x 2 residual variants x 4 scenarios) done in 8.752927 mins; M0 at 0.078 matched oc_rejudge_be 
+trials 2001-2500 (6 LLOQs x 2 residual variants x 4 scenarios) done in 8.655244 mins; M0 at 0.078 matched oc_rejudge_be 
+trials 2501-3000 (6 LLOQs x 2 residual variants x 4 scenarios) done in 8.701723 mins; M0 at 0.078 matched oc_rejudge_be 
+trials 3001-3500 (6 LLOQs x 2 residual variants x 4 scenarios) done in 10.86205 mins; M0 at 0.078 matched oc_rejudge_be 
+trials 3501-4000 (6 LLOQs x 2 residual variants x 4 scenarios) done in 10.12639 mins; M0 at 0.078 matched oc_rejudge_be 
+trials 4001-4500 (6 LLOQs x 2 residual variants x 4 scenarios) done in 8.263829 mins; M0 at 0.078 matched oc_rejudge_be 
+trials 4501-5000 (6 LLOQs x 2 residual variants x 4 scenarios) done in 8.151029 mins; M0 at 0.078 matched oc_rejudge_be 
+done: 100000 stored rows matched; output /home/user/dupilumab-sim/results/lloq/lloq_trials_be_k2016.csv.gz 

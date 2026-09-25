@@ -1,0 +1,33 @@
+pk_model,set,reason,hierarchical_pct,any_pct
+k2016,i,lambda-z not estimable,1.46,1.46
+k2016,i,adjusted R-squared below threshold,11.37,11.37
+k2016,i,extrapolation above 20%,0.605,1.08
+k2016,i,span ratio below threshold,0,0
+k2016,ii,lambda-z not estimable,1.46,1.46
+k2016,ii,adjusted R-squared below threshold,11.37,11.37
+k2016,ii,extrapolation above 20%,0.605,1.08
+k2016,ii,span ratio below threshold,5.83,8.25
+k2016,iii,lambda-z not estimable,1.46,1.46
+k2016,iii,adjusted R-squared below threshold,36.84,36.84
+k2016,iii,extrapolation above 20%,0.46,1.08
+k2016,iii,span ratio below threshold,0,0
+k2016,iv,lambda-z not estimable,1.46,1.46
+k2016,iv,adjusted R-squared below threshold,36.84,36.84
+k2016,iv,extrapolation above 20%,0.46,1.08
+k2016,iv,span ratio below threshold,27.09,38.54
+k2020,i,lambda-z not estimable,0.615,0.615
+k2020,i,adjusted R-squared below threshold,6.955,6.955
+k2020,i,extrapolation above 20%,0.595,0.8
+k2020,i,span ratio below threshold,0,0
+k2020,ii,lambda-z not estimable,0.615,0.615
+k2020,ii,adjusted R-squared below threshold,6.955,6.955
+k2020,ii,extrapolation above 20%,0.595,0.8
+k2020,ii,span ratio below threshold,7.92,9.22
+k2020,iii,lambda-z not estimable,0.615,0.615
+k2020,iii,adjusted R-squared below threshold,32.09,32.09
+k2020,iii,extrapolation above 20%,0.51,0.8
+k2020,iii,span ratio below threshold,0,0
+k2020,iv,lambda-z not estimable,0.615,0.615
+k2020,iv,adjusted R-squared below threshold,32.09,32.09
+k2020,iv,extrapolation above 20%,0.51,0.8
+k2020,iv,span ratio below threshold,39.235,46.78
