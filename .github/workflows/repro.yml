@@ -4,6 +4,10 @@
 name: repro
 on:
   workflow_dispatch:
+  # 커밋으로 요청하는 실행: config/repro_request.yaml을 바꾼 push에서만 실행(수동 실행 권한이 없는 통합 도구용, D-045)
+  push:
+    paths:
+      - "config/repro_request.yaml"
 
 permissions:
   contents: read

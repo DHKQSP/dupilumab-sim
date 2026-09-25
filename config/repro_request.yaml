@@ -1,0 +1,5 @@
+# 재현성 점검 실행 요청(.github/workflows/repro.yml). 이 파일을 바꾸는 push가 재현성 워크플로를 한 번 실행한다.
+# 수동 실행(Actions > repro > Run workflow)이 가능하면 그쪽을 쓴다. 요청마다 날짜와 사유를 남긴다.
+requests:
+  - date: "2026-09-25"
+    reason: "통합 지시 2026-09-25 §9: W4 최종 조립 이후 1회 실행 (workflow_dispatch는 통합 도구 권한 부족으로 403)"
