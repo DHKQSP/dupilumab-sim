@@ -38,6 +38,10 @@ production <- normalizePath(out_dir) == normalizePath(default_dir, mustWork = FA
 oc_dir <- proj_path("results", "oc")
 MODELS <- unlist(pr$analysis_models_run); stopifnot(identical(MODELS, c("M0", "M1", "M2")))
 EPS <- OC_ENDPOINTS_EXT
+# 기준 세트 (iii)·(iv) 평가변수(prereg section4, D-057): 같은 재생성 시험에서 함께 계산해 별도 파일(oc_models_crit_be_<model>)에 M0·M1만 쓴다.
+# section1 파일(평가변수 8개 × M0·M1·M2)의 내용·형식은 바뀌지 않는다.
+EPS_CRIT <- OC_ENDPOINTS_CRIT; MODELS_CRIT <- unlist(read_cfg("prereg_20260926.yaml")$section4$trial$analysis_models)
+stopifnot(identical(EPS_CRIT, unlist(read_cfg("prereg_20260926.yaml")$section4$trial$endpoints_added)), all(MODELS_CRIT %in% MODELS))
 COLS <- c("trial", "scenario", "endpoint", "model", "est", "se", "pass", "n_R", "n_T")
 
 variant <- if (model == "k2016") "base" else "struct2020"
@@ -87,6 +91,12 @@ append_gz <- function(dt, f) {
   fwrite(dt, tmp, col.names = !file.exists(f))
   if (file.exists(f)) { if (!file.append(f, tmp)) stop("file.append 실패: ", f); unlink(tmp) } else if (!file.rename(tmp, f)) stop("file.rename 실패: ", f)
 }
+keep_only <- function(f, keep, by_scen = FALSE) {                     # 두 파일에 모두 완전한 것만 남긴다(한쪽만 붙은 묶음 제거)
+  if (!file.exists(f)) return(invisible(NULL)); ex <- fread(f); keys <- if (by_scen) c("trial", "scenario") else "trial"
+  n0 <- nrow(ex); ex <- if (by_scen) ex[keep, on = keys, nomatch = NULL] else ex[trial %in% keep]
+  if (nrow(ex) != n0) { message(sprintf("%s: 다른 파일과 맞지 않는 행 %d개를 지웁니다", basename(f), n0 - nrow(ex))); tmp <- paste0(f, ".rewrite.csv.gz"); fwrite(ex, tmp); file.rename(tmp, f) }
+  invisible(NULL)
+}
 done_trials <- function(f, n_rows_trial, by_scen = FALSE) {         # 완전한 시험(또는 (시험, 시나리오))만 남기고 불완전 행은 지운다
   if (!file.exists(f)) return(if (by_scen) data.table(trial = integer(0), scenario = character(0)) else integer(0))
   ex <- fread(f)
@@ -106,23 +116,25 @@ finish_rows <- function(be) {
   be[, `:=`(est = signif(est, 8), se = signif(se, 8))]
   be[, ..COLS]
 }
+split_rows <- function(be) list(main = finish_rows(be[endpoint %in% EPS]), crit = finish_rows(be[endpoint %in% EPS_CRIT & model %in% MODELS_CRIT]))
 invisible(get_model(p$model_id))                                     # fork 전에 모델 컴파일
 
 if (mode == "main") {
   scen <- c(list(S00 = list(code = "S00", T_multipliers = list())), bscen, prod_scen)
-  SCN <- names(scen); n_rows_trial <- length(SCN) * length(EPS) * length(MODELS)
+  SCN <- names(scen); n_rows_trial <- length(SCN) * length(EPS) * length(MODELS); n_rows_crit <- length(SCN) * length(EPS_CRIT) * length(MODELS_CRIT)
   stored <- fread(file.path(oc_dir, sprintf("oc_rejudge_be_%s.csv.gz", model)))[trial >= trial_from & trial <= trial_to]
   if (!setequal(unique(stored$scenario), setdiff(SCN, "F097")) || nrow(stored) != (trial_to - trial_from + 1L) * (length(SCN) - 1L) * length(EPS))
     stop("oc_rejudge_be 저장본이 요청 범위의 S00·경계 × 8개 평가변수를 모두 갖고 있지 않습니다")
   pf <- read_products_f097(); prod_rows <- pf$rows[trial >= trial_from & trial <= trial_to]
-  out_f <- file.path(out_dir, sprintf("oc_models_be_%s.csv.gz", model))
-  done <- done_trials(out_f, n_rows_trial)
+  out_f <- file.path(out_dir, sprintf("oc_models_be_%s.csv.gz", model)); crit_f <- file.path(out_dir, sprintf("oc_models_crit_be_%s.csv.gz", model))
+  done <- intersect(done_trials(out_f, n_rows_trial), done_trials(crit_f, n_rows_crit))
+  keep_only(out_f, done); keep_only(crit_f, done)
   logfile <- if (production) start_run_log(paste0("oc_models_", model), master_seed = MASTER_SEED, run_mode = "final",
                                             extra = list(model = model, mode = mode, scenarios = paste(SCN, collapse = ","), trial_from = trial_from, trial_to = trial_to,
                                                          cores = cores, verify_f097 = basename(pf$file), verify_f097_trials = if (nrow(prod_rows)) paste(range(prod_rows$trial), collapse = "-") else "none")) else NULL
   say <- function(msg) { cat(msg, "\n"); if (!is.null(logfile)) append_run_log(logfile, msg) }
   say(sprintf("%s main: %d scenarios (%s), trials %d-%d, cores %d, output %s", model, length(SCN), paste(SCN, collapse = ","), trial_from, trial_to, cores, out_f))
-  one <- function(j) run_trial_oc_models(j, p, design, scen, MASTER_SEED, rv$wt_spec, model_id = p$model_id, models = MODELS, endpoints = EPS)$be
+  one <- function(j) run_trial_oc_models(j, p, design, scen, MASTER_SEED, rv$wt_spec, model_id = p$model_id, models = MODELS, endpoints = c(EPS, EPS_CRIT))$be
   n_chk <- c(rejudge = 0L, products = 0L)
   for (b0 in seq(trial_from, trial_to, by = batch)) {
     ids <- setdiff(b0:min(b0 + batch - 1L, trial_to), done)
@@ -132,13 +144,14 @@ if (mode == "main") {
     bad <- vapply(res, function(x) inherits(x, "try-error") || !is.data.table(x), logical(1))
     if (any(bad)) stop("실패한 시험 반복: ", paste(ids[bad], collapse = ","), " — ", paste(unique(unlist(lapply(res[bad], as.character))), collapse = "; "))
     be <- rbindlist(res)
-    stopifnot(nrow(be) == length(ids) * n_rows_trial)
-    m0 <- m0_ci(be[model == "M0"])
+    stopifnot(nrow(be) == length(ids) * length(SCN) * length(c(EPS, EPS_CRIT)) * length(MODELS))
+    m0 <- m0_ci(be[model == "M0" & endpoint %in% EPS])
     n_chk["rejudge"] <- n_chk["rejudge"] + verify(m0[scenario != "F097"], stored[trial %in% ids], 1e-6, sprintf("%s oc_rejudge_be 대조", model))
     pr_ids <- intersect(ids, prod_rows$trial)
     if (length(pr_ids)) n_chk["products"] <- n_chk["products"] + verify(m0[scenario == "F097" & trial %in% pr_ids & endpoint %in% PROD_MAP], prod_rows[trial %in% pr_ids], 1e-12, sprintf("%s F097 제품 저장본 대조", model))
-    append_gz(finish_rows(be), out_f)
-    say(sprintf("trials %d-%d (%d scenarios x %d endpoints x %d models) done in %s; M0 matched the stored rows (oc_rejudge_be%s)", min(ids), max(ids), length(SCN), length(EPS), length(MODELS),
+    sp <- split_rows(be); stopifnot(nrow(sp$main) == length(ids) * n_rows_trial, nrow(sp$crit) == length(ids) * n_rows_crit)
+    append_gz(sp$crit, crit_f); append_gz(sp$main, out_f)
+    say(sprintf("trials %d-%d (%d scenarios x %d endpoints x %d models; criteria sets iii-iv in the crit file) done in %s; M0 matched the stored rows (oc_rejudge_be%s)", min(ids), max(ids), length(SCN), length(EPS), length(MODELS),
                 format(Sys.time() - t0), if (length(pr_ids)) sprintf(", F097 products trials %d-%d", min(pr_ids), max(pr_ids)) else ""))
   }
   say(sprintf("done: M0 matched %d stored oc_rejudge_be rows and %d stored F097 product rows; output %s", n_chk["rejudge"], n_chk["products"], out_f))
@@ -172,17 +185,18 @@ if (mode == "main") {
   for (i in seq_len(nrow(dec))) say(sprintf("%s %s %s: P2 %.2f%% [%.2f, %.2f] at %d trials -> %s", model, dec$scenario[i], dec$analysis_model[i], dec$pass_pct[i], dec$lo[i], dec$hi[i], dec$n_before[i],
                                             if (dec$triggers[i]) "rule met" else "rule not met"))
   if (!length(sel)) { say("no boundary cell selected; nothing to run"); quit(save = "no") }
-  out_f <- file.path(out_dir, sprintf("oc_models_ext_be_%s.csv.gz", model))
-  n_rows_trial <- length(EPS) * length(MODELS)
-  done <- done_trials(out_f, n_rows_trial, by_scen = TRUE)
+  out_f <- file.path(out_dir, sprintf("oc_models_ext_be_%s.csv.gz", model)); crit_f <- file.path(out_dir, sprintf("oc_models_ext_crit_be_%s.csv.gz", model))
+  n_rows_trial <- length(EPS) * length(MODELS); n_rows_crit <- length(EPS_CRIT) * length(MODELS_CRIT)
+  done <- fintersect(done_trials(out_f, n_rows_trial, by_scen = TRUE), done_trials(crit_f, n_rows_crit, by_scen = TRUE))
+  keep_only(out_f, done, TRUE); keep_only(crit_f, done, TRUE)
   ext_f <- file.path(oc_dir, sprintf("oc_trials_ext_be_%s.csv.gz", model))
   ext_st <- if (file.exists(ext_f)) fread(ext_f) else NULL
   rej <- fread(file.path(oc_dir, sprintf("oc_rejudge_be_%s.csv.gz", model)))[trial == n_bnd]
   for (sc_ in sel) {
     scen <- bscen[sc_]
-    one <- function(j) run_trial_oc_models(j, p, design, scen, MASTER_SEED, rv$wt_spec, model_id = p$model_id, models = MODELS, endpoints = EPS)$be
+    one <- function(j) run_trial_oc_models(j, p, design, scen, MASTER_SEED, rv$wt_spec, model_id = p$model_id, models = MODELS, endpoints = c(EPS, EPS_CRIT))$be
     chk <- one(n_bnd)                                                  # 한 칸 목록으로 시험 10,000을 다시 만들어 저장본과 대조(scripts/42와 같은 전제 검사)
-    verify(m0_ci(chk[model == "M0"]), rej[scenario == sc_], 1e-6, sprintf("%s %s 시험 %d 재현", model, sc_, n_bnd))
+    verify(m0_ci(chk[model == "M0" & endpoint %in% EPS]), rej[scenario == sc_], 1e-6, sprintf("%s %s 시험 %d 재현", model, sc_, n_bnd))
     st_sc <- if (!is.null(ext_st)) ext_st[scenario == sc_] else NULL
     say(sprintf("%s %s: trial %d reproduced; extending trials %d-%d%s", model, sc_, n_bnd, trial_from, trial_to,
                 if (!is.null(st_sc) && nrow(st_sc)) sprintf(" (M0 checked against %s, stored trials %d-%d)", basename(ext_f), min(st_sc$trial), max(st_sc$trial)) else " (no stored extension rows for M0)"))
@@ -194,10 +208,10 @@ if (mode == "main") {
       bad <- vapply(res, function(x) inherits(x, "try-error") || !is.data.table(x), logical(1))
       if (any(bad)) stop("실패한 시험 반복: ", paste(ids[bad], collapse = ","), " — ", paste(unique(unlist(lapply(res[bad], as.character))), collapse = "; "))
       be <- rbindlist(res)
-      stopifnot(nrow(be) == length(ids) * n_rows_trial, all(be$scenario == sc_))
+      stopifnot(nrow(be) == length(ids) * length(c(EPS, EPS_CRIT)) * length(MODELS), all(be$scenario == sc_))
       st_ids <- if (!is.null(st_sc)) intersect(ids, st_sc$trial) else integer(0)
-      if (length(st_ids)) verify(m0_ci(be[model == "M0" & trial %in% st_ids]), st_sc[trial %in% st_ids], 1e-6, sprintf("%s %s 연장 저장본 대조", model, sc_))
-      append_gz(finish_rows(be), out_f)
+      if (length(st_ids)) verify(m0_ci(be[model == "M0" & endpoint %in% EPS & trial %in% st_ids]), st_sc[trial %in% st_ids], 1e-6, sprintf("%s %s 연장 저장본 대조", model, sc_))
+      sp <- split_rows(be); append_gz(sp$crit, crit_f); append_gz(sp$main, out_f)
       done <- rbind(done, data.table(trial = ids, scenario = sc_))
       say(sprintf("%s %s: trials %d-%d done in %s%s", model, sc_, min(ids), max(ids), format(Sys.time() - t0), if (length(st_ids)) "; M0 matched the stored extension rows" else ""))
     }

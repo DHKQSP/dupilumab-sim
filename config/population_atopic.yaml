@@ -1,0 +1,17 @@
+# 아토피 피부염 성인 환자 체중 분포 (두 번째 추가 지시 2026-09-26 §2, prereg section5, D-058). 확정 전 가정(자리표시자).
+# 로그정규: 산술 평균 m, SD s → sdlog = sqrt(log(1 + (s/m)^2)), meanlog = log(m) - sdlog^2/2 (절단 전 분포의 평균·SD). 절단 구간 안에서 역누적분포로 추출.
+# 3상 원자료(FDA BLA 761055 Clinical Pharmacology Review, EMA Dupixent EPAR 2017 모집단 PK 절)의 체중 중앙값·범위·백분위를 확인하면 이 분포를 바꾸고
+# 출처(문서, 쪽, 표)를 적는다. 분석 환경에서는 두 문서에 접근할 수 없었다(네트워크 차단) → 스폰서 요청 목록.
+status: assumption
+sources:
+  kamal2022: "Kamal 2022, Clin Transl Sci 15:2342 (phase 2b, 379 adults with atopic dermatitis): mean body weight 74.0 to 80.6 kg by dose group, mean BMI 25.4 to 27.3 kg/m2"
+  kovalenko2021: "Kovalenko 2021, adult phase 3 population PK data: BMI SD 5.47 kg/m2"
+  nct03389893: "ClinicalTrials.gov NCT03389893 (71 US adults with atopic dermatitis): weight 80.2 +/- 19.0 kg, height 172.5 +/- 10.4 cm, BMI 26.9 +/- 5.45 kg/m2"
+distributions:
+  primary:          {dist: lognormal, mean: 78, sd: 19, trunc: [40, 180], label: "lognormal mean 78 kg, SD 19 kg, 40 to 180 kg", source: "placeholder from kamal2022, kovalenko2021 and nct03389893"}
+  sens_nct03389893: {dist: lognormal, mean: 80, sd: 19, trunc: [40, 180], label: "lognormal mean 80 kg, SD 19 kg, 40 to 180 kg", source: "nct03389893"}
+  sens_75_18:       {dist: lognormal, mean: 75, sd: 18, trunc: [40, 180], label: "lognormal mean 75 kg, SD 18 kg, 40 to 180 kg", source: "sensitivity, lower mean"}
+height: {mean: 172, sd: 10, trunc: [150, 200], source: "nct03389893 (172.5 +/- 10.4 cm)"}   # BMI 계산(ke~BMI 공변량 변형)
+sex_ratio_male: 0.5
+bands_kg: [60, 90, 100]       # 표: 60 kg 미만, 60–90, 90 초과, 100 초과
+reference_shares_primary_untruncated: {below_60: 16.5, above_90: 23.7, above_100: 12.4, outside_60_90: 40.2}   # 독립 계산 기준값(지시문)

@@ -141,3 +141,63 @@ section3:
   n_needed: "smallest evaluable n per arm (integer) with analytic P2 power at least 90% and at least 85%, per CV, GMR, analysis model and input set; randomized n per arm = ceiling(n x 130 / 117)"
   out_dir: results/sample_size
   scripts: [scripts/47_sample_size.R]
+
+# =====================================================================================================================
+# 두 번째 추가 지시(표기일 2026-09-26): λz 신뢰 기준 관행값 민감도, 아토피 성인 체중 분포. 등록 2026-09-25, 이 절들의 결과 생성 전.
+# 원칙: 저장된 대상자 수준 NCA를 먼저 쓰고, 체중 분포 변경분만 새로 모의한다. 시험 수준 기준 세트 (iii)·(iv)는 section1이 재생성하는
+# 같은 경계·S00·F097 시험에서 함께 계산한다(section1 main 실행을 시험 1부터 다시 시작; section1 산출은 결정적이며 재시작 전 부분 산출과 같은지 검사).
+section4:
+  question: "λz 신뢰 기준을 SAP 관행 범위(adjusted R-squared 0.80 또는 0.90, span 요구 여부)로 바꿀 때 미달 비율, 미달의 비무작위성, AUC0-inf 규칙 A/B/C의 편향·경계 1종 오류, 판정 안정성이 어떻게 달라지는가"
+  facts_for_documents:
+    - "Phoenix WinNonlin: Lambda Z Acceptance Criteria on the Rules tab are optional user entries (minimum Rsq_adjusted, maximum AUC_%Extrap_obs or _pred, span); profiles not meeting them are flagged (Accepted / Not_Accepted), not excluded; no acceptance values are applied unless entered (Certara Phoenix 8.2 NCA documentation)"
+    - "0.80 is a statistical-analysis-plan convention; 0.90, sometimes with a span of at least 3 half-lives, is common in public SAPs (NCT04117607: Rsq_adjusted at least 0.90 and span at least 3.0, verified; NCT04441905: Rsq_adjusted at least 0.90, verified; NCT04700163: as cited by the sponsor, not verified in this environment)"
+  criteria_sets:                     # R/criteria.R CRIT_SETS (λz 산출 가능 전제)
+    i:   {adj_r2_min: 0.80, extrap_max_pct: 20}
+    ii:  {adj_r2_min: 0.80, extrap_max_pct: 20, span_ratio_min: 2}
+    iii: {adj_r2_min: 0.90, extrap_max_pct: 20}
+    iv:  {adj_r2_min: 0.90, extrap_max_pct: 20, span_ratio_min: 3}
+  individual:
+    sources: ["results/individual/nca_base_20000.rds (2016 model)", "results/individual/nca_struct2020_20000.rds (Model 1)", "section5 atopic populations (new simulation)"]
+    schedule: B0
+    metrics:
+      - "failure share per set, split into lambda-z not estimable and estimable but failing, and the expected number per arm of 117"
+      - "failing versus retained: mean body weight, geometric mean AUClast, median true extrapolated share"
+      - "in failing subjects: AUClast / true AUC0-inf (median, 5th percentile)"
+  trial:
+    endpoints_added: [AUCinf_Aiii, AUCinf_Aiv, AUCinf_Ciii, AUCinf_Civ]
+    analysis_models: [M0, M1]
+    runs: "section1 regeneration (S00, 8 boundary cells, F097; trials 1-10,000 and the extension cells), output results/oc_models/oc_models_crit_be_<model>.csv.gz"
+    configurations: "G2 (AUC0-inf + Cmax) for rule A under sets i to iv, rule B, rule C under sets i to iv"
+    outputs:
+      - "boundary type I error per configuration and analysis model (Wilson 95%), classification"
+      - "bias of the AUC0-inf GMR per rule and set against the true AUC0-inf ratio"
+      - "decision instability: share of trials in which the G2 decision changes (a) across all 9 rule-set variants, (b) across rules A, B, C within a set, (c) across sets within rule A and within rule C"
+  restart_check: "section1 main runs restarted from trial 1 with the added endpoints; for the trials completed before the restart the section1 rows must be identical (est, se, pass, n) to the partial output of the first run (results/oc_models/restart_identity_check.csv)"
+  reporting: "the failure share under set (i) is stated as the lower end of the conventional range, with the larger share under set (iii) given as numbers"
+  scripts: [scripts/44_oc_models.R, scripts/51_criteria_sets.R]
+
+section5:
+  question: "아토피 피부염 성인 환자 체중 분포에서 신뢰할 수 있는 AUC0-inf를 얻지 못하는 비율, 그 체중 의존성, AUClast의 총노출 포착"
+  population_config: config/population_atopic.yaml     # 분포 정의와 출처(자리표시자)
+  distributions: [primary, sens_nct03389893, sens_75_18]
+  weight_table: "shares within 60-90 kg, below 60 kg, above 90 kg, above 100 kg for each distribution: analytic (untruncated and truncated) and simulated; independent reference for the primary distribution untruncated: 16.5% below 60, 23.7% above 90, 12.4% above 100, 40.2% outside 60-90"
+  model_variants: [base, struct2020, k2016_bmi_vc0817]
+  individual:
+    n: 20000
+    dose_mg: 300
+    schedule: B0
+    seed: "master 20260923, tag atopic_<distribution> (same subjects across model variants)"
+    metrics: "Pillar 1 (true extrapolated share, coverage below 80%), by weight band (below 60, 60-90, above 90, above 100 kg); section4 criteria-set failure shares and non-randomness; AUClast / true AUC0-inf in failing subjects"
+  trial:
+    distribution: primary
+    n_per_arm: 117
+    trials: 2000
+    scenarios: [S00, F090, KE120, VM125, KM10]
+    seed: "master 20260923 (operating-characteristic seed rule); stratified allocation with strata from the truncation range split at 75 kg"
+    analysis_models: [M0, M1]
+    endpoints: "Cmax, AUClast, AUC0-inf under rules A and C for sets i to iv and rule B, true AUC0-inf"
+    truth: "true AUC0-inf and Cmax ratios per scenario in 20,000 subjects of the primary distribution (common random numbers, reference versus test parameters)"
+    outputs: "bias per endpoint; agreement of the decision of AUClast + Cmax with each AUC0-inf configuration; difference between arms (test minus reference) in the share failing each criteria set, mean over trials with 95% interval"
+  stress_test: "the earlier population normal(100, 20) kg truncated 60-150 kg (scripts/25) is reported as a stress test, not as a population estimate"
+  phase3_data: "FDA BLA 761055 clinical pharmacology review and EMA Dupixent EPAR (2017) population PK sections could not be accessed from the analysis environment (egress blocked); the distribution stays a placeholder and the check is listed as a sponsor request"
+  scripts: [scripts/52_atopic_population.R]

@@ -96,7 +96,7 @@ rescale_additive <- function(obs, eps, scale) {
 
 run_trial_oc_models <- function(j, p, design, scenarios, master_seed, wt_spec, schedule = "B0", jitter = TRUE, model_id = NULL,
                                 lloqs = NULL, resid = "fixed", models = c("M0", "M1", "M2"), endpoints = OC_ENDPOINTS_EXT) {
-  stopifnot(all(models %in% c("M0", "M1", "M2")), all(endpoints %in% OC_ENDPOINTS_EXT), length(resid) >= 1, all(resid %in% c("fixed", "scaled")), !anyDuplicated(resid))
+  stopifnot(all(models %in% c("M0", "M1", "M2")), all(endpoints %in% c(OC_ENDPOINTS_EXT, OC_ENDPOINTS_CRIT)), length(resid) >= 1, all(resid %in% c("fixed", "scaled")), !anyDuplicated(resid))
   sa <- simulate_trial_arms(j, p, design, scenarios, schedule, master_seed, wt_spec, jitter = jitter, model_id = model_id)
   sd_days <- get_schedule(design, schedule)
   scs <- names(scenarios); nmax <- max(sa$subj$id); K <- length(scs) + 1L
@@ -129,12 +129,15 @@ run_trial_oc_models <- function(j, p, design, scenarios, master_seed, wt_spec, s
   nca[, AUCinf_C := fifelse(reliable %in% TRUE, AUCinf, AUClast)]
   nca[, rel_i := (lambda_ok & !flag_rsq & !flag_extrap) %in% TRUE]
   nca[, AUCinf_Ci := fifelse(rel_i, AUCinf, AUClast)]
+  nca[, `:=`(rel_iii = crit_ok(.SD, "iii"), rel_iv = crit_ok(.SD, "iv"))]            # 기준 세트 (iii)·(iv) (R/criteria.R; 기존 평가변수 불변)
   nca <- cv[nca, on = "sid"]
   setorder(nca, id)                                                   # run_trial_oc_ext와 같은 대상자 순서(NCA 출력은 id 순)
   ev <- function(ep) switch(ep,
     Cmax = nca$Cmax, AUClast = nca$AUClast, AUCinf_A = fifelse(nca$reliable %in% TRUE, nca$AUCinf, NA_real_),
     AUCinf_B = fifelse(nca$lambda_ok %in% TRUE, nca$AUCinf, NA_real_), AUCinf_C = nca$AUCinf_C, AUCinf_true = nca$AUCinf_true,
-    AUCinf_Ai = fifelse(nca$rel_i, nca$AUCinf, NA_real_), AUCinf_Ci = nca$AUCinf_Ci)
+    AUCinf_Ai = fifelse(nca$rel_i, nca$AUCinf, NA_real_), AUCinf_Ci = nca$AUCinf_Ci,
+    AUCinf_Aiii = fifelse(nca$rel_iii, nca$AUCinf, NA_real_), AUCinf_Aiv = fifelse(nca$rel_iv, nca$AUCinf, NA_real_),
+    AUCinf_Ciii = fifelse(nca$rel_iii, nca$AUCinf, nca$AUClast), AUCinf_Civ = fifelse(nca$rel_iv, nca$AUCinf, nca$AUClast))
   long <- rbindlist(lapply(endpoints, function(ep) data.table(id = nca$id, lloq = nca$lloq, resid = nca$resid, scenario = nca$scenario, endpoint = ep, y = ev(ep),
                                                               stratum = nca$s2, lwt = log(nca$WT))))
   ref <- long[scenario == "REF"]
@@ -154,7 +157,7 @@ run_trial_oc_models <- function(j, p, design, scenarios, master_seed, wt_spec, s
   be[, trial := j]
   setcolorder(be, c("trial", keys, "model"))
   setorderv(be, c("resid", "lloq", "scenario", "endpoint", "model"))
-  drop <- nca[, .(n = .N, n_lambda = sum(lambda_ok %in% TRUE), n_reliable = sum(reliable %in% TRUE), n_reliable_i = sum(rel_i),
+  drop <- nca[, .(n = .N, n_lambda = sum(lambda_ok %in% TRUE), n_reliable = sum(reliable %in% TRUE), n_reliable_i = sum(rel_i), n_reliable_iii = sum(rel_iii), n_reliable_iv = sum(rel_iv),
                   flag_rsq = sum(flag_rsq %in% TRUE), flag_extrap = sum(flag_extrap %in% TRUE), flag_span = sum(flag_span %in% TRUE),
                   tlast_median = as.numeric(median(tlast, na.rm = TRUE))), by = .(lloq, resid, scenario)]
   drop[, `:=`(trial = j, arm = fifelse(scenario == "REF", "R", "T"))]

@@ -17,6 +17,11 @@ draw_weights <- function(n, wt_spec, sex_ratio_male = 0.5) {
     if (!is_male && !is.null(wt_spec$female_min)) b[1] <- max(b[1], as.numeric(wt_spec$female_min))
     b
   }
+  if (identical(wt_spec$dist, "lognormal")) {                # 아토피 성인 분포(config/population_atopic.yaml): 산술 평균·SD → meanlog·sdlog, 절단 구간 역누적분포
+    b <- as.numeric(wt_spec$trunc); sl <- sqrt(log(1 + (wt_spec$sd / wt_spec$mean)^2)); ml <- log(wt_spec$mean) - sl^2 / 2
+    u <- runif(n, plnorm(b[1], ml, sl), plnorm(b[2], ml, sl))
+    return(data.table(sex = ifelse(male, "M", "F"), WT = qlnorm(u, ml, sl)))
+  }
   if (identical(wt_spec$dist, "uniform")) {                  # §6 체중 밴드 균등분포
     b <- as.numeric(wt_spec$trunc); return(data.table(sex = ifelse(male, "M", "F"), WT = runif(n, b[1], b[2])))
   }

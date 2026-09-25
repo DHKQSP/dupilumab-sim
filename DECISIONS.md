@@ -337,3 +337,9 @@
 - Cmax: CV와 상관은 모의값(지시문). Cmax CV 고정(1차)과 SD 비 비례(민감도), Cmax GMR = AUClast GMR(1차, 보수적)과 기전 비례(민감도, F 하향 역산의 log 비 약 0.72).
 - 공개: 등록 전 코드 조사에서 입력 분산 분해와 n = 117의 분석식 원형을 계산했다. 격자의 검정력·필요 n은 계산하지 않았다.
 - 확정 대기(스폰서): 목표 검정력(90% 또는 85%)과 n.
+
+## D-057 | 2026-09-25 | 두 번째 추가 지시(표기일 2026-09-26) 사전 등록: λz 신뢰 기준 관행값과 아토피 성인 체중 분포
+- 확인한 사실(문서에 적을 내용): Phoenix WinNonlin의 Lambda Z Acceptance Criteria(Rules 탭)는 사용자가 최소 Rsq_adjusted, 최대 AUC_%Extrap_obs(또는 _pred), span을 입력하는 선택 항목이며 미달 프로필은 Accepted/Not_Accepted로 표시만 된다(Certara 문서, 검색으로 확인; 문서 사이트는 분석 환경에서 차단). 공개 SAP: NCT04117607 Rsq_adjusted ≥ 0.90·span ≥ 3.0(확인), NCT04441905 Rsq_adjusted ≥ 0.90(확인), NCT04700163(지시문 인용, 이 환경에서 확인 못함).
+- 결정(결과 전 등록, `prereg_20260926.yaml` section4·section5): 기준 세트 (iii)·(iv)를 추가하고, 개인 수준은 저장된 대상자 수준 NCA로, 시험 수준 G2(규칙 A·B·C × 세트)는 section1이 재생성하는 같은 시험에서 계산한다. 새 모의는 아토피 체중 분포뿐이다.
+- 실행 변경: section1 main 실행(2016 모델 시험 5,000까지, Model 1 3,500까지 진행)을 세트 (iii)·(iv) 평가변수를 넣어 시험 1부터 다시 시작한다. 이유: 같은 시험을 두 번 재생성(약 4코어·시간)하지 않기 위해서. section1 산출은 결정적이며, 재시작 전 부분 산출과 행 단위로 같은지 검사해 기록한다. 첫 실행의 로그는 남긴다.
+- 3상 원자료(FDA BLA 761055 Clinical Pharmacology Review, EMA EPAR 2017)는 분석 환경에서 접근할 수 없어(accessdata.fda.gov, fda.gov, ema.europa.eu 차단) 체중 분포는 자리표시자로 두고 스폰서 요청 목록에 올린다.
