@@ -24,8 +24,8 @@ MODEL_EN <- c(base = "2016 model", struct2020 = "Model 1", k2016_bmi_vc0817 = "2
 DIST_EN <- c(primary = "primary (78/19 kg)", sens_nct03389893 = "sensitivity (80/19 kg)", sens_75_18 = "sensitivity (75/18 kg)")
 BAND_EN <- c(all = "all", "below 60" = "below 60 kg", "60-90" = "60 to 90 kg", "above 90-100" = "above 90 to 100 kg", "above 100" = "above 100 kg", "above 90" = "above 90 kg")
 BANDS <- names(BAND_EN)
-f0 <- function(x) formatC(round(x) + 0, format = "f", digits = 0); f1 <- function(x) formatC(round(x, 1) + 0, format = "f", digits = 1); f2 <- function(x) formatC(round(x, 2) + 0, format = "f", digits = 2)
-rg <- function(x, f = f1, u = "%", sep = " to ") if (isTRUE(all.equal(min(x), max(x)))) sprintf("%s%s", f(min(x)), u) else sprintf("%s%s%s%s%s", f(min(x)), u, sep, f(max(x)), u)
+f0 <- function(x) formatC(round(x) + 0, format = "f", digits = 0); f1 <- function(x) formatC(round(x, 1) + 0, format = "f", digits = 1); f2 <- function(x) formatC(round(x, 2) + 0, format = "f", digits = 2); f3 <- function(x) formatC(round(x + sign(x) * 1e-9, 3) + 0, format = "f", digits = 3)
+rg <- function(x, f = f1, u = "%", sep = " to ") if (identical(f(min(x)), f(max(x)))) sprintf("%s%s", f(min(x)), u) else sprintf("%s%s%s%s%s", f(min(x)), u, sep, f(max(x)), u)
 lnp <- function(m, s) { sl <- sqrt(log(1 + (s / m)^2)); c(ml = log(m) - sl^2 / 2, sl = sl) }
 rds_of <- function(v, d) readRDS(file.path(in_dir, sprintf("atopic_nca_%s_%s.rds", v, d)))
 add_above90 <- function(x) rbind(x, copy(x[band %in% c("above 90-100", "above 100")])[, band := "above 90"])
@@ -250,8 +250,8 @@ en <- c("# Adult atopic dermatitis body weight distribution", "",
   "## Pillar 1 (total exposure captured by AUClast), planned schedule, 300 mg, 20,000 subjects per model", "",
   sprintf("- True extrapolated share beyond the last sample: median %s, 95th percentile %s, maximum %s (atopic population, three models); study population 60 to 90 kg: median %s, maximum %s.",
           rg(p1a$extrap_true_median, f2), rg(p1a$extrap_true_p95, f2), rg(p1a$extrap_true_max, f1), rg(p1s$extrap_true_median, f2), rg(p1s$extrap_true_max, f1)),
-  sprintf("- AUClast / true AUC0-inf: median %s, minimum %s; below 80%% in %s of subjects. Above 100 kg: median true extrapolation %s, maximum %s.",
-          rg(100 * p1a$coverage_median, f1), rg(100 * p1a$coverage_min, f1), rg(p1a$coverage_lt80_pct, f2), rg(P1[population == "adult atopic dermatitis" & distribution == "primary" & band == "above 100", extrap_true_median], f2),
+  sprintf("- Coverage of the true AUC0-inf by the sampling window (true AUC to the last quantifiable sample / true AUC0-inf): median %s, minimum %s; below 80%% in %s of subjects. Above 100 kg: median true extrapolation %s, maximum %s.",
+          rg(100 * p1a$coverage_median, f1), rg(100 * p1a$coverage_min, f1), rg(p1a$coverage_lt80_pct, f3), rg(P1[population == "adult atopic dermatitis" & distribution == "primary" & band == "above 100", extrap_true_median], f2),
           rg(P1[population == "adult atopic dermatitis" & distribution == "primary" & band == "above 100", extrap_true_max], f1)), "",
   "## Subjects without a reliable AUC0-inf (primary distribution)", "",
   sprintf("- Set (i) %s; set (ii) %s; set (iii) %s; set (iv) %s. Per arm of 117: %s under set (i), %s under set (iii).", rg(X), rg(cp[band == "all" & set == "ii", fail_pct]), rg(Y), rg(cp[band == "all" & set == "iv", fail_pct]),

@@ -1,0 +1,34 @@
+# Adult atopic dermatitis body weight distribution
+
+In the adult atopic dermatitis population, a reliable AUC0-inf cannot be obtained in 14.9% (flag set (i)) to 39.5% (flag set (iii)) of patients, concentrated in heavier patients, whereas AUClast covers at least 78% of total exposure in the same patients.
+
+Basis: 2016 model (primary PK model), primary weight distribution, planned schedule, 300 mg, 20,000 simulated patients. Across the three model variants the shares are 8.9% to 15.3% (set (i)) and 33.6% to 39.8% (set (iii)); 78% is the smallest coverage (below) in any patient failing set (iii) in any of the three variants, rounded down (median 99.5% to 99.8%).
+
+Total exposure is the true AUC0-inf; coverage is the true AUC from dose to the last quantifiable sample divided by the true AUC0-inf (the Pillar 1 definition). The observed AUClast also carries assay error and the trapezoidal approximation: in the same failing patients it is a median 95.1% to 96.3% of the true AUC0-inf (5th percentile 79.5% to 86.3%), against a median 96.7% to 96.8% (5th percentile 82.0% to 87.5%) in patients meeting set (iii), so this error is not specific to the patients without a reliable AUC0-inf and largely cancels in the test-to-reference ratio.
+
+## Weight distribution (placeholder until the phase 3 data are checked)
+
+- Primary distribution: lognormal with mean 78 kg and SD 19 kg, truncated to 40 to 180 kg (sources: Kamal 2022; Kovalenko 2021; NCT03389893). Untruncated: 16.5% below 60 kg, 23.7% above 90 kg, 12.4% above 100 kg, 40.2% outside 60 to 90 kg (the directive's independent reference: 16.5%, 23.7%, 12.4%, 40.2%; largest difference 0.03 percentage points).
+- Simulated (20,000 subjects, truncated): 16.1% below 60 kg, 59.6% within 60 to 90 kg, 24.2% above 90 kg, 12.9% above 100 kg; mean 78.3 kg, SD 18.9 kg. The two sensitivity distributions give 39.6% to 39.8% outside 60 to 90 kg.
+- Height is drawn independently of weight (normal, mean 172 cm, SD 10 cm, 150 to 200 cm), which gives a BMI SD of 7.17 kg/m2 against 5.45 in NCT03389893. With the weight-height correlation implied by NCT03389893 (0.51), the BMI SD is 5.48 kg/m2 and the share without a reliable AUC0-inf in the BMI-covariate model changes from 15.33% to 15.22% under set (i) and from 39.76% to 39.82% under set (iii) (exploratory check, not pre-registered).
+- The phase 3 weight data (FDA BLA 761055 clinical pharmacology review, EMA Dupixent EPAR 2017) could not be accessed from the analysis environment; the distribution is replaced when the sponsor supplies them.
+
+## Pillar 1 (total exposure captured by AUClast), planned schedule, 300 mg, 20,000 subjects per model
+
+- True extrapolated share beyond the last sample: median 0.68% to 0.71%, 95th percentile 3.95% to 4.30%, maximum 18.6% to 21.0% (atopic population, three models); study population 60 to 90 kg: median 0.64% to 0.65%, maximum 15.2% to 15.7%.
+- Coverage of the true AUC0-inf by the sampling window (true AUC to the last quantifiable sample / true AUC0-inf): median 99.3%, minimum 79.0% to 81.4%; below 80% in 0.000% to 0.005% of subjects. Above 100 kg: median true extrapolation 0.97% to 1.20%, maximum 13.9% to 19.8%.
+
+## Subjects without a reliable AUC0-inf (primary distribution)
+
+- Set (i) 8.9% to 15.3%; set (ii) 17.3% to 21.8%; set (iii) 33.6% to 39.8%; set (iv) 66.4% to 72.7%. Per arm of 117: 10.4 to 17.9 under set (i), 39.3 to 46.5 under set (iii).
+- By weight band under set (i): 2016 model: 9.7% below 60 kg, 13.8% at 60 to 90 kg, 21.2% above 90 kg, 23.6% above 100 kg; Model 1: 5.9% below 60 kg, 8.2% at 60 to 90 kg, 12.5% above 90 kg, 13.6% above 100 kg; 2016 model + BMI and weight covariates: 9.4% below 60 kg, 13.7% at 60 to 90 kg, 23.3% above 90 kg, 25.9% above 100 kg.
+- By weight band under set (iii): 2016 model: 33.9% below 60 kg, 38.8% at 60 to 90 kg, 44.9% above 90 kg, 47.5% above 100 kg; Model 1: 28.5% below 60 kg, 33.2% at 60 to 90 kg, 38.0% above 90 kg, 39.3% above 100 kg; 2016 model + BMI and weight covariates: 34.1% below 60 kg, 38.6% at 60 to 90 kg, 46.3% above 90 kg, 48.0% above 100 kg.
+- Odds of failing per 10 kg of body weight (logistic, descriptive): 1.16 to 1.22 under set (i), 1.08 to 1.10 under set (iii). Failing subjects are 5.7 to 7.5 kg heavier than retained subjects under set (i).
+- In failing subjects the sampling window captures a median of 99.5% to 99.8% of the true AUC0-inf, minimum 79.0% to 81.4%, under set (iii) (set (i): median 98.7% to 99.9%, minimum 79.0% to 81.4%). The observed AUClast / true AUC0-inf in failing subjects: median 93.0% to 94.7%, 5th percentile 76.8% to 84.3% under set (i), 95.1% to 96.3% and 79.5% to 86.3% under set (iii) (retained subjects under set (i): median 96.6% to 96.7%, 5th percentile 82.0% to 87.5%).
+- Sensitivity distributions (80/19 and 75/18 kg): set (i) 8.5% to 15.6%, set (iii) 33.1% to 40.1%.
+
+## Trial level (primary distribution, 117 subjects per arm, 2,000 trials per scenario; models: 2016 model, Model 1, 2016 model + BMI and weight covariates)
+
+- Bias of the AUClast GMR against the true AUC0-inf ratio: -0.94% to 0.39%; AUC0-inf rule A: -2.56% to 3.97% (set (i)), -2.42% to 3.97% (set (iii)); rule B: -1.73% to 2.61%; rule C: -0.67% to 0.09% (set (i)), -0.74% to 0.08% (set (iii)) (all scenarios, M0).
+- Agreement of the AUClast + Cmax decision with AUC0-inf + Cmax: 66.8% to 96.7% (rule A, set (i)), 70.2% to 88.6% (rule A, set (iii)), 95.4% to 99.4% (rule C, set (i)), 96.6% to 99.4% (rule C, set (iii)) of trials.
+- Difference between arms (test minus reference) in the share failing set (i): -0.03 to 0.05 at S00, 1.83 to 2.85 at F090, 4.59 to 6.99 at VM125; set (iii): 0.11 to 0.20 at S00, 2.12 to 2.43 at F090, 4.86 to 5.71 at VM125 (mean over trials, percentage points).

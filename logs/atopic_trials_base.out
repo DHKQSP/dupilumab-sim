@@ -1,0 +1,10 @@
+run log: /home/user/dupilumab-sim/logs/atopic_trials_base_20260925T111608.log
+base trials 1-250 done in 1.953485 mins 
+base trials 251-500 done in 1.911746 mins 
+base trials 501-750 done in 2.40248 mins 
+base trials 751-1000 done in 2.570051 mins 
+base trials 1001-1250 done in 1.950777 mins 
+base trials 1251-1500 done in 1.893861 mins 
+base trials 1501-1750 done in 1.874653 mins 
+base trials 1751-2000 done in 1.857322 mins 
+done: /home/user/dupilumab-sim/results/atopic/atopic_trials_be_base.csv.gz 

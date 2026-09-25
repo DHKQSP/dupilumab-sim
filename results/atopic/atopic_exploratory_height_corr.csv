@@ -1,0 +1,3 @@
+height_model,cor_wt_ht,ht_sd,bmi_mean,bmi_sd,coverage_median,coverage_min,fail_pct_i,fail_pct_ii,fail_pct_iii,fail_pct_iv,rho_target,variant,distribution,status
+independent,-0.023189194872145,9.47447178229655,26.6377974613084,7.1671116924754,0.99292468887197,0.789859663752325,15.335,21.83,39.755,66.93,0.513155659948924,k2016_bmi_vc0817,primary,"exploratory, not pre-registered"
+correlated,0.488443194045819,9.49604921210885,26.3120441895656,5.4833980113869,0.992957669966588,0.792219520024596,15.225,21.61,39.82,66.96,0.513155659948924,k2016_bmi_vc0817,primary,"exploratory, not pre-registered"

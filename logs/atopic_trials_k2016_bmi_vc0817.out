@@ -1,0 +1,10 @@
+run log: /home/user/dupilumab-sim/logs/atopic_trials_k2016_bmi_vc0817_20260925T114945.log
+k2016_bmi_vc0817 trials 1-250 done in 1.454244 mins 
+k2016_bmi_vc0817 trials 251-500 done in 1.413396 mins 
+k2016_bmi_vc0817 trials 501-750 done in 1.391988 mins 
+k2016_bmi_vc0817 trials 751-1000 done in 1.403369 mins 
+k2016_bmi_vc0817 trials 1001-1250 done in 1.379425 mins 
+k2016_bmi_vc0817 trials 1251-1500 done in 1.386159 mins 
+k2016_bmi_vc0817 trials 1501-1750 done in 1.386979 mins 
+k2016_bmi_vc0817 trials 1751-2000 done in 1.383005 mins 
+done: /home/user/dupilumab-sim/results/atopic/atopic_trials_be_k2016_bmi_vc0817.csv.gz 

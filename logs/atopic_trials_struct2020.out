@@ -1,0 +1,10 @@
+run log: /home/user/dupilumab-sim/logs/atopic_trials_struct2020_20260925T113244.log
+struct2020 trials 1-250 done in 2.0842 mins 
+struct2020 trials 251-500 done in 1.917148 mins 
+struct2020 trials 501-750 done in 1.916025 mins 
+struct2020 trials 751-1000 done in 2.324692 mins 
+struct2020 trials 1001-1250 done in 2.140717 mins 
+struct2020 trials 1251-1500 done in 1.941234 mins 
+struct2020 trials 1501-1750 done in 2.267727 mins 
+struct2020 trials 1751-2000 done in 2.227421 mins 
+done: /home/user/dupilumab-sim/results/atopic/atopic_trials_be_struct2020.csv.gz 
