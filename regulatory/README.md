@@ -2,7 +2,7 @@
 
 Modeling and simulation supporting AUC0-last and Cmax as co-primary endpoints, and the sampling schedule, of a single-dose PK similarity study of a proposed dupilumab biosimilar.
 
-Version 1.0.1. Generated 2026-09-29 05:12 UTC from commit `aa92eff2e8ac96e4d93eb68295602aeaa4c5e2ba` (tracked files outside regulatory/ unchanged: yes). Status: draft for sponsor review; not approved.
+Version 1.0.1. Generated 2026-09-29 09:07 UTC from commit `8e5fd7a07e6d68b8aec934f33dd1f6791559c320` (tracked files outside regulatory/ unchanged: yes). Status: draft for sponsor review; not approved.
 
 ## Read in this order
 
@@ -11,6 +11,7 @@ Version 1.0.1. Generated 2026-09-29 05:12 UTC from commit `aa92eff2e8ac96e4d93eb
 | `MS_report.docx` / `MS_report.html` | Modeling and Simulation Report (ICH M15 structure): question of interest, context of use, model risk, methods, credibility evidence, results, discussion, appendices A to H. |
 | `FDA_questions.docx` / `FDA_questions.html` | Anticipated FDA questions with evidence-based responses and pointers to the report. |
 | `../reports/deck/dupilumab_endpoint_results_v1.0.1.pptx` (and `.pdf`) | Internal results-review deck in Korean for clinical pharmacology and clinical development (not a submission document). Its 1,683 printed values are in `traceability.csv` as document `deck_ko`, one section per slide. |
+| `../reports/deck/dupilumab_AUCinf_core_deck_v1.1.pptx` (and `.pdf`) | Internal core deck in Korean (v1.1): the quantitative case against AUC0-inf as a primary endpoint in ten main slides with appendices; the earlier results deck is kept as the technical backup. Its 1,273 printed values are in `traceability.csv` as document `deck_core_ko`. |
 | `sap_text_proposals_en.md` | Proposed statistical analysis plan text for the PK analyses (primary endpoints and analysis model options, AUC0-inf as secondary endpoint, fallback, ADA, BLQ and AUC rules, sample size), with the supporting numbers. |
 | `release_notes.md` | Changes in this version. |
 | `tables/assumptions_register.csv` | Assumptions, their impact and the actions required before submission. |
@@ -18,7 +19,7 @@ Version 1.0.1. Generated 2026-09-29 05:12 UTC from commit `aa92eff2e8ac96e4d93eb
 | `tables/verification_qc.csv` | Verification and QC activities, criteria, results and evidence. |
 | `tables/parameter_provenance.csv` | Every model parameter with its published source. |
 | `tables/software_environment.csv` | Software versions (renv.lock) and roles. |
-| `traceability.csv` | 2,339 printed values (plus tables and figures), each with its source file, row filter, column, raw value and SHA-256. |
+| `traceability.csv` | 3,612 printed values (plus tables and figures), each with its source file, row filter, column, raw value and SHA-256. |
 | `manifest_sha256.csv` | SHA-256 of every program, configuration, cited result and document in this package. |
 | `tables/label_translation.csv` | Mapping of Korean category labels found in some analysis outputs to the English codes used in the documents. |
 
