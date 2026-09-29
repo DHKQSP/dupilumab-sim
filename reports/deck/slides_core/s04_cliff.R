@@ -45,8 +45,8 @@ slide_S4 <- function() {
   d1v <- .read("config/oc_design.yaml")$cliff$definition_days[1]
   body <- tx("S4.body", list(d1 = dderived("cliff start: instantaneous half-life threshold, primary definition (days)", "config/oc_design.yaml", "cliff.definition_days :: first element (primary definition)", d1v, fnum(d1v, 0)),
                              int = dint(CP, "model=='k2016' & weight=='base' & timing=='nominal' & definition_day==1 & schedule=='current'", "min_interval_day", "sampling interval of the current schedule in the cliff window (days)"),
-                             ge1 = dv(CP, "model=='k2016' & weight=='base' & timing=='nominal' & definition_day==1 & schedule=='current'", "pct_ge1", 0, "%", "share with one or more current samples on the cliff, 2016"),
-                             ge2 = dv(CP, "model=='k2016' & weight=='base' & timing=='nominal' & definition_day==1 & schedule=='current'", "pct_ge2", 0, "%", "share with two or more current samples on the cliff, 2016"),
+                             ge1 = drange(CP, "weight=='base' & timing=='nominal' & definition_day==1 & schedule=='current'", "pct_ge1", 0, "%", "share with one or more current samples on the cliff, two models"),
+                             ge2 = drange(CP, "weight=='base' & timing=='nominal' & definition_day==1 & schedule=='current'", "pct_ge2", 0, "%", "share with two or more current samples on the cliff, two models"),
                              lloq = lloq))
   cap <- tx("S4.caption", list(pg = dcfg("literature_core_deck.yaml", c("fda_bla761055_clinpharm", "page"), "FDA BLA 761055 clinical pharmacology review page (as given, unverified)", num_fmt(0))))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)

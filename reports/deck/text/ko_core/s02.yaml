@@ -1,6 +1,6 @@
 S2:
   kicker: "결론"
-  title: "AUCinf는 1차 평가변수로 적절하지 않다:\n신뢰할 수 있는 값이 적고, AUClast로 충분하며, 판정이 흔들린다"
+  title: "AUCinf는 1차 평가변수로 적절하지 않다:\n셋 중 하나꼴로 신뢰할 값이 없고, AUClast로 충분하며, 판정이 흔들린다"
   cards:
     c1:
       head: "① AUCinf 신뢰 기준 미달"
@@ -8,14 +8,14 @@ S2:
     c2:
       head: "② AUClast/AUCinf (참값)"
       value: "{v} 이상"
-      label: "기본 조건의 모든 대상자(두 모델), 중앙값 {med}"
+      label: "기본 조건 모의 대상자(모델별 {nsub}명)의 최솟값\n중앙값 {med}"
     c3:
       head: "③ 경계 1종 오류 최대"
       inf: "  AUCinf + Cmax"
       last: "  AUClast + Cmax"
-      label: "경계 조건 {n}개 중 최댓값(명목 {nom}).\nAUClast + Cmax는 {z}개 조건에서 {nom} 이하"
+      label: "경계 조건 {n}개 중 최댓값(명목 {nom}), AUCinf는 신뢰할 수 있는 값만. AUClast + Cmax는 {z}개에서 {nom} 이하"
   conclusion: "AUCinf는 계산해서 보고하되, 1차 평가변수는 AUClast + Cmax"
   notes: |
     카드 1: 신뢰할 수 있는 AUCinf는 adjusted R² ≥ {r2} 그리고 외삽 ≤ {ex}%다(기준 세트 (iii)). 미달 비율은 2016 모델 {fail16}, 2020 모델 {fail20}이다(건강인 {wt} kg, 현행 채혈, 모델마다 대상자 {nsub}명). 2020 모델 값이 삼분의 일에 조금 못 미쳐 "삼분의 일 이상" 대신 범위로 적었다.
-    카드 2: AUClast/AUCinf는 참값 기준이다(관측 마지막 정량 시점까지의 참 AUC / 모델 적분 참 AUCinf). 기본 조건 최솟값은 2016 모델 {min16}, 2020 모델 {min20}이고 '이상'으로 적으려고 내림했다. 곡선 모양·정량한계·잔차를 바꾼 경우의 최솟값은 S8.
-    카드 3: 경계 조건 {n}개(시험약의 기전을 바꿔 참 AUCinf 비를 동등 한계에 맞춘 제품)에서 동등으로 잘못 판정할 확률의 최댓값(M1: 체중 층 포함 분석 모형). AUCinf 구성은 세트 (iii) 미달자를 제외하고 AUCinf와 Cmax를 함께 판정한 경우로 {n_inf}개 조건에서 5%를 넘는다. AUClast + Cmax는 {n_last}개 조건에서 5%를 넘으며 원인은 별첨 A5.
+    카드 2: AUClast/AUCinf는 참값 기준이다(관측 마지막 정량 시점까지의 참 AUC / 모델 적분 참 AUCinf). 기본 조건 최솟값은 2016 모델 {min16}, 2020 모델 {min20}이고 '이상'으로 적으려고 내림했다. 최솟값은 한 번의 모의 추출(모델별 {nsub}명)의 값이다: 같은 기본 조건을 곡선 모양 연구에서 따로 추출하면 최솟값이 {redraw}였다(S8 노트). 곡선 모양·정량한계·잔차를 바꾼 경우의 최솟값은 S8.
+    카드 3: 경계 1종 오류 = 참 AUCinf 비가 동등 한계에 놓인 가상 시험약을 동등으로 판정한 비율. 경계 조건 {n}개(시험약의 기전을 바꿔 참 AUCinf 비를 동등 한계에 맞춘 제품)에서 그 최댓값(M1: 체중 층 포함 분석 모형). AUCinf 구성은 세트 (iii) 미달자를 제외하고 AUCinf와 Cmax를 함께 판정한 경우로 {n_inf}개 조건에서 5%를 넘는다. AUClast + Cmax는 {n_last}개 조건에서 5%를 넘으며 원인은 별첨 A5.

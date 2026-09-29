@@ -53,8 +53,12 @@ slide_S8 <- function() {
     labs(x = L$xlab, y = NULL) + theme_core(16) +
     theme(strip.placement = "outside", strip.text.y.left = element_text(angle = 0, hjust = 1, size = 14, colour = PAL$ink2, face = "plain"), panel.spacing.y = grid::unit(3, "pt"),
           panel.grid.major.y = element_blank(), axis.text.y = element_text(size = 14, colour = PAL$ink), panel.grid.minor = element_blank())
-  body <- tx("S8.body", list(e80 = f$e80))
-  cap <- tx("S8.caption", list())
+  e20 <- dcfg("literature_core_deck.yaml", c("ema_be_guideline_80pct", "observations_share_pct"), "EMA BE guideline: share of observations below 80% that triggers discussion (%)", num_fmt(0))
+  body <- tx("S8.body", list(e80 = f$e80, e20 = e20, nca80 = drange("rationale/pillar1_coverage_B0.csv", "group=='all'", "extrap_gt20_pct", 1, "%", "NCA extrapolated share above 20% (lambda-z estimable), two models")))
+  gp <- { r <- rows(LN, "(grepl('^Clot 2021', source) & dose_mg==300) | grepl('PKM12350', source)"); premise(nrow(r) == 2, "two literature rows")
+    x <- 100 * c(r$true_mean_ratio_k2016 - r$nca_mean_ratio_k2016, r$true_mean_ratio_k2020 - r$nca_mean_ratio_k2020)
+    dderived("simulated true minus NCA mean ratio for the two literature cohorts, two models (percentage points)", LN, "Clot 300 mg and PKM12350 rows :: range(100 x (true_mean_ratio - nca_mean_ratio)), both models", range(x), sprintf("%s~%s%%p", fnum(min(x), 1), fnum(max(x), 1))) }
+  cap <- tx("S8.caption", list(gap = gp))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
   by <- core_body(body, capy - 0.06)
   deck_figure(p, "s8_case_ranges", c(GEO$ML, y0, GEO$CW, by - 0.08 - y0), src = c(CV, LN, LC))

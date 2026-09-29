@@ -34,15 +34,17 @@ slide_S9 <- function() {
     geom_text(data = mx, aes(label = paste0(fnum(pass_pct, 1), "%")), hjust = -0.35, size = PT(15), family = FONT, fontface = "bold", show.legend = FALSE) +
     geom_label(data = ka, aes(x = nomv + 0.4, y = row + 0.02, label = L$ka), inherit.aes = FALSE, hjust = 0, size = PT(14), family = FONT, colour = PAL$ink2,
                fill = "white", label.size = 0, label.padding = grid::unit(0.05, "lines")) +
-    annotate("text", x = nomv, y = length(SC) + 0.78, label = fill(L$nom, list(v = nom)), hjust = -0.08, size = PT(14), family = FONT, colour = PAL$ink2) +
     facet_wrap(~ mod, nrow = 1) +
     scale_colour_manual(values = setNames(c(PAL$blue, PAL$orange), c(L$cfg$last, L$cfg$inf)), name = NULL) +
     scale_shape_manual(values = setNames(c(15, 18), c(L$cfg$last, L$cfg$inf)), name = NULL) +   # 네모·마름모: 모델 표식(●/▲)과 겹치지 않게
-    scale_y_continuous(breaks = lab_y$row, labels = lab_y$lab, limits = c(0.5, length(SC) + 1.05), expand = expansion(mult = 0)) +
+    scale_y_continuous(breaks = lab_y$row, labels = lab_y$lab, limits = c(0.5, length(SC) + 0.5), expand = expansion(mult = 0)) +
     scale_x_continuous(limits = c(0, xmax), breaks = seq(0, xmax, 5), expand = expansion(add = c(0.3, 0))) +
-    labs(x = L$xlab, y = NULL) + theme_core(16) +
+    labs(x = fill(L$xlab, list(v = nom)), y = NULL) + theme_core(16) +
     theme(panel.grid.major.y = element_blank(), panel.grid.minor = element_blank(), legend.position = "top", legend.justification = "left",
           legend.margin = margin(0, 0, 0, 0), axis.text.y = element_text(size = 14, colour = PAL$ink), panel.spacing.x = grid::unit(24, "pt"))
+  f$kb <- dcount(CG, "analysis_model=='M1' & config=='G2_B' & pass_pct > 5", "AUCinf (all lambda-z estimable) + Cmax cells above 5%, M1")
+  f$maxb <- dext(CG, "analysis_model=='M1' & config=='G2_B'", "pass_pct", max, 1, "%", "largest boundary type I error, AUCinf (all lambda-z estimable) + Cmax, M1")
+  premise(all(rows("criteria/criteria_bias.csv", "analysis_model=='M1' & scenario=='Vmax_up_080' & endpoint %in% c('AUCinf_Aiii','AUCinf_B')")$bias_dir == "toward_1"), "Vmax up: NCA AUCinf GMR biased toward 1 (notes)")
   body <- tx("S9.body", f)
   bt <- unlist(.read("config/oc_design.yaml")$boundary_targets)
   cap <- tx("S9.caption", list(tgt = dderived("boundary true AUCinf ratios (both)", "config/oc_design.yaml", "boundary_targets :: both values", bt, paste(fnum(bt, 2), collapse = ", ")),
@@ -56,6 +58,12 @@ slide_S9 <- function() {
     ci = dci(T1, "analysis_model=='M1' & config=='P2' & pk_model=='k2020' & scenario=='V2_up_080'", "pass_pct", "lo", "hi", 2, "%", "AUClast + Cmax, 2020 model V2 up cell, M1"),
     ref = drange(T1, "analysis_model=='M1' & config=='AUCinf_true_only'", "pass_pct", 2, "%", "reference judged with the true AUCinf, M1"),
     i0 = dcount(CG, "analysis_model=='M0' & config=='G2_A_iii' & pass_pct > 5", "AUCinf (set iii) + Cmax cells above 5%, M0"),
-    p0 = dcount(T1, "analysis_model=='M0' & config=='P2' & pass_pct > 5", "AUClast + Cmax cells above 5%, M0"), r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap")))))
+    p0 = dcount(T1, "analysis_model=='M0' & config=='P2' & pass_pct > 5", "AUClast + Cmax cells above 5%, M0"), r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap"),
+    bi16 = dv("criteria/criteria_bias.csv", "analysis_model=='M1' & pk_model=='k2016' & scenario=='Vmax_up_080' & endpoint=='AUCinf_Aiii'", "bias_pct", 1, "%", "AUCinf GMR bias toward 1, set (iii) rule A, 2016 Vmax up"),
+    bi20 = dv("criteria/criteria_bias.csv", "analysis_model=='M1' & pk_model=='k2020' & scenario=='Vmax_up_080' & endpoint=='AUCinf_Aiii'", "bias_pct", 1, "%", "AUCinf GMR bias toward 1, set (iii) rule A, 2020 Vmax up"),
+    bb16 = dv("criteria/criteria_bias.csv", "analysis_model=='M1' & pk_model=='k2016' & scenario=='Vmax_up_080' & endpoint=='AUCinf_B'", "bias_pct", 1, "%", "AUCinf GMR bias toward 1, all estimable, 2016 Vmax up"),
+    bb20 = dv("criteria/criteria_bias.csv", "analysis_model=='M1' & pk_model=='k2020' & scenario=='Vmax_up_080' & endpoint=='AUCinf_B'", "bias_pct", 1, "%", "AUCinf GMR bias toward 1, all estimable, 2020 Vmax up"),
+    ke = dci(CG, "analysis_model=='M1' & config=='G2_A_iii' & pk_model=='k2016' & scenario=='ke_up_080'", "pass_pct", "lo", "hi", 2, "%", "AUCinf (set iii) + Cmax, 2016 ke up cell, M1"),
+    ext = dint(T1, "analysis_model=='M1' & config=='P2' & pk_model=='k2020' & scenario=='V2_up_080'", "n_trials", "trials in the extended cell")))))
   deck_end()
 }

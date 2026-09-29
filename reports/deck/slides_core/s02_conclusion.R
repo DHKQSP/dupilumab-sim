@@ -5,6 +5,7 @@ slide_S2 <- function() {
   MW <- "metric=='window coverage (true AUC0-tlast / true AUC0-inf)'"
   deck_slide("S2", tag = "sim")
   premise(nrow(rows(CG, "analysis_model=='M1' & config=='G2_A_iii'")) == 16, "S9 configuration G2_A_iii under M1 exists (no fallback to set (i))")
+  premise(all(rows(TPF, "set=='iii'")$fail_pct > 30) && all(rows(TPF, "set=='iii'")$fail_pct < 40), "set (iii) failing share between 30% and 40% in both models (title: about one in three)")
   y0 <- core_title(tx("S2.title"), tx("S2.kicker"))
 
   f <- list(fail = headline(drange(TPF, "set=='iii'", "fail_pct", 0, "%", "share without a reliable AUCinf, set (iii), two models")),
@@ -20,7 +21,8 @@ slide_S2 <- function() {
   gap <- 0.25; cw <- (GEO$CW - 2 * gap) / 3; ch <- 3.45; cy <- y0 + 0.10
   C <- DK$txt$S2$cards
   core_card(C$c1$head, list(list(f$fail, PAL$orange)), fill(C$c1$label, f), c(GEO$ML, cy, cw, ch), bg = PAL$tint_orange)
-  core_card(C$c2$head, list(list(fill(C$c2$value, list(v = cmin)), PAL$blue)), fill(C$c2$label, list(med = cmed)), c(GEO$ML + cw + gap, cy, cw, ch), bg = PAL$tint_blue)
+  nsub <- dint(TPF, "pk_model=='k2016' & set=='iii'", "n", "virtual subjects per model (trial population)")
+  core_card(C$c2$head, list(list(fill(C$c2$value, list(v = cmin)), PAL$blue)), fill(C$c2$label, list(med = cmed, nsub = nsub)), c(GEO$ML + cw + gap, cy, cw, ch), bg = PAL$tint_blue)
   core_card(fill(C$c3$head, list(nom = nom)), list(list(list(t_inf, PAL$orange, 40), list(C$c3$inf, PAL$ink2, 18)), list(list(t_last, PAL$blue, 40), list(C$c3$last, PAL$ink2, 18))),
             fill(C$c3$label, list(nom = nom, n = dcount(T1, "analysis_model=='M1' & config=='P2'", "boundary cells"),
                                   z = dcount(T1, "analysis_model=='M1' & config=='P2' & pass_pct <= 5", "AUClast + Cmax cells at or below 5%, M1"))), c(GEO$ML + 2 * (cw + gap), cy, cw, ch), bg = PAL$tint_grey)
@@ -39,6 +41,6 @@ slide_S2 <- function() {
     n_inf = dcount(CG, "analysis_model=='M1' & config=='G2_A_iii' & pass_pct > 5", "M1 G2_A_iii cells above 5%"),
     n_last = dcount(T1, "analysis_model=='M1' & config=='P2' & pass_pct > 5", "M1 P2 cells above 5%"),
     n = dcount(T1, "analysis_model=='M1' & config=='P2'", "boundary cells"), wt = f_wt_range(),
-    nsub = dint(TPF, "pk_model=='k2016' & set=='iii'", "n", "virtual subjects per model (trial population)")))))
+    nsub = nsub, redraw = dv("core_deck/coverage_by_case.csv", "case=='curve_base'", "min", 1, "%", "window coverage minimum, curve-shape study base draw", scale = 100)))))
   deck_end()
 }

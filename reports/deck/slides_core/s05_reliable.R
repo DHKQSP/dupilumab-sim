@@ -45,7 +45,9 @@ slide_S5 <- function() {
 
   lzr <- { x <- rows(TPF, "set=='iii'"); v <- 100 - x$lz_pct
     dderived("share with an estimable lambda-z (100 - lz_pct), two models", TPF, "set=='iii' :: 100 - lz_pct, range over models", range(v), rng_fmt(min(v), max(v), 1, "%")) }
-  body <- tx("S5.body", list(lz = lzr, sap = core_sap("NCT04117607", "at least", "public SAP NCT04117607: adjusted R-squared at least"),
+  nsap <- { x <- .read("config/prereg_20260926.yaml")$section6$s2_1_failure_by_set$public_saps; k <- length(regmatches(x, gregexpr("NCT[0-9]{8}", x))[[1]])
+    dderived("number of public SAPs recorded", "config/prereg_20260926.yaml", "section6.s2_1_failure_by_set.public_saps :: count of NCT identifiers", k, as.character(k)) }
+  body <- tx("S5.body", list(nsap = nsap, lz = lzr, sap = core_sap("NCT04117607", "at least", "public SAP NCT04117607: adjusted R-squared at least"),
                              n = f_n_arm(), ret = drange(TRA, "set=='iii'", "retained_median", 0, "", "median evaluable subjects per arm with a reliable AUCinf, set (iii), two models")))
   premise(core_sap("NCT04441905", "at least", "public SAP NCT04441905: adjusted R-squared at least") == f$r2, "second public SAP uses the same threshold")
   cap <- tx("S5.caption", list(r2 = f$r2, ex = f_set("iii", "extrap")))
@@ -61,6 +63,9 @@ slide_S5 <- function() {
     s3 = core_sap("NCT04700163", "above", "public SAP NCT04700163: adjusted R-squared above"),
     ri = drange(TRA, "set=='i'", "retained_median", 0, "", "median evaluable subjects per arm meeting set (i), two models"),
     lo = dspan(TRA, "set=='iii'", "retained_p05", "retained_p95", 0, "", "5th to 95th percentile subjects per arm meeting set (iii), two models"),
+    rs0 = dv("trialpop/tp_residual_sensitivity.csv", "variant=='k2016' & set=='iii'", "sigma_prop_pct", 1, "%", "proportional residual, 2016 model (%)"),
+    rs1 = dv("trialpop/tp_residual_sensitivity.csv", "variant=='resid12' & set=='iii'", "sigma_prop_pct", 0, "%", "halved proportional residual (%)"),
+    r12 = dv("trialpop/tp_residual_sensitivity.csv", "variant=='resid12' & set=='iii'", "fail_pct", 1, "%", "set (iii) failing share with the halved residual, 2016 model"),
     wt = f_wt_range(), nsub = dint(TPF, "pk_model=='k2016' & set=='iii'", "n", "virtual subjects per model"), ntr = dint(TRA, "pk_model=='k2016' & set=='iii'", "n_trials", "simulated trials per model (retained per arm)"))))
   deck_end()
 }

@@ -13,7 +13,10 @@ slide_S3 <- function() {
   # 질문 띠
   deck_text(tx("S3.question"), c(GEO$ML, y0, GEO$CW, 0.56), size = 20, bold = TRUE, label = "body_question", bg = PAL$tint_grey)
   # ---- 흐름도(주 시각 요소): 단계 4개를 위에서 아래로(왼쪽 머리말, 오른쪽 내용), 단계 사이 아래 화살표 ----
-  B <- DK$txt$S3$boxes; top <- y0 + 0.56 + 0.20; bottom <- GEO$BODY_BOTTOM - 0.50; ag <- 0.18
+  premise(identical(.read("config/literature_precedents.yaml")$ema_2012_mab$primary_endpoint_single_dose, "AUC0-inf") && identical(.read("config/literature_precedents.yaml")$ema_2012_mab$subcutaneous_co_primary, "Cmax"),
+          "EMA 2012 mAb guideline excerpt: AUC0-inf primary, Cmax co-primary for SC (body)")
+  body <- tx("S3.body", list(tol = tol, dose = f_dose(), yr = dcfg("literature_precedents.yaml", c("ema_2012_mab", "year"), "EMA mAb biosimilar guideline year", num_fmt(0))))
+  B <- DK$txt$S3$boxes; top <- y0 + 0.56 + 0.20; bottom <- GEO$BODY_BOTTOM - core_body_h(body) - 0.10; ag <- 0.16
   rh <- (bottom - top - 3 * ag) / 4; hw <- 3.05; cx <- GEO$ML + hw + 0.12; cwid <- GEO$CW - hw - 0.12
   f <- list(wt = f_wt_range(), dose = f_dose(), nB0 = f_study_days("B0", "n"), last = f_study_days("B0", "last"), n_arm = f_n_arm(), lloq = f_lloq(),
             minpts = dcfg("nca_rules.yaml", c("standard", "lambda_z", "min_points"), "lambda-z minimum points", num_fmt(0)))
@@ -25,7 +28,7 @@ slide_S3 <- function() {
   }
   deck_visual(c(GEO$ML, top, GEO$CW, bottom - top))
   # ---- 본문 한 줄: 모델 적격성 ----
-  core_body(tx("S3.body", list(tol = tol, dose = f_dose())), GEO$BODY_BOTTOM)
+  core_body(body, GEO$BODY_BOTTOM)
   deck_notes(tx("S3.notes", c(f, list(tol = tol, rng = rng, rng20 = rng20))))
   deck_end()
 }

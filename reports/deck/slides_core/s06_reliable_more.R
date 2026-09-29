@@ -72,6 +72,8 @@ slide_S6 <- function() {
     w = drange(TCH, "set=='iii'", "wt_diff_kg", 1, "", "weight difference failing minus retained (kg), set (iii), two models"),
     al = drange(TCH, "set=='iii'", "auclast_gmr", 2, "", "AUClast ratio failing to retained, set (iii), two models"),
     gmin = dderived("smallest late sampling interval with candidate schedule D3 (days)", "config/trial_design.yaml", "schedules.D3.days :: min(diff(days >= 28))", gmin, fnum(gmin, 0)),
-    nsub = dint(RL, "model=='k2016' & schedule=='B0'", "n", "virtual subjects per model"))))
+    nsub = dint(RL, "model=='k2016' & schedule=='B0'", "n", "virtual subjects per model"),
+    ad = drange("trialpop/tp_arm_difference.csv", "set=='iii' & grepl('_(080|125)$', scenario) & !grepl('^ka_', scenario)", "diff_mean", 1, "%p",
+                "arm difference in the set (iii) failing share (test - reference), boundary cells except absorption rate, two models"))))
   deck_end()
 }
