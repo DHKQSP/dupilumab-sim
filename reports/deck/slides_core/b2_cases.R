@@ -2,11 +2,11 @@
 # 체중 층(results/core_deck/coverage_by_case.csv, scripts/63). 표시: 중앙값 점, 5~95백분위 막대, 최솟값 표식, EMA 80% 기준선, 기본 조건 최솟값 주석,
 # 문헌 두 점(비구획 평균비: Clot 2021 300 mg, FDA 리뷰 Table 4.2.c PKM12350 대조군; literature_numeric.csv). 제목 = 사전 등록 7b 규칙(title_rule.csv).
 # 케이스 이름의 수치(영문 label 열에서 정규식으로 읽고 추적 행을 남긴다)
-s8_lab <- function(case, rx, item) { rel <- "core_deck/coverage_by_case.csv"; s <- row1(rel, sprintf("case=='%s'", case))$label; m <- regmatches(s, regexec(rx, s))[[1]]
+b2_lab <- function(case, rx, item) { rel <- "core_deck/coverage_by_case.csv"; s <- row1(rel, sprintf("case=='%s'", case))$label; m <- regmatches(s, regexec(rx, s))[[1]]
   premise(length(m) == 2, sprintf("case label %s matches %s", case, rx)); dderived(item, rel, sprintf("case=='%s' :: label, regex '%s'", case, rx), as.numeric(m[2]), m[2]) }
-slide_S8 <- function() {
+slide_B2 <- function() {
   CV <- "core_deck/coverage_by_case.csv"; TR <- "core_deck/title_rule.csv"; LN <- "literature/literature_numeric.csv"; LC <- "config/literature_core_deck.yaml"
-  deck_slide("S8", tag = "litsim")
+  deck_slide("B2", tag = "litsim")
   tr <- row1(TR, "TRUE"); premise(!isTRUE(tr$all_cases_min_ge_84), "title rule: not every case has a minimum of at least 84% (use the 'otherwise' wording)")
   rw <- rows(CV, "role=='row'"); premise(nrow(rw) == tr$n_cases, "eleven case rows")
   premise(abs(tr$max_pct_lt80 - max(rw$pct_lt80)) < 1e-12 && abs(tr$min_p05 - min(rw$p05)) < 1e-12, "title rule values equal the case table")
@@ -15,8 +15,8 @@ slide_S8 <- function() {
             lt80 = dderived("largest share below 80% over all cases, rounded up", TR, "TRUE :: ceiling(max_pct_lt80, 3 decimals)", tr$max_pct_lt80, paste0(fnum(cl(tr$max_pct_lt80, 3), 3), "%")),
             p05 = { x <- 100 * tr$min_p05; dderived("smallest 5th percentile over all cases, rounded down", TR, "TRUE :: floor(min_p05 x 100)", x, paste0(fnum(fl(x, 0), 0), "%")) },
             e80 = dcfg("literature_core_deck.yaml", c("ema_be_guideline_80pct", "coverage_min_pct"), "EMA BE guideline: minimum coverage of AUC0-t (%)", num_fmt(0)))
-  y0 <- core_title(tx("S8.title", f), tx("S8.kicker"))
-  L <- DK$txt$S8$fig
+  y0 <- core_title(tx("B2.title", f), tx("B2.kicker"))
+  L <- DK$txt$B2$fig
 
   # ---- 행 이름: 영문 label 열에서 수치를 정규식으로 읽어 한국어 틀에 넣는다(하드코딩 금지) ----
   num1 <- function(s, rx) { m <- regmatches(s, regexec(rx, s))[[1]]; premise(length(m) == 2, sprintf("label '%s' matches %s", s, rx)); m[2] }
@@ -54,26 +54,26 @@ slide_S8 <- function() {
     theme(strip.placement = "outside", strip.text.y.left = element_text(angle = 0, hjust = 1, size = 14, colour = PAL$ink2, face = "plain", lineheight = 0.95), panel.spacing.y = grid::unit(5, "pt"),
           panel.grid.major.y = element_blank(), axis.text.y = element_text(size = 14, colour = PAL$ink), panel.grid.minor = element_blank())
   e20 <- dcfg("literature_core_deck.yaml", c("ema_be_guideline_80pct", "observations_share_pct"), "EMA BE guideline: share of observations below 80% that triggers discussion (%)", num_fmt(0))
-  body <- tx("S8.body", list(e80 = f$e80, e20 = e20, nca80 = drange("rationale/pillar1_coverage_B0.csv", "group=='all'", "extrap_gt20_pct", 1, "%", "NCA extrapolated share above 20% (lambda-z estimable), two models")))
+  body <- tx("B2.body", list(e80 = f$e80, e20 = e20, nca80 = drange("rationale/pillar1_coverage_B0.csv", "group=='all'", "extrap_gt20_pct", 1, "%", "NCA extrapolated share above 20% (lambda-z estimable), two models")))
   gp <- { r <- rows(LN, "(grepl('^Clot 2021', source) & dose_mg==300) | grepl('PKM12350', source)"); premise(nrow(r) == 2, "two literature rows")
     x <- 100 * c(r$true_mean_ratio_k2016 - r$nca_mean_ratio_k2016, r$true_mean_ratio_k2020 - r$nca_mean_ratio_k2020)
     dderived("simulated true minus NCA mean ratio for the two literature cohorts, two models (percentage points)", LN, "Clot 300 mg and PKM12350 rows :: range(100 x (true_mean_ratio - nca_mean_ratio)), both models", range(x), sprintf("%s~%s%%p", fnum(min(x), 1), fnum(max(x), 1))) }
-  cap <- tx("S8.caption", list(gap = gp))
+  cap <- tx("B2.caption", list(gap = gp))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
   by <- core_body(body, capy - 0.06)
-  deck_figure(p, "s8_case_ranges", c(GEO$ML, y0, GEO$CW, by - 0.08 - y0), src = c(CV, LN, LC))
+  deck_figure(p, "b2_case_ranges", c(GEO$ML, y0, GEO$CW, by - 0.08 - y0), src = c(CV, LN, LC))
 
   # 노트: 사전 등록 규칙과 판정, 케이스별 최솟값
   mn <- function(case, item) dv(CV, sprintf("case=='%s'", case), "min", 1, "%", item, scale = 100)
-  deck_notes(tx("S8.notes", list(
+  deck_notes(tx("B2.notes", list(
     m16 = mn("k2016_base", "minimum, base 2016"), m20 = mn("k2020_base", "minimum, base 2020"), mlq = mn("lloq05", "minimum, LLOQ 0.5"), mv = mn("vmax125", "minimum, Vmax x1.25"),
     mk = mn("km05", "minimum, Km x0.5"), mr = mn("resid12", "minimum, proportional residual 12%"), mcb = mn("curve_base", "minimum, curve-shape base draw (note row)"),
     p05v = dv(CV, "case=='vmax125'", "p05", 1, "%", "5th percentile, Vmax x1.25", scale = 100), lt = dv(CV, "case=='lloq05'", "pct_lt80", 3, "%", "share below 80%, LLOQ 0.5"),
     nsub = dint(CV, "case=='lloq05'", "n", "subjects, LLOQ 0.5 case"), e80 = f$e80,
     nlt = { r <- row1(CV, "case=='lloq05'"); x <- r$pct_lt80 * r$n / 100; dderived("subjects below 80%, LLOQ 0.5 case", CV, "case=='lloq05' :: pct_lt80 x n / 100", x, fnum(x, 0)) },
     t84 = dderived("title rule threshold (%)", "config/prereg_20260929.yaml", "section7.title_rule.all_cases_min_ge_84 :: threshold", 84, "84"),
-    lq = s8_lab("lloq05", "LLOQ ([0-9.]+)", "LLOQ of the LLOQ case (mg/L)"), vm = s8_lab("vmax125", "x([0-9.]+)", "Vmax multiplier"), km = s8_lab("km05", "x([0-9.]+)", "Km multiplier"),
-    rs = s8_lab("resid12", "residual ([0-9.]+)%", "proportional residual (%)"),
+    lq = b2_lab("lloq05", "LLOQ ([0-9.]+)", "LLOQ of the LLOQ case (mg/L)"), vm = b2_lab("vmax125", "x([0-9.]+)", "Vmax multiplier"), km = b2_lab("km05", "x([0-9.]+)", "Km multiplier"),
+    rs = b2_lab("resid12", "residual ([0-9.]+)%", "proportional residual (%)"),
     cd = dv(LN, "grepl('^Clot 2021', source) & dose_mg==300", "dose_mg", 0, "", "Clot 2021 dose (mg)"),
     e20 = dcfg("literature_core_deck.yaml", c("ema_be_guideline_80pct", "observations_share_pct"), "EMA BE guideline: share of observations below 80% that triggers discussion (%)", num_fmt(0)),
     clot = dv(LN, "grepl('^Clot 2021', source) & dose_mg==300", "lit_mean_ratio", 1, "%", "Clot 2021 300 mg published NCA mean ratio", scale = 100),

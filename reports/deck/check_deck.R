@@ -15,7 +15,7 @@ args <- commandArgs(trailingOnly = TRUE); lang <- if ("--lang" %in% args) args[m
 deck <- if ("--deck" %in% args) args[match("--deck", args) + 1] else "results"
 # 덱 종류별 설정(lib/deck_lib.R의 DECK_PROFILES와 같은 이름·하한). font: 글자 크기 하한(1/100 pt)
 DP <- list(results = list(text_suffix = "", base = "dupilumab_endpoint_results_v1.0.1", trace = "deck_traceability.csv", meta = "deck_meta.csv", bullets = 5L, table_rows = 6L),
-           core = list(text_suffix = "_core", base = "dupilumab_AUCinf_core_deck_v1.1", trace = "core_deck_traceability.csv", meta = "core_deck_meta.csv", bullets = 3L, table_rows = 8L,
+           core = list(text_suffix = "_core", base = "dupilumab_AUCinf_core_deck_v1.2", trace = "core_deck_traceability.csv", meta = "core_deck_meta.csv", bullets = 3L, table_rows = 8L,
                        font = list(title = 2800L, kicker = 1600L, caption = 1400L, table = 1400L, body = 1800L), body_lines = 3L, fig_share = 0.60, title_lines = 2L))[[deck]]
 if (is.null(DP)) stop("unknown --deck ", deck)
 pptx <- if (length(args) && !startsWith(args[1], "--")) args[1] else proj_path("reports", "deck", sprintf("%s%s.pptx", DP$base, if (lang == "ko") "" else paste0("_", lang)))

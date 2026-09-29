@@ -1,17 +1,17 @@
 # S6 ① 보강(지시 §2): 왼쪽 = 절벽 폭 대 방문 간격 개념도(현행 7일, 추가 후보의 최소 간격 3일; 대표 대상자 S4의 절벽 위치)와
 # 채혈 추가 시 세트 (iii) 충족 비율 변화(D1~D4 - B0, 같은 대상자, 두 모델; results/core_deck/reliable_iii_by_schedule.csv),
 # 오른쪽 = 세트 (iii) 탈락자 대 유지자의 참 AUCinf 기하평균비(95% CI, 두 모델; tp_characteristics.csv). 본문 2줄.
-slide_S6 <- function() {
+slide_B1 <- function() {
   RL <- "core_deck/reliable_iii_by_schedule.csv"; TCH <- "trialpop/tp_characteristics.csv"; CP <- "cliff/cliff_points.csv"; CS <- "cliff/cliff_summary.csv"; RS <- "deck_inputs/rep_subjects.csv"
-  deck_slide("S6", tag = "sim")
+  deck_slide("B1", tag = "sim")
   d <- copy(rows(RL, "schedule!='B0'")); premise(nrow(d) == 8, "D1-D4 x two models")
   rng <- dderived("change in the share meeting set (iii), D1-D4 vs B0, range over schedules and models (percentage points)", RL, "schedule!='B0' :: range(diff_vs_B0_pp)",
                   range(d$diff_vs_B0_pp), sprintf("%s~%s%%p", fnum(min(d$diff_vs_B0_pp), 1), sprintf("%+.1f", round(max(d$diff_vs_B0_pp) + 1e-9, 1))))
   premise(min(d$diff_vs_B0_pp) < 0 && max(d$diff_vs_B0_pp) > 0, "the change has both signs (title)")
   premise(all(rows(TCH, "set=='iii'")$true_aucinf_gmr_hi < 1), "failing subjects have a lower true AUCinf than retained ones, both models (title)")
   f <- list(rng = rng)
-  y0 <- core_title(tx("S6.title", f), tx("S6.kicker"))
-  L <- DK$txt$S6$fig; ML <- DK$txt$common$models_short
+  y0 <- core_title(tx("B1.title", f), tx("B1.kicker"))
+  L <- DK$txt$B1$fig; ML <- DK$txt$common$models_short
 
   # ---- 왼쪽 위: 개념도(Day 29~57) ----
   sched <- .read("config/trial_design.yaml")$schedules
@@ -61,13 +61,13 @@ slide_S6 <- function() {
 
   ge2 <- { w <- "weight=='base' & definition_day==1 & timing=='windowed' & grepl('^plus_', schedule)"; x <- max(rows(CP, w)$pct_ge2)
     dderived("share with two or more samples on the cliff, candidate schedules with visit windows, largest over schedules and models", CP, sprintf("%s :: max(pct_ge2)", w), x, paste0(fnum(cl(x, 2), 2), "%")) }
-  body <- tx("S6.body", list(min = fnum(gmin, 0) |> (\(x) dderived("smallest late sampling interval with candidate schedule D3 (days)", "config/trial_design.yaml", "schedules.D3.days :: min(diff(days >= 28))", gmin, x))(),
+  body <- tx("B1.body", list(min = fnum(gmin, 0) |> (\(x) dderived("smallest late sampling interval with candidate schedule D3 (days)", "config/trial_design.yaml", "schedules.D3.days :: min(diff(days >= 28))", gmin, x))(),
                              len = drange(CS, "weight=='base'", "len1_median", 1, "", "median cliff length, two models"),
                              ge2 = ge2,
                              gmr = drange(TCH, "set=='iii'", "true_aucinf_gmr", 2, "", "true AUCinf ratio, failing to retained subjects, set (iii), two models")))
   by <- core_body(body, GEO$BODY_BOTTOM)
-  deck_figure(p, "s6_schedule_and_bias", c(GEO$ML, y0, GEO$CW, by - 0.08 - y0), src = c(RL, TCH, RS))
-  deck_notes(tx("S6.notes", list(ge2 = ge2, iv = dderived("late B0 sampling interval (days)", "config/trial_design.yaml", "schedules.B0.days :: diff(days >= 28)", iv, fnum(iv, 0)),
+  deck_figure(p, "b1_schedule_and_bias", c(GEO$ML, y0, GEO$CW, by - 0.08 - y0), src = c(RL, TCH, RS))
+  deck_notes(tx("B1.notes", list(ge2 = ge2, iv = dderived("late B0 sampling interval (days)", "config/trial_design.yaml", "schedules.B0.days :: diff(days >= 28)", iv, fnum(iv, 0)),
     b16 = dv(RL, "model=='k2016' & schedule=='B0'", "pct_reliable_iii", 1, "%", "share meeting set (iii), B0, 2016"), b20 = dv(RL, "model=='k2020' & schedule=='B0'", "pct_reliable_iii", 1, "%", "share meeting set (iii), B0, 2020"),
     d3 = drange(RL, "schedule=='D3'", "diff_vs_B0_pp", 1, "%p", "change with D3, two models"),
     w = drange(TCH, "set=='iii'", "wt_diff_kg", 1, "", "weight difference failing minus retained (kg), set (iii), two models"),

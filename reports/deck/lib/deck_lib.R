@@ -210,6 +210,13 @@ deck_slide <- function(id, tag = c("sim", "lit", "litsim", "none"), dark = FALSE
   tag <- match.arg(tag); sec(id); DK$n <- DK$n + 1L
   DK$x <- add_slide(DK$x, layout = "Blank", master = "Office Theme")
   DK$cur <- list(id = id, n = DK$n, dark = dark, bullets = 0L, shapes = 0L, title = NA_character_, table_rows = 0L, body_lines = 0L, visual = 0, title_lines = NA_integer_)
+  # 관련 별첨 안내 한 줄(문구 파일의 <id>.xref, 핵심 덱 본문): 본문 영역 맨 아래에 두고 그 위를 본문 영역으로 쓴다(deck_end가 되돌린다)
+  xr <- DK$txt[[id]]$xref
+  if (!is.null(xr)) {
+    h <- 0.30; DK$cur$bb0 <- GEO$BODY_BOTTOM
+    deck_text(xr, c(GEO$ML, GEO$BODY_BOTTOM - h + 0.04, GEO$CW, h - 0.04), size = if (is.null(SZ$caption_min)) 14 else SZ$caption_min, color = PAL$ink2, label = "caption_xref", gap_pt = 0)
+    GEO$BODY_BOTTOM <<- GEO$BODY_BOTTOM - h
+  }
   if (dark) DK$x <- ph_with(DK$x, fpar(ftext(" ", ftp(8))), location = loc(c(0, 0, GEO$W, GEO$H), "background", bg = PAL$dark, geom = "rect", ln = no_line()))
   if (tag != "none") {
     lab <- DK$txt$common$tags[[tag]]
@@ -364,6 +371,7 @@ deck_end <- function() {
     }
   }
   DK$meta[[length(DK$meta) + 1L]] <- m
+  if (!is.null(DK$cur$bb0)) GEO$BODY_BOTTOM <<- DK$cur$bb0             # 안내 줄로 줄였던 본문 영역을 되돌린다
   invisible(NULL)
 }
 `%||%` <- function(a, b) if (is.null(a)) b else a
@@ -386,7 +394,7 @@ theme_core <- function(base = 16) {
                            plot.caption = element_text(size = base - 2, colour = PAL$ink2, hjust = 0), plot.tag = element_text(size = base - 2, colour = PAL$ink2))
 }
 PT <- function(pt) pt / ggplot2::.pt                                      # 그림 글자 크기(pt) → ggplot size(mm)
-CORE_MODEL_COL <- c(k2016 = PAL$ink, k2020 = "#7a7974"); CORE_MODEL_SHAPE <- c(k2016 = 16, k2020 = 17); CORE_MODEL_LT <- c(k2016 = "solid", k2020 = "22")
+CORE_MODEL_COL <- c(k2020 = PAL$ink, k2016 = "#7a7974"); CORE_MODEL_SHAPE <- c(k2020 = 16, k2016 = 17); CORE_MODEL_LT <- c(k2020 = "solid", k2016 = "22")   # 주 모델(2020, D-065) = 검은 실선·원
 ORANGE_LIGHT <- "#f5b99c"; BLUE_LIGHT <- "#9cc3ee"
 MODEL_COL <- c(k2016 = PAL$blue, k2020 = PAL$orange); MODEL_SHAPE <- c(k2016 = 16, k2020 = 17); MODEL_LT <- c(k2016 = "solid", k2020 = "22")
 model_lab <- function() { m <- DK$txt$common$models; c(k2016 = m$k2016, k2020 = m$k2020) }

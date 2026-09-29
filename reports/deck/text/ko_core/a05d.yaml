@@ -1,4 +1,4 @@
-S9:
+A5d:
   kicker: "③ 판정 안정성"
   title: "경계 조건에서 AUClast 대신 AUCinf로 판정하면\n1종 오류가 최대 {max}로 오른다"
   fig:

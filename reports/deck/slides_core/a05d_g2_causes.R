@@ -1,9 +1,9 @@
 # S9 ③ 판정 안정성(지시 §2, 그림 4-3): 경계 1종 오류 점도표, 두 구성만(M1: 체중 층 포함).
 #   AUClast + Cmax = P2(results/oc_models/type1_models.csv), AUCinf + Cmax = 규칙 A 세트 (iii)(신뢰할 수 있는 AUCinf 미달 제외; criteria_g2_type1.csv G2_A_iii).
 # 사전 등록 7e: G2_A_iii(M1)가 있으므로 세트 (i) 대체는 쓰지 않는다(전제로 확인). 기전 이름은 짧은 한국어(문구 파일), 목표 비는 자료에서.
-slide_S9 <- function() {
+slide_A5d <- function() {
   T1 <- "oc_models/type1_models.csv"; CG <- "criteria/criteria_g2_type1.csv"; PD <- "oc_models/p2_decomposition_models.csv"
-  deck_slide("S9", tag = "sim")
+  deck_slide("A5d", tag = "sim")
   a <- copy(rows(T1, "analysis_model=='M1' & config=='P2'")); b <- copy(rows(CG, "analysis_model=='M1' & config=='G2_A_iii'"))
   premise(nrow(a) == 16 && nrow(b) == 16 && setequal(paste(a$pk_model, a$scenario), paste(b$pk_model, b$scenario)), "16 boundary cells in both configurations (no fallback to set (i))")
   nom <- f_nominal(); nomv <- 100 * (1 - .read("config/trial_design.yaml")$be$ci_level) / 2
@@ -13,8 +13,8 @@ slide_S9 <- function() {
             z = dcount(T1, "analysis_model=='M1' & config=='P2' & pass_pct <= 5", "AUClast + Cmax cells at or below 5%, M1"),
             p2max = dext(T1, "analysis_model=='M1' & config=='P2'", "pass_pct", max, 1, "%", "largest boundary type I error, AUClast + Cmax, M1"), nom = nom)
   premise(abs(nomv - 5) < 1e-9, "nominal level 5% (the 'pass_pct > 5' filters)")
-  y0 <- core_title(tx("S9.title", f), tx("S9.kicker"))
-  L <- DK$txt$S9$fig; ML <- DK$txt$common$models_short
+  y0 <- core_title(tx("A5d.title", f), tx("A5d.kicker"))
+  L <- DK$txt$A5d$fig; ML <- DK$txt$common$models_short
   SC <- c("F_down_080", "F_up_125", "ke_up_080", "ke_down_125", "Vmax_up_080", "Vmax_down_125", "V2_up_080", "ka_down_080")
   d <- rbind(a[, .(pk_model, scenario, mechanism, direction, target, pass_pct, cfg = "last")], b[, .(pk_model, scenario, mechanism, direction, target, pass_pct, cfg = "inf")])
   premise(setequal(unique(d$scenario), SC), "eight boundary scenarios per model")
@@ -45,15 +45,15 @@ slide_S9 <- function() {
   f$kb <- dcount(CG, "analysis_model=='M1' & config=='G2_B' & pass_pct > 5", "AUCinf (all lambda-z estimable) + Cmax cells above 5%, M1")
   f$maxb <- dext(CG, "analysis_model=='M1' & config=='G2_B'", "pass_pct", max, 1, "%", "largest boundary type I error, AUCinf (all lambda-z estimable) + Cmax, M1")
   premise(all(rows("criteria/criteria_bias.csv", "analysis_model=='M1' & scenario=='Vmax_up_080' & endpoint %in% c('AUCinf_Aiii','AUCinf_B')")$bias_dir == "toward_1"), "Vmax up: NCA AUCinf GMR biased toward 1 (notes)")
-  body <- tx("S9.body", f)
+  body <- tx("A5d.body", f)
   bt <- unlist(.read("config/oc_design.yaml")$boundary_targets)
-  cap <- tx("S9.caption", list(tgt = dderived("boundary true AUCinf ratios (both)", "config/oc_design.yaml", "boundary_targets :: both values", bt, paste(fnum(bt, 2), collapse = ", ")),
+  cap <- tx("A5d.caption", list(tgt = dderived("boundary true AUCinf ratios (both)", "config/oc_design.yaml", "boundary_targets :: both values", bt, paste(fnum(bt, 2), collapse = ", ")),
                                reps = f_reps("boundary"), ext = dint(T1, "analysis_model=='M1' & config=='P2' & pk_model=='k2020' & scenario=='V2_up_080'", "n_trials", "trials in the extended cell")))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
   by <- core_body(body, capy - 0.06)
-  deck_figure(p, "s9_type1", c(GEO$ML, y0, GEO$CW, by - 0.08 - y0), src = c(T1, CG))
+  deck_figure(p, "a5d_type1", c(GEO$ML, y0, GEO$CW, by - 0.08 - y0), src = c(T1, CG))
   mxr <- function(rel, cf, pk) dv(rel, sprintf("analysis_model=='M1' & config=='%s' & pk_model=='%s' & pass_pct==max(pass_pct[analysis_model=='M1' & config=='%s' & pk_model=='%s'])", cf, pk, cf, pk), "pass_pct", 2, "%", sprintf("largest cell %s %s M1", cf, pk))
-  deck_notes(tx("S9.notes", c(f, list(
+  deck_notes(tx("A5d.notes", c(f, list(
     i16 = mxr(CG, "G2_A_iii", "k2016"), i20 = mxr(CG, "G2_A_iii", "k2020"),
     ci = dci(T1, "analysis_model=='M1' & config=='P2' & pk_model=='k2020' & scenario=='V2_up_080'", "pass_pct", "lo", "hi", 2, "%", "AUClast + Cmax, 2020 model V2 up cell, M1"),
     ref = drange(T1, "analysis_model=='M1' & config=='AUCinf_true_only'", "pass_pct", 2, "%", "reference judged with the true AUCinf, M1"),

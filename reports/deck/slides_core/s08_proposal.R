@@ -1,17 +1,17 @@
 # S10 결론·제안(지시 §2): 상자 4개(주 시각 요소) = 1차 AUClast + Cmax; 2차 AUCinf 계산·보고(λz 산출 전원과 기준 충족자, 두 분석군);
 # 채혈 현행 유지(후보 일정 D1~D4, B- 모두 사전 기준 미충족: schedule_decision_*.csv, config/schedule_decision.yaml); AUCinf 공동 1차 요구 시 AUClast 유지하고 추가(별첨 A10).
 # 본문 한 줄: 세 근거의 대표 수치(S2와 같은 파일·조건).
-slide_S10 <- function() {
+slide_S8 <- function() {
   TPF <- "trialpop/tp_failure_by_set.csv"; TCV <- "trialpop/tp_coverage_individual.csv"; CG <- "criteria/criteria_g2_type1.csv"; T1 <- "oc_models/type1_models.csv"
   MW <- "metric=='window coverage (true AUC0-tlast / true AUC0-inf)'"
-  deck_slide("S10", tag = "sim")
+  deck_slide("S8", tag = "sim")
   for (v in c("base", "struct2020")) { r <- rows(sprintf("trials/schedule_decision_%s.csv", v))
     premise(!any(r$crit_a %in% TRUE | r$crit_b %in% TRUE | r$crit_c %in% TRUE | r$crit_d %in% TRUE | r$recommend %in% TRUE), paste("no candidate schedule meets a criterion,", v)) }
   premise(.read("config/schedule_decision.yaml")$final_schedule == "B0", "final schedule decision is B0")
   f <- list(nB0 = f_study_days("B0", "n"), last = f_study_days("B0", "last"))
-  y0 <- core_title(tx("S10.title", f), tx("S10.kicker"))
-  B <- DK$txt$S10$boxes
-  gap <- 0.25; bw <- (GEO$CW - gap) / 2; body <- tx("S10.body", list(
+  y0 <- core_title(tx("S8.title", f), tx("S8.kicker"))
+  B <- DK$txt$S8$boxes
+  gap <- 0.25; bw <- (GEO$CW - gap) / 2; body <- tx("S8.body", list(
     fail = drange(TPF, "set=='iii'", "fail_pct", 0, "%", "share without a reliable AUCinf, set (iii), two models"),
     cmed = drange(TCV, MW, "median", 0, "%", "window coverage (true), median, two models", scale = 100),
     cmin = { r <- rows(TCV, MW); x <- 100 * min(r$min); dderived("window coverage (true), base case, smallest subject over both models, rounded down", TCV, sprintf("%s :: floor(min(min) x 100)", MW), x, paste0(fnum(fl(x, 0), 0), "%")) },
@@ -30,6 +30,6 @@ slide_S10 <- function() {
   }
   deck_visual(c(GEO$ML, y0, GEO$CW, 2 * bh + gap))
   core_body(body, GEO$BODY_BOTTOM)
-  deck_notes(tx("S10.notes", c(f, list(r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap")))))
+  deck_notes(tx("S8.notes", c(f, list(r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap")))))
   deck_end()
 }

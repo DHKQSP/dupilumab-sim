@@ -1,11 +1,11 @@
-# 핵심 덱 v1.1 공통 문구(한국어, 지시 2026-09-29; D-063). 슬라이드별 문구는 같은 폴더의 sN.yaml, aN.yaml.
+# 핵심 덱 v1.2 공통 문구(한국어, 지시 2026-09-29: v1.1 D-063, v1.2 D-065). 슬라이드별 문구는 같은 폴더의 sN.yaml, aN.yaml.
 # 문구에는 숫자를 쓰지 않고 {이름} 자리표시자로 수치를 받는다(식별자·서지 제외: check.number_contexts).
 common:
-  version: "v1.1"
-  order: [S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, A1, A2, A3a, A3b, A4a, A4b, A5a, A5b, A6, A7, A8, A9, A10, A11, A12, A14]
+  version: "v1.2"
+  order: [S1, S2, S3, S4, S5, S6, S7, S8, A1, A2, A3a, A3b, B1, A4a, A4b, B2, A5a, A5b, A5c, A5d, A6, A7, A8, A9, A10, A11, A12, A14]
   appendix_start: A1
   # 본문 슬라이드 설계 한도(lib/deck_lib.R DECK_PROFILES$core: 본문 3줄, 주 시각 요소 60%, 제목 2줄)를 적용하는 슬라이드
-  main_limits: [S2, S3, S4, S5, S6, S7, S8, S9, S10]
+  main_limits: [S2, S3, S4, S5, S6, S7, S8]
   tags:
     sim: "[모의]"
     lit: "[문헌]"
@@ -14,12 +14,12 @@ common:
     source: "출처:"
     more: "외 {n}개"
     commit: "커밋"
-  models:
-    k2016: "2016 모델(주 모델)"
-    k2020: "2020 모델(민감도 모델)"
+  models:                                      # 주 모델 = 2020 모델(사용자 지시 2026-09-29, D-065). 목록 순서가 그림·표의 모델 순서다
+    k2020: "2020 모델(주 모델)"
+    k2016: "2016 모델(민감도 모델)"
   models_short:
-    k2016: "2016 모델"
     k2020: "2020 모델"
+    k2016: "2016 모델"
   terms:
     reliable: "신뢰할 수 있는 AUCinf"
     coverage: "AUClast/AUCinf"
