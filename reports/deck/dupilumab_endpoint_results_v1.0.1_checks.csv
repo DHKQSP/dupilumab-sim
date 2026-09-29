@@ -1,36 +1,36 @@
 check,slide,status,detail
 1 numbers traced,S01,pass,2 traced values
-1 numbers traced,S02,pass,35 traced values
-1 numbers traced,S03,pass,2 traced values
-1 numbers traced,S04,pass,12 traced values
+1 numbers traced,S02,pass,34 traced values
+1 numbers traced,S03,pass,5 traced values
+1 numbers traced,S04,pass,15 traced values
 1 numbers traced,S05,pass,29 traced values
 1 numbers traced,S06,pass,48 traced values
 1 numbers traced,S07,pass,43 traced values
-1 numbers traced,S08,pass,27 traced values
+1 numbers traced,S08,pass,30 traced values
 1 numbers traced,S09,pass,46 traced values
-1 numbers traced,S10,pass,65 traced values
-1 numbers traced,S11,pass,63 traced values
+1 numbers traced,S10,pass,67 traced values
+1 numbers traced,S11,pass,61 traced values
 1 numbers traced,S12,pass,35 traced values
 1 numbers traced,S13,pass,30 traced values
-1 numbers traced,S14,pass,126 traced values
-1 numbers traced,S15,pass,73 traced values
-1 numbers traced,S16,pass,64 traced values
-1 numbers traced,S17,pass,82 traced values
+1 numbers traced,S14,pass,128 traced values
+1 numbers traced,S15,pass,76 traced values
+1 numbers traced,S16,pass,65 traced values
+1 numbers traced,S17,pass,87 traced values
 1 numbers traced,S18,pass,49 traced values
-1 numbers traced,S19,pass,87 traced values
-1 numbers traced,S20,pass,102 traced values
-1 numbers traced,S21,pass,94 traced values
+1 numbers traced,S19,pass,88 traced values
+1 numbers traced,S20,pass,104 traced values
+1 numbers traced,S21,pass,95 traced values
 1 numbers traced,S22,pass,82 traced values
-1 numbers traced,S23,pass,55 traced values
+1 numbers traced,S23,pass,57 traced values
 1 numbers traced,S24,pass,62 traced values
-1 numbers traced,S25,pass,51 traced values
+1 numbers traced,S25,pass,54 traced values
 1 numbers traced,S26,pass,38 traced values
 1 numbers traced,A1,pass,45 traced values
 1 numbers traced,A2,pass,34 traced values
 1 numbers traced,A3,pass,47 traced values
-1 numbers traced,A4,pass,30 traced values
+1 numbers traced,A4,pass,31 traced values
 1 numbers traced,A5,pass,38 traced values
-1 numbers traced,A6,pass,55 traced values
+1 numbers traced,A6,pass,58 traced values
 2 empty values,S01,pass,""
 3 dashes,S01,pass,""
 2 empty values,S02,pass,""
@@ -151,6 +151,15 @@ check,slide,status,detail
 5 abbreviation first use,A3,pass,MTT
 5 abbreviation first use,A3,pass,CL
 5 abbreviation first use,S22,pass,P2
+5 abbreviation first use,S07,pass,ka
+5 abbreviation first use,S15,pass,ke
+5 abbreviation first use,S13,pass,Vmax
+5 abbreviation first use,S13,pass,V2
+5 abbreviation first use,A3,pass,Vc
+5 abbreviation first use,S04,pass,Km
+5 abbreviation first use,S09,pass,span
+5 abbreviation first use,S06,pass,Clast
+5 abbreviation first use,S11,pass,SD
 6 limits,S01,pass,"bullets 0, table rows 0"
 6 limits,S02,pass,"bullets 0, table rows 0"
 6 limits,S03,pass,"bullets 4, table rows 0"
@@ -159,8 +168,8 @@ check,slide,status,detail
 6 limits,S06,pass,"bullets 0, table rows 3"
 6 limits,S07,pass,"bullets 5, table rows 0"
 6 limits,S08,pass,"bullets 0, table rows 0"
-6 limits,S09,pass,"bullets 3, table rows 4"
-6 limits,S10,pass,"bullets 3, table rows 4"
+6 limits,S09,pass,"bullets 2, table rows 4"
+6 limits,S10,pass,"bullets 4, table rows 4"
 6 limits,S11,pass,"bullets 4, table rows 0"
 6 limits,S12,pass,"bullets 0, table rows 3"
 6 limits,S13,pass,"bullets 5, table rows 0"
@@ -183,9 +192,9 @@ check,slide,status,detail
 6 limits,A4,pass,"bullets 5, table rows 4"
 6 limits,A5,pass,"bullets 2, table rows 0"
 6 limits,A6,pass,"bullets 1, table rows 6"
-7 trace sources,all,pass,"120 source files, 1700 trace rows"
-8 report cross-check,all,pass,"876 deck values share file, filter and column with a report value; 876 identical raw values; 876 printed values consistent"
-8 key numbers cross-check,all,pass,consistent after rounding: 25; file not cited: 714; matched: 362; not in key numbers: 550
+7 trace sources,all,pass,"120 source files, 1733 trace rows"
+8 report cross-check,all,pass,"877 deck values share file, filter and column with a report value; 877 identical raw values; 877 printed values consistent"
+8 key numbers cross-check,all,pass,consistent after rounding: 24; file not cited: 741; matched: 367; not in key numbers: 551
 8 headline,S02,pass,33.2~38.8% (report: TRUE; key numbers: matched)
 8 headline,S02,pass,10 (report: TRUE; key numbers: not in key numbers)
 8 headline,S02,pass,99.3~99.4% (report: FALSE; key numbers: matched)
