@@ -56,8 +56,8 @@ slide_S07 <- function() {
     geom_point(data = P, aes(ratio, y, colour = model, shape = model), size = 3) +
     geom_text(data = H, aes(x = xl[1], y = y, label = lab), hjust = 0, vjust = 0.5, size = 4.3, fontface = "bold", family = FONT, colour = PAL$ink) +
     annotate("text", x = 1, y = max(H$y) + 0.95, label = fill(L$band, list(tol = tol)), hjust = 0.5, vjust = 0.5, size = 3.9, family = FONT, colour = PAL$ink2) +
-    annotate("label", x = xl[2] - 0.01, y = mean(I[grp == length(G), y]), label = fill(L$tmax, list(to = to, ts = ts)), hjust = 1, vjust = 0.5, size = 3.9, family = FONT,
-             colour = PAL$ink2, lineheight = 0.95, fill = "white", label.size = 0, label.padding = grid::unit(0.15, "lines"), label.r = grid::unit(0, "lines")) +
+    annotate("text", x = xl[2] - 0.01, y = mean(I[grp == length(G), y]), label = fill(L$tmax, list(to = to, ts = ts)), hjust = 1, vjust = 0.5, size = 3.9, family = FONT,
+             colour = PAL$ink2, lineheight = 0.95) +
     scale_colour_manual(values = unname(MODEL_COL)) + scale_shape_manual(values = unname(MODEL_SHAPE)) +
     scale_y_continuous(breaks = I$y, labels = I$lab, limits = c(min(I$y) - 0.5, max(H$y) + 1.45), expand = expansion(0)) +
     scale_x_continuous(limits = xl, breaks = seq(0.7, 1.3, by = 0.1), expand = expansion(0)) +

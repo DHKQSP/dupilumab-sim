@@ -19,7 +19,7 @@ slide_S03 <- function() {
   }
 
   # 아래: 두필루맙에서의 문제(왼쪽 표지 카드는 요점 묶음 높이에 맞추고 글은 세로 가운데, 오른쪽 요점)
-  yb <- y0 + chh + 0.25; hb <- GEO$BODY_BOTTOM - yb; lw <- 2.0
+  yb <- y0 + chh + 0.25; hb <- GEO$BODY_BOTTOM - yb; lw <- 1.9
   bl <- tx("S03.problem.bullets"); bw <- GEO$CW - lw - 0.2
   hb_used <- min(hb, est_height(bl, bw, 16, 6, indent = 0.3) + 0.08)
   s03_panel(c(GEO$ML, yb, lw, hb_used), PAL$tint_grey, "problem_panel")

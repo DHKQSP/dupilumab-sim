@@ -1,6 +1,6 @@
 S06:
   kicker: "방법 · 개요"
-  title: "계획된 시험 설계를 따라 모의했다: 공개 모델 두 개, 현행 채혈(B0), Phoenix 규칙 NCA, arm당 평가 가능 {n_arm}명 동등성 판정"
+  title: "계획된 시험 설계를 따라 모의했다: 공개 모델 두 개, 현행 채혈(B0), Phoenix 규칙 비구획 분석(NCA), arm당 평가 가능 {n_arm}명 동등성 판정"
   steps:
     - head: "① 모델"
       body:
@@ -12,7 +12,7 @@ S06:
         - "건강인 {wt} kg"
         - "체중 {split} kg 기준 층화, 층 안 1:1 배정"
         - "현행 일정(B0): 투여 후 {nb0}회, Day {last}까지"
-    - head: "③ 비구획 분석(NCA)"
+    - head: "③ 비구획 분석"
       body:
         - "Phoenix WinNonlin 규칙 재현"
         - "λz: Cmax 뒤 {minpts}점 이상, adjusted R² 최대"
@@ -26,7 +26,7 @@ S06:
       body:
         - "경계 시나리오 {ncell}칸: 참 AUC0-inf 비를 {b}(동등 한계)에 맞춤"
         - "칸당 {reps}회, 결과 전 사전 등록"
-        - "{next}칸만 {ext}회로 연장(M0로 촉발, 사후 규칙)"
+        - "{next}칸만 {ext}회로 연장 (M0로 촉발, 사후 규칙)"
   table:
     head: ["NCA 엔진 검증 자료", "프로파일", "λz 창 일치", "최대 상대 차이", "판정"]
     caption: "쌍별 비교: 이 엔진, NonCompart, PKNCA. 상대 차이: 모든 파라미터 중 최대"

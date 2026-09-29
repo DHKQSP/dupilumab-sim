@@ -1,5 +1,7 @@
 # A6 부록: 재현성. 자동 시험 기록(GitHub Actions tests 워크플로), 깨끗한 환경 재현 워크플로, 추적표 규모, 사전 명시·등록 이력. [모의]
-# 자동 시험: results/ci/ci_failures_before.csv(실행 1~71), ci_runs_after_fix.csv(72~77, repro 1), ci_runs_v101.csv(78~98; GitHub Actions API, 2026-09-29 읽음).
+# 자동 시험: results/ci/ci_failures_before.csv(실행 1~71), ci_runs_after_fix.csv(72~77, repro 1), ci_runs_v101.csv(78~98, v1.0.1 패키지 커밋까지),
+#   ci_runs_deck.csv(99~101, 결과보고 덱 작업; 실행 99는 환경 설정 실패, 실행 100에서 고침). 모두 GitHub Actions API, 2026-09-29 읽음.
+#   "실행 N부터 모두 성공"처럼 끝이 열린 주장은 하지 않는다: 성공 구간은 기록 파일의 범위(실행 92~98)로 적는다.
 # 재현: results/repro/repro_github_run.csv(field/value 문자열), repro_github_items.csv, repro_check.csv(로컬).
 # 추적 규모: regulatory/tables/trace_summary.csv(scripts/60이 덱 행을 합치기 전에 쓰는 문서별 수; 덱은 regulatory/traceability.csv와
 #   manifest_sha256.csv를 인용하지 않는다: 그 둘은 덱을 만든 뒤 다시 쓰이므로 인용하면 덱이 낡은 것으로 판정된다).
@@ -24,35 +26,48 @@ a6_reg <- function(pat, col, item) {
 }
 
 slide_A6 <- function() {
-  CB <- "ci/ci_failures_before.csv"; CS <- "ci/ci_failure_summary.csv"; CA <- "ci/ci_runs_after_fix.csv"; CV <- "ci/ci_runs_v101.csv"
+  CB <- "ci/ci_failures_before.csv"; CS <- "ci/ci_failure_summary.csv"; CA <- "ci/ci_runs_after_fix.csv"; CV <- "ci/ci_runs_v101.csv"; CD <- "ci/ci_runs_deck.csv"
   RI <- "repro/repro_github_items.csv"; RC <- "repro/repro_check.csv"; TS <- "regulatory/tables/trace_summary.csv"; PR <- "regulatory/tables/prespecification_register.csv"
   deck_slide("A6", tag = "sim")
   L <- DK$txt$A6
 
   # ---- 자동 시험 기록: 전제 ----
-  cb <- rows(CB); ca <- rows(CA, "workflow=='tests'"); cv <- rows(CV)
-  runs <- rbind(cb[, .(run = run_number, conc = "failure")], ca[, .(run = run_number, conc = conclusion)], cv[, .(run = run_number, conc = conclusion)])
+  cb <- rows(CB); ca <- rows(CA, "workflow=='tests'"); cv <- rows(CV); cd <- rows(CD, "workflow=='tests'")
+  runs <- rbind(cb[, .(run = run_number, conc = "failure")], ca[, .(run = run_number, conc = conclusion)], cv[, .(run = run_number, conc = conclusion)], cd[, .(run = run_number, conc = conclusion)])
   premise(!anyDuplicated(runs$run) && identical(sort(runs$run), seq_len(max(runs$run))) && all(runs$conc %in% c("success", "failure", "cancelled")),
-          "tests workflow runs 1 to the latest are each recorded once (success, failure or cancelled)")
+          "tests workflow runs 1 to the latest recorded run are each recorded once (success, failure or cancelled)")
   premise(all(nzchar(cb$failed_step)) && all(cb$category == "package install/build"), "runs before the fix failed in environment setup (package install/build)")
   fl <- cv[conclusion == "failure"]; premise(nrow(fl) > 0 && all(diff(fl$run_number) == 1) && all(grepl("^strict-skip rule", fl$note)), "v1.0.1 failures are consecutive and all due to the strict-skip rule")
   fxr <- cv[grepl("^fix of runs", note)]; premise(nrow(fxr) == 1 && fxr$conclusion == "success" && fxr$run_number == max(fl$run_number) + 1, "the run after the failures is the fix and succeeded")
-  lastr <- cv[run_number == max(run_number)]; premise(lastr$conclusion == "success" && grepl("v1.0.1 package commit", lastr$note), "latest run succeeded on the v1.0.1 package commit")
+  lastr <- cv[run_number == max(run_number)]; premise(lastr$conclusion == "success" && grepl("v1.0.1 package commit", lastr$note), "last run of the v1.0.1 record succeeded on the v1.0.1 package commit")
   f1 <- ca[run_number == min(run_number)]; premise(f1$conclusion == "success" && grepl("first run after the fix", f1$note), "first run after the fix succeeded")
-  premise(max(cb$run_number) + 1 == f1$run_number && max(ca$run_number) + 1 == min(cv$run_number), "the three CI files are contiguous")
+  premise(max(cb$run_number) + 1 == f1$run_number && max(ca$run_number) + 1 == min(cv$run_number) && max(cv$run_number) + 1 == min(cd$run_number), "the four CI files are contiguous")
+  # 제목 전제: 엄격 건너뜀 수정(실행 92)부터 v1.0.1 기록의 마지막 실행(98)까지 모두 성공. 그 뒤의 실패(99)는 요점과 노트에 적는다
+  premise(all(runs[run >= fxr$run_number & run <= lastr$run_number, conc] == "success"), "every tests run from the strict-skip fix to the v1.0.1 package commit succeeded")
+  dfl <- cd[conclusion == "failure"]; premise(nrow(dfl) == 1 && grepl("^environment setup", dfl$note) && grepl("renv::restore stopped before any test ran", dfl$note), "the deck-record failure is one environment-setup failure before any test ran")
+  dfx <- cd[grepl("^fix of run", note)]; premise(nrow(dfx) == 1 && dfx$conclusion == "success" && dfx$run_number == dfl$run_number + 1, "the run after the deck-record failure is its fix and succeeded")
+  premise(grepl("gdtools \\(flextable dependency of the results deck\\) built from source could not find cairo", dfl$note) && grepl("libcairo2-dev and libfreetype6-dev added to the system dependencies", dfx$note),
+          "deck-record failure: gdtools (flextable) could not find the cairo header; fixed by adding cairo and freetype headers (notes)")
+  premise(all(cd[run_number > dfx$run_number, conclusion] == "success"), "runs after the deck fix in the deck record succeeded")
 
   f <- list(
     r1 = drange(CB, "TRUE", "run_number", 0, "", "runs before the fix, run numbers"),
+    n1 = dcount(CB, "TRUE", "runs before the fix (failed before any test)"),
     a = dint(CS, "cause=='no renv.lock in commit'", "n_runs", "runs failed: no renv.lock in commit"),
     b = dint(CS, "cause=='xml2 missing for testthat::JunitReporter'", "n_runs", "runs failed: xml2 missing for JunitReporter"),
     fx1 = dint(CA, sprintf("workflow=='tests' & run_number==%d", f1$run_number), "run_number", "first run after the fix"),
-    last = dint(CV, sprintf("run_number==%d", lastr$run_number), "run_number", "latest tests run (v1.0.1 package commit)"),
+    last = dint(CV, sprintf("run_number==%d", lastr$run_number), "run_number", "last tests run of the v1.0.1 record (v1.0.1 package commit)"),
     rf = drange(CV, "conclusion=='failure'", "run_number", 0, "", "failed runs after the fix (strict-skip rule), run numbers"),
-    fx2 = dint(CV, "grepl('^fix of runs', note)", "run_number", "run that fixed the strict-skip failures"))
-  cnt <- function(k) { a_ <- nrow(ca[conclusion == k]); v_ <- nrow(cv[conclusion == k])
-    dderived(sprintf("tests runs after the fix with conclusion %s (after_fix + v101)", k), CV, sprintf("count(conclusion=='%s') in ci_runs_after_fix.csv (workflow tests) + ci_runs_v101.csv", k), c(a_, v_), as.character(a_ + v_)) }
-  dsrc("tests runs after the fix (with ci_runs_v101.csv)", CA, "(table)")
+    fx2 = dint(CV, "grepl('^fix of runs', note)", "run_number", "run that fixed the strict-skip failures"),
+    rd = dint(CD, "workflow=='tests' & conclusion=='failure'", "run_number", "failed run of the deck record (environment setup)"),
+    fx3 = dint(CD, "workflow=='tests' & grepl('^fix of run', note)", "run_number", "run that fixed the deck-record failure"),
+    lastd = dext(CD, "workflow=='tests'", "run_number", max, 0, "", "latest tests run recorded (deck record)"))
+  cnt <- function(k) { a_ <- nrow(ca[conclusion == k]); v_ <- nrow(cv[conclusion == k]); d_ <- nrow(cd[conclusion == k])
+    dderived(sprintf("tests runs after the fix with conclusion %s (after_fix + v101 + deck)", k), CV,
+             sprintf("count(conclusion=='%s') in ci_runs_after_fix.csv (workflow tests) + ci_runs_v101.csv + ci_runs_deck.csv (workflow tests)", k), c(a_, v_, d_), as.character(a_ + v_ + d_)) }
+  dsrc("tests runs after the fix (with ci_runs_v101.csv)", CA, "(table)"); dsrc("tests runs after the fix (with ci_runs_v101.csv)", CD, "(table)")
   f$ns <- cnt("success"); f$nc <- cnt("cancelled"); f$nf <- cnt("failure")
+  premise(as.numeric(f$nf) == nrow(fl) + nrow(dfl), "failures after the fix = strict-skip failures + the deck-record failure")
 
   # ---- 재현 워크플로 ----
   ri <- rows(RI); rc <- rows(RC)
@@ -60,6 +75,7 @@ slide_A6 <- function() {
   rgf <- function(k) as.character(row1("repro/repro_github_run.csv", sprintf("field=='%s'", k))$value)
   premise(as.numeric(rgf("n_items")) == nrow(ri) && rgf("n_pass_github") == rgf("n_items") && rgf("n_identical_to_local_8sig") == rgf("n_items") && rgf("conclusion") == "success",
           "clean-runner run: all items pass and are identical to the local values")
+  premise(grepl("GitHub-hosted", rgf("runner")), "the reproducibility run used a GitHub-hosted runner")
   g <- list(
     pg = sprintf("%s/%s", a6_field("n_pass_github"), a6_field("n_items")),
     ni = a6_field("n_items", "GitHub reproducibility run: items (all pass, title)"),
@@ -84,57 +100,72 @@ slide_A6 <- function() {
     hn <- list(sf_ms = dint(TS, "document=='MS_report'", "source_files", "source files, M&S report"),
                tb_ms = dint(TS, "document=='MS_report'", "tables", "table rows, M&S report"),
                fg_ms = dint(TS, "document=='MS_report'", "figures", "figure rows, M&S report"))
-    tr_val <- h$tot; tr_lab <- tx("A6.card_trace", h); tr_note <- tx("A6.notes_trace", c(h, hn))
+    tr_val <- fill(L$count, list(n = h$tot)); tr_lab <- tx("A6.card_trace", h); tr_note <- tx("A6.notes_trace", c(h, hn))
   } else {
     tr_val <- L$na; tr_lab <- tx("A6.card_trace_na"); tr_note <- tx("A6.notes_trace_na")
   }
-  # 제목 전제: 엄격 건너뜀 수정 뒤 실행은 모두 성공
-  premise(all(runs[run >= fxr$run_number, conc] == "success"), "every tests run from the strict-skip fix to the latest succeeded")
 
-  deck_kicker(tx("A6.kicker")); deck_title(tx("A6.title", list(ni = g$ni, fx2 = f$fx2)))
+  deck_kicker(tx("A6.kicker"))
+  deck_title(tx("A6.title", list(ni = g$ni, fx2 = f$fx2, last = f$last)), box = c(GEO$ML, GEO$TITLE_TOP, 9.7, GEO$TITLE_H))   # 두 절이 한 줄씩(쉼표 뒤에서 줄바꿈), 오른쪽 위 태그와 떨어지게
 
-  # ---- 왼쪽 위: 자동 시험 실행 띠 그림 ----
-  XL <- GEO$ML; WL <- 7.15
+  # ---- 왼쪽 위: 자동 시험 실행 띠 그림(실행 1~71은 한 덩어리, 72부터 실행마다 한 칸) ----
+  XL <- GEO$ML; WL <- 7.6
   deck_text(tx("A6.ci_label"), c(XL, GEO$BODY_TOP, WL, 0.4), size = 16, bold = TRUE, color = PAL$ink2, label = "label_ci", gap_pt = 0)
   F <- L$fig
   CL <- c(success = F$success, failure = F$failure, cancelled = F$cancelled)
-  runs[, lab := factor(CL[conc], levels = CL)]
-  n1 <- max(cb$run_number); fr <- range(fl$run_number)
-  ann <- data.table(x = c((1 + n1) / 2, mean(fr)), y = 1.62, lab = c(fill(F$before, list(a = nrow(cb[cause_key == "no renv.lock in commit"]), b = nrow(cb[cause_key == "xml2 missing for testthat::JunitReporter"]))), F$strict))
-  premise(nrow(cb[cause_key == "no renv.lock in commit"]) == as.numeric(f$a) && nrow(cb[cause_key == "xml2 missing for testthat::JunitReporter"]) == as.numeric(f$b), "figure counts equal the failure summary")
-  brk <- c(1, f1$run_number, fr[1], fxr$run_number, lastr$run_number)
-  p <- ggplot(runs, aes(x = run, y = 1, fill = lab)) +
-    geom_tile(width = 0.82, height = 0.7, colour = NA) +
-    annotate("segment", x = 0.6, xend = n1 + 0.4, y = 1.43, yend = 1.43, colour = PAL$ink2, linewidth = 0.5) +
-    annotate("segment", x = fr[1] - 0.4, xend = fr[2] + 0.4, y = 1.43, yend = 1.43, colour = PAL$ink2, linewidth = 0.5) +
-    geom_text(data = ann, aes(x = x, y = y, label = lab), inherit.aes = FALSE, family = FONT, size = 4.1, colour = PAL$ink, vjust = 0) +
+  n1 <- max(cb$run_number); premise(all(runs[run <= n1, conc] == "failure"), "runs up to the fix are all failures (one block in the figure)")
+  BW <- 6; OFF <- BW + 1.6                                           # 덩어리 폭(가로 단위), 실행 72의 가로 위치
+  xr <- function(r) r - f1$run_number + OFF
+  rr_ <- runs[run > n1][, x := xr(run)][, lab := factor(CL[conc], levels = CL)]
+  blk <- data.table(xmin = 0.5, xmax = 0.5 + BW, lab = factor(CL[["failure"]], levels = CL))
+  fr <- range(fl$run_number); r99 <- dfl$run_number
+  ann <- data.table(x = c(0.5 + BW / 2, xr(mean(fr)), xr(r99)), y = 1.6,
+                    lab = c(fill(F$before, list(n = nrow(cb))), F$strict, F$setup))
+  brk <- c(f1$run_number, fr[1], fxr$run_number, lastr$run_number, max(cd$run_number))
+  p <- ggplot() +
+    geom_rect(data = blk, aes(xmin = xmin, xmax = xmax, ymin = 0.65, ymax = 1.35, fill = lab), colour = NA) +
+    geom_tile(data = rr_, aes(x = x, y = 1, fill = lab), width = 0.8, height = 0.7, colour = NA) +
+    annotate("segment", x = xr(fr[1]) - 0.4, xend = xr(fr[2]) + 0.4, y = 1.45, yend = 1.45, colour = PAL$ink2, linewidth = 0.5) +
+    annotate("segment", x = xr(r99) - 0.4, xend = xr(r99) + 0.4, y = 1.45, yend = 1.45, colour = PAL$ink2, linewidth = 0.5) +
+    annotate("segment", x = 0.5, xend = 0.5 + BW, y = 1.45, yend = 1.45, colour = PAL$ink2, linewidth = 0.5) +
+    geom_text(data = ann, aes(x = x, y = y, label = lab), family = FONT, size = 4.1, colour = PAL$ink, vjust = 0) +
     scale_fill_manual(values = setNames(c(PAL$blue, PAL$orange, PAL$muted), CL), drop = FALSE) +
-    scale_x_continuous(breaks = brk, labels = brk, expand = expansion(add = 0.8)) +
+    scale_x_continuous(breaks = c(0.5 + BW / 2, xr(brk)), labels = c(fill(F$block, list(a = min(cb$run_number), b = n1)), brk), limits = c(0, xr(max(runs$run)) + 0.6), expand = expansion(0)) +
     scale_y_continuous(limits = c(0.6, 2.0), expand = expansion(0)) +
     labs(x = F$xlab, y = NULL) + theme_deck(13) +
-    theme(axis.text.y = element_blank(), panel.grid = element_blank(), legend.position = "top", legend.justification = "left",
+    theme(axis.text.y = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "top", legend.justification = "left",
           legend.margin = margin(0, 0, 0, 0), legend.box.spacing = grid::unit(2, "pt"), legend.key.size = grid::unit(0.9, "lines"))
-  FY <- GEO$BODY_TOP + 0.42; FH <- 1.5
-  deck_figure(p, "a6_ci_runs", c(XL, FY, WL, FH), src = c(CB, CA, CV))
-  BY <- FY + FH + 0.04; BH <- 0.78
+  FY <- GEO$BODY_TOP + 0.4; FH <- 1.4
+  deck_figure(p, "a6_ci_runs", c(XL, FY, WL, FH), src = c(CB, CA, CV, CD))
+  BY <- FY + FH + 0.02; BH <- 0.72
   deck_bullets(tx("A6.bullets", f), box = c(XL, BY, WL, BH), size = 16, gap_pt = 4)
 
-  # ---- 왼쪽 아래: 사전 명시·등록 이력 표 ----
+  # ---- 왼쪽 아래: 사전 명시·등록 이력 표(제목 줄에 요지) ----
   REGROWS <- list(oc = "^Operating-characteristic design", s1 = "^Analysis-model re-judgement", s2 = "^Single study-LLOQ source", s3 = "^Sample-size table",
                   s4 = "^Criteria sets \\\\(iii\\\\) and \\\\(iv\\\\)", s6 = "^Trial-population analyses")
   rr <- lapply(names(REGROWS), function(k) { a_ <- a6_reg(REGROWS[[k]], "Date (evidence)", sprintf("register %s: registered (UTC, commit)", k))
     b_ <- a6_reg(REGROWS[[k]], "First results", sprintf("register %s: first results (UTC, commit)", k))
-    premise(a_$t < b_$t, sprintf("register %s: registered before the first results", k)); c(a_$p, b_$p) })
+    premise(a_$t < b_$t, sprintf("register %s: registered before the first results", k)); list(p = c(a_$p, b_$p), t = c(a_$t, b_$t)) })
+  # 5절(체중 견고성, 부록 A5)은 표에 넣지 않고(표 6행 한도) 제목 줄과 노트에 적는다: 4절과 같은 커밋에 등록, 첫 결과 전
+  S5 <- "^Adult [a-z ]+body-weight analyses"
+  s5 <- list(a = a6_reg(S5, "Date (evidence)", "register s5: registered (UTC, commit)"), b = a6_reg(S5, "First results", "register s5: first results (UTC, commit)"))
+  premise(s5$a$t < s5$b$t, "register s5: registered before the first results")
+  premise(identical(row1(PR, sprintf("grepl('%s', Item)", S5))$`Date (evidence)`, row1(PR, sprintf("grepl('%s', Item)", REGROWS$s4))$`Date (evidence)`),
+          "section 5 registered in the same commit as section 4")
+  yrs <- unique(format(c(do.call(c, lapply(rr, `[[`, "t")), s5$a$t, s5$b$t), "%Y")); premise(length(yrs) == 1, "all register dates in the table fall in one year")
+  yr <- dderived("year of every registration and first-result date in the table", PR, "format(Date (evidence), First results, '%Y') over the table rows and section 5", as.numeric(yrs), yrs)
   premise(identical(rows("oc/prereg.csv")$changed_since, FALSE), "oc_design.yaml unchanged since its pre-specification commit (results/oc/prereg.csv)")
   dsrc("oc_design.yaml unchanged since pre-specification", "oc/prereg.csv", "(table)")
-  df <- data.frame(a = unlist(L$reg_rows[names(REGROWS)]), b = vapply(rr, `[`, "", 1), c = vapply(rr, `[`, "", 2), stringsAsFactors = FALSE, check.names = FALSE)
+  df <- data.frame(a = unlist(L$reg_rows[names(REGROWS)]), b = vapply(rr, function(z) z$p[1], ""), c = vapply(rr, function(z) z$p[2], ""), stringsAsFactors = FALSE, check.names = FALSE)
   names(df) <- tx("A6.table.head")
-  TY <- BY + BH + 0.06
-  deck_table(df, box = c(XL, TY, WL, GEO$BODY_BOTTOM - TY), widths = c(2.75, 2.2, 2.2), size = 12, label = "table_prereg")
+  LY <- BY + BH + 0.06
+  deck_text(tx("A6.reg_label", list(yr = yr)), c(XL, LY, WL, 0.4), size = 16, bold = TRUE, color = PAL$ink2, label = "label_reg", gap_pt = 0)
+  TY <- LY + 0.4
+  deck_table(df, box = c(XL, TY, WL, GEO$BODY_BOTTOM - TY), widths = c(3.0, 2.3, 2.3), size = 12, label = "table_prereg")
 
   # ---- 오른쪽: 재현 워크플로 카드, 추적 규모 카드 ----
   XR <- XL + WL + 0.3; WR <- GEO$W - GEO$MR - XR
-  gap <- 0.14; CH1 <- 2.45
+  gap <- 0.16; CH1 <- 2.62
   deck_stat(g$pg, tx("A6.card_repro", g), c(XR, GEO$BODY_TOP, WR, CH1), color = PAL$blue, bg = PAL$tint_blue)
   deck_stat(tr_val, tr_lab, c(XR, GEO$BODY_TOP + CH1 + gap, WR, GEO$BODY_BOTTOM - GEO$BODY_TOP - CH1 - gap), color = PAL$ink2, bg = PAL$tint_grey)
 
@@ -143,7 +174,7 @@ slide_A6 <- function() {
   cntp <- function(rx, it) dderived(it, PR, sprintf("count(grepl('%s', Status))", rx), sum(grepl(rx, st$Status)), as.character(sum(grepl(rx, st$Status))))
   n_ps <- sum(grepl("^pre-specified", st$Status)); n_pr <- sum(grepl("^pre-registered", st$Status)); n_ph <- sum(grepl("post hoc", st$Status))
   premise(sum(grepl("^pre-specified", st$Status) | grepl("^pre-registered", st$Status) | grepl("post hoc", st$Status)) == n_ps + n_pr + n_ph, "status groups do not overlap")
-  deck_notes(tx("A6.notes", c(f, g, list(tr = tr_note,
+  deck_notes(tx("A6.notes", c(f, g, list(tr = tr_note, s5a = s5$a$p, s5b = s5$b$p, yr = yr,
     nreg = dcount(PR, "TRUE", "rows of the pre-specification register"),
     nps = cntp("^pre-specified", "register rows pre-specified"), npr = cntp("^pre-registered", "register rows pre-registered"), nph = cntp("post hoc", "register rows post hoc"),
     noth = dderived("register rows with other statuses (changes, amendments, decisions)", PR, "count of rows not matching ^pre-specified, ^pre-registered or post hoc", nrow(st) - n_ps - n_pr - n_ph, as.character(nrow(st) - n_ps - n_pr - n_ph)),

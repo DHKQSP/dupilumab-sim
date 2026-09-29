@@ -49,17 +49,17 @@ slide_A1 <- function() {
   deck_kicker(tx("A1.kicker")); premise(as.numeric(.read("config/trial_design.yaml")$dose_mg) == 300, "study dose equals the 300 mg literature rows")
   deck_title(tx("A1.title", list(tol = tol$p, dose = f_dose(), d600 = dint(LN, W$c600, "dose_mg", "dose of the lower-coverage literature row (mg)"))))
   # 해석 열은 한 줄(일치 기준은 머리글에), 차이 계산 방식과 보수적 방향의 이유는 표 아래 설명에 둔다. 강조 행 없음(색만으로 뜻을 나타내지 않는다)
-  th <- 2.78
-  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, th), widths = c(2.75, 1.2, 1.75, 1.75, 4.78), size = 13, align_num = TRUE)
-  yc <- GEO$BODY_TOP + th + 0.1; hc <- 0.72
+  th <- 2.8
+  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, th), widths = c(2.95, 1.12, 1.78, 1.78, 4.6), size = 13, align_num = TRUE)
+  yc <- GEO$BODY_TOP + th + 0.08; hc <- 0.42
   deck_text(tx("A1.caption"), c(GEO$ML, yc, GEO$CW, hc), size = 16, color = PAL$ink2, label = "caption_lowerbound", gap_pt = 0)
   # 정성 서술(프로젝트 문헌 발췌표 literature_qualitative.csv; 보고서 1.1절)
   dsrc("qualitative statements of the originator literature", "literature/literature_qualitative.csv", "(table)")
-  yq <- yc + hc + 0.12; hq <- GEO$BODY_BOTTOM - yq; wq <- (GEO$CW - 0.3) / 2
-  deck_text(tx("A1.qual_label"), c(GEO$ML, yq, GEO$CW, 0.42), size = 16, bold = TRUE, color = PAL$ink2, label = "label_qual", gap_pt = 0)
-  q <- tx("A1.qual")
-  deck_bullets(q[1:3], c(GEO$ML, yq + 0.42, wq, hq - 0.42), size = 16, gap_pt = 4, label = "qual_left")
-  deck_bullets(q[4:5], c(GEO$ML + wq + 0.3, yq + 0.42, wq, hq - 0.42), size = 16, gap_pt = 4, label = "qual_right")
+  yq <- yc + hc + 0.1; hq <- GEO$BODY_BOTTOM - yq; wq <- (GEO$CW - 0.3) / 2
+  deck_text(tx("A1.qual_label"), c(GEO$ML, yq, GEO$CW, 0.4), size = 16, bold = TRUE, color = PAL$ink2, label = "label_qual", gap_pt = 0)
+  q <- tx("A1.qual")   # 왼쪽 두 개(각 두 줄), 오른쪽 세 개(두 줄 + 한 줄 + 한 줄)로 두 단의 높이를 맞춘다
+  deck_bullets(q[1:2], c(GEO$ML, yq + 0.4, wq, hq - 0.4), size = 16, gap_pt = 4, label = "qual_left")
+  deck_bullets(q[3:5], c(GEO$ML + wq + 0.3, yq + 0.4, wq, hq - 0.4), size = 16, gap_pt = 4, label = "qual_right")
   deck_notes(tx("A1.notes", list(
     tol = tol$p,
     n16 = dv(G16, "grepl('Clot', source) & dose_mg==300", "mean_ratio_nca_reliable", 1, "%", "Clot 300 mg, simulated NCA mean ratio in subjects meeting the criteria, 2016", scale = 100),

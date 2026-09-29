@@ -1,4 +1,5 @@
-# S08 논리 구조 도식: 전제(말기 절벽) → ① → ② → ③ → 결론. 둥근 사각형 다섯 개와 오른쪽 화살표, 단계마다 대표 수치 하나(headline).
+# S08 논리 구조 도식: 전제(말단 절벽) → 논거 ①, ②, ③(병렬, 세 줄) → 결론. 왼쪽 전제 카드, 가운데 논거 세 줄, 오른쪽 결론 카드, 화살표는 전제에서 각 논거로, 각 논거에서 결론으로.
+# 단계마다 대표 수치 하나(headline).
 # 시험 모집단(건강인, 체중 층화, B0)만. 주분석 M1, M0은 노트에 병기.
 # 글자 없는 도형: deck_box는 8pt 자리 글자를 넣어 검사 6(글자 크기)에 걸리므로 16pt 빈 글상자로 그린다
 s08_panel <- function(box, fill, geom = "roundRect", label = "panel") deck_text(" ", box, size = 16, bg = fill, geom = geom, label = label)
@@ -35,6 +36,8 @@ slide_S08 <- function() {
   premise(all(rows(TCH, "set=='i'")$true_aucinf_gmr_hi < 1), "failing subjects have a lower true AUC0-inf (text: not random)")
   premise(sum(rows(CGf, "analysis_model=='M1' & config=='G2_A_i'")$pass_pct > 5) > sum(rows(CGf, "analysis_model=='M1' & config=='G2_C_i'")$pass_pct > 5),
           "rule A (i) exceeds 5% in more boundary cells than rule C (i) under M1 (text: decision depends on the rule)")
+  cpt <- rows(CGf, "analysis_model=='M1' & config=='G2_C_i' & pass_pct > 5"); premise(nrow(cpt) >= 1 && all(cpt$class == "nominal"), "rule C (i) cells above 5% (point) are Wilson-nominal under M1 (caption)")
+  premise(all(rows(CGf, "analysis_model=='M1' & config=='G2_A_i' & class=='exceeding'")$pass_pct > 5), "Wilson-exceeding cells are a subset of point-exceeding cells (caption: of which)")
   p2 <- rows(T1f, "analysis_model=='M1' & config=='P2'"); premise(nrow(p2) == 16 && sum(p2$class == "exceeding") == 1, "one exceeding P2 cell under M1 (caption)")
   pm <- p2[which.max(pass_pct)]; premise(pm$pk_model == "k2020" && pm$scenario == "V2_up_080", "the exceeding P2 cell under M1 is the 2020 model V2 up (notes)")
 
@@ -44,6 +47,8 @@ slide_S08 <- function() {
     iii = headline(drange(TPF, "set=='iii'", "fail_pct", 1, "%", "trial population, set (iii) failing, two models")),
     i = drange(TPF, "set=='i'", "fail_pct", 1, "%", "trial population, set (i) failing, two models"),
     a = headline(dcount(CGf, "analysis_model=='M1' & config=='G2_A_i' & pass_pct > 5", "M1 G2_A_i cells above 5% (point)")),
+    aw = dcount(CGf, "analysis_model=='M1' & config=='G2_A_i' & class=='exceeding'", "M1 G2_A_i cells exceeding (Wilson lower bound above 5%)"),
+    gmr = drange(TCH, "set=='i'", "true_aucinf_gmr", 3, "", "true AUC0-inf ratio failing to retained, set (i)"),
     ncell = dcount(CGf, "analysis_model=='M1' & config=='G2_A_i'", "boundary cells per configuration (M1)"),
     c = dcount(CGf, "analysis_model=='M1' & config=='G2_C_i' & pass_pct > 5", "M1 G2_C_i cells above 5% (point)"),
     cov = headline(drange(TCV, MW, "median", 1, "%", "window coverage, median, two models", scale = 100)),
@@ -53,26 +58,51 @@ slide_S08 <- function() {
     n_exc = dcount(T1f, "analysis_model=='M1' & config=='P2' & class=='exceeding'", "M1 P2 cells classified exceeding"),
     p2max = dv(T1f, "analysis_model=='M1' & config=='P2' & pk_model=='k2020' & scenario=='V2_up_080'", "pass_pct", 2, "%", "M1 P2 maximum"))
 
-  # 도식: 상자 다섯 개 + 화살표 네 개
-  steps <- c("premise", "a1", "a2", "a3", "concl")
-  fills <- c(PAL$tint_grey, PAL$tint_blue, PAL$tint_blue, PAL$tint_blue, PAL$tint_orange)
-  cols <- c(PAL$ink2, PAL$blue, PAL$blue, PAL$blue, PAL$orange)
-  aw <- 0.26; ag <- 0.04; bw <- (GEO$CW - 4 * (aw + 2 * ag)) / 5; y <- GEO$BODY_TOP + 0.08; bh <- GEO$BODY_BOTTOM - y - 0.12
-  for (k in seq_along(steps)) {
-    s_ <- steps[k]; x <- GEO$ML + (k - 1) * (bw + aw + 2 * ag); xi <- x; wi <- bw
-    s08_panel(c(x, y, bw, bh), fills[k], "roundRect", sprintf("box_%s", s_))
-    deck_text(tx(sprintf("S08.steps.%s.label", s_)), c(xi, y + 0.1, wi, 0.42), size = 18, bold = TRUE, color = cols[k], label = sprintf("step_%s", s_))
-    deck_text(tx(sprintf("S08.steps.%s.claim", s_), f), c(xi, y + 0.52, wi, 1.95), size = 16, label = sprintf("claim_%s", s_))
-    deck_text(tx(sprintf("S08.steps.%s.value", s_), f), c(xi, y + 2.5, wi, 0.52), size = 22, bold = TRUE, color = cols[k], label = sprintf("value_%s", s_))
-    deck_text(tx(sprintf("S08.steps.%s.caption", s_), f), c(xi, y + 3.08, wi, 1.2), size = 16, color = PAL$ink2, label = sprintf("caption_%s", s_))
-    deck_text(tx(sprintf("S08.steps.%s.ref", s_)), c(xi, y + bh - 0.47, wi, 0.4), size = 16, color = PAL$muted, label = sprintf("ref_%s", s_))
-    if (k < length(steps)) s08_panel(c(x + bw + ag, y + bh / 2 - 0.25, aw, 0.5), PAL$muted, "rightArrow", sprintf("arrow_%d", k))
+  # 도식: 왼쪽 전제 카드 -> 가운데 논거 세 줄(서로 병렬) -> 오른쪽 결론 카드. 화살표는 전제와 각 논거, 각 논거와 결론 사이
+  y <- GEO$BODY_TOP + 0.05; bh <- GEO$BODY_BOTTOM - y - 0.04
+  swl <- 2.1; swr <- 2.5; aw <- 0.26; ag <- 0.05; slot <- aw + 2 * ag; ins <- 0.06          # 겹친 글상자는 카드 안쪽으로 ins만큼 들여 좌우 여백을 맞춘다
+  mx <- GEO$ML + swl + slot; mw <- GEO$CW - swl - swr - 2 * slot; xc <- mx + mw + slot
+  T_ <- function(s_, k) tx(sprintf("S08.steps.%s.%s", s_, k), f)
+  # 양쪽 카드: 라벨, 주장, 수치, 설명, 근거 슬라이드(아래)
+  xi_ <- function(x) x + ins
+  hh <- function(s_, k, wi) est_height(vapply(T_(s_, k), nobreak, ""), wi, 16)
+  y1 <- y + 0.08; y2 <- y1 + 0.46
+  side <- function(s_, x, sw, fillc, col) {
+    s08_panel(c(x, y, sw, bh), fillc, "roundRect", sprintf("box_%s", s_)); wi <- sw - 2 * ins
+    hcl <- hh(s_, "claim", wi); hcap <- hh(s_, "caption", wi); hr <- hh(s_, "ref", wi); yr <- y + bh - hr - 0.04; y3 <- y2 + hcl + 0.02; y4 <- y3 + 0.5
+    premise(y4 + hcap <= yr + 0.02, sprintf("S08 %s card: caption above the slide reference", s_))
+    deck_text(T_(s_, "label"), c(xi_(x), y1, wi, 0.42), size = 18, bold = TRUE, color = col, label = sprintf("step_%s", s_))
+    deck_text(T_(s_, "claim"), c(xi_(x), y2, wi, hcl), size = 16, label = sprintf("claim_%s", s_))
+    deck_text(T_(s_, "value"), c(xi_(x), y3, wi, 0.5), size = 22, bold = TRUE, color = col, label = sprintf("value_%s", s_))
+    deck_text(T_(s_, "caption"), c(xi_(x), y4, wi, hcap), size = 16, color = PAL$ink2, label = sprintf("caption_%s", s_))
+    deck_text(T_(s_, "ref"), c(xi_(x), yr, wi, hr), size = 16, color = PAL$muted, label = sprintf("ref_%s", s_))
+  }
+  side("premise", GEO$ML, swl, PAL$tint_grey, PAL$ink2)
+  side("concl", xc, swr, PAL$tint_orange, PAL$orange)
+  # 논거 세 줄: 왼쪽 글(라벨 + 주장, 그 아래 수치 설명), 오른쪽 수치와 근거 슬라이드. 줄 높이는 글 양에 맞추고 남는 높이는 고르게 나눈다
+  args_ <- c("a1", "a2", "a3"); vw <- 2.05; lw <- mw - vw - 3 * ins; gp <- 0.1
+  cl <- vapply(args_, function(s_) sprintf("__%s__ %s", T_(s_, "label"), T_(s_, "claim")), "")
+  hcl <- vapply(cl, function(z) est_height(nobreak(z), lw, 16), 0); hcap <- vapply(args_, function(s_) est_height(nobreak(T_(s_, "caption")), lw, 16), 0)
+  need <- pmax(hcl + hcap, 0.52 + 0.42) + 0.12; free <- bh - 2 * gp - sum(need)
+  premise(free >= 0, "S08 argument rows fit the body height")
+  rh <- need + free / 3; ry <- y + c(0, cumsum(rh + gp))[1:3]
+  for (k in 1:3) {
+    s_ <- args_[k]; yy <- ry[k]; off <- (rh[k] - hcl[k] - hcap[k]) / 2
+    s08_panel(c(mx, yy, mw, rh[k]), PAL$tint_blue, "roundRect", sprintf("box_%s", s_))
+    deck_text(cl[k], c(mx + ins, yy + off, lw, hcl[k]), size = 16, label = sprintf("claim_%s", s_))
+    deck_text(T_(s_, "caption"), c(mx + ins, yy + off + hcl[k], lw, hcap[k]), size = 16, color = PAL$ink2, label = sprintf("caption_%s", s_))
+    vo <- (rh[k] - 0.94) / 2; xv <- mx + mw - vw - ins
+    deck_text(T_(s_, "value"), c(xv, yy + vo, vw, 0.5), size = 22, bold = TRUE, color = PAL$blue, label = sprintf("value_%s", s_))
+    deck_text(T_(s_, "ref"), c(xv, yy + vo + 0.52, vw, 0.42), size = 16, color = PAL$muted, label = sprintf("ref_%s", s_))
+    yc <- yy + rh[k] / 2 - 0.21
+    s08_panel(c(GEO$ML + swl + ag, yc, aw, 0.42), PAL$muted, "rightArrow", sprintf("arrow_in_%d", k))
+    s08_panel(c(mx + mw + ag, yc, aw, 0.42), PAL$muted, "rightArrow", sprintf("arrow_out_%d", k))
   }
 
   deck_notes(tx("S08.notes", c(f, list(
     cst = drange(CS, CB, "c_start1_median", 2, "", "cliff start concentration (mg/L), median, two models"),
     len595 = dspan(CS, CB, "len1_p05", "len1_p95", 2, "", "cliff length, 5th to 95th percentile, two models"),
-    gmr = drange(TCH, "set=='i'", "true_aucinf_gmr", 3, "", "true AUC0-inf ratio failing to retained, set (i)"),
+    cw = dcount(CGf, "analysis_model=='M1' & config=='G2_C_i' & class=='exceeding'", "M1 G2_C_i cells exceeding (Wilson lower bound above 5%)"),
     aii = dcount(CGf, "analysis_model=='M1' & config=='G2_A_ii' & pass_pct > 5", "M1 G2_A_ii cells above 5% (point)"),
     b = dcount(CGf, "analysis_model=='M1' & config=='G2_B' & pass_pct > 5", "M1 G2_B cells above 5% (point)"),
     inst = s08_inst("M1", "median"), inst0 = s08_inst("M0", "median"),

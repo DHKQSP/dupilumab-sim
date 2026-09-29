@@ -1,5 +1,5 @@
-# S24 예상 질의와 답: 예상 질의응답 문서(regulatory/src/FDA_questions.Rmd)에서 임상약리·임상개발에 가장 중요한 다섯 문항(Q1, Q7, Q19+Q11, Q4+Q3, Q12+Q17)을
-# 한국어로 줄였다. 왼쪽 질문 상자 + 오른쪽 답(2열). [문헌+모의]
+# S24 예상 질의와 답: 예상 질의응답 문서(regulatory/src/FDA_questions.Rmd)에서 임상약리·임상개발에 가장 중요한 다섯 문항(Q1, Q3+Q4, Q7, Q11+Q19, Q12+Q17)을
+# 한국어로 줄였다(문서 번호 순). 왼쪽 질문 상자 + 오른쪽 답(2열). 행 높이는 추정 글 높이에 맞추고 남는 높이를 고르게 나눈다. [문헌+모의]
 # M1 수치는 results/oc_models/type1_models.csv에서 읽는다(FDA_questions는 Q1, Q8, Q9에서 oc/g2_rules_flags.csv의 M0 수를 인쇄한다).
 S24_T1 <- "oc_models/type1_models.csv"; S24_DE <- "oc_models/p2_decomposition_models.csv"; S24_CS <- "cliff/cliff_summary.csv"; S24_CP <- "cliff/cliff_points.csv"
 s24_w <- function(am, cf, extra = "") sprintf("analysis_model=='%s' & config=='%s'%s", am, cf, extra)
@@ -35,12 +35,13 @@ slide_S24 <- function() {
   premise(nrow(sd_) > 0 && !any(sd_$recommend %in% TRUE), "the pre-specified rule recommended no added samples in either model (Q4)")
   premise(rows(CS, "model=='k2016' & weight=='base'")$lloq_studyday_median < max(unlist(.read("config/trial_design.yaml")$schedules$B0$days)) + 1, "median LLOQ day before the last B0 sample (Q3)")
 
-  f <- list(nom = f_nominal(), r2i = f_set("i", "r2"), r2iii = f_set("iii", "r2"), last = s24_last(),
+  f <- list(nom = f_nominal(), r2i = f_set("i", "r2"), r2iii = f_set("iii", "r2"), exi = f_set("i", "extrap"), exiii = f_set("iii", "extrap"), last = s24_last(),
             # Q1
             ext = dv(PC, "model=='k2016' & group=='all'", "extrap_true_median", 2, "%", "median true extrapolation, 2016 model (%)"),
             fi = drange(TPF, "set=='i'", "fail_pct", 1, "%", "trial population, set (i) failing, two models"),
             ncell = dcount(T1, s24_w("M1", "G2_Ai"), "boundary cells per configuration (M1)"),
             ga = dcount(T1, s24_w("M1", "G2_Ai", " & pass_pct > 5"), "M1 G2_Ai cells with point estimate above 5%"),
+            gal = dcount(T1, s24_w("M1", "G2_Ai", " & lo > 5"), "M1 G2_Ai cells with Wilson lower bound above 5%"),
             # Q7
             c1 = dcount(T1, s24_w("M1", "P2", " & class=='conservative'"), "M1 P2 cells classified conservative"),
             e1 = dcount(T1, s24_w("M1", "P2", " & class=='exceeding'"), "M1 P2 cells classified exceeding"),
@@ -56,7 +57,8 @@ slide_S24 <- function() {
             dd = s24_daily(),
             k3 = dderived("sample-count threshold in column name pct_ge3", CP, "column name pct_ge3 (share of subjects with 3 or more samples in the cliff)", 3, "3"),
             pct = dv(CP, S24_CPW("nominal"), "pct_ge3", 1, "%", "daily sampling, 3 or more samples on the cliff, nominal days (%)"),
-            day16 = dv(CS, "model=='k2016' & weight=='base'", "lloq_studyday_median", 1, "", "LLOQ study day median, 2016 model"),
+            pctw = dv(CP, S24_CPW("windowed"), "pct_ge3", 1, "%", "daily sampling, 3 or more samples on the cliff, windowed times (%)"),
+                    day16 = dv(CS, "model=='k2016' & weight=='base'", "lloq_studyday_median", 1, "", "LLOQ study day median, 2016 model"),
             d58 = dderived("study-day threshold in column name lloq_after_day58_pct", CS, "column name lloq_after_day58_pct (100 x mean(t_lloq + 1 > 58))", 58, "58"),
             a16 = dv(CS, "model=='k2016' & weight=='base'", "lloq_after_day58_pct", 1, "%", "above LLOQ after Day 58, 2016 model (%)"),
             # Q12, Q17
@@ -74,15 +76,19 @@ slide_S24 <- function() {
           as.numeric(.read("config/trial_design.yaml")$n_per_arm) == 117, "power rows are the protocol CV, sensitivity CV and protocol evaluable n (Q12)")
   deck_kicker(tx("S24.kicker")); deck_title(tx("S24.title", f))
 
-  # ---- 2열: 질문 상자 | 답 ----
+  # ---- 2열: 질문 상자 | 답 (행 높이 = 질문 카드와 답의 추정 높이 중 큰 값 + 남는 높이의 균등 몫) ----
   qs <- DK$txt$S24$qa; nq <- length(qs); premise(nq == 5, "five questions")
-  gap <- 0.06; y0 <- GEO$BODY_TOP; rh <- (GEO$BODY_BOTTOM - y0 - (nq - 1) * gap) / nq; qw <- 3.1; ag <- 0.2
+  gap <- 0.06; y0 <- GEO$BODY_TOP; qw <- 3.05; ag <- 0.18; aw <- GEO$CW - qw - ag
+  qt <- vapply(seq_len(nq), function(i) sprintf("__%s__  %s", qs[[i]]$id, fill(qs[[i]]$q, f, sprintf("S24.qa.%d.q", i))), "")
+  at <- vapply(seq_len(nq), function(i) fill(qs[[i]]$a, f, sprintf("S24.qa.%d.a", i)), "")
+  rh <- pmax(vapply(qt, function(s) est_height(s, qw, 16, 0, card = TRUE), 0), vapply(at, function(s) est_height(s, aw, 16, 0), 0))
+  rh <- rh + max(0, (GEO$BODY_BOTTOM - y0 - (nq - 1) * gap - sum(rh)) / nq)
+  y <- y0 + c(0, cumsum(rh + gap))[seq_len(nq)]
   for (i in seq_len(nq)) {
-    y <- y0 + (i - 1) * (rh + gap); q <- qs[[i]]
-    deck_text(sprintf("__%s__  %s", q$id, fill(q$q, f, sprintf("S24.qa.%d.q", i))), c(GEO$ML, y, qw, rh), size = 16, bold = FALSE, bg = PAL$tint_blue, geom = "roundRect",
-              label = sprintf("q%d", i), gap_pt = 0)
-    deck_text(fill(q$a, f, sprintf("S24.qa.%d.a", i)), c(GEO$ML + qw + ag, y, GEO$CW - qw - ag, rh), size = 16, label = sprintf("a%d", i), gap_pt = 0)
+    deck_text(qt[i], c(GEO$ML, y[i], qw, rh[i]), size = 16, bold = FALSE, bg = PAL$tint_blue, geom = "roundRect", label = sprintf("q%d", i), gap_pt = 0)
+    deck_text(at[i], c(GEO$ML + qw + ag, y[i], aw, rh[i]), size = 16, label = sprintf("a%d", i), gap_pt = 0)
   }
+  premise(y[nq] + rh[nq] <= GEO$BODY_BOTTOM + 0.05, "question rows end inside the body area")
 
   # ---- 노트 ----
   EXf <- "oc_models/extension_decision_models.csv"; PW <- "oc_models/power_models.csv"; PCf <- "oc_models/type1_paired_change.csv"; NN <- "sample_size/ss_table_n_needed.csv"
@@ -104,7 +110,6 @@ slide_S24 <- function() {
     fiv = drange(TPF, "set=='iv'", "fail_pct", 1, "%", "trial population, set (iv) failing, two models"),
     day20 = dv(CS, "model=='k2020' & weight=='base'", "lloq_studyday_median", 1, "", "LLOQ study day median, 2020 model"),
     a20 = dv(CS, "model=='k2020' & weight=='base'", "lloq_after_day58_pct", 1, "%", "above LLOQ after Day 58, 2020 model (%)"),
-    pctw = dv(CP, S24_CPW("windowed"), "pct_ge3", 1, "%", "daily sampling, 3 or more samples on the cliff, windowed times (%)"),
     p50m0 = dv(TP, "input_model=='k2016' & cv==50 & gmr==0.95 & n==117 & analysis_model=='M0'", "analytic_pct", 1, "%", "power n117 CV 50 M0"),
     tg = dint(NN, "cv==43 & gmr==0.95 & analysis_model=='M1' & target_pct==90", "target_pct", "target power (%)"),
     nb1 = nn_(43, "M1"), nb0 = nn_(43, "M0"), ns1 = nn_(50, "M1"), ns0 = nn_(50, "M0"),

@@ -53,8 +53,8 @@ slide_S06 <- function() {
   }
   m <- do.call(rbind, lapply(names(ds), one)); df <- as.data.frame(m, stringsAsFactors = FALSE); names(df) <- unlist(DK$txt$S06$table$head)
   yb <- y0 + hc + 0.25; hb <- GEO$BODY_BOTTOM - yb; tw <- 7.6
-  th <- 1.36   # 머리글 한 줄 + 3행(LibreOffice는 행 높이를 가장 높은 행에 맞추므로 머리글을 한 줄로 둔다)
-  deck_table(df, box = c(GEO$ML, yb, tw, th), widths = c(2.85, 0.85, 1.3, 1.2, 1.4), size = 13)
+  th <- 1.45   # 머리글 한 줄 + 3행(LibreOffice는 행 높이를 가장 높은 행에 맞추므로 머리글을 한 줄로 둔다)
+  deck_table(df, box = c(GEO$ML, yb, tw, th), widths = c(3.0, 0.8, 1.3, 1.2, 1.3), size = 13)
   deck_text(DK$txt$S06$table$caption, c(GEO$ML, yb + th + 0.06, tw, 0.4), size = 16, color = PAL$ink2, label = "table_note")
 
   # ---- 사전 등록 상자 ----

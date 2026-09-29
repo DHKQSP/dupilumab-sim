@@ -26,7 +26,7 @@ slide_A5 <- function() {
   acf <- rows(ACF, "distribution=='primary' & set=='iii'"); premise(nrow(acf) == 3, "three model variants in the coverage file")
   z <- paste0(dderived("smallest coverage of the true AUC0-inf by the sampling window in patients failing criteria set (iii), three model variants, rounded down to 0.1 (%)", ACF,
                        "distribution=='primary' & set=='iii' :: floor(1000 * min(window_fail_min)) / 10", 100 * min(acf$window_fail_min), fnum(floor(1000 * min(acf$window_fail_min)) / 10, 1)), "%")
-  deck_kicker(tx("A5.kicker")); deck_title(tx("A5.title", list(z = z)))
+  deck_kicker(tx("A5.kicker")); deck_title(tx("A5.title", list(z = z)), box = c(GEO$ML, GEO$TITLE_TOP, 8.6, GEO$TITLE_H))   # 두 절이 한 줄씩(쉼표 뒤에서 줄바꿈), 오른쪽 위 태그와 떨어지게
 
   # ---- 근거 아님 표시 ----
   wt <- f_wt_range()
@@ -42,18 +42,25 @@ slide_A5 <- function() {
   st <- match(c("60-75", "75-90"), ord); premise(!anyNA(st) && diff(st) == 1, "study-range bands 60-75 and 75-90 are adjacent")
   lab <- d[x %in% c(1, length(ord))]
   F <- L$fig
+  # 모델 개발 자료 범위 밖일 수 있는 구간(dev_range_note가 있는 구간): 점선과 표시 문구
+  fl <- wb[model == "a" & dev_range_note != ""]; premise(nrow(fl) == 1 && lo_of(fl$band) == 130 && fl$band == ord[length(ord)], "only the heaviest band (from 130 kg) is flagged as possibly outside the model development data")
+  premise(all(wb[model == "b" & dev_range_note != "", band] == fl$band), "the same band is flagged for the 2020 model")
+  k130 <- dderived("lower bound of the weight band flagged as possibly outside the model development data (kg)", WB, "model=='a' & dev_range_note != '' :: lower bound of band", lo_of(fl$band), fnum(lo_of(fl$band), 0))
+  xf <- match(fl$band, ord)
   p <- ggplot(d, aes(x = x, y = y, colour = mlab, shape = mlab, linetype = mlab)) +
     annotate("rect", xmin = min(st) - 0.5, xmax = max(st) + 0.5, ymin = -Inf, ymax = Inf, fill = PAL$tint_grey) +
     annotate("text", x = mean(st), y = 61, label = fill(F$study, list(wt = wt)), family = FONT, size = 4.2, colour = PAL$ink2, vjust = 0) +
+    annotate("segment", x = xf - 0.5, xend = xf - 0.5, y = 60, yend = 102, colour = PAL$muted, linewidth = 0.5, linetype = "dotted") +
+    annotate("text", x = xf - 0.42, y = 101, label = fill(F$extrap, list(k = k130)), family = FONT, size = 3.9, colour = PAL$ink2, hjust = 0, vjust = 1, lineheight = 0.95) +
     geom_line(linewidth = 0.9) + geom_point(size = 3) +
     geom_text(data = lab, aes(label = fnum(y, 1)), vjust = ifelse(lab$pk == "k2016", 1.9, -1.0), size = 4.3, family = FONT, show.legend = FALSE) +
     scale_colour_manual(values = unname(MODEL_COL)) + scale_shape_manual(values = unname(MODEL_SHAPE)) + scale_linetype_manual(values = unname(MODEL_LT)) +
-    scale_x_continuous(breaks = seq_along(ord), labels = xl, expand = expansion(add = 0.35)) +
-    scale_y_continuous(limits = c(60, 100), breaks = seq(60, 100, 10), expand = expansion(mult = c(0, 0))) +
+    scale_x_continuous(breaks = seq_along(ord), labels = xl, expand = expansion(add = c(0.35, 0.75))) +   # 오른쪽: 외삽 표시 문구 자리
+    scale_y_continuous(limits = c(60, 102), breaks = seq(60, 90, 10), expand = expansion(mult = c(0, 0))) +   # 100 눈금선 없음: 첫 구간 값 표시(2020 모델)가 눈금선에 걸리지 않게
     labs(x = F$xlab, y = NULL, subtitle = F$ylab) + theme_deck(13) +
     theme(legend.position = "top", legend.justification = "left", legend.key.width = grid::unit(2.2, "lines"), legend.margin = margin(0, 0, 0, 0),
           legend.box.spacing = grid::unit(2, "pt"), panel.grid.major.x = element_blank(), plot.subtitle = element_text(colour = PAL$ink2, size = 13, margin = margin(0, 0, 2, 0)))
-  FH <- 2.6
+  FH <- 2.5
   deck_figure(p, "a5_reliability_by_weight_band", c(XL, Y0, WL, FH), src = WB)
   # 그림 값의 추적(끝 구간 값)
   hi <- dv(WB, sprintf("model=='a' & band=='%s'", ord[1]), "reliable_rsq_extrap_pct", 1, "%", "weight bands, 2016 model, reliable under set (i), lightest band")
@@ -75,6 +82,10 @@ slide_A5 <- function() {
   dw <- dderived("dropouts heavier than retained subjects (kg)", "weight_generalization/obese_trials_dropout_a.csv", "range of wt_dropout_mean - wt_retained_mean over models a, b, d", dwr,
                  rng_fmt(dwr[1], dwr[2], 1))
   YB <- Y0 + FH + 0.08
+  # 탈락자 = 엔진의 기본 신뢰 표시(reliable)를 못 넘은 대상자(R/summarize.R summarize_dropout). 엔진 표시는 세트 (ii)와 같다(config/nca_rules.yaml)
+  nr_ <- .read("config/nca_rules.yaml")$standard$reliability; cs_ <- .read("config/prereg_20260926.yaml")$section4$criteria_sets$ii
+  premise(nr_$adj_r2_min == cs_$adj_r2_min && nr_$extrap_max_pct == cs_$extrap_max_pct && nr_$span_ratio_min == cs_$span_ratio_min, "engine reliability flag used for the dropout comparison equals criteria set (ii)")
+  premise(setequal(unique(od$model), c("a", "b", "d")), "dropout comparison covers the three model variants (a, b, d)")
   deck_bullets(tx("A5.bullets", list(brng = brng, hi = hi, lo = lo, wmed = wmed, thr = thr, wcov = wcov, dw = dw)),
                box = c(XL, YB, WL, GEO$BODY_BOTTOM - YB), size = 16, gap_pt = 4)
 
@@ -85,29 +96,30 @@ slide_A5 <- function() {
   atr <- function(s_) drange(ABN, sprintf("distribution=='primary' & band=='all' & set=='%s'", s_), "fail_pct", 1, "%", sprintf("atopic, three variants, set %s, band all, fail_pct", s_))
   AWS <- "distribution=='primary' & source=='simulated (20,000 subjects)'"
   aw <- function(col, it) dv(AW, AWS, col, 1, "%", sprintf("primary weight distribution, simulated, %s", it))
+  wtr <- as.numeric(unlist(.read("config/trial_design.yaml")$weight$inclusion_kg))
+  k60 <- dderived("weight threshold in column name below_60 (kg)", AW, "column name below_60", 60, "60"); k90 <- dderived("weight threshold in column name above_90 (kg)", AW, "column name above_90", 90, "90")
+  premise(all(c("below_60", "above_90", "outside_60_90") %in% names(rows(AW))) && identical(wtr, c(60, 90)), "column thresholds below_60 / above_90 are the study weight range")
   pa <- .read("config/population_atopic.yaml")$distributions$primary
   premise(identical(pa$dist, "lognormal") && identical(.read("config/population_atopic.yaml")$status, "assumption"), "atopic weight distribution is a lognormal placeholder (status assumption)")
   cards <- list(
-    list(v = sprintf("%s / %s", at("i"), at("iii")), l = tx("A5.card_fail", list(ri = atr("i"), riii = atr("iii"))), col = PAL$orange, bg = PAL$tint_orange),
+    list(v = sprintf("%s / %s", at("i"), at("iii")), l = tx("A5.card_fail", list(ri = atr("i"), riii = atr("iii"))), col = PAL$blue, bg = PAL$tint_blue),   # 2016 모델 값: 그림의 2016 모델 색
     list(v = paste0("≥ ", z), l = tx("A5.card_cov", list(med = drange(ACF, "distribution=='primary' & set=='iii'", "window_fail_median", 1, "%", "patients failing set iii: window_fail_median x 100, three variants", scale = 100))),
-         col = PAL$blue, bg = PAL$tint_blue),
+         col = PAL$ink, bg = PAL$tint_grey),   # 세 모델 변형의 최솟값: 모델 색 없음
     list(v = aw("outside_60_90", "share outside 60 to 90 kg"),
-         l = tx("A5.card_wt", list(wt = wt, b60 = aw("below_60", "share below 60 kg"), a90 = aw("above_90", "share above 90 kg"),
+         l = tx("A5.card_wt", list(wt = wt, k60 = k60, k90 = k90, b60 = aw("below_60", "share below 60 kg"), a90 = aw("above_90", "share above 90 kg"),
                                    m = dcfg("population_atopic.yaml", c("distributions", "primary", "mean"), "atopic placeholder distribution, mean (kg)", num_fmt(0)),
                                    s = dcfg("population_atopic.yaml", c("distributions", "primary", "sd"), "atopic placeholder distribution, SD (kg)", num_fmt(0)))),
          col = PAL$ink2, bg = PAL$tint_grey))
-  cy <- Y0 + 0.44; gap <- 0.1; chh <- (GEO$BODY_BOTTOM - cy - 2 * gap) / 3
-  for (k in seq_along(cards)) deck_stat(cards[[k]]$v, cards[[k]]$l, c(XR, cy + (k - 1) * (chh + gap), WR, chh), color = cards[[k]]$col, bg = cards[[k]]$bg, value_size = 30)
+  cy <- Y0 + 0.4; gap <- 0.07; chh <- (GEO$BODY_BOTTOM - cy - 2 * gap) / 3
+  for (k in seq_along(cards)) deck_stat(cards[[k]]$v, cards[[k]]$l, c(XR, cy + (k - 1) * (chh + gap), WR, chh), color = cards[[k]]$col, bg = cards[[k]]$bg, value_size = 26)
 
   # ---- 노트 ----
   p130 <- local({ x <- pa; sl <- sqrt(log(1 + (x$sd / x$mean)^2)); ml <- log(x$mean) - sl^2 / 2; tr <- as.numeric(unlist(x$trunc))
-    pp <- 100 * (plnorm(tr[2], ml, sl) - plnorm(130, ml, sl)) / (plnorm(tr[2], ml, sl) - plnorm(tr[1], ml, sl))
-    dderived("share of the primary distribution above 130 kg (analytic, truncated)", "config/population_atopic.yaml", "distributions.primary :: lognormal share above 130 kg within the truncation", pp, fnum(pp, 1)) })
-  fl <- wa[dev_range_note != ""]; premise(nrow(fl) == 1 && lo_of(fl$band) == 130, "only the heaviest band (from 130 kg) is flagged as possibly outside the model development data")
-  k130 <- dderived("lower bound of the weight band flagged as possibly outside the model development data (kg)", WB, "model=='a' & dev_range_note != '' :: lower bound of band", 130, "130")
+    kb <- lo_of(fl$band); pp <- 100 * (plnorm(tr[2], ml, sl) - plnorm(kb, ml, sl)) / (plnorm(tr[2], ml, sl) - plnorm(tr[1], ml, sl))
+    dderived(sprintf("share of the primary distribution above %s kg (analytic, truncated)", kb), "config/population_atopic.yaml", sprintf("distributions.primary :: lognormal share above %s kg within the truncation", kb), pp, fnum(pp, 1)) })
   bias <- function(ep) drange(AB, sprintf("analysis_model=='M0' & endpoint=='%s'", ep), "bias_pct", 2, "%", sprintf("atopic trials, bias of %s GMR, M0", ep))
   deck_notes(tx("A5.notes", list(
-    wt = wt, hi20 = hi20, lo20 = lo20, p130 = p130, k130 = k130, nb = nb,
+    wt = wt, hi20 = hi20, lo20 = lo20, p130 = p130, k130 = k130, nb = nb, k60 = k60, thr = thr, wcov = wcov, dw = dw,
     tr = dcfg("population_atopic.yaml", c("distributions", "primary", "trunc"), "atopic placeholder distribution, truncation (kg)", function(x) rng_fmt(x[1], x[2], 0)),
     a100 = aw("above_100", "share above 100 kg"),
     k100 = dderived("weight threshold in column name above_100 (kg)", AW, "column name above_100", 100, "100"),

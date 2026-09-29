@@ -68,14 +68,14 @@ slide_A4 <- function() {
   deck_text(tx("A4.rules_label"), c(XL, GEO$BODY_TOP, WL, 0.4), size = 16, bold = TRUE, color = PAL$ink2, label = "label_rules", gap_pt = 0)
   mp <- dcfg(NR, c("standard", "lambda_z", "min_points"), "lambda-z minimum points", num_fmt(0))
   tol <- dcfg(NR, c("standard", "lambda_z", "tie_tolerance"), "lambda-z adjusted R-squared tie tolerance", num_fmt(4))
-  BH <- 3.05
+  BH <- 2.95
   z0 <- dderived("BLQ before the first quantifiable value is set to zero", file.path("config", NR), "standard.blq.pre_first_quant == 'zero'", nr$blq$pre_first_quant, "0")
-  deck_bullets(tx("A4.rules", list(mp = mp, tol = tol, z = z0)), box = c(XL, GEO$BODY_TOP + 0.42, WL, BH), size = 16, gap_pt = 5)
+  deck_bullets(tx("A4.rules", list(mp = mp, tol = tol, z = z0)), box = c(XL, GEO$BODY_TOP + 0.42, WL, BH), size = 16, gap_pt = 4)
 
   ev <- rows(EV); premise(nrow(ev) == 9 && all(ev$pass) && all(ev$lz_points_mismatch == 0) && all(ev$na_mismatch == 0), "every NCA engine comparison passed (9 rows)")
   lz_i <- sum(ev$lz_points_identical); lz_t <- sum(ev$lz_points_identical + ev$lz_points_mismatch)
   lz <- dderived("lambda-z windows identical over all comparisons", EV, "sum(lz_points_identical) / sum(lz_points_identical + lz_points_mismatch)", c(lz_i, lz_t), sprintf("%s/%s", fint(lz_i), fint(lz_t)))
-  mx <- max(ev$max_rel_diff); mxp <- dderived("largest relative parameter difference", EV, "max(max_rel_diff)", mx, a4_sci(mx))
+  mx <- max(ev$max_rel_diff); mxp <- dderived("largest relative parameter difference (scientific notation)", EV, "max(max_rel_diff) :: printed as mantissa x 10^exponent", mx, a4_sci(mx))   # 보고서는 e-NN 꼴(검사 8은 같은 위치자끼리 인쇄 형식을 비교하므로 표기 방식을 위치자에 적는다)
   WSIM <- "comparison=='this engine vs NonCompart' & dataset=='simulated dupilumab (1,000 profiles: 500 per model)'"
   WTH <- "comparison=='this engine vs NonCompart' & dataset=='Theoph (12 profiles)'"
   WIN <- "comparison=='this engine vs NonCompart' & dataset=='Indometh (6 profiles, extravascular rules)'"
@@ -96,12 +96,12 @@ slide_A4 <- function() {
   XR <- XL + WL + 0.3; WR <- GEO$W - GEO$MR - XR
   deck_text(tx("A4.sets_label"), c(XR, GEO$BODY_TOP, WR, 0.4), size = 16, bold = TRUE, color = PAL$ink2, label = "label_sets", gap_pt = 0)
   sets <- c("i", "ii", "iii", "iv")
-  sp <- function(s_) if (s_ %in% c("ii", "iv")) f_set(s_, "span") else L$none
+  sp <- function(s_) if (s_ %in% c("ii", "iv")) fill(L$span, list(x = f_set(s_, "span"))) else L$none   # span = λz 창 길이 / 반감기(반감기 배수)
   df <- data.frame(a = unlist(DK$txt$common$sets[sets]), b = vapply(sets, f_set, "", what = "r2"), c = vapply(sets, function(s_) paste0(f_set(s_, "extrap"), "%"), ""),
                    d = vapply(sets, sp, ""), e = unlist(L$status[sets]), stringsAsFactors = FALSE, check.names = FALSE)
   names(df) <- tx("A4.table.head")
-  TY <- GEO$BODY_TOP + 0.42; TH <- 1.9
-  deck_table(df, box = c(XR, TY, WR, TH), widths = c(0.8, 1.42, 0.96, 1.12, 1.58), size = 13, label = "table_sets")   # 강조 행 없음(모든 세트를 같은 지위로 보인다)
+  TY <- GEO$BODY_TOP + 0.42; TH <- 1.58
+  deck_table(df, box = c(XR, TY, WR, TH), widths = c(0.82, 1.36, 0.95, 1.0, 1.75), size = 12, label = "table_sets")   # 강조 행 없음(모든 세트를 같은 지위로 보인다)
 
   # ---- 오른쪽 아래: Phoenix 사실 ----
   PY <- TY + TH + 0.15

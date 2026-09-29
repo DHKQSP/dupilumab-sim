@@ -1,4 +1,4 @@
-# A3 부록: 모델 파라미터와 출처. 두 PK 모델(2016 모델 주, 2020 Model 1 민감도)의 구조 파라미터·개체간 변동·잔차를 config/params_*.yaml에서 dcfg로 읽는다. [문헌]
+# A3 부록: 모델 파라미터와 출처. 두 PK 모델(2016 모델 주분석, 2020 Model 1 민감도)의 구조 파라미터·개체간 변동·잔차를 config/params_*.yaml에서 dcfg로 읽는다. [문헌]
 # regulatory/tables/parameter_provenance.csv는 Value 열이 문자·숫자 혼합이라 수치 출처로 쓰지 않는다(보고서 부록 A의 표시용 표).
 # 모델은 속도 상수(ke, k12, k21)로 모수화되어 있어 CL, Q, 말초 용적은 추정값이 아니다. 75 kg 환산값은 dderived로 계산식을 남긴다.
 # 출처 열의 논문 표기(Table 2, Table 1, 보충 Table S2)는 문구 파일에 두고, config의 source 필드가 같은 표를 가리키는지 premise로 검사한다.
@@ -32,12 +32,21 @@ slide_A3 <- function() {
           "2020 IIV variances equal the squared SD of Supplementary Table 2")
   premise(pt$covariates$WT_on_Vc$WT_ref$value == p20$covariates$WT_on_Vc$WT_ref$value, "same reference weight in both models")
 
+  # 제목의 '변환은 SD 제곱과 kpc 유도뿐': 두 모델의 파라미터 출처 문구 중 '유도'는 2020 k21(kpc)뿐이고, kpc = kcp / Mpc가 수치로 맞다
+  srcs16 <- c(vapply(core, function(k) pt$theta[[k]]$source, ""), pt$covariates$WT_on_Vc$theta_WT$source, vapply(names(pv$iiv_omega2), function(k) pv$iiv_omega2[[k]]$source, ""))
+  srcs20 <- setNames(c(vapply(core, function(k) p20$theta[[k]]$source, ""), p20$covariates$WT_on_Vc$theta_WT$source), c(core, "theta_WT"))
+  premise(!any(grepl("유도", srcs16)) && identical(names(srcs20)[grepl("유도", srcs20)], "k21"), "the only derived structural value is the 2020 kpc (k21); the 2016 values are taken as published")
+  mpc <- as.numeric(regmatches(p20$theta$k21$source, regexec("Mpc ([0-9.]+)", p20$theta$k21$source))[[1]][2])
+  premise(is.finite(mpc) && abs(p20$theta$k12$value / mpc - p20$theta$k21$value) < 5e-3, "2020 kpc equals kcp / Mpc (notes)")
+  premise(!any(grepl("WT", c(names(pv$iiv_omega2), names(p20$iiv$sd)))), "no IIV on the weight exponent in either model ('not applicable' in the table)")
+
   wr <- a3_v(PT, c("covariates", "WT_on_Vc", "WT_ref", "value"), "reference body weight for Vc (kg), both models", 0)
   deck_kicker(tx("A3.kicker")); deck_title(tx("A3.title"))
 
-  # ---- 표 두 개(모델당 하나): 파라미터, 값, IIV 분산, 논문 표기·출처 ----
+  # ---- 표 하나(두 모델을 나란히; 같은 행이 같은 파라미터라 행 높이가 저절로 맞는다): 파라미터 | 2016 값, 분산, 출처 | 2020 값, 분산, 출처 ----
+  # 모델별 열 묶음 위에 모델 이름과 출처 표를 적는다. 머리글은 두 묶음이 같으므로 2020 쪽 이름 끝에 공백을 붙여 열 이름만 구분한다(보이는 글자는 같다).
   none <- L$none
-  tab <- function(m) {
+  cols <- function(m) {
     if (m == "k2016") { f <- PT; iv <- function(k, d) a3_v(PV, c("iiv_omega2", k, "omega2"), sprintf("2016 model, IIV variance %s", k), d); nm <- "2016 model" }
     else { f <- P20; iv <- function(k, d) a3_v(P20, c("iiv", "sd", k, "omega2"), sprintf("2020 Model 1, IIV variance %s", k), d); nm <- "2020 Model 1" }
     wexp <- c("covariates", "WT_on_Vc", "theta_WT", "value")
@@ -50,16 +59,19 @@ slide_A3 <- function() {
              sprintf("%s / %s", th("k12", dk12, "k12 (1/day)"), th("k21", 3, "k21 (1/day)")),
              sprintf("%s / %s", th("ka", 3, "ka (1/day)"), th("F", 3, "F")),
              sprintf("%s / %s", th("Vmax", dvm, "Vmax (mg/L/day)"), th("Km", 2, "Km (mg/L), fixed")))
-    om <- c(iv("Vc", 4), "", iv("ke", if (m == "k2016") 3 else 4), none, sprintf("%s / %s", iv("ka", if (m == "k2016") 3 else 4), none), sprintf("%s / %s", iv("Vmax", 4), none))
-    df <- data.frame(a = tx("A3.rows", list(wr = wr)), b = val, c = om, d = unlist(L$src[[m]]), stringsAsFactors = FALSE, check.names = FALSE)
-    names(df) <- tx("A3.table.head"); df
+    om <- c(iv("Vc", 4), L$na, iv("ke", if (m == "k2016") 3 else 4), none, sprintf("%s / %s", iv("ka", if (m == "k2016") 3 else 4), none), sprintf("%s / %s", iv("Vmax", 4), none))
+    df <- data.frame(b = val, c = om, d = unlist(L$src[[m]]), stringsAsFactors = FALSE, check.names = FALSE)
+    names(df) <- paste0(tx("A3.table.head"), if (m == "k2020") " " else ""); df
   }
-  gap <- 0.25; tw <- (GEO$CW - gap) / 2; ty <- GEO$BODY_TOP + 0.44; th_ <- 2.98
+  df <- cbind(data.frame(a = tx("A3.rows", list(wr = wr)), stringsAsFactors = FALSE), cols("k2016"), cols("k2020"))
+  names(df)[1] <- tx("A3.table.param")
+  wd <- c(2.05, 1.55, 1.45, 2.05, 1.55, 1.45, 2.05); wd <- wd / sum(wd) * GEO$CW
+  ly <- GEO$BODY_TOP; lh <- 0.68; ty <- ly + lh + 0.02; th_ <- 2.67
   for (k in 1:2) {
-    m <- c("k2016", "k2020")[k]; x <- GEO$ML + (k - 1) * (tw + gap)
-    deck_text(tx(sprintf("A3.label.%s", m)), c(x, GEO$BODY_TOP, tw, 0.42), size = 16, bold = FALSE, label = sprintf("label_%s", m), gap_pt = 0)
-    deck_table(tab(m), box = c(x, ty, tw, th_), widths = c(2.0, 1.3, 1.2, 1.49), size = 13, label = sprintf("table_%s", m))
+    m <- c("k2016", "k2020")[k]; x <- GEO$ML + wd[1] + (k - 1) * sum(wd[2:4])
+    deck_text(tx(sprintf("A3.label.%s", m)), c(x, ly, sum(wd[2:4]), lh), size = 16, label = sprintf("label_%s", m), gap_pt = 0)
   }
+  deck_table(df, box = c(GEO$ML, ty, GEO$CW, th_), widths = wd, size = 13, label = "table_params")
 
   # ---- 아래: 75 kg 환산(CL, Q, 말초 용적), 2020 흡수 구조, 잔차 ----
   cv <- function(y, file, m) {
@@ -78,7 +90,7 @@ slide_A3 <- function() {
             sp16 = dderived("2016 model, proportional residual (%)", "config/params_variability.yaml", "residual.sigma_prop.value x 100", 100 * pv$residual$sigma_prop$value, paste0(fnum(100 * pv$residual$sigma_prop$value, 1), "%")),
             sp20 = dderived("2020 Model 1, proportional residual (%)", "config/params_k2020_model1.yaml", "residual.sigma_prop.value x 100", 100 * p20$residual$sigma_prop$value, paste0(fnum(100 * p20$residual$sigma_prop$value, 1), "%")),
             sa = a3_v(PV, c("residual", "sigma_add", "value"), "additive residual SD (mg/L), fixed, both models", 2))
-  yb <- ty + th_ + 0.12
+  yb <- ty + th_ + 0.08
   deck_bullets(tx("A3.bullets", f), box = c(GEO$ML, yb, GEO$CW, GEO$BODY_BOTTOM - yb), size = 16, gap_pt = 4)
 
   deck_notes(tx("A3.notes", list(

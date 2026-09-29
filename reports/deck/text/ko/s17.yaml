@@ -1,31 +1,44 @@
 S17:
   kicker: "논거 ③ AUC0-last가 AUC0-inf를 대신한다 · 시험 수준"
-  title: "시험 수준에서도 같다: AUC0-last 기하평균비는 참 AUC0-inf 비와 {a} 안에서 맞고, NCA AUC0-inf는 규칙에 따라 {b}까지 벗어난다"
+  title: "시험 수준 편향: AUC0-last 기하평균비는 참 AUC0-inf 비에서 {a} 이내이고, NCA AUC0-inf는 규칙 A (i)·(ii)·B {b}, A (iii)·(iv) {c}까지다"
   ep:
-    AUCinf_true: "참 AUC0-inf (모델 적분)"
+    AUCinf_true: "참 AUC0-inf 끝점"
+    AUClast: "AUC0-last"
+    AUCinf_Ai: "NCA 규칙 A (i)"
+    AUCinf_A: "NCA 규칙 A (ii)"
+    AUCinf_B: "NCA 규칙 B"
+    AUCinf_Ci: "NCA 규칙 C (i)"
+  tab_ep:
+    AUCinf_true: "참 AUC0-inf 끝점"
     AUClast: "AUC0-last"
     AUCinf_Ai: "NCA 규칙 A (i)"
     AUCinf_A: "NCA 규칙 A (ii)"
     AUCinf_B: "NCA 규칙 B"
     AUCinf_Ci: "NCA 규칙 C (i)"
   fig:
-    xlab: "시험 GMR 기하평균의 편향 (%, 참 AUC0-inf 비 대비)"
+    xlab: "동등 쪽 편향 (%, 참 AUC0-inf 비 대비). 상한 {hi} 칸은 부호를 바꿔 그림"
     right: "동등 쪽(판정이 쉬워짐) →"
     left: "← 보수적"
   bullets:
-    - "AUC0-last는 경계 {n}칸 중 {aw}칸에서 보수적인 쪽으로 치우친다. 예외는 2020 모델 말초 분포용적 증가 칸({v2}, 슬라이드 19)이다."
-    - "NCA 규칙 A·B는 외삽과 대상자 선택 때문에 대부분의 칸에서 동등 쪽으로 치우친다. 규칙 C (i)은 미달자에 AUC0-last를 대입한다."
+    - "AUC0-last는 경계 {n}칸 중 {aw}칸에서 보수적 쪽으로 치우친다. 예외는 2020 모델 V2 증가 칸({v2}, 슬라이드 19)이다."
+    - "NCA 규칙 A·B는 외삽과 λz 기준 미달자 제외(규칙 A) 때문에 {rab}칸에서 동등 쪽(1 방향)으로 치우친다. 미달자에 AUC0-last를 대입하는 규칙 C (i)은 {ci}칸뿐이다."
+  caption:
+    - "칸별 시험 GMR의 기하평균(M1, 칸당 {ntr}회)"
+    - "열 제목의 참 비는 공통 가상 대상자 {npop}명 기준이다"
   table:
-    head: ["평가변수 (M1)", "동등 쪽 편향 칸 ({n}칸 중)", "Vmax 증가, 2016 모델 (참 비 {t1})", "ka 감소, 2020 모델 (참 비 {t2})", "F097, 2016 모델 (참 비 {t3})"]
+    head: ["평가변수 (M1)", "동등 쪽 편향 칸 ({n}칸 중)", "Vmax 증가, 2016 모델\n참 비 {t1}", "ka 감소, 2020 모델\n참 비 {t2}", "F ×{f97}, 2016 모델\n참 비 {t3}"]
   na:
-    - "**판정 일치율: 미산출.** AUC0-last 판정과 이상적 AUC0-inf(모델 적분값) 판정의 시험별 일치는 계산하지 않았다."
-    - "있는 것은 AUC0-last 대 NCA 규칙 A (ii) 일치율(제품 시나리오)뿐이다. 계산하려면 새 사후 분석이 필요하다."
+    - "**판정 일치율(AUC0-last 대 참 AUC0-inf): 미산출**"
+    - "새 사후 분석이 필요해 싣지 않았다. v1.0 제품 시나리오 시험의 AUC0-last는 NCA 규칙 A (ii)·B와 판정이 {agr}, {agr_b} 일치했고, 참 AUC0-inf와의 로그 GMR 상관은 {cor}였다."
   notes: |
-    시험 모집단 재생성 시험(arm당 {n_arm}명, 체중 {wt} kg, 층화 배정), 경계 칸당 {ntr}회(2020 모델 말초 분포용적 증가 칸은 {ntr_v2}회), 주분석 모형 M1. 각 칸에서 시험 GMR의 로그 평균을 지수 변환한 기하평균을 그 칸의 참 AUC0-inf 비(공통 가상 대상자, 잔차 없는 모델 적분)와 비교했다. 편향(%)은 기하평균이 참 비에서 벗어난 상대 크기다.
-    그림은 하한 경계 칸은 편향을 그대로, 상한 경계 칸은 부호를 바꿔 그렸다. 오른쪽(음영)이 동등 쪽, 곧 동등 판정이 쉬워지는 방향이다.
-    편향 범위(경계 {n}칸, M1, 부호 그대로): 참 AUC0-inf {r_true}, AUC0-last {r_last}(M0 {r_last0}), NCA 규칙 A (i) {r_ai}, 규칙 A (ii) {r_aii}, 규칙 B {r_b}, 규칙 C (i) {r_ci}. 제목의 {a}는 AUC0-last 편향 절댓값의 최대다.
+    시험 모집단 재생성 시험(arm당 {n_arm}명, 체중 {wt} kg, 층화 배정), 경계 칸당 {ntr}회(2020 모델 말초 분포용적 증가 칸은 {ntr_v2}회), 이 슬라이드의 기준 분석 모형 M1. 각 칸에서 시험 GMR의 로그 평균을 지수 변환한 기하평균을 그 칸의 참 AUC0-inf 비(공통 가상 대상자 {npop}명, 잔차 없는 모델 적분)와 비교했다. 편향(%)은 기하평균이 참 비에서 벗어난 상대 크기다.
+    두 가지 '참': 표 열 제목의 참 비는 공통 가상 대상자 {npop}명으로 계산한 칸의 정답이다. 표 첫 행 '참 AUC0-inf 끝점'은 각 시험의 대상자에서 모델 적분 AUC0-inf(잔차 없음)로 계산한 GMR의 기하평균이며, 시험 표본 때문에 열 제목 값과 조금 다르다(예: {t_v} 대 {g_true}).
+    그림은 하한({lo}) 경계 칸은 편향을 그대로, 상한({hi}) 경계 칸은 부호를 바꿔 그렸다. 오른쪽(음영)이 동등 쪽(1 방향), 곧 동등 판정이 쉬워지는 방향이다. 점이 겹치지 않게 같은 평가변수·모델 안에서 세로 위치만 조금씩 어긋나게 그렸다(가로 위치가 값).
+    편향 범위(경계 {n}칸, M1, 부호 그대로): 참 AUC0-inf {r_true}, AUC0-last {r_last}(M0 {r_last0}), NCA 규칙 A (i) {r_ai}, 규칙 A (ii) {r_aii}, 규칙 B {r_b}, 규칙 C (i) {r_ci}. 제목의 {a}는 AUC0-last 편향 절댓값의 최대, {b}는 규칙 A (i)·A (ii)·B 편향 절댓값의 최대(규칙 A (ii))다.
+    기준 세트 (iii)·(iv)(results/criteria/criteria_bias.csv, M1, 부호 그대로): 규칙 A (iii) {r_aiii}, A (iv) {r_aiv}이고 제목의 {c}는 둘의 절댓값 최대다. 규칙 C는 세트 (ii) {r_cii}, (iii) {r_ciii}, (iv) {r_civ}이다. 세트별 1종 오류는 슬라이드 14.
+    동등 쪽 편향 칸 수(M1 / M0): 참 AUC0-inf {k_true} / {k_true0}, AUC0-last {k_last} / {k_last0}, 규칙 A (i) {k_ai} / {k_ai0}, A (ii) {k_aii} / {k_aii0}, B {k_b} / {k_b0}, C (i) {k_ci} / {k_ci0}. 규칙 A (i)만 두 분석 모형에서 다르다.
     예: 2016 모델 Vmax 증가 칸(참 비 {t_v})의 기하평균은 AUC0-last {g_last}(보수적), NCA 규칙 A (i) {g_ai}, 규칙 B {g_b}(동등 쪽)이다.
-    제품 시나리오: 동일 제품(S00)의 기하평균은 참 AUC0-inf {s_true}, AUC0-last {s_last}, 규칙 A (i) {s_ai}, 규칙 B {s_b}(두 모델 범위)로 모두 참값과 같다. F097(생체이용률 감소)은 표에 있다.
+    제품 시나리오: 동일 제품(S00)의 기하평균은 참 AUC0-inf {s_true}, AUC0-last {s_last}, 규칙 A (i) {s_ai}, 규칙 B {s_b}(두 모델 범위)로 모두 참값과 같다. 표의 마지막 열은 시험약 생체이용률 F를 ×{f97}로 낮춘 제품 시나리오(F097)다.
     '동등 쪽 편향 칸'은 편향의 몬테카를로 95% 구간이 편향 없음을 포함하지 않고 편향이 동등 쪽인 칸 수다(결과 파일의 bias_dir). 참 AUC0-inf는 모든 칸에서 구간이 편향 없음을 포함한다. AUC0-last의 예외 칸은 {v2}로 보수적이지 않다.
-    미산출: 참 AUC0-inf 끝점(시험 대상자의 모델 적분 AUC0-inf로 계산한 GMR)은 이상적 기준이지만, 이 끝점의 판정과 AUC0-last 판정의 시험별 일치율은 프로젝트에서 계산하지 않았다. 있는 결과는 AUC0-last 대 NCA 규칙 A (ii) 판정 일치율 {agr}(제품 시나리오, 두 모델) 및 경계 칸의 단독 통과율 차이(주변 비율이며 일치율이 아님)다. 커밋된 시험별 판정 파일(results/oc_models/oc_models_be_*.csv.gz)로 계산할 수 있으나 새 사후 분석이므로 이 슬라이드에 싣지 않았다.
+    미산출: 참 AUC0-inf 끝점의 판정과 AUC0-last 판정의 시험별 일치율은 프로젝트에서 계산하지 않았다. 있는 결과(v1.0 제품 시나리오 시험, 합동 t 검정 M0): AUC0-last 대 NCA 규칙 A (ii) 판정 일치율 {agr}(두 모델), 규칙 B 판정 일치율 {agr_b}(시나리오당 {n_conc}회, 두 모델), AUC0-last와 참 AUC0-inf(시험 대상자 모델 적분)의 로그 GMR 상관 {cor}(두 모델). 커밋된 시험별 판정 파일(results/oc_models/oc_models_be_*.csv.gz)로 계산할 수 있으나 새 사후 분석이므로 이 슬라이드에 싣지 않았다.
     관련 보고서: 3.6절, 5.2절, 5.4절(Table 5-10, Table 5-11), 5.9절, 6.1절.

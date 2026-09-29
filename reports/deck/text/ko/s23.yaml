@@ -1,19 +1,19 @@
 S23:
   kicker: "제안의 실행 · 통계분석계획(SAP) 제안 요지"
-  title: "SAP 제안은 AUC0-last + Cmax를 1차, AUC0-inf(세트 (i))를 이차로 두고 규칙 B 공동 1차는 FDA가 요구할 때만 쓴다. 주분석 모형은 의뢰자가 정한다"
+  title: "SAP 제안은 AUC0-last + Cmax를 1차로, AUC0-inf(세트 (i))를 이차로 둔다. 규칙 B 공동 1차는 FDA가 요구할 때만 쓰고, 주분석 모형은 의뢰자가 정한다"
   cards:
     primary:
       head: "1차 평가변수: AUC0-last + Cmax"
       body:
         - "주분석 **M1**(투여군 + 무작위배정 체중 층, 의뢰자 결정 전). 민감도: M0(층 미포함, 합동 t 검정), M2(log 체중 공분산분석)"
         - "경계 1종 오류: M1 **{r1}**(Wilson 분류 보수적 {c1}칸, 초과 {e1}칸), M0 {r0}"
-        - "SAP 문안은 주분석 모형을 'M0 또는 M1, 의뢰자 선택'으로 남겨 두었다."
+        - "SAP 문안은 주분석 모형을 'M0 또는 M1, 의뢰자 선택'으로 두었다. 의뢰자가 M1을 채택하면 문안에 반영한다."
     secondary:
       head: "이차 평가변수: AUC0-inf (동등성 판정에 쓰지 않음)"
       body:
-        - "신뢰 기준 **세트 (i)**: adjusted R² ≥ {r2i}, 외삽 ≤ {exi}%, span 기준 없음(미달 {fi}, 두 모델)"
+        - "λz 신뢰성 기준 **세트 (i)**: adjusted R² ≥ {r2i}, 외삽 ≤ {exi}%, span 기준 없음(미달 {fi}, 두 모델)"
         - "두 분석군 보고: λz 산출 전원, 기준 충족자(탈락자의 수, 체중, AUC0-last 병기)"
-        - "adjusted R² ≥ {r2iii} 충족 인원 병기: 세트 (iii)(R² ≥ {r2iii}, 외삽 ≤ {exiii}%) 미달 **{fiii}**(두 모델)"
+        - "adjusted R² ≥ {r2iii} 충족 인원 병기. 세트 (iii)(R² ≥ {r2iii}, 외삽 ≤ {exiii}%) 기준으로는 **{fiii}**가 미달(두 모델)"
     sens:
       head: "민감도 분석"
       body:

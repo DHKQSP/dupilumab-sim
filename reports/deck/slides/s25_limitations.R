@@ -36,10 +36,17 @@ slide_S25 <- function() {
   premise(isTRUE(P16$theta$Km$fixed) && isTRUE(P20$theta$Km$fixed) && P16$theta$Km$value == P20$theta$Km$value, "Km fixed at the same value in both models")
   premise(PV$iiv_omega2$Km$omega2 == 0 && grepl("Km:\\s*\\{sd: 0, omega2: 0\\}", paste(readLines(proj_path("config", "params_k2020_model1.yaml"), encoding = "UTF-8"), collapse = "\n")), "no between-subject variability of Km in either model")
   cs <- rows(CSH); ok <- cs[stress_test == FALSE]
+  premise(length(unique(round(ok$coverage_lt80_pct, 2))) == 1, "share below 80% window coverage is the same in all non-stress variants (table: all variants)")
+  # 창 포착률 5백분위수: 노출 확인 범위(±15%) 밖인 비스트레스 변형(Vmax x0.8)을 빼도 같은 값(노트)
+  gok <- ok[abs(AUClast_ratio_vs_obs544 - 1) <= 0.15]
+  premise(identical(sort(setdiff(ok$variant, gok$variant)), "vmax080_both") &&
+          max(c(ok$extrap_true_p95, rows(PC, "group=='all'")$extrap_true_p95)) == max(c(gok$extrap_true_p95, rows(PC, "group=='all'")$extrap_true_p95)),
+          "smallest 5th-percentile coverage unchanged without the non-stress variant outside the exposure check (Vmax x0.8)")
   km_v <- ok[grepl("^km", variant), variant]; vm_v <- ok[grepl("^vmax", variant), variant]
   premise(length(km_v) >= 2 && length(vm_v) >= 2 && all(cs[stress_test == TRUE, grepl("^vmax", variant)]), "curve-shape variants: Km and Vmax (both arms), the stress test is a Vmax variant")
   g16 <- rows(Q16, "gate_role=='gate'"); g20 <- rows(Q20, "gate_role=='gate'")
   premise(g16[which.max(Cmax_ratio), dose_mg] == 600 && g20[which.max(Cmax_ratio), dose_mg] == 600, "the largest Cmax ratio is in a 600 mg data set in both models")
+  premise(all(g16[dose_mg == 600]$Cmax_ratio > 1) && all(g20[dose_mg == 600]$Cmax_ratio > 1), "600 mg Cmax over-predicted in both models (text: over-prediction)")
   premise(all(g16[dose_mg == 600, presentation] == "2 x 300 mg"), "600 mg given as two 300 mg injections")
   dose <- as.numeric(.read("config/trial_design.yaml")$dose_mg); premise(all(g16[dose_mg != 600, dose_mg] == dose), "the other study-presentation data sets are at the study dose")
   qc <- row1(QC, "Activity=='Independent human QC of this report'"); premise(startsWith(qc$Result, "PENDING"), "independent human QC pending")
@@ -53,9 +60,9 @@ slide_S25 <- function() {
   f <- list(
     km = dcfg("params_typical.yaml", c("theta", "Km", "value"), "Km (mg/L), fixed in both models", function(x) format(x)),
     k = s25_mult(km_v, "Km", "Km multipliers, both arms, curve-shape variants"),
-    v = s25_mult(vm_v, "Vmax", "Vmax multipliers, both arms, variants consistent with the data"),
+    v = s25_mult(vm_v, "Vmax", "Vmax multipliers, both arms, non-stress curve-shape variants"),
     thr = thr,
-    lt80 = dext(CSH, "stress_test==FALSE", "coverage_lt80_pct", max, 2, "%", "largest share below 80% window coverage, non-stress curve-shape variants"),
+    lt80 = dext(CSH, "stress_test==FALSE", "coverage_lt80_pct", max, 2, "%", "share below 80% window coverage, non-stress curve-shape variants (all equal)"),
     cov95 = dderived("smallest 95th-percentile coverage (100 - max 95th percentile of true extrapolation) over both models and non-stress curve-shape variants", CSH,
                      "stress_test==FALSE :: 100 - max(extrap_true_p95), with rationale/pillar1_coverage_B0.csv group=='all'", cov_min95, fnum(floor(cov_min95 * 10) / 10, 1)),
     im = local({ r <- rows(INV, "mechanism=='Km'"); x <- range(r$end_multiplier)
@@ -68,6 +75,8 @@ slide_S25 <- function() {
     c300 = local({ r <- rows(Q16, "gate_role=='gate' & dose_mg==300"); x <- 100 * (max(r$Cmax_ratio) - 1)
       dderived("largest Cmax over-prediction (%), 2016 model, 300 mg data sets", Q16, "gate_role=='gate' & dose_mg==300 :: (max(Cmax_ratio) - 1) x 100", x, fnum(x, 0)) }),
     c20 = dderived("largest Cmax over-prediction (%), 2020 model, study presentation", Q20, "gate_role=='gate' :: (max(Cmax_ratio) - 1) x 100", 100 * (max(g20$Cmax_ratio) - 1), fnum(100 * (max(g20$Cmax_ratio) - 1), 0)),
+    c20b = local({ r <- rows(Q20, "gate_role=='gate' & dose_mg==300"); x <- 100 * (max(r$Cmax_ratio) - 1)
+      dderived("largest Cmax over-prediction (%), 2020 model, 300 mg data sets", Q20, "gate_role=='gate' & dose_mg==300 :: (max(Cmax_ratio) - 1) x 100", x, fnum(x, 0)) }),
     d600 = dint(Q16, sprintf("id=='%s'", g16[which.max(Cmax_ratio), id]), "dose_mg", "dose of the data set with the largest Cmax ratio (mg)"),
     d300 = f_dose(),
     d200 = drange(Q16, "gate_role=='external'", "dose_mg", 0, "", "dose of the 175 mg/mL external data sets (mg)"),
@@ -87,23 +96,27 @@ slide_S25 <- function() {
     alt = dv(ADA, "ada==1 & schedule=='B0'", "coverage_lt80_pct", 2, "", "ADA-like subgroup, window coverage below 80% (%)"),
     lz = local({ a <- sum(ev$lz_points_identical); b <- sum(ev$lz_points_identical + ev$lz_points_mismatch)
       dderived("lambda-z windows identical over all comparisons", EV, "sum(lz_points_identical) / sum(lz_points_identical + lz_points_mismatch)", c(a, b), sprintf("%s / %s", fint(a), fint(b))) }),
-    mx = local({ x <- max(ev$max_rel_diff); dderived("largest relative parameter difference", EV, "max(max_rel_diff)", x, format(signif(x, 2))) }),
+    mx = local({ x <- max(ev$max_rel_diff); e <- floor(log10(x)); m <- signif(x, 2) / 10^e   # 표시: 4.9×10⁻¹³ (지수는 위첨자)
+      sup <- chartr("-0123456789", "\u207b\u2070\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079", as.character(e))
+      dderived("largest relative parameter difference", EV, "max(max_rel_diff), printed as mantissa x 10^exponent", x, sprintf("%s\u00d710%s", format(m), sup)) }),
     qc = local({ .record("independent human QC status", QC, "Activity=='Independent human QC of this report' :: Result", qc$Result, qc$Result); qc$Result }))
 
   # ---- 왼쪽: 모델 한계 표 -------------------------------------------------------------------------------------------------------
   H <- DK$txt$S25$table
   df <- data.frame(a = tx("S25.table.col1", f), b = tx("S25.table.col2", f), c = tx("S25.table.col3", f), check.names = FALSE, stringsAsFactors = FALSE)
   names(df) <- tx("S25.table.head")
-  tw <- 8.05
+  tw <- 8.4
   deck_text(tx("S25.left_label"), c(GEO$ML, GEO$BODY_TOP - 0.04, tw, 0.45), size = 16, bold = TRUE, color = PAL$ink2, label = "label_model")
-  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP + 0.43, tw, GEO$BODY_BOTTOM - GEO$BODY_TOP - 0.43), widths = c(1.75, 3.55, 2.75), size = 13, align_num = FALSE)
+  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP + 0.43, tw, GEO$BODY_BOTTOM - GEO$BODY_TOP - 0.43), widths = c(2.1, 3.5, 2.8), size = 14, align_num = FALSE)
 
   # ---- 오른쪽: 검증 절차 한계 카드 두 개 ------------------------------------------------------------------------------------------
   xr <- GEO$ML + tw + 0.25; wr <- GEO$W - GEO$MR - xr
   deck_text(tx("S25.right_label"), c(xr, GEO$BODY_TOP - 0.04, wr, 0.45), size = 16, bold = TRUE, color = PAL$ink2, label = "label_verif")
-  y0 <- GEO$BODY_TOP + 0.43; ch <- (GEO$BODY_BOTTOM - y0 - 0.18) / 2
-  deck_text(tx("S25.card_nca", f), c(xr, y0, wr, ch), size = 16, bg = PAL$tint_orange, geom = "roundRect", label = "card_nca", gap_pt = 5)
-  deck_text(tx("S25.card_qc", f), c(xr, y0 + ch + 0.18, wr, ch), size = 16, bg = PAL$tint_orange, geom = "roundRect", label = "card_qc", gap_pt = 5)
+  # 두 카드 높이는 추정 글 높이에 비례해 나눈다(아래 끝 = 본문 아래 끝)
+  y0 <- GEO$BODY_TOP + 0.43; cg <- 0.18; cn <- tx("S25.card_nca", f); cq <- tx("S25.card_qc", f)
+  he <- c(est_height(cn, wr, 16, 5, card = TRUE), est_height(cq, wr, 16, 5, card = TRUE)); ch <- he / sum(he) * (GEO$BODY_BOTTOM - y0 - cg)
+  deck_text(cn, c(xr, y0, wr, ch[1]), size = 16, bg = PAL$tint_orange, geom = "roundRect", label = "card_nca", gap_pt = 5)
+  deck_text(cq, c(xr, y0 + ch[1] + cg, wr, ch[2]), size = 16, bg = PAL$tint_orange, geom = "roundRect", label = "card_qc", gap_pt = 5)
 
   deck_notes(tx("S25.notes", c(f, list(
     pl = local({ col <- "extrap_true_p95"; premise(col %in% names(.read(CSH)), "percentile column"); x <- as.numeric(sub("^.*_p([0-9]+)$", "\\1", col))
@@ -123,6 +136,7 @@ slide_S25 <- function() {
     tl1 = dv(ADA, "ada==1 & schedule=='B0'", "tlast_median", 1, "", "ADA-like subgroup, median tlast (day)"),
     tl0 = dv(ADA, "ada==0 & schedule=='B0'", "tlast_median", 1, "", "other subjects, median tlast (day)"),
     ng = dcount(Q16, "gate_role=='gate'", "study-presentation data sets"),
+    v80 = s25_mult("vmax080_both", "Vmax", "Vmax multiplier of the non-stress variant outside the exposure check"),
     n_arm = f_n_arm()))))
   deck_end()
 }

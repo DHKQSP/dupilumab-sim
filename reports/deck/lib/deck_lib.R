@@ -108,10 +108,20 @@ headline <- function(p) { DK$headline[[length(DK$headline) + 1L]] <- list(sectio
 strip_markup <- function(s) gsub("\\*\\*|__", "", s)
 text_w <- function(s, size, bold = FALSE) systemfonts::string_width(s, family = FONT, size = size, res = 72, bold = bold) / 72
 est_lines <- function(s, width, size, bold = FALSE) {
-  s <- strip_markup(s); words <- strsplit(s, " ", fixed = TRUE)[[1]]; words <- words[nzchar(words)]
-  if (!length(words)) return(1L)
+  if (grepl("\n", s, fixed = TRUE)) return(sum(vapply(strsplit(s, "\n", fixed = TRUE)[[1]], est_lines, 1L, width = width, size = size, bold = bold)))   # 명시적 줄바꿈
+  # 굵게 표시(**..**, __..__)한 부분은 굵은 글꼴 폭으로 잰다: 단어마다 (굵은 부분, 보통 부분) 폭을 더한다
+  seg <- strsplit(s, "\\*\\*|__", perl = TRUE)[[1]]; if (!length(seg)) return(1L)
+  pieces <- list(); cur_w <- character(0); cur_b <- logical(0)
+  for (k in seq_along(seg)) { b_ <- bold || (k %% 2 == 0); tok <- strsplit(seg[k], " ", fixed = TRUE)[[1]]
+    if (!length(tok)) next
+    for (j in seq_along(tok)) { if (j > 1) { pieces[[length(pieces) + 1L]] <- list(w = cur_w, b = cur_b); cur_w <- character(0); cur_b <- logical(0) }
+      if (nzchar(tok[j])) { cur_w <- c(cur_w, tok[j]); cur_b <- c(cur_b, b_) } }
+    if (endsWith(seg[k], " ")) { pieces[[length(pieces) + 1L]] <- list(w = cur_w, b = cur_b); cur_w <- character(0); cur_b <- logical(0) } }
+  pieces[[length(pieces) + 1L]] <- list(w = cur_w, b = cur_b)
+  pieces <- Filter(function(p) length(p$w) > 0, pieces); if (!length(pieces)) return(1L)
+  wlen <- vapply(pieces, function(p) sum(mapply(function(w, b) text_w(w, size, b), p$w, p$b)), 0)
   sp <- text_w(" ", size, bold); lines <- 1L; cur <- 0
-  for (w in words) { ww <- text_w(w, size, bold)
+  for (ww in wlen) {
     if (ww > width) { chunks <- ceiling(ww / width); lines <- lines + (cur > 0) + chunks - 1L; cur <- ww - (chunks - 1) * width; next }
     add <- if (cur == 0) ww else sp + ww
     if (cur + add > width) { lines <- lines + 1L; cur <- ww } else cur <- cur + add }
@@ -154,7 +164,7 @@ nobreak <- function(s) {
   s <- gsub("(Day|≥|≤|>|<|×) (?=[0-9])", "\\1\u00a0\u2060", s, perl = TRUE)
   s <- gsub("(?<=[0-9%A-Za-z)\u00b2])(?=[\uac00-\ud7a3])", "\u2060", s, perl = TRUE)   # 숫자·영문·닫는 괄호와 바로 붙은 한글(단위, 조사)
   s <- gsub("(?<=^|[\\s(~,;:/])-(?=[0-9])", "-\u2060", s, perl = TRUE)                   # 음수 부호와 숫자
-  s <- gsub("(?<=[\uac00-\ud7a3])\\((?=\\S)", "\u2060(\u2060", s, perl = TRUE)            # 한글 바로 뒤 여는 괄호: 앞뒤로 붙인다
+  # 한글과 여는 괄호는 붙이지 않는다: LibreOffice는 괄호 뒤 결합자를 무시하고, 붙인 덩어리가 길면 한글 단어 가운데서 줄을 바꾼다(시험 렌더링 확인)
   s <- gsub("(세트|규칙|모델|기준|분석군) (?=[(A-D])", "\\1\u00a0\u2060", s, perl = TRUE)          # '세트 (i)', '규칙 A
   s
 }
