@@ -44,3 +44,8 @@ k2016 set (iii) B0 failing share vs tp_failure_by_set.csv,38.76,38.76,TRUE
 k2020 set (iii) B0 failing share vs tp_failure_by_set.csv,33.215,33.215,TRUE
 k2016 lambda-z estimable count vs tp_failure_by_set.csv,19708,19708,TRUE
 k2020 lambda-z estimable count vs tp_failure_by_set.csv,19877,19877,TRUE
+input results/cliff/cliff_subjects.rds,7f68cbb495bf81777bbca4b5739b6b78f434ee106c2f2308fa3db503bb9a835d,,
+input results/cliff/cliff_summary.csv,f853aba868c8cd024ca3a2c4a971159d7aece8f76fb8f2156c300c88e0dfd115,,
+k2020 cliff base: n subjects vs cliff_summary.csv,20000,20000,TRUE
+k2020 cliff base: median study day at the LLOQ vs cliff_summary.csv,40.7685378859,40.7685378859,TRUE
+k2020 cliff representative subject 3753: LLOQ crossing within the 0.05-day grid of the stored t_lloq,1,1,TRUE
