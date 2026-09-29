@@ -51,9 +51,9 @@ jobs:
         with:
           r-version: "4.3.3"
           use-public-rspm: true
-      # Build deps for any package renv has to compile from source (xml/curl/ssl/fonts/images, TBB for RcppParallel, cmake for nanonext).
+      # Build deps for any package renv has to compile from source (xml/curl/ssl/fonts/images, cairo for gdtools (flextable, results deck), TBB for RcppParallel, cmake for nanonext).
       - name: System deps
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libcurl4-openssl-dev libssl-dev libxml2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libpng-dev libtiff5-dev libjpeg-dev libtbb-dev cmake
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libcurl4-openssl-dev libssl-dev libxml2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libcairo2-dev libpng-dev libtiff5-dev libjpeg-dev libtbb-dev cmake
       # renv::restore() with the renv library cached by setup-renv (actions/cache keyed on OS, R version and hashFiles('renv.lock');
       # the cache is saved in the post step of a successful job, so the first green run populates it). Checked in the run #71 job log:
       # actions/cache key "Ubuntu 24.04.5 LTS-R version 4.3.3 (2024-02-29)-1-<hashFiles('renv.lock')>", save-always false, post step skipped on failure.

@@ -15,7 +15,7 @@ f_nominal <- function() { y <- .read("config/trial_design.yaml")$be$ci_level; p 
   dderived("nominal type I error per one-sided test (%) = (1 - be.ci_level) / 2", "config/trial_design.yaml", "be.ci_level :: (1 - x) / 2 x 100", 100 * (1 - y) / 2, p) }
 # 채혈일: config는 투여 후 일(days)로 적는다. 연구일 = 투여 후 일 + 1(Day 1 = 투여일)
 f_study_days <- function(schedule = "B0", which = c("all", "last", "n")) {
-  which <- match.arg(which); d <- .read("config/trial_design.yaml")$schedules[[schedule]]$days; premise(length(d) > 0, paste("schedule", schedule))
+  which <- match.arg(which); d <- unlist(.read("config/trial_design.yaml")$schedules[[schedule]]$days); premise(length(d) > 0, paste("schedule", schedule))
   sd <- d + 1; p <- switch(which, all = paste(fnum(sd[sd == round(sd)], 0), collapse = ", "), last = fnum(max(sd), 0), n = as.character(length(d)))
   dderived(sprintf("schedule %s, %s (study day = days after dose + 1)", schedule, which), "config/trial_design.yaml", sprintf("schedules.%s.days :: %s", schedule, which), sd, p)
 }

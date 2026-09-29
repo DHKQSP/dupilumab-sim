@@ -10,7 +10,8 @@ opt <- function(k, default = NULL) { i <- match(k, args); if (is.na(i)) default 
 lang <- opt("--lang", "ko"); only <- opt("--only"); strict <- !("--no-strict" %in% args)
 source(proj_path("reports", "deck", "lib", "deck_lib.R"))
 source(proj_path("reports", "deck", "lib", "deck_facts_common.R"))
-for (f in sort(list.files(proj_path("reports", "deck", "slides"), pattern = "\\.R$", full.names = TRUE))) source(f)
+for (f in sort(list.files(proj_path("reports", "deck", "slides"), pattern = "\\.R$", full.names = TRUE)))   # 부분 빌드에서는 다른 슬라이드 파일의 오류로 멈추지 않는다
+  tryCatch(source(f), error = function(e) if (is.null(only)) stop(e) else message("skipped (does not source): ", basename(f), ": ", conditionMessage(e)))
 deck_init(lang, strict = strict)
 order <- unlist(DK$txt$common$order)
 sel <- if (is.null(only)) order else intersect(order, strsplit(only, ",")[[1]])

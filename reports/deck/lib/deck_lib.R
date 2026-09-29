@@ -115,7 +115,7 @@ est_lines <- function(s, width, size, bold = FALSE) {
     if (ww > width) { chunks <- ceiling(ww / width); lines <- lines + (cur > 0) + chunks - 1L; cur <- ww - (chunks - 1) * width; next }
     add <- if (cur == 0) ww else sp + ww
     if (cur + add > width) { lines <- lines + 1L; cur <- ww } else cur <- cur + add }
-  lines
+  as.integer(lines)
 }
 # 문단 목록의 높이(인치): 줄 높이 = 1.2 x 줄 간격 배수 x 글자 크기(Pretendard 렌더링 실측: 줄 간격 1.1에서 1.32배, 1.05에서 1.26배,
 # 표 1.0에서 1.19배), 문단 간격 gap_pt, 상하 여백 0.10 in(글상자 기본 여백 0.05 in x 2). 3% 넘게 넘치면 실패(실제 넘침은 check_deck 9가 PDF로 확인)
@@ -199,7 +199,7 @@ deck_stat <- function(value, label, box, color = PAL$blue, bg = PAL$tint_blue, l
   DK$x <- ph_with(DK$x, do.call(block_list, ps), location = loc(box, "stat", bg = bg, geom = "roundRect", ln = no_line())); invisible(NULL)
 }
 deck_box <- function(box, fill = PAL$tint_grey, geom = "roundRect", label = "shape", line_col = NULL) {
-  DK$x <- ph_with(DK$x, fpar(ftext(" ", ftp(8))), location = loc(box, label, bg = fill, geom = geom, ln = if (is.null(line_col)) no_line() else sp_line(color = line_col, lwd = 1.5)))
+  DK$x <- ph_with(DK$x, fpar(ftext(" ", ftp(SZ$body_min))), location = loc(box, label, bg = fill, geom = geom, ln = if (is.null(line_col)) no_line() else sp_line(color = line_col, lwd = 1.5)))
   invisible(NULL)
 }
 # 표: df는 문자열 data.frame(수치는 d* 결과). 본문 6행 이하.
@@ -271,7 +271,7 @@ MODEL_COL <- c(k2016 = PAL$blue, k2020 = PAL$orange); MODEL_SHAPE <- c(k2016 = 1
 model_lab <- function() { m <- DK$txt$common$models; c(k2016 = m$k2016, k2020 = m$k2020) }
 
 # ---- 저장과 후처리 -------------------------------------------------------------------------------------------------------------------------
-# 글머리표 표지를 PowerPoint 글머리표(내어쓰기)로 바꾼다
+# 저장 후 처리: 글머리표 표지를 PowerPoint 글머리표(내어쓰기)로 바꾸고, 자리표시자 표지 제거, 한국어 어절 줄바꿈, 모서리 반지름 통일
 pp_bullets <- function(path) {
   tmp <- tempfile("pp_"); dir.create(tmp); utils::unzip(path, exdir = tmp)
   sl <- list.files(file.path(tmp, "ppt", "slides"), pattern = "^slide[0-9]+\\.xml$", full.names = TRUE)
@@ -293,6 +293,19 @@ pp_bullets <- function(path) {
       bc <- xml2::xml_add_child(ppr, "a:buClr"); xml2::xml_add_child(bc, "a:srgbClr", val = if (lvl == 0) "2A78D6" else "8A8984")
       xml2::xml_add_child(ppr, "a:buFont", typeface = "Arial"); xml2::xml_add_child(ppr, "a:buChar", char = if (lvl == 0) "●" else "–")
       nfix <- nfix + 1L
+    }
+    # 자리표시자 표지(p:ph)를 지워 보통 도형으로 만든다: LibreOffice(PDF)는 자리표시자의 도형 모양(roundRect, rightArrow)을 무시한다.
+    # 위치·채우기·글자 서식은 도형에 모두 명시되어 있어 모양만 바뀐다.
+    for (ph in xml2::xml_find_all(doc, ".//p:nvPr/p:ph", ns)) xml2::xml_remove(ph)
+    # 한국어는 어절 단위로 줄을 바꾼다(PowerPoint의 '한글 단어 잘림 허용' 끔)
+    for (ppr in xml2::xml_find_all(doc, ".//a:pPr", ns)) xml2::xml_set_attr(ppr, "eaLnBrk", "0")
+    # 둥근 사각형의 모서리 반지름을 0.1 in로 통일(기본값은 짧은 변의 16.7%라 큰 카드가 지나치게 둥글다)
+    for (sp in xml2::xml_find_all(doc, ".//p:sp[p:spPr/a:prstGeom[@prst='roundRect']]", ns)) {
+      ext <- xml2::xml_find_first(sp, "./p:spPr/a:xfrm/a:ext", ns); if (inherits(ext, "xml_missing")) next
+      m <- min(as.numeric(xml2::xml_attr(ext, "cx")), as.numeric(xml2::xml_attr(ext, "cy"))); if (!is.finite(m) || m <= 0) next
+      av <- xml2::xml_find_first(sp, "./p:spPr/a:prstGeom/a:avLst", ns)
+      for (g in xml2::xml_children(av)) xml2::xml_remove(g)
+      xml2::xml_add_child(av, "a:gd", name = "adj", fmla = sprintf("val %d", as.integer(round(min(50000, 91440 / m * 100000)))))
     }
     xml2::write_xml(doc, f)
   }

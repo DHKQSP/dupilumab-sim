@@ -83,7 +83,7 @@ for (sid in setdiff(meta$id, ok_sl)) {
 # ---- 5 약어 첫 등장 ---------------------------------------------------------------------------------------------------------------------
 ab <- CK$abbreviations
 for (a in names(ab)) {
-  rx <- sprintf("(?<![A-Za-z])%s(?![a-z])", gsub("([&.])", "\\\\\\1", a))
+  rx <- sprintf("(?<![A-Za-z])%s(?![a-z]|M[0-9])", gsub("([&.])", "\\\\\\1", a))   # PKM12350 같은 시험 번호는 약어가 아니다
   first <- NA_character_; for (sid in meta$id) { t_ <- paste(vis[id == sid, text], collapse = "\n"); if (grepl(rx, gsub("‑", "-", t_), perl = TRUE)) { first <- sid; break } }
   if (is.na(first)) next
   t_ <- paste(vis[id == first, text], collapse = "\n")
@@ -91,7 +91,7 @@ for (a in names(ab)) {
 }
 # ---- 6 형식 ---------------------------------------------------------------------------------------------------------------------------
 for (k in seq_len(nrow(S))) {
-  r <- S[k]; if (is.na(r$min_sz) || grepl("^footer_|^tag$|^background$", r$shape) || r$kind == "notes") next
+  r <- S[k]; if (is.na(r$min_sz) || grepl("^footer_|^tag$|^background$", r$shape) || r$kind == "notes" || !nzchar(trimws(r$text))) next   # 글자 없는 도형(배경·화살표) 제외
   lim <- if (r$kind == "graphicFrame") 1200L else if (r$shape %in% c("kicker")) 1300L else if (grepl("^figure_", r$shape)) 0L else 1600L
   if (r$min_sz < lim) add("6 font size", r$id, "FAIL", sprintf("%s %.1fpt < %.0fpt", r$shape, r$min_sz / 100, lim / 100))
 }

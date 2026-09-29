@@ -95,7 +95,7 @@ slide_S07 <- function() {
   fct$wh <- dv(WS, sprintf("model=='k2016' & study=='PKM12350' & arm=='test' & weight_mean==%s", whi), "weight_mean", 0, "", "assumed weight, highest (kg)")
   fct$rl <- dv(WS, sprintf("model=='k2016' & study=='PKM12350' & arm=='test' & weight_mean==%s", wlo), "ratio", 2, "", "PKM12350 test sim/obs at the lowest assumed weight, 2016")
   fct$rh <- dv(WS, sprintf("model=='k2016' & study=='PKM12350' & arm=='test' & weight_mean==%s", whi), "ratio", 2, "", "PKM12350 test sim/obs at the highest assumed weight, 2016")
-  deck_bullets(tx("S07.bullets", fct), box = c(GEO$ML + FW + 0.25, GEO$BODY_TOP, GEO$W - GEO$MR - (GEO$ML + FW + 0.25), GEO$BODY_BOTTOM - GEO$BODY_TOP), size = 16, gap_pt = 7)
+  deck_bullets(tx("S07.bullets", fct), box = c(GEO$ML + FW + 0.25, GEO$BODY_TOP, GEO$W - GEO$MR - (GEO$ML + FW + 0.25), GEO$BODY_BOTTOM - GEO$BODY_TOP), size = 16, gap_pt = 4)
 
   # ---- 노트 ----
   deck_notes(tx("S07.notes", list(
