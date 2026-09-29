@@ -134,7 +134,8 @@ CARD_MIN_H <- 0.6; CARD_INS <- c(lr = 0.12, tb = 0.08)
 est_height <- function(paras, width, size, gap_pt = 6, indent = 0, bold = FALSE, line = 1.1, card = FALSE) {
   inner <- width - (if (card) 2 * CARD_INS[["lr"]] else 0.2) - indent
   n <- vapply(paras, function(p) est_lines(p, inner, size, bold), 1L)
-  sum(n) * size * 1.2 * line / 72 + max(0, length(paras) - 1) * gap_pt / 72 + (if (card) 2 * CARD_INS[["tb"]] else 0.10)
+  gaps <- if (length(gap_pt) > 1L) sum(head(gap_pt, -1L)) else max(0, length(paras) - 1) * gap_pt   # 문단별 간격(마지막 문단 뒤는 세지 않음)
+  sum(n) * size * 1.2 * line / 72 + gaps / 72 + (if (card) 2 * CARD_INS[["tb"]] else 0.10)
 }
 fit_check <- function(label, paras, box, size, gap_pt = 6, indent = 0, bold = FALSE, line = 1.1, card = FALSE) {
   h <- est_height(paras, box[3], size, gap_pt, indent, bold, line, card)
@@ -168,6 +169,11 @@ nobreak <- function(s) {
   s <- gsub("(?<=^|[\\s(~,;:/])-(?=[0-9])", "-\u2060", s, perl = TRUE)                   # 음수 부호와 숫자
   # 한글과 여는 괄호는 붙이지 않는다: LibreOffice는 괄호 뒤 결합자를 무시하고, 붙인 덩어리가 길면 한글 단어 가운데서 줄을 바꾼다(시험 렌더링 확인)
   s <- gsub("(세트|규칙|모델|기준|분석군) (?=[(A-D])", "\\1\u00a0\u2060", s, perl = TRUE)          # '세트 (i)', '규칙 A
+  # 한 단위로 읽는 용어 쌍(검토에서 줄 끝 분리가 지적된 것): '1종 오류', '창 포착률', 'Wilson 하한', '개인 간', '참 AUC0-inf', 'Km 0.01', '(iv) 65.9%'
+  s <- gsub("(1종|2종|창|Wilson|개인) (?=(오류|포착률|하한|간)(?![\uac00-\ud7a3]{2}))", "\\1\u00a0\u2060", s, perl = TRUE)
+  s <- gsub("(참|모의|관측) (?=(AUC|Cmax))", "\\1\u00a0", s, perl = TRUE)
+  s <- gsub("(?<![A-Za-z])(Km|Vmax|V2|ka|ke|Vc|CL|Q) (?=[×0-9])", "\\1\u00a0\u2060", s, perl = TRUE)
+  s <- gsub("(\\((?:i|ii|iii|iv)\\)) (?=[0-9])", "\\1\u00a0\u2060", s, perl = TRUE)
   s
 }
 para <- function(s, size = SZ$body, color = PAL$ink, bold = FALSE, align = "left", bullet = NA, gap_pt = 6, line = 1.1, accent = PAL$blue) {
@@ -205,9 +211,11 @@ deck_bullets <- function(items, box, size = SZ$body, gap_pt = 8, label = "body",
   stopifnot(size >= SZ$body_min); lvl <- ifelse(startsWith(items, "- "), 1L, 0L); items <- sub("^- ", "", items)
   n0 <- sum(lvl == 0L); DK$cur$bullets <- DK$cur$bullets + n0
   if (DK$cur$bullets > LIMITS$bullets) stop(sprintf("%s: %d bullet points (limit %d)", REG$sec, DK$cur$bullets, LIMITS$bullets), call. = FALSE)
-  fit_check(label, items, box, size, gap_pt, indent = 0.3)
+  # 하위 글머리표는 윗 요점에 붙인다: 하위 항목 앞 문단과 하위 항목끼리는 간격 4 pt(마지막 하위 항목 뒤는 원래 간격)
+  gp <- rep(gap_pt, length(items)); nx <- c(lvl[-1L], 0L); gp[nx == 1L] <- min(gap_pt, 4)
+  fit_check(label, items, box, size, gp, indent = 0.3)
   col <- color %||% (if (DK$cur$dark) PAL$dark_ink else PAL$ink)
-  ps <- lapply(seq_along(items), function(i) para(items[i], if (lvl[i] == 1L) max(SZ$body_min, size - 2) else size, col, bullet = lvl[i], gap_pt = gap_pt))
+  ps <- lapply(seq_along(items), function(i) para(items[i], if (lvl[i] == 1L) max(SZ$body_min, size - 2) else size, col, bullet = lvl[i], gap_pt = gp[i]))
   DK$x <- ph_with(DK$x, do.call(block_list, ps), location = loc(box, label)); invisible(NULL)
 }
 deck_text <- function(s, box, size = SZ$body, bold = FALSE, color = NULL, align = "left", label = "text", bg = NULL, gap_pt = 6, geom = NULL) {
@@ -265,9 +273,12 @@ deck_figure <- function(p, name, box, src, dpi = 220) {
 }
 deck_notes <- function(s) { DK$x <- set_notes(DK$x, value = paste(s, collapse = "\n"), location = notes_location_type("body")); DK$cur$notes <- paste(s, collapse = "\n"); invisible(NULL) }
 # 슬라이드 끝: 바닥글(결과 파일 ID, 버전, 커밋, 쪽 번호)과 메타 기록
+# 바닥글 출처 목록에서 맨 앞에 둘 파일(슬라이드의 핵심 출처가 설정 파일이라 '외 N개'에 가려질 때)
+deck_src_first <- function(files) { DK$cur$src_first <- files; invisible(NULL) }
 deck_end <- function() {
   tr <- rbindlist(REG$trace, fill = TRUE); src <- if (nrow(tr)) unique(tr[section == REG$sec, source_file]) else character(0)
   ids <- unique(c(basename(src[!grepl("^config/", src)]), basename(src[grepl("^config/", src)])))   # 결과 파일 먼저, 설정 파일은 뒤
+  if (length(DK$cur$src_first)) ids <- unique(c(intersect(basename(DK$cur$src_first), ids), ids))   # 슬라이드가 지정한 핵심 출처를 맨 앞에(deck_src_first)
   lab <- DK$txt$common$footer
   # 출처 목록은 한 줄에 들어가는 만큼만 적고 나머지는 "외 N개"로 줄인다(전체 목록은 추적표에 있음)
   wmax <- GEO$CW - 3.1 - 0.25
@@ -317,7 +328,7 @@ pp_bullets <- function(path) {
       xml2::xml_set_attr(ppr, "marL", marL); xml2::xml_set_attr(ppr, "indent", ind)
       for (old in xml2::xml_find_all(ppr, "./a:buNone|./a:buChar|./a:buFont|./a:buClr", ns)) xml2::xml_remove(old)
       bc <- xml2::xml_add_child(ppr, "a:buClr"); xml2::xml_add_child(bc, "a:srgbClr", val = if (lvl == 0) "2A78D6" else "8A8984")
-      xml2::xml_add_child(ppr, "a:buFont", typeface = "Arial"); xml2::xml_add_child(ppr, "a:buChar", char = if (lvl == 0) "●" else "–")
+      xml2::xml_add_child(ppr, "a:buFont", typeface = "Arial"); xml2::xml_add_child(ppr, "a:buChar", char = if (lvl == 0) "●" else "◦")
       nfix <- nfix + 1L
     }
     # 자리표시자 표지(p:ph)를 지워 보통 도형으로 만든다: LibreOffice(PDF)는 자리표시자의 도형 모양(roundRect, rightArrow)을 무시한다.
@@ -338,6 +349,14 @@ pp_bullets <- function(path) {
       bp <- xml2::xml_find_first(sp, "./p:txBody/a:bodyPr", ns)
       xml2::xml_set_attrs(bp, c(xml2::xml_attrs(bp), lIns = as.character(round(CARD_INS[["lr"]] * 914400)), rIns = as.character(round(CARD_INS[["lr"]] * 914400)),
                                 tIns = as.character(round(CARD_INS[["tb"]] * 914400)), bIns = as.character(round(CARD_INS[["tb"]] * 914400))))
+    }
+    # 큰 수치 카드(stat)와 낮은 채운 도형(칩·띠, 높이 CARD_MIN_H 미만)은 글을 세로 가운데에 둔다(위아래 여백을 같게; 위 정렬이면 아래 가장자리에 붙는다)
+    for (sp in xml2::xml_find_all(doc, ".//p:sp[p:spPr/a:solidFill and p:txBody]", ns)) {
+      nm <- xml2::xml_attr(xml2::xml_find_first(sp, ".//p:cNvPr", ns), "name"); if (nm %in% c("background", "tag")) next
+      ext <- xml2::xml_find_first(sp, "./p:spPr/a:xfrm/a:ext", ns); if (inherits(ext, "xml_missing")) next
+      if (!(nm == "stat" || as.numeric(xml2::xml_attr(ext, "cy")) < CARD_MIN_H * 914400)) next
+      if (!nzchar(trimws(xml2::xml_text(xml2::xml_find_first(sp, "./p:txBody", ns))))) next
+      xml2::xml_set_attr(xml2::xml_find_first(sp, "./p:txBody/a:bodyPr", ns), "anchor", "ctr")
     }
     # 둥근 사각형의 모서리 반지름을 0.1 in로 통일(기본값은 짧은 변의 16.7%라 큰 카드가 지나치게 둥글다)
     for (sp in xml2::xml_find_all(doc, ".//p:sp[p:spPr/a:prstGeom[@prst='roundRect']]", ns)) {

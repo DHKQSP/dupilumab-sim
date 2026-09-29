@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 # check_deck.R: 결과보고 슬라이드 자동 검사. 하나라도 실패하면 0이 아닌 코드로 끝난다.
 #  1 숫자 추적: 슬라이드(본문·표·발표자 노트)의 모든 숫자가 그 슬라이드의 추적 행(deck_traceability.csv)에 있다(허용 문맥 제외).
-#  2 빈 값: 자리표시자, NA/NaN/Inf, TODO가 없다.        3 대시: en-dash, em-dash, U+2212가 없다.
+#  2 빈 값: 자리표시자, NA/NaN/Inf, TODO가 없다.        3 대시: en-dash, em-dash, U+2212가 없다(글자와 슬라이드·노트 XML 전체, 글머리표 문자 포함).
 #  4 아토피: 부록 A5 밖(본문 슬라이드)에 아토피 모집단 말이나 그 결과 파일 출처가 없다.
 #  5 약어: 첫 등장 슬라이드에 풀이가 있다.               6 형식: 본문 16pt, 표 12pt 이상; 요점 5개, 표 본문 6행 이하.
 #  7 추적 완결: 추적 행의 출처 파일이 있고 SHA-256이 현재 파일과 같다.
@@ -73,7 +73,13 @@ for (sid in meta$id) {
 for (sid in meta$id) {
   t_ <- paste(S[id == sid, text], collapse = "\n")
   if (grepl("[{}]|(^|[^A-Za-z])(NA|NaN|Inf|TODO|XXX)([^A-Za-z]|$)", t_)) add("2 empty values", sid, "FAIL", regmatches(t_, regexpr(".{0,40}([{}]|NA|NaN|Inf|TODO|XXX).{0,40}", t_))) else add("2 empty values", sid, "pass")
-  if (grepl("[–—−]", t_)) add("3 dashes", sid, "FAIL", "en-dash, em-dash or U+2212") else add("3 dashes", sid, "pass")
+  # 글자뿐 아니라 슬라이드·노트 XML 전체(글머리표 문자 a:buChar, 대체 텍스트 등)를 본다
+  i_ <- match(sid, meta$id); rf_ <- file.path(dirname(slide_files[i_]), "_rels", paste0(basename(slide_files[i_]), ".rels"))
+  xml_ <- paste(readLines(slide_files[i_], warn = FALSE, encoding = "UTF-8"), collapse = "\n")
+  if (file.exists(rf_)) { tg_ <- xml_attr(xml_children(read_xml(rf_)), "Target"); for (nt_ in tg_[grepl("notesSlide", tg_)])
+    xml_ <- paste(xml_, paste(readLines(normalizePath(file.path(dirname(slide_files[i_]), nt_)), warn = FALSE, encoding = "UTF-8"), collapse = "\n")) }
+  if (grepl("[–—−]", t_)) add("3 dashes", sid, "FAIL", "en-dash, em-dash or U+2212")
+  else if (grepl("[–—−]", xml_)) add("3 dashes", sid, "FAIL", "en-dash, em-dash or U+2212 in the slide XML (bullet character or attribute)") else add("3 dashes", sid, "pass")
 }
 # ---- 4 아토피 ---------------------------------------------------------------------------------------------------------------------------
 ok_sl <- unlist(CK$atopic_allowed_slides)

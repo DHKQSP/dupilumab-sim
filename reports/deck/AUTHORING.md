@@ -39,6 +39,7 @@
 
 ## 배치 함수 (단위 인치; 슬라이드 13.333 x 7.5; 여백 0.55)
 - `deck_slide(id, tag, dark = FALSE)` 시작, `deck_end()` 끝(바닥글 자동: 출처 파일 ID, 버전, 커밋, 쪽 번호). 반드시 둘 다 부른다.
+- `deck_src_first(files)`: 바닥글 출처 목록에서 맨 앞에 둘 파일(핵심 출처가 설정 파일이라 '외 N개'에 가려질 때; `deck_end()` 전에 부른다).
 - `deck_kicker(s)`, `deck_title(s)`.
 - `deck_bullets(items, box, size = 18)`: items 문자 벡터, "- "로 시작하면 2단계. `**굵게**`, `__강조색__` 표기 가능.
 - `deck_text(s, box, size, bold, color, align, label, bg, geom)` 글상자(배경색·모양 가능: geom "roundRect").

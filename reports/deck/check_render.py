@@ -6,6 +6,7 @@ pptx의 도형 위치(글상자, 표, 그림)와 PDF의 글줄 위치(PyMuPDF)�
 - overlap_text: 서로 다른 도형의 글줄끼리 겹침
 - overlap_figure: 글줄이 그림 상자와 겹침(그림 위에 얹은 글상자)
 - margin: 글줄이 슬라이드 가장자리 0.3 in 안쪽까지 들어옴
+- tight_bottom: 채운 카드(높이 0.6 in 이상)에서 마지막 글줄이 아래 가장자리에 붙음(아래 여백 6.5 pt 미만이고 위 여백보다 3 pt 넘게 좁음)
 - unmatched: 어느 도형에도 대응하지 않는 글줄(검사 불가, 보고만 함)
 그림 안 글자(ragg PNG)는 그림 자체라 여기서 보지 않는다(육안 확인).
 
@@ -19,13 +20,16 @@ NS = {"a": "http://schemas.openxmlformats.org/drawingml/2006/main", "p": "http:/
       "r": "http://schemas.openxmlformats.org/officeDocument/2006/relationships"}
 EMU_PT = 12700.0
 TOL = 2.0          # pt
+PAD_MIN = 6.5      # pt, 채운 도형의 아래 여백 하한
+PAD_SKEW = 3.0     # pt, 위 여백과 아래 여백 차이의 허용치
+CARD_MIN_H = 0.6 * 72   # pt, deck_lib.R의 CARD_MIN_H(채운 카드로 보는 높이)
 MARGIN = 0.3 * 72  # pt
 
 
 def norm(s):
     s = s.replace(chr(0x2011), "-")
     s = re.sub("[" + chr(0x200b) + chr(0x2060) + chr(0x2063) + chr(0xfeff) + "]", "", s)
-    s = re.sub("^[\\s" + chr(0x25cf) + chr(0x2022) + chr(0x2013) + "]+", "", s)     # 글머리표 문자
+    s = re.sub("^[\\s" + chr(0x25cf) + chr(0x2022) + chr(0x2013) + chr(0x25e6) + "]+", "", s)     # 글머리표 문자
     return re.sub(r"\s+", "", s)
 
 
@@ -56,7 +60,8 @@ def shapes_of(z, path):
         if kind == "table":   # 셀 단위 문단
             paras = [" ".join(para_texts(tc)) for tc in sh.iterfind(".//a:tc", NS)]
         full = norm("".join(paras))
-        out.append(dict(name=name, kind=kind, box=box, text=full, paras=[norm(p) for p in paras if norm(p)]))
+        filled = tag == "sp" and sh.find("p:spPr/a:solidFill", NS) is not None and name not in ("background", "tag")
+        out.append(dict(name=name, kind=kind, box=box, text=full, paras=[norm(p) for p in paras if norm(p)], filled=filled))
     return out
 
 
@@ -111,6 +116,16 @@ def main(pptx, pdf, out):
                     w, h = inter(b, f["box"])
                     if w > TOL and h > TOL:
                         rows.append(dict(slide=n, kind="overlap_figure", shape=own["name"], text=ln["text"][:60], detail=f"overlaps {f['name']} ({w:.0f}x{h:.0f} pt)"))
+        # 채운 도형의 위아래 여백(자기 글줄 기준)
+        for s in shapes:
+            if not s["filled"] or not s["text"] or s["box"][3] - s["box"][1] < CARD_MIN_H:   # 칩·띠(낮은 도형)는 세로 가운데 정렬이라 제외
+                continue
+            own = [ln["box"] for ln in lines if ln.get("owner") == s["name"] and inter(ln["box"], s["box"]) != (0, 0)]
+            if not own:
+                continue
+            top = min(b[1] for b in own) - s["box"][1]; bot = s["box"][3] - max(b[3] for b in own)
+            if bot < PAD_MIN and top - bot > PAD_SKEW:
+                rows.append(dict(slide=n, kind="tight_bottom", shape=s["name"], text="", detail=f"bottom padding {bot:.1f} pt against top {top:.1f} pt"))
         for i in range(len(lines)):
             for j in range(i + 1, len(lines)):
                 a, c = lines[i], lines[j]
