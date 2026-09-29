@@ -79,8 +79,8 @@ slide_A2 <- function() {
   df <- data.frame(a = unlist(L$set_names[sets]), b = vapply(sets, function(s_) fill(L$ge, list(x = f_set(s_, "r2"))), ""),
                    d = vapply(sets, spn, ""), s = unlist(L$status[sets]), e = vapply(sets, use, ""), stringsAsFactors = FALSE, check.names = FALSE)
   names(df) <- tx("A2.table.head")
-  TY <- y0 + LH + 0.02; TH <- 2.44
-  deck_table(df, box = c(XR, TY, WR, TH), widths = c(0.58, 0.88, 1.2, 1.42, 1.75), size = 14, label = "table_sets", highlight = 3)
+  TY <- y0 + LH + 0.02; TH <- 2.72
+  deck_table(df, box = c(XR, TY, WR, TH), widths = c(0.5, 1.03, 1.0, 1.39, 1.91), size = 14, label = "table_sets", highlight = 3)
 
   # ---- 오른쪽 아래: 공개 SAP 세 건(사전 등록 6절 문장에서 읽는다) ----
   sap <- core_sap("NCT04117607", "at least", "public SAP NCT04117607: adjusted R-squared at least")
@@ -95,8 +95,8 @@ slide_A2 <- function() {
   # ---- 아래 전체 폭: Phoenix 사실과 공개 SAP 세 건(회색 상자) ----
   S <- L$sap
   ph <- tx("A2.phoenix", list(s1 = fill(S$ge, list(x = sap)), sp = sp4, s2 = fill(S$ge, list(x = s2)), s3 = fill(S$gt, list(x = s3))))
-  phh <- est_height(ph, GEO$CW, SZ$body, gap_pt = 4, card = TRUE) + 0.04
-  PY <- max(y0 + LH + 0.02 + rh, TY + TH) + 0.14
+  phh <- est_height(ph, GEO$CW, SZ$body, gap_pt = 4, card = TRUE) + 0.10
+  PY <- max(y0 + LH + 0.02 + rh, TY + TH) + 0.10
   premise(PY + phh <= capy - 0.08, "Phoenix and SAP box fits between the columns and the caption")
   deck_text(ph, c(GEO$ML, PY, GEO$CW, phh), size = SZ$body, label = "body_phoenix", bg = PAL$tint_grey, geom = "roundRect", gap_pt = 4)
 

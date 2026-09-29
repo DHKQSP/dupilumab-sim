@@ -89,7 +89,7 @@ slide_A4b <- function() {
     geom_point(data = iso, aes(x, y, colour = ser), size = 1.6, show.legend = FALSE) +
     geom_point(data = ov, aes(x, pct), colour = PAL$orange, shape = 15, size = 2.6) +
     geom_text(data = ov, aes(x, pct * 4, label = lab), hjust = 0.5, vjust = 0, size = PT(14), family = FONT, colour = PAL$ink) +
-    facet_wrap(~ mod, nrow = 1) +
+    facet_wrap(~ mod, nrow = 1) + coord_cartesian(clip = "off") +
     scale_fill_manual(values = setNames(BLUE_LIGHT, F$s_win), name = NULL) +
     scale_colour_manual(values = setNames(c(PAL$blue, PAL$orange, PAL$orange), SER), name = NULL) +
     scale_linetype_manual(values = setNames(c("solid", "solid", "22"), SER), name = NULL) +

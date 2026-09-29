@@ -16,8 +16,7 @@ A5b:
       C_i: "AUCinf + Cmax, 규칙 C (i)"
   fig:
     sub: "2020 모델 말초 분포 증가 칸, M1\n가로선: Wilson 95% 구간"
-    xlab: "경계 1종 오류 (%)"
-    nom: "명목 {v}"
+    xlab: "경계 1종 오류 (%), 점선 = 명목 {v}"
     rows:
       ref: "참 AUCinf로 판정\n(편향 없는 기준)"
       last: "AUClast 단독"

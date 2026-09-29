@@ -56,6 +56,7 @@ slide_A14 <- function() {
              nchk = dcount(PV, "!startsWith(check, 'input ')", "scripts/63 identity checks"),
              nin = dcount(PV, "startsWith(check, 'input ')", "scripts/63 inputs recorded by SHA-256"),
              ncs = dcount(PV, RX$cs, "curve-shape draws regenerated and compared (base and four variants)"),
+             ncsv = dcount(PV, "grepl('^curve-shape (vmax|km)', check)", "curve-shape variants regenerated (without the base draw)"),
              nind = dcfg("trial_design.yaml", c("mc", "n_individual"), "subjects per model in the individual populations", function(x) fnum(as.numeric(x), 0, big = TRUE)),
              seed = seed, regd = dcfg("prereg_20260929.yaml", "registered_on", "registration date of the core-deck pre-registration", function(x) as.character(x)))
 
@@ -105,7 +106,7 @@ slide_A14 <- function() {
   y0 <- core_title(tx("A14.title", list(neq = f1$neq, ni = f2$ni)), tx("A14.kicker"))
 
   # ---- 카드 3개 ----
-  C <- DK$txt$A14$cards; gap <- 0.22; cw <- (GEO$CW - 2 * gap) / 3; ch <- 2.95; cy <- y0 + 0.08
+  C <- DK$txt$A14$cards; gap <- 0.22; cw <- (GEO$CW - 2 * gap) / 3; ch <- 3.15; cy <- y0 + 0.08
   v2 <- function(a, b) list(list(a, PAL$ink, 40), list(b, PAL$ink2, 20))
   core_card(C$c1$head, v2(sprintf("%s/%s", f1$neq, f1$nchk), C$c1$unit), fill(C$c1$label, f1), c(GEO$ML, cy, cw, ch), bg = PAL$tint_grey)
   core_card(C$c2$head, v2(f2$pg, C$c2$unit), fill(C$c2$label, f2), c(GEO$ML + cw + gap, cy, cw, ch), bg = PAL$tint_grey)
@@ -117,12 +118,12 @@ slide_A14 <- function() {
   fb <- list(regd = f1$regd, seed = f1$seed, rv = a14_ver("R", "R version (renv.lock)"), rx = a14_ver("rxode2", "rxode2 version (renv.lock)"))
   capy <- core_caption(tx("A14.caption", list()), GEO$BODY_BOTTOM, size = 14)
   body <- tx("A14.body", fb); bh <- core_body_h(body, gap_pt = 6)
-  premise(cy + ch + 0.2 <= capy - 0.08 - bh, "body fits between the cards and the caption")
+  premise(cy + ch + 0.12 <= capy - 0.08 - bh, "body fits between the cards and the caption")
   core_body(body, capy - 0.08, gap_pt = 6)
 
   run63 <- if (clean63) tx("A14.run_clean", list(cm63 = cm63)) else tx("A14.run_dirty", list(cm63 = cm63, unc = paste(unc, collapse = ", ")))
   deck_notes(tx("A14.notes", c(f1, f2, f3, fb, list(
-    cm63 = cm63, run63 = run63, ncsv = dcount(PV, "grepl('^curve-shape (vmax|km)', check)", "curve-shape variants regenerated (without the base draw)"),
+    cm63 = cm63, run63 = run63,
     nnca = dcount(PV, RX$nca, "regenerated representative-population NCA column checks (two models)"),
     ncol = { x <- nrow(rows(PV, RX$nca)) / 2; dderived("NCA columns compared per model", PV, sprintf("count of rows [%s] / 2 models", RX$nca), x, fnum(x, 0)) },
     nsub = dcount(PV, RX$sub, "representative-subject checks (true AUC at tlast, re-solved concentration)"),

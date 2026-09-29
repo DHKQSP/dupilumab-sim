@@ -1,8 +1,10 @@
 # A1 별첨 · 모델 적격성(S3 본문 "모델은 연구 제형 300 mg의 관측 AUClast를 ±15% 안에서 재현한다"의 근거). [문헌+모의]
 # 그림: 자료별 AUClast 모의/관측(평균의 비), 두 모델(표식 모양), gate 허용 범위 ±tol 음영(config/design_clot2021.yaml gate.auclast_mean_tol_pct).
-#   위 = 연구 제형(300 mg 2 mL of 150 mg/mL, 600 mg = 2 x 300 mg; gate 판정 5개), 아래 = 200 mg 1.14 mL 제형(외부 점검 4개, gate 제외).
+#   위 = 연구 제형(300 mg 2 mL of 150 mg/mL, 600 mg = 2 x 300 mg; gate 판정 5개), 아래 = 200 mg 1.14 mL 제형(외부 점검 4개, gate 제외, 회색).
+#   속이 빈 표식 = 그 모델의 개발 자료(config/design_clot2021.yaml datasets dev_k2016/dev_k2020가 internal 또는 partial).
+# 오른쪽 본문: 연구 제형(300 mg 부분집합은 S3와 같은 범위), 200 mg 제형, 완전 외부 재판정(step1h, step1_status: 두 모델 FAIL, D-030).
 # 자료 논리는 결과보고 덱 S07(step1b_quant_gate.csv, step1f, step1h)과 A1(literature_numeric.csv, step1g)을 그대로 쓴다. 세부(Cmax, 200 mg 흡수,
-# 300 mg 단일 arm, 완전 외부 재판정, 문헌 평균비)는 노트에 둔다.
+# 300 mg 단일 arm, 가정 체중 민감도(step1i), 문헌 평균비)는 노트에 둔다.
 
 # 문자열 열의 k번째 수(예: 제형 "2 mL of 150 mg/mL")를 출처와 함께 읽는다
 a1_num <- function(rel, where, col, k, n_expected, item) {
@@ -87,16 +89,18 @@ slide_A1 <- function() {
       labs(x = xlab, y = NULL, subtitle = sub) + theme_core(16) +
       theme(panel.grid.major.y = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 15, colour = PAL$ink),
             plot.subtitle = element_text(size = 16, face = "bold", colour = if (role == "gate") PAL$blue else PAL$ink2, margin = margin(0, 0, 4, 0)),
-            plot.margin = margin(2, 96, 2, 4))
+            plot.title.position = "plot", plot.margin = margin(2, 96, 2, 4))
     p
   }
   # 범례(모델 = 표식 모양)는 위 그림에만(제목 줄 아래 왼쪽; 오른쪽 값 열 머리글과 떨어지게)
+  # 범례(모델 = 표식 모양, 속이 빈 표식 = 개발 자료)는 그림 아래(오른쪽 값 열 머리글과 겹치지 않게)
   p1 <- mk("gate", L$g_gate, NULL) + guides(shape = guide_legend(order = 1, override.aes = list(colour = PAL$ink, fill = PAL$ink)),
                                              fill = guide_legend(order = 2, override.aes = list(shape = 21, colour = PAL$ink, size = 3.8))) +
-    theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), legend.position = "top", legend.justification = "left", legend.margin = margin(0, 0, 2, 0),
-          legend.box.spacing = grid::unit(2, "pt"), legend.text = element_text(size = 15, colour = PAL$ink))
+    theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
   p2 <- mk("external", fill(L$g_ext, list(dose = fnum(d200, 0))), L$xlab) + guides(shape = "none", fill = "none")
-  p <- patchwork::wrap_plots(p1, p2, ncol = 1, heights = c(nrow(w[gate_role == "gate"]), nrow(w[gate_role == "external"])))
+  p <- patchwork::wrap_plots(p1, p2, ncol = 1, heights = c(nrow(w[gate_role == "gate"]), nrow(w[gate_role == "external"]))) +
+    patchwork::plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.justification = "left", legend.margin = margin(0, 0, 0, 0),
+                                                       legend.box.spacing = grid::unit(2, "pt"), legend.spacing.x = grid::unit(2, "pt"), legend.text = element_text(size = 14, colour = PAL$ink))
 
   # ---- 본문 두 줄, 캡션 ----
   to <- drange(Q16, "gate_role=='external'", "tmax_obs_median", 1, "", "observed median tmax, 200 mg presentation (days)")
@@ -124,11 +128,13 @@ slide_A1 <- function() {
   w0 <- dcfg("design_clot2021.yaml", c("arm_checks_300mg", "weight", "mean"), "assumed mean weight of the single arms (kg)", num_fmt(0))
   xo <- list(n16 = dcount(H16, "TRUE", "fully external items, 2016 model"), f16 = dcount(H16, "pass_mean==FALSE", "fully external items failing, 2016 model"),
              n20 = dcount(H20, "TRUE", "fully external items, 2020 model"), f20 = dcount(H20, "pass_mean==FALSE", "fully external items failing, 2020 model"))
-  cap <- tx("A1.caption", c(list(tol = tol, w0 = w0, d200 = fb$d200), xo))
-  capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
-  FW <- 7.35; XR <- GEO$ML + FW + 0.3; WR <- GEO$W - GEO$MR - XR
-  body <- tx("A1.body", fb); bh <- core_body_h(body, WR, gap_pt = 14)
-  deck_text(body, c(XR, y0 + 0.45, WR, bh), size = SZ$body, label = "body", gap_pt = 14)
+  # 배치: 왼쪽 = 그림 + 그 아래 캡션(그림 폭), 오른쪽 = 본문 세 문단(연구 제형, 200 mg 제형, 완전 외부 재판정)
+  FW <- 6.75; XR <- GEO$ML + FW + 0.3; WR <- GEO$W - GEO$MR - XR
+  cap <- tx("A1.caption", list(tol = tol, d200 = fb$d200))
+  capy <- core_caption(cap, GEO$BODY_BOTTOM, x = GEO$ML, width = FW, size = 14)
+  body <- tx("A1.body", c(fb, xo, list(w0 = w0))); bh <- core_body_h(body, WR, gap_pt = 12)
+  premise(y0 + 0.1 + bh <= GEO$BODY_BOTTOM, "right-column body fits above the footer")
+  deck_text(body, c(XR, y0 + 0.1, WR, bh), size = SZ$body, label = "body", gap_pt = 12)
   deck_figure(p, "a1_qualification", c(GEO$ML, y0, FW, capy - 0.12 - y0), src = c(Q16, Q20))
 
   # ---- 노트: 기준, 자료별 값, 200 mg, Cmax, 단일 arm, 완전 외부 재판정, 문헌 평균비 ----
@@ -151,7 +157,11 @@ slide_A1 <- function() {
           "600 mg: simulated true and NCA mean ratios below the published NCA ratio in both models (notes: conservative direction)")
   lv <- function(k, col, item) dv(LN, W[[k]], col, 1, "%", item, scale = 100)
   two <- function(k, stem, item) sprintf("%s / %s", lv(k, paste0(stem, "_k2016"), paste(item, "2016 model")), lv(k, paste0(stem, "_k2020"), paste(item, "2020 model")))
-  deck_notes(tx("A1.notes", list(
+  wmin <- function(rel, m) { r <- rows(rel, "study=='PKM12350'"); g <- r[, .(pass = all(within_15)), by = weight_mean][order(weight_mean)]
+    x <- min(g$weight_mean[g$pass]); premise(any(g$pass) && all(g$pass[g$weight_mean >= x]), sprintf("%s: PKM12350 arms within 15%% from one assumed weight upward", m))
+    dderived(sprintf("lowest assumed mean weight with both PKM12350 arms within 15%%, %s (kg)", m), rel, "study=='PKM12350' :: min(weight_mean) with all(within_15)", x, fnum(x, 0)) }
+  ws <- list(ws16 = wmin("step1/step1i_arm_weight_sensitivity.csv", "k2016"), ws20 = wmin("step1_k2020/step1i_arm_weight_sensitivity.csv", "k2020"))
+  deck_notes(tx("A1.notes", c(ws, list(
     tol = tol, cvr = dcfg("design_clot2021.yaml", c("gate", "log_cv_range_pct"), "validation criterion: simulated log-scale CV range (%)", function(x) rng_fmt(x[1], x[2], 0)),
     cv16 = drange(Q16, "gate_role=='gate'", "AUClast_sim_logcv", 0, "", "simulated log-scale CV range, 2016 model"),
     cv20 = drange(Q20, "gate_role=='gate'", "AUClast_sim_logcv", 0, "", "simulated log-scale CV range, 2020 model"),
@@ -175,6 +185,6 @@ slide_A1 <- function() {
     t300 = two("c300", "true_mean_ratio", "Clot 2021 300 mg simulated true mean ratio,"),
     lpk = lv("pkm", "lit_mean_ratio", "PKM12350 control arm published mean AUClast/AUCinf"), npk = two("pkm", "nca_mean_ratio", "PKM12350 simulated NCA mean ratio,"),
     l600 = lv("c600", "lit_mean_ratio", "Clot 2021 600 mg published mean AUClast/AUCinf"), n600 = two("c600", "nca_mean_ratio", "Clot 2021 600 mg simulated NCA mean ratio,"),
-    t600 = two("c600", "true_mean_ratio", "Clot 2021 600 mg simulated true mean ratio,"), lt = ltol$p)))
+    t600 = two("c600", "true_mean_ratio", "Clot 2021 600 mg simulated true mean ratio,"), lt = ltol$p))))
   deck_end()
 }

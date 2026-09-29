@@ -77,6 +77,7 @@ slide_A9 <- function() {
     g90r = dv(TP, w90, "gmr", 2, "", "true GMR of the lower power row"), p90 = dv(TP, w90, "analytic_pct", 1, "%", "P2 power n 117 CV 43 GMR 0.90 M1 (analytic)"),
     p90mc = dv(TP, w90, "mc_pct", 1, "%", "P2 power n 117 CV 43 GMR 0.90 M1 (statistical simulation)"),
     g = dv(TP, a9_w(cv_b, n_arm), "gmr", 2, "", "true GMR of the power table (notes)"),
+    ne_b = nn_(cv_b), nr_b = nn_(cv_b, "n_randomized_per_arm", "n randomized"), ne_s = nn_(cv_s), nr_s = nn_(cv_s, "n_randomized_per_arm", "n randomized"),
     cv_b = dint(TP, a9_w(cv_b, n_arm), "cv", "protocol CV (%)"), cv_s = dint(TP, a9_w(cv_s, n_arm), "cv", "sensitivity CV (%)"),
     p_b0 = dv(TP, a9_w(cv_b, n_arm, "M0"), "analytic_pct", 1, "%", sprintf("P2 power n 117 CV %s GMR 0.95 M0", cv_b)),
     p_s = dv(TP, a9_w(cv_s, n_arm), "analytic_pct", 1, "%", sprintf("P2 power n 117 CV %s GMR 0.95 M1", cv_s)),

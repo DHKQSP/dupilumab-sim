@@ -57,7 +57,8 @@ slide_A6 <- function() {
     dderived(sprintf("simulated / observed mean AUClast, %s arms, two models", st), A16, sprintf("%s :: range(ratio) over the step1 and step1_k2020 files", w), x, rng_fmt(x[1], x[2], 2)) }
   body <- tx("A6.body", list(tol = gt, r1 = rr("PKM14161"), r2 = rr("PKM12350"),
                              wt = dcfg("design_clot2021.yaml", c("arm_checks_300mg", "weight", "mean"), "assumed mean weight of the single arms (kg)", num_fmt(0))))
-  by <- core_body(body, capy - 0.06)
+  FW <- 5.85; XR <- GEO$ML + FW + 0.3; WR2 <- GEO$W - GEO$MR - XR                      # 왼쪽 그림(캡션 위까지), 오른쪽 = 그림 + 그 아래 본문
+  by <- core_body(body, capy - 0.06, x = XR, width = WR2)
 
   # ---- 왼쪽 그림: 평균 AUClast/AUCinf ----
   FL <- L$fig; ML <- DK$txt$common$models_short
@@ -67,7 +68,7 @@ slide_A6 <- function() {
   d <- rbind(d, data.table(k = "pkm", type = "litt", model = NA, v = tv_))              # PKM12350 시험군 공개 값(일치 판정 밖)
   dsrc("figure a6: published and simulated mean ratios", LN)
   # 세로 위치: 자료마다 머리글 한 줄 + 문헌(PKM12350은 대조군·시험군)·모의 비구획·모의 참값(두 모델은 위아래로 어긋나게)
-  TY <- list(pkm = c(lit = 1, litt = 2, nca = 3, tv = 4), clot = c(lit = 1, nca = 2, tv = 3)); blk <- c(pkm = 0, clot = 5.3); OFF <- 0.2
+  TY <- list(pkm = c(lit = 1, litt = 2, nca = 3, tv = 4), clot = c(lit = 1, nca = 2, tv = 3)); blk <- c(pkm = 0, clot = 5.3); OFF <- 0.25
   d[, y := -(blk[k] + mapply(function(k_, t_) TY[[k_]][[t_]], k, type)) + ifelse(is.na(model), 0, ifelse(model == "k2016", OFF, -OFF))]
   d[, shp := ifelse(is.na(model), "lit", model)][, ctype := ifelse(type == "litt", "lit", type)]
   lab <- d[, .(v = if (type[1] == "tv") min(v) else max(v), y = -(blk[k[1]] + TY[[k[1]]][[type[1]]]), lab = paste0(paste(fnum(v, 1), collapse = " / "), "%")), by = .(k, type)]
@@ -84,8 +85,8 @@ slide_A6 <- function() {
     geom_point(aes(v, y, shape = shp, colour = ctype), size = 3.4) +
     geom_text(data = lab, aes(v, y, label = lab, hjust = hj), size = PT(14), family = FONT, colour = PAL$ink) +
     geom_text(data = hd, aes(XL[1], y, label = lab), hjust = 0, size = PT(15), family = FONT, fontface = "bold", colour = PAL$ink) +
-    scale_shape_manual(values = c(lit = 15, k2016 = 16, k2020 = 17), labels = c(lit = FL$lit_shape, k2016 = ML$k2016, k2020 = ML$k2020), name = NULL,
-                       breaks = c("lit", "k2016", "k2020")) +
+    scale_shape_manual(values = c(lit = 15, k2016 = 16, k2020 = 17), labels = c(k2016 = ML$k2016, k2020 = ML$k2020), name = NULL,
+                       breaks = c("k2016", "k2020")) +                                   # 문헌(■)은 행 이름이 말해 준다
     scale_colour_manual(values = c(lit = PAL$ink, nca = PAL$orange, tv = PAL$blue), labels = c(nca = FL$c_nca, tv = FL$c_tv), name = NULL, breaks = c("nca", "tv")) +
     guides(shape = guide_legend(order = 1, override.aes = list(colour = PAL$ink)), colour = guide_legend(order = 2, override.aes = list(shape = 15, size = 4.2))) +
     scale_x_continuous(breaks = seq(ceiling(XL[1] / 2) * 2, 100, 2), labels = function(v) paste0(v, "%")) +
@@ -95,33 +96,30 @@ slide_A6 <- function() {
     theme(legend.position = "top", legend.justification = "left", legend.margin = margin(0, 0, 0, 0), legend.box = "horizontal", legend.spacing.x = grid::unit(2, "pt"),
           legend.box.spacing = grid::unit(2, "pt"), legend.text = element_text(size = 14, colour = PAL$ink), panel.grid.minor = element_blank(),
           panel.grid.major.y = element_blank(), axis.text.y = element_text(size = 14, colour = PAL$ink),
-          plot.subtitle = element_text(size = 14, colour = PAL$ink2, margin = margin(0, 0, 2, 0)), plot.margin = margin(2, 6, 2, 2))
-  FW <- 6.35
-  deck_figure(p1, "a6_ratio_literature", c(GEO$ML, y0, FW, by - 0.08 - y0), src = LN)
+          plot.subtitle = element_text(size = 14, colour = PAL$ink2, margin = margin(0, 0, 2, 0)), plot.title.position = "plot", plot.margin = margin(2, 6, 2, 2))
+  deck_figure(p1, "a6_ratio_literature", c(GEO$ML, y0, FW, capy - 0.1 - y0), src = LN)
 
   # ---- 오른쪽 그림: arm별 관측 평균 AUClast 대 모의 평균 ----
   ar <- rbind(a16[, .(study, arm, obs = auclast_obs, sim = auclast_sim, model = "k2016")], a20[, .(study, arm, obs = auclast_obs, sim = auclast_sim, model = "k2020")])
   premise(all(a16$auclast_obs == a20[match(paste(a16$study, a16$arm), paste(study, arm)), auclast_obs]), "same observed means in both model files")
-  ar[, lab := sprintf("%s %s%s", study, FL$arm[[arm]], if (study == "PKM14161") FL$dev_mark else ""), by = .(study, arm)]
+  ar[, lab := sprintf("%s %s%s (%s)", study, FL$arm[[arm]], if (study == "PKM14161") FL$dev_mark else "", fnum(obs[1], 0)), by = .(study, arm)]   # 관측 평균은 행 이름에
   ord <- rev(unique(ar[order(study, -xtfrm(arm))]$lab))
   ar[, lab := factor(lab, levels = ord)]
   ob <- unique(ar[, .(lab, obs)])
   dsrc("figure a6: 300 mg arm means", c(A16, A20))
-  XR <- GEO$ML + FW + 0.3; WR2 <- GEO$W - GEO$MR - XR
   p2 <- ggplot() +
     geom_segment(data = ob, aes(x = obs * (1 - tolv), xend = obs * (1 + tolv), y = lab, yend = lab), colour = PAL$tint_grey, linewidth = 9) +
     geom_point(data = ob, aes(obs, lab), shape = 15, size = 3.6, colour = PAL$ink) +
-    geom_text(data = ob, aes(obs, lab, label = fnum(obs, 0)), vjust = -1.25, size = PT(14), family = FONT, colour = PAL$ink) +
     geom_point(data = ar, aes(sim, lab, shape = model), colour = PAL$blue, size = 3.4) +
-    scale_shape_manual(values = c(k2016 = 16, k2020 = 17), labels = c(k2016 = paste(ML$k2016, FL$sim), k2020 = paste(ML$k2020, FL$sim)), name = NULL) +
+    scale_shape_manual(values = c(k2016 = 16, k2020 = 17), labels = c(k2016 = ML$k2016, k2020 = ML$k2020), name = NULL) +
     scale_x_continuous(limits = c(400, 720), breaks = seq(400, 700, 100), expand = expansion(0)) +
     scale_y_discrete(expand = expansion(add = c(0.6, 0.8))) +
     labs(x = FL$xlab2, y = NULL, subtitle = fill(FL$band2, list(tol = gt, src = src))) + theme_core(16) +
-    theme(legend.position = "top", legend.justification = "left", legend.margin = margin(0, 0, 0, 0), legend.text = element_text(size = 14, colour = PAL$ink), panel.grid.minor = element_blank(),
+    theme(legend.position = "none", panel.grid.minor = element_blank(),                                            # 표식 설명은 부제에(● 2016 모델, ▲ 2020 모델)
           panel.grid.major.y = element_blank(), axis.text.y = element_text(size = 14, colour = PAL$ink),
-          plot.subtitle = element_text(size = 14, colour = PAL$ink2, margin = margin(0, 0, 2, 0), lineheight = 1.0))
+          plot.subtitle = element_text(size = 14, colour = PAL$ink2, margin = margin(0, 0, 4, 0), lineheight = 1.05), plot.title.position = "plot")
   premise(all(ar$obs * (1 - tolv) > 400 & ar$sim < 720 & ar$obs * (1 + tolv) < 720), "arm values inside the x range")
-  deck_figure(p2, "a6_arm_auclast", c(XR, y0, WR2, by - 0.08 - y0), src = c(A16, A20))
+  deck_figure(p2, "a6_arm_auclast", c(XR, y0, WR2, by - 0.1 - y0), src = c(A16, A20))
 
   # ---- 노트 ----
   v <- function(k, col, it) dv(LN, W[[k]], col, 1, "%", it, scale = 100)

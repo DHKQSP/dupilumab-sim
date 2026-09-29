@@ -1,7 +1,8 @@
 # A5a ③ 세부(별첨): 경계 16칸 표. S9 점도표의 칸별 값. 두 표(2016 모델, 2020 모델; 표마다 8행, 14pt): 조건(S9 fig.mech 짧은 이름 → 목표 참 AUCinf 비),
 # AUClast + Cmax(P2, results/oc_models/type1_models.csv)와 AUCinf + Cmax(규칙 A 세트 (iii), results/criteria/criteria_g2_type1.csv G2_A_iii)의 경계 1종 오류(M1),
-# Wilson 95% 분류 표시(▲ 초과: 하한 > 5%, ○ 명목: 구간이 5% 포함, 표시 없음: 보수적 = 상한 < 5%; 결과 파일 class 열, 전제로 lo/hi와 대조).
-# 시험 수: 칸마다 10,000회, 연장 칸(2020 모델 말초 분포 증가)은 20,000회(†). 자료 논리는 결과보고 덱 s15_mechanism.R, s14_rules.R.
+# Wilson 95% 분류 표시(▲ Wilson 초과: 하한 > 5%, ○ 명목: 구간이 5% 포함, 표시 없음: 보수적 = 상한 < 5%; 결과 파일 class 열, 전제로 lo/hi와 대조).
+# 시험 수: 칸마다 10,000회, 연장 칸(2020 모델 말초 분포 증가)은 20,000회(†). 본문: S9의 칸 수는 점추정 기준이고 Wilson 초과가 아닌 칸은 2016 선형 소실 증가(명목) 하나.
+# 자료 논리는 결과보고 덱 s15_mechanism.R, s14_rules.R.
 A5A_SC <- c("F_down_080", "F_up_125", "ke_up_080", "ke_down_125", "Vmax_up_080", "Vmax_down_125", "V2_up_080", "ka_down_080")   # S9 그림과 같은 위에서 아래 순서
 
 slide_A5a <- function() {

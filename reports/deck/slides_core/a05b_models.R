@@ -3,6 +3,7 @@
 #     (criteria_g2_type1.csv G2_A_iii, 사전 등록상 M0·M1만), 참고로 규칙 A 세트 (i)·(ii), 규칙 B, 규칙 C 세트 (i)(type1_models.csv G2_Ai, G2_Aii, G2_B, G2_Ci).
 # (b) 그림: 2020 모델 말초 분포 증가 칸(M1, 시험 20,000회)에서 참 AUCinf 단독 판정(편향 없는 기준) → AUClast 단독 → AUClast + Cmax의 경계 1종 오류와 Wilson 95% 구간
 #     (type1_models.csv AUCinf_true_only, AUClast_only, P2), 단계별 차이는 같은 시험 안의 분해(p2_decomposition_models.csv; D-060).
+# 캡션 첫 줄: AUCinf 쪽 기전(표적 소실 증가 칸의 비구획 AUCinf GMR 편향, criteria_bias.csv M1, 규칙 A (iii)과 λz 산출 전원). (b)의 효과 글자 줄은 흰 띠로 5% 점선을 가린다.
 # 자료 논리: 결과보고 덱 s19_transparency.R, s15_mechanism.R.
 a5b_signed <- function(p) if (grepl("^-", p)) p else paste0("+", p)
 
@@ -86,16 +87,15 @@ slide_A5b <- function() {
   p <- ggplot(fd) +
     geom_vline(xintercept = nomv, linetype = "22", colour = PAL$ink2, linewidth = 0.7) +
     annotate("rect", xmin = -Inf, xmax = Inf, ymin = ann$y - 0.19, ymax = ann$y + 0.19, fill = "white", colour = NA) +   # 효과 글자 줄: 5% 점선·눈금선이 글자를 가르지 않게 흰 바탕
-    annotate("text", x = nomv, y = 3.62, label = fill(G$nom, list(v = f$nom)), hjust = -0.08, size = PT(14), family = FONT, colour = PAL$ink2) +
     geom_segment(aes(x = lo, xend = hi, y = y, yend = y, colour = col), linewidth = 1.1) +
     geom_point(aes(est, y, colour = col), size = 4) +
     geom_text(aes(hi, y, label = paste0(fnum(est, 2), "%"), colour = col), hjust = -0.25, size = PT(16), family = FONT, fontface = "bold") +
     geom_text(data = fd[k == "p2"], aes(lo, y - 0.24, label = fill(G$ci, list(lo = fnum(lo, 2), hi = fnum(hi, 2))), colour = col), hjust = 0, vjust = 1, size = PT(14), family = FONT) +
     geom_text(data = ann, aes(xl[1] + 0.02, y, label = lab, colour = col), hjust = 0, size = PT(14), family = FONT) +
     scale_colour_identity() +
-    scale_y_continuous(breaks = 3:1, labels = unlist(G$rows[c("ref", "last", "p2")]), limits = c(0.42, 3.75), expand = expansion(mult = 0)) +
+    scale_y_continuous(breaks = 3:1, labels = unlist(G$rows[c("ref", "last", "p2")]), limits = c(0.45, 3.4), expand = expansion(mult = 0)) +
     scale_x_continuous(limits = xl, breaks = seq(ceiling(xl[1] * 2) / 2, ceiling(max(fd$hi) * 2) / 2, 0.5), expand = expansion(mult = 0)) +
-    labs(x = G$xlab, y = NULL, subtitle = G$sub) + theme_core(16) +
+    labs(x = fill(G$xlab, list(v = f$nom)), y = NULL, subtitle = G$sub) + theme_core(16) +
     theme(panel.grid.major.y = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 14, colour = PAL$ink, lineheight = 0.95), plot.margin = margin(4, 14, 4, 4))
   xr <- GEO$ML + TW + 0.3; wr <- GEO$W - GEO$MR - xr
   deck_text(tx("A5b.head_b"), c(xr, y0, wr, hh), size = 16, bold = TRUE, label = "label_b", gap_pt = 0)

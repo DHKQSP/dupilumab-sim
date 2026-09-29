@@ -1,6 +1,6 @@
 A4b:
   kicker: "별첨 A4b · ② 세부: 관측 대 참 비"
-  title: "AUClast/AUCinf(참값)는 중앙값 {med}이고, λz 산출 전원(규칙 B)의 NCA AUCinf는 참값의 최대 {mx}배까지 퍼진다"
+  title: "AUClast/AUCinf(참값)는 중앙값 {med}이고, λz 산출 전원(규칙 B)의\nNCA AUCinf는 참값의 최대 {mx}배까지 퍼진다"   # \n: 줄 나눔 자리(core_title)
   fig:
     xlab: "같은 대상자의 참 AUCinf에 대한 비 (세로선 = 참값)"
     s_win: "AUClast/AUCinf(참값)"
