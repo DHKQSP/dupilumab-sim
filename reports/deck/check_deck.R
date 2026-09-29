@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# check_deck.R: 결과보고 슬라이드 자동 검사. 하나라도 실패하면 0이 아닌 코드로 끝난다.
+# check_deck.R: 결과보고 슬라이드(v1.0.1)와 핵심 덱(v1.1, --deck core) 자동 검사. 하나라도 실패하면 0이 아닌 코드로 끝난다.
 #  1 숫자 추적: 슬라이드(본문·표·발표자 노트)의 모든 숫자가 그 슬라이드의 추적 행(deck_traceability.csv)에 있다(허용 문맥 제외).
 #  2 빈 값: 자리표시자, NA/NaN/Inf, TODO가 없다.        3 대시: en-dash, em-dash, U+2212가 없고 음수 부호는 ASCII '-'다(글자와 슬라이드·노트 XML 전체, 글머리표 문자 포함).
 #  4 아토피: 부록 A5 밖(본문 슬라이드)에 아토피 모집단 말이나 그 결과 파일 출처가 없다.
@@ -8,16 +8,23 @@
 #  8 대조: 같은 파일·같은 행 조건·같은 열의 M&S 보고서 추적 행과 원값이 같고, 소수 자릿수가 같으면 인쇄값도 같다.
 #          key_numbers_en.md에서 같은 파일을 인용한 줄의 숫자와 비교한다. 핵심 수치(headline)는 보고서나 key numbers에서 반드시 확인되어야 한다.
 #  9 렌더링 배치: render_deck.py로 만든 PDF의 글줄 위치를 pptx 도형 상자와 대조한다(check_render.py: 넘침, 겹침, 가장자리 여백).
-# 사용법: Rscript reports/deck/check_deck.R [pptx] [--lang ko] [--pdf 경로(기본: pptx와 같은 이름)]
+# 사용법: Rscript reports/deck/check_deck.R [pptx] [--deck results|core] [--lang ko] [--pdf 경로(기본: pptx와 같은 이름)]
+#  core: 6에 글자 하한(제목 28, 킥커 16, 본문 18, 표·캡션 14pt)과 본문 슬라이드 설계 한도(본문 3줄, 주 시각 요소 60%, 제목 2줄)를 더한다.
 source("R/00_setup.R"); suppressPackageStartupMessages({ library(data.table); library(xml2) })
 args <- commandArgs(trailingOnly = TRUE); lang <- if ("--lang" %in% args) args[match("--lang", args) + 1] else "ko"
-pptx <- if (length(args) && !startsWith(args[1], "--")) args[1] else proj_path("reports", "deck", sprintf("dupilumab_endpoint_results_v1.0.1%s.pptx", if (lang == "ko") "" else paste0("_", lang)))
+deck <- if ("--deck" %in% args) args[match("--deck", args) + 1] else "results"
+# 덱 종류별 설정(lib/deck_lib.R의 DECK_PROFILES와 같은 이름·하한). font: 글자 크기 하한(1/100 pt)
+DP <- list(results = list(text_suffix = "", base = "dupilumab_endpoint_results_v1.0.1", trace = "deck_traceability.csv", meta = "deck_meta.csv", bullets = 5L, table_rows = 6L),
+           core = list(text_suffix = "_core", base = "dupilumab_AUCinf_core_deck_v1.1", trace = "core_deck_traceability.csv", meta = "core_deck_meta.csv", bullets = 3L, table_rows = 8L,
+                       font = list(title = 2800L, kicker = 1600L, caption = 1400L, table = 1400L, body = 1800L), body_lines = 3L, fig_share = 0.60, title_lines = 2L))[[deck]]
+if (is.null(DP)) stop("unknown --deck ", deck)
+pptx <- if (length(args) && !startsWith(args[1], "--")) args[1] else proj_path("reports", "deck", sprintf("%s%s.pptx", DP$base, if (lang == "ko") "" else paste0("_", lang)))
 base <- sub("\\.pptx$", "", pptx)
-tr_f <- if (file.exists(paste0(base, "_traceability.csv"))) paste0(base, "_traceability.csv") else proj_path("reports", "deck", if (lang == "ko") "deck_traceability.csv" else sprintf("deck_traceability_%s.csv", lang))
-me_f <- if (file.exists(paste0(base, "_meta.csv"))) paste0(base, "_meta.csv") else proj_path("reports", "deck", if (lang == "ko") "deck_meta.csv" else sprintf("deck_meta_%s.csv", lang))
+tr_f <- if (file.exists(paste0(base, "_traceability.csv"))) paste0(base, "_traceability.csv") else proj_path("reports", "deck", if (lang == "ko") DP$trace else sub("\\.csv$", sprintf("_%s.csv", lang), DP$trace))
+me_f <- if (file.exists(paste0(base, "_meta.csv"))) paste0(base, "_meta.csv") else proj_path("reports", "deck", if (lang == "ko") DP$meta else sub("\\.csv$", sprintf("_%s.csv", lang), DP$meta))
 tr <- fread(tr_f, encoding = "UTF-8", colClasses = list(character = c("value_raw", "value_printed", "locator"))); meta <- fread(me_f, encoding = "UTF-8")
 hl_f <- sub("\\.csv$", "_headline.csv", me_f); hl <- if (file.exists(hl_f) && file.size(hl_f) > 0) fread(hl_f, encoding = "UTF-8", colClasses = list(character = "printed")) else data.table()
-txt <- list(); for (f in sort(list.files(proj_path("reports", "deck", "text", lang), pattern = "\\.ya?ml$", full.names = TRUE))) txt <- c(txt, yaml::read_yaml(f))
+txt <- list(); for (f in sort(list.files(proj_path("reports", "deck", "text", paste0(lang, DP$text_suffix)), pattern = "\\.ya?ml$", full.names = TRUE))) txt <- c(txt, yaml::read_yaml(f))
 CK <- txt$check
 res <- list(); add <- function(check, slide, status, detail = "") res[[length(res) + 1L]] <<- data.table(check = check, slide = slide, status = status, detail = detail)
 
@@ -87,7 +94,7 @@ ok_sl <- unlist(CK$atopic_allowed_slides)
 for (sid in setdiff(meta$id, ok_sl)) {
   t_ <- tolower(paste(S[id == sid, text], collapse = "\n")); hit <- unlist(CK$atopic_terms)[vapply(unlist(CK$atopic_terms), function(w) grepl(tolower(w), t_, fixed = TRUE), TRUE)]
   src <- unique(tr[section == sid & grepl(paste(unlist(CK$atopic_sources), collapse = "|"), source_file), source_file])
-  if (length(hit) || length(src)) add("4 atopic outside A5", sid, "FAIL", paste(c(hit, src), collapse = ", ")) else add("4 atopic outside A5", sid, "pass")
+  if (length(hit) || length(src)) add(sprintf("4 atopic outside %s", paste(ok_sl, collapse = ",")), sid, "FAIL", paste(c(hit, src), collapse = ", ")) else add(sprintf("4 atopic outside %s", paste(ok_sl, collapse = ",")), sid, "pass")
 }
 # ---- 5 약어 첫 등장 ---------------------------------------------------------------------------------------------------------------------
 ab <- CK$abbreviations
@@ -98,17 +105,23 @@ for (a in names(ab)) {
   t_ <- gsub("‑", "-", paste(vis[id == first, text], collapse = "\n"))
   # 풀이는 읽는 순서로 첫 등장 앞이나 바로 뒤(괄호 풀이)에 있어야 한다
   pa <- regexpr(rx, t_, perl = TRUE)[1]; pe <- regexpr(ab[[a]], t_, perl = TRUE)[1]
-  if (pe > 0 && pe <= pa + nchar(a) + 3) add("5 abbreviation first use", first, "pass", a)
+  anywhere <- first %in% unlist(CK$abbrev_anywhere_slides)          # 표지처럼 제목이 정해진 슬라이드는 같은 슬라이드의 용어 풀이 상자로 충분하다(core 표지)
+  if (pe > 0 && (pe <= pa + nchar(a) + 3 || anywhere)) add("5 abbreviation first use", first, "pass", if (anywhere && pe > pa + nchar(a) + 3) paste(a, "(glossary on the slide)") else a)
   else add("5 abbreviation first use", first, "FAIL", if (pe < 0) sprintf("%s first used without '%s'", a, ab[[a]]) else sprintf("%s first used before its expansion '%s' (reading order)", a, ab[[a]]))
 }
 # ---- 6 형식 ---------------------------------------------------------------------------------------------------------------------------
 for (k in seq_len(nrow(S))) {
   r <- S[k]; if (is.na(r$min_sz) || grepl("^footer_|^tag$|^background$", r$shape) || r$kind == "notes" || !nzchar(trimws(r$text))) next   # 글자 없는 도형(배경·화살표) 제외
-  lim <- if (r$kind == "graphicFrame") 1200L else if (r$shape %in% c("kicker")) 1300L else if (grepl("^figure_", r$shape)) 0L else 1600L
+  lim <- if (is.null(DP$font)) { if (r$kind == "graphicFrame") 1200L else if (r$shape %in% c("kicker")) 1300L else if (grepl("^figure_", r$shape)) 0L else 1600L } else {
+    F <- DP$font; if (r$kind == "graphicFrame") F$table else if (r$shape == "title") F$title else if (r$shape == "kicker") F$kicker else if (grepl("^figure_", r$shape)) 0L
+    else if (grepl("^(caption|label|axis|foot)", r$shape)) F$caption else F$body }
   if (r$min_sz < lim) add("6 font size", r$id, "FAIL", sprintf("%s %.1fpt < %.0fpt", r$shape, r$min_sz / 100, lim / 100))
 }
 for (k in seq_len(nrow(meta))) { m <- meta[k]
-  if (m$bullets > 5 || m$table_rows > 6) add("6 limits", m$id, "FAIL", sprintf("bullets %d, table rows %d", m$bullets, m$table_rows)) else add("6 limits", m$id, "pass", sprintf("bullets %d, table rows %d", m$bullets, m$table_rows)) }
+  if (m$bullets > DP$bullets || m$table_rows > DP$table_rows) add("6 limits", m$id, "FAIL", sprintf("bullets %d, table rows %d", m$bullets, m$table_rows)) else add("6 limits", m$id, "pass", sprintf("bullets %d, table rows %d", m$bullets, m$table_rows))
+  if (!is.null(DP$body_lines) && isTRUE(m$main_limits)) {             # core 본문 슬라이드: 본문 3줄 이내, 주 시각 요소 60% 이상, 제목 2줄 이내(빌드 추정값)
+    ok <- m$body_lines <= DP$body_lines && m$fig_share >= DP$fig_share && m$title_lines <= DP$title_lines
+    add("6 main-slide design", m$id, if (ok) "pass" else "FAIL", sprintf("body lines %d, main visual %.0f%% of the body area, title lines %d", m$body_lines, 100 * m$fig_share, m$title_lines)) } }
 # ---- 7 추적 완결 ------------------------------------------------------------------------------------------------------------------------
 u <- unique(tr[, .(source_file, source_sha256)])
 for (k in seq_len(nrow(u))) { f <- proj_path(u$source_file[k])

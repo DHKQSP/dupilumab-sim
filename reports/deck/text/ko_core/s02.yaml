@@ -1,0 +1,21 @@
+S2:
+  kicker: "결론"
+  title: "AUCinf는 1차 평가변수로 적절하지 않다: 신뢰할 수 있는 값이 적고, AUClast로 충분하며, 판정이 흔들린다"
+  cards:
+    c1:
+      head: "① 신뢰할 수 있는 AUCinf를 얻지 못하는 대상자"
+      label: "adjusted R² ≥ {r2}, 외삽 ≤ {ex}% 기준, 두 모델"
+    c2:
+      head: "② AUClast/AUCinf (참값)"
+      value: "{v} 이상"
+      label: "기본 조건의 모든 대상자(두 모델), 중앙값 {med}"
+    c3:
+      head: "③ 경계 1종 오류 최대 (명목 {nom})"
+      inf: "  AUCinf + Cmax"
+      last: "  AUClast + Cmax"
+      label: "경계 조건 {n}개 중 최댓값, 체중 층 포함 분석"
+  conclusion: "AUCinf는 계산해서 보고하되, 1차 평가변수는 AUClast + Cmax"
+  notes: |
+    카드 1: 신뢰할 수 있는 AUCinf는 adjusted R² ≥ {r2} 그리고 외삽 ≤ {ex}%다(기준 세트 (iii)). 미달 비율은 2016 모델 {fail16}, 2020 모델 {fail20}이다(건강인 {wt} kg, 현행 채혈, 모델마다 대상자 {nsub}명). 2020 모델 값이 삼분의 일에 조금 못 미쳐 "삼분의 일 이상" 대신 범위로 적었다.
+    카드 2: AUClast/AUCinf는 참값 기준이다(관측 마지막 정량 시점까지의 참 AUC / 모델 적분 참 AUCinf). 기본 조건 최솟값은 2016 모델 {min16}, 2020 모델 {min20}이고 '이상'으로 적으려고 내림했다. 곡선 모양·정량한계·잔차를 바꾼 경우의 최솟값은 S8.
+    카드 3: 경계 조건 {n}개(시험약의 기전을 바꿔 참 AUCinf 비를 동등 한계에 맞춘 제품)에서 동등으로 잘못 판정할 확률의 최댓값(M1: 체중 층 포함 분석 모형). AUCinf 구성은 세트 (iii) 미달자를 제외하고 AUCinf와 Cmax를 함께 판정한 경우로 {n_inf}개 조건에서 5%를 넘는다. AUClast + Cmax는 {n_last}개 조건에서 5%를 넘으며 원인은 별첨 A5.

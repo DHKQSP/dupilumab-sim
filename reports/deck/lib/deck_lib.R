@@ -23,18 +23,34 @@ PAL <- list(blue = "#2a78d6", orange = "#eb6834", green = "#1baf7a", ink = "#0b0
 FONT <- "Pretendard"
 SZ <- list(title = 26, kicker = 13, body = 18, body_min = 16, small = 16, table = 13, table_min = 12, foot = 9, tag = 11, stat = 40, stat_label = 16)
 LIMITS <- list(bullets = 5L, table_rows = 6L)
+# 덱 종류(D-063): results = 결과보고 덱 v1.0.1(32장, 기술 백업), core = 핵심 덱 v1.1(정량 근거 중심). 기본값은 results(기존 빌드와 같은 결과).
+# core는 글자 하한(제목 28, 본문 18, 표·그림·캡션 14pt), 본문 슬라이드의 본문 줄 수(3줄)와 주 그림 면적(본문 영역의 60%)을 빌드에서 강제한다.
+GEO0 <- GEO; SZ0 <- SZ; LIMITS0 <- LIMITS
+DECK_PROFILES <- list(
+  results = list(text_suffix = "", slides = "slides", fig_dir = "figures", base = "dupilumab_endpoint_results_%s", trace = "deck_traceability.csv", meta = "deck_meta.csv",
+                 doc = "deck", footer = "full", geo = list(), sz = list(), limits = list()),
+  core = list(text_suffix = "_core", slides = "slides_core", fig_dir = "figures_core", base = "dupilumab_AUCinf_core_deck_%s", trace = "core_deck_traceability.csv", meta = "core_deck_meta.csv",
+              doc = "deck_core", footer = "version_source",
+              geo = list(KICK_TOP = 0.30, TITLE_TOP = 0.66, TITLE_H = 1.10, BODY_TOP = 1.86, BODY_BOTTOM = 6.84, FOOT_TOP = 7.06, TAG_W = 1.30, TAG_H = 0.40),
+              sz = list(title = 28, kicker = 16, body = 18, body_min = 18, small = 18, table = 14, table_min = 14, foot = 10, tag = 14, stat = 44, stat_label = 18, caption_min = 14, fig_min = 14),
+              limits = list(bullets = 3L, table_rows = 8L, body_lines = 3L, fig_share = 0.60, title_lines = 2L))
+)
 
 # ---- 초기화 ------------------------------------------------------------------------------------------------------------------------
-deck_init <- function(lang = "ko", strict = TRUE, fig_dir = proj_path("reports", "deck", "figures")) {
+deck_init <- function(lang = "ko", strict = TRUE, fig_dir = NULL, deck = "results") {
+  prof <- DECK_PROFILES[[deck]]; if (is.null(prof)) stop("unknown deck: ", deck)
+  DK$deck <- deck; DK$prof <- prof
+  GEO <<- modifyList(GEO0, prof$geo); GEO$CW <<- GEO$W - GEO$ML - GEO$MR; SZ <<- modifyList(SZ0, prof$sz); LIMITS <<- modifyList(LIMITS0, prof$limits)
+  if (is.null(fig_dir)) fig_dir <- proj_path("reports", "deck", prof$fig_dir)
   DK$lang <- lang; DK$strict <- strict; DK$fig_dir <- fig_dir; dir.create(fig_dir, showWarnings = FALSE, recursive = TRUE)
-  DK$txt <- deck_text_load(lang); DK$meta <- list(); DK$fit <- list(); DK$n <- 0L; DK$total <- NA_integer_; DK$headline <- list()
+  DK$txt <- deck_text_load(paste0(lang, prof$text_suffix)); DK$meta <- list(); DK$fit <- list(); DK$n <- 0L; DK$total <- NA_integer_; DK$headline <- list()
   git <- function(...) suppressWarnings(system2("git", c("-C", PROJ_ROOT, ...), stdout = TRUE, stderr = FALSE))
   DK$commit <- git("rev-parse", "--short=7", "HEAD")[1]; DK$date <- git("log", "-1", "--format=%cs")[1]   # 날짜 = 소스 커밋 날짜(빌드마다 같음)
   dirty <- git("status", "--porcelain", "--untracked-files=no")
-  dirty <- dirty[!grepl("^.. reports/deck/(dupilumab_endpoint_results|deck_traceability|deck_meta|figures/)", dirty)]   # 덱 산출물 자체의 변경은 제외(생성 대상)
+  dirty <- dirty[!grepl("^.. reports/deck/(dupilumab_endpoint_results|deck_traceability|deck_meta|figures/|dupilumab_AUCinf_core_deck|core_deck_|figures_core/)", dirty)]   # 덱 산출물 자체의 변경은 제외(생성 대상)
   DK$clean <- length(dirty) == 0
   DK$version <- DK$txt$common$version
-  reg_init("deck"); DK$x <- read_pptx(proj_path("reports", "deck", "template_16x9.pptx"))
+  reg_init(prof$doc); DK$x <- read_pptx(proj_path("reports", "deck", "template_16x9.pptx"))
   s <- slide_size(DK$x); stopifnot(abs(s$width - GEO$W) < 0.01, abs(s$height - GEO$H) < 0.01)
   invisible(DK)
 }
@@ -193,7 +209,7 @@ no_line <- function() sp_line(color = "#ffffff", lwd = 0, lty = "solid")
 deck_slide <- function(id, tag = c("sim", "lit", "litsim", "none"), dark = FALSE) {
   tag <- match.arg(tag); sec(id); DK$n <- DK$n + 1L
   DK$x <- add_slide(DK$x, layout = "Blank", master = "Office Theme")
-  DK$cur <- list(id = id, n = DK$n, dark = dark, bullets = 0L, shapes = 0L, title = NA_character_, table_rows = 0L)
+  DK$cur <- list(id = id, n = DK$n, dark = dark, bullets = 0L, shapes = 0L, title = NA_character_, table_rows = 0L, body_lines = 0L, visual = 0, title_lines = NA_integer_)
   if (dark) DK$x <- ph_with(DK$x, fpar(ftext(" ", ftp(8))), location = loc(c(0, 0, GEO$W, GEO$H), "background", bg = PAL$dark, geom = "rect", ln = no_line()))
   if (tag != "none") {
     lab <- DK$txt$common$tags[[tag]]
@@ -209,6 +225,9 @@ deck_kicker <- function(s) {
 }
 deck_title <- function(s, size = SZ$title, box = c(GEO$ML, GEO$TITLE_TOP, GEO$CW - 0.1, GEO$TITLE_H)) {
   DK$cur$title <- strip_markup(s); fit_check("title", s, box, size, bold = TRUE, line = 1.05)
+  DK$cur$title_lines <- est_lines(s, box[3] - 0.2, size, TRUE)
+  if (!is.null(LIMITS$title_lines) && DK$cur$title_lines > LIMITS$title_lines && isTRUE(DK$strict))
+    stop(sprintf("%s: title needs %d lines (limit %d)", REG$sec, DK$cur$title_lines, LIMITS$title_lines), call. = FALSE)
   DK$x <- ph_with(DK$x, para(s, size, if (DK$cur$dark) PAL$dark_ink else PAL$ink, bold = TRUE, gap_pt = 0, line = 1.05), location = loc(box, "title")); invisible(NULL)
 }
 # items: 문자 벡터. 앞에 "- "가 붙은 항목은 2단계(요점 수에 세지 않음)
@@ -219,13 +238,16 @@ deck_bullets <- function(items, box, size = SZ$body, gap_pt = 8, label = "body",
   # 하위 글머리표는 윗 요점에 붙인다: 하위 항목 앞 문단과 하위 항목끼리는 간격 4 pt(마지막 하위 항목 뒤는 원래 간격)
   gp <- rep(gap_pt, length(items)); nx <- c(lvl[-1L], 0L); gp[nx == 1L] <- min(gap_pt, 4)
   fit_check(label, items, box, size, gp, indent = 0.3)
+  if (startsWith(label, "body")) deck_count_lines(items, box[3] - 0.2 - 0.3, size)
   col <- color %||% (if (DK$cur$dark) PAL$dark_ink else PAL$ink)
   ps <- lapply(seq_along(items), function(i) para(items[i], if (lvl[i] == 1L) max(SZ$body_min, size - 2) else size, col, bullet = lvl[i], gap_pt = gp[i]))
   DK$x <- ph_with(DK$x, do.call(block_list, ps), location = loc(box, label)); invisible(NULL)
 }
 deck_text <- function(s, box, size = SZ$body, bold = FALSE, color = NULL, align = "left", label = "text", bg = NULL, gap_pt = 6, geom = NULL) {
-  stopifnot(size >= SZ$body_min || grepl("^(caption|label|axis|kicker)", label))
+  stopifnot(size >= SZ$body_min || grepl("^(caption|label|axis|kicker|foot)", label))
+  if (!is.null(SZ$caption_min) && size < SZ$caption_min) stop(sprintf("%s %s: %gpt below the %gpt minimum", REG$sec, label, size, SZ$caption_min), call. = FALSE)
   fit_check(label, s, box, size, gap_pt, bold = bold, card = !is.null(bg) && box[4] >= CARD_MIN_H)
+  if (startsWith(label, "body")) deck_count_lines(s, box[3] - (if (!is.null(bg) && box[4] >= CARD_MIN_H) 2 * CARD_INS[["lr"]] else 0.2), size, bold)
   col <- color %||% (if (DK$cur$dark) PAL$dark_ink else PAL$ink)
   ps <- lapply(s, function(z) para(z, size, col, bold, align, gap_pt = gap_pt))
   DK$x <- ph_with(DK$x, do.call(block_list, ps), location = loc(box, label, bg = bg, geom = geom, ln = if (!is.null(bg)) no_line() else NULL)); invisible(NULL)
@@ -270,8 +292,34 @@ deck_table <- function(df, box, widths = NULL, size = SZ$table, header_fill = PA
   DK$x <- ph_with(DK$x, ft, location = loc(box, label)); invisible(NULL)
 }
 # 그림: 슬라이드 자리 크기 그대로 결과 파일에서 다시 그린다(늘리거나 줄이지 않음). src: 그림 자료 파일(추적 기록)
-deck_figure <- function(p, name, box, src, dpi = 220) {
-  dsrc(sprintf("figure %s", name), src)
+# 본문 줄 수(core: 본문 슬라이드 3줄 이내). 이름이 body로 시작하는 글상자만 센다(카드·캡션·그림 글자 제외)
+deck_count_lines <- function(paras, width, size, bold = FALSE) {
+  DK$cur$body_lines <- DK$cur$body_lines + sum(vapply(strip_markup(paras), est_lines, 1L, width = width, size = size, bold = bold)); invisible(NULL) }
+# 주 시각 요소(그림, 도식 묶음, 카드 묶음)의 면적 등록(core: 본문 영역의 60% 이상)
+deck_visual <- function(box) { DK$cur$visual <- max(DK$cur$visual, box[3] * box[4]); invisible(NULL) }
+# 그림 안 글자 크기 하한(core: 14pt). 테마의 모든 글자 요소와 글자 레이어(geom_text/label, annotate)를 검사한다. patchwork는 하위 그림까지
+gg_leaves <- function(p) {
+  if (inherits(p, "patchwork")) { out <- list(); for (q in p$patches$plots) out <- c(out, gg_leaves(q))
+    q0 <- p; q0$patches <- NULL; class(q0) <- setdiff(class(q0), "patchwork"); c(out, list(q0)) }
+  else if (inherits(p, "ggplot")) list(p) else list()
+}
+fig_text_check <- function(p, name, min_pt = SZ$fig_min) {
+  if (is.null(min_pt)) return(invisible(NULL))
+  EL <- c("axis.text.x.bottom", "axis.text.x.top", "axis.text.y.left", "axis.text.y.right", "axis.title.x.bottom", "axis.title.x.top", "axis.title.y.left", "axis.title.y.right",
+          "legend.text", "legend.title", "strip.text.x.top", "strip.text.y.right", "plot.title", "plot.subtitle", "plot.caption", "plot.tag")
+  bad <- character(0)
+  for (q in gg_leaves(p)) {
+    th <- ggplot2:::plot_theme(q)
+    for (el in EL) { e <- ggplot2::calc_element(el, th); if (inherits(e, "element_text") && !is.null(e$size) && e$size < min_pt - 1e-6) bad <- c(bad, sprintf("%s %.1fpt", el, e$size)) }
+    b <- ggplot2::ggplot_build(q)
+    for (i in seq_along(q$layers)) if (inherits(q$layers[[i]]$geom, c("GeomText", "GeomLabel"))) {
+      sz <- b$data[[i]]$size * ggplot2::.pt; if (length(sz) && any(sz < min_pt - 1e-6)) bad <- c(bad, sprintf("text layer %d %.1fpt", i, min(sz))) }
+  }
+  if (length(bad)) stop(sprintf("%s figure %s: text below %gpt: %s", REG$sec, name, min_pt, paste(unique(bad), collapse = ", ")), call. = FALSE)
+  invisible(NULL)
+}
+deck_figure <- function(p, name, box, src, dpi = 220, visual = TRUE) {
+  dsrc(sprintf("figure %s", name), src); fig_text_check(p, name); if (visual) deck_visual(box)
   f <- file.path(DK$fig_dir, sprintf("%s_%s.png", DK$lang, name))
   ragg::agg_png(f, width = box[3], height = box[4], units = "in", res = dpi, background = "white"); print(p); grDevices::dev.off()
   DK$x <- ph_with(DK$x, external_img(f, width = box[3], height = box[4]), location = loc(box, sprintf("figure_%s", name)), use_loc_size = TRUE); invisible(f)
@@ -286,16 +334,27 @@ deck_end <- function() {
   if (length(DK$cur$src_first)) ids <- unique(c(intersect(basename(DK$cur$src_first), ids), ids))   # 슬라이드가 지정한 핵심 출처를 맨 앞에(deck_src_first)
   lab <- DK$txt$common$footer
   # 출처 목록은 한 줄에 들어가는 만큼만 적고 나머지는 "외 N개"로 줄인다(전체 목록은 추적표에 있음)
-  wmax <- GEO$CW - 3.1 - 0.25
+  rw <- if (identical(DK$prof$footer, "version_source")) 1.2 else 3.0          # 오른쪽(버전) 칸 폭
+  wmax <- GEO$CW - rw - 0.1 - 0.25
   mk <- function(k) paste0(lab$source, " ", if (k < length(ids)) sprintf("%s %s", paste(ids[seq_len(k)], collapse = ", "), fill(lab$more, list(n = length(ids) - k))) else paste(ids, collapse = ", "))
   k <- min(length(ids), 5L); while (k > 1L && text_w(mk(k), SZ$foot) > wmax) k <- k - 1L
   left <- if (length(ids)) mk(k) else ""
-  right <- sprintf("%s  |  %s %s%s  |  %d", DK$version, lab$commit, DK$commit, if (DK$clean) "" else "*", DK$cur$n)
+  right <- if (identical(DK$prof$footer, "version_source")) sprintf("%s%s", DK$version, if (DK$clean) "" else "*") else sprintf("%s  |  %s %s%s  |  %d", DK$version, lab$commit, DK$commit, if (DK$clean) "" else "*", DK$cur$n)
   col <- if (DK$cur$dark) "#9aa6b2" else PAL$muted
-  DK$x <- ph_with(DK$x, fpar(ftext(left, ftp(SZ$foot, col))), location = loc(c(GEO$ML, GEO$FOOT_TOP, GEO$CW - 3.1, GEO$FOOT_H), "footer_src"))
-  DK$x <- ph_with(DK$x, fpar(ftext(right, ftp(SZ$foot, col)), fp_p = fp_par(text.align = "right")), location = loc(c(GEO$W - GEO$MR - 3.0, GEO$FOOT_TOP, 3.0, GEO$FOOT_H), "footer_ver"))
-  DK$meta[[length(DK$meta) + 1L]] <- data.table(n = DK$cur$n, id = DK$cur$id, title = DK$cur$title, bullets = DK$cur$bullets, table_rows = DK$cur$table_rows,
-                                                 sources = paste(src, collapse = "; "), notes = DK$cur$notes %||% "")
+  DK$x <- ph_with(DK$x, fpar(ftext(left, ftp(SZ$foot, col))), location = loc(c(GEO$ML, GEO$FOOT_TOP, GEO$CW - rw - 0.1, GEO$FOOT_H), "footer_src"))
+  DK$x <- ph_with(DK$x, fpar(ftext(right, ftp(SZ$foot, col)), fp_p = fp_par(text.align = "right")), location = loc(c(GEO$W - GEO$MR - rw, GEO$FOOT_TOP, rw, GEO$FOOT_H), "footer_ver"))
+  m <- data.table(n = DK$cur$n, id = DK$cur$id, title = DK$cur$title, bullets = DK$cur$bullets, table_rows = DK$cur$table_rows,
+                  sources = paste(src, collapse = "; "), notes = DK$cur$notes %||% "")
+  if (!is.null(LIMITS$body_lines)) {                                   # core: 본문 슬라이드의 본문 줄 수, 주 시각 요소 면적 비, 제목 줄 수
+    body_area <- GEO$CW * (GEO$BODY_BOTTOM - GEO$BODY_TOP); share <- DK$cur$visual / body_area
+    main <- DK$cur$id %in% unlist(DK$txt$common$main_limits)
+    m[, `:=`(body_lines = DK$cur$body_lines, fig_share = round(share, 3), title_lines = DK$cur$title_lines, main_limits = main)]
+    if (main && isTRUE(DK$strict)) {
+      if (DK$cur$body_lines > LIMITS$body_lines) stop(sprintf("%s: %d body lines (limit %d)", REG$sec, DK$cur$body_lines, LIMITS$body_lines), call. = FALSE)
+      if (share < LIMITS$fig_share) stop(sprintf("%s: main visual covers %.0f%% of the body area (minimum %.0f%%)", REG$sec, 100 * share, 100 * LIMITS$fig_share), call. = FALSE)
+    }
+  }
+  DK$meta[[length(DK$meta) + 1L]] <- m
   invisible(NULL)
 }
 `%||%` <- function(a, b) if (is.null(a)) b else a
@@ -309,6 +368,17 @@ theme_deck <- function(base = 14) {
     legend.text = element_text(colour = PAL$ink2, size = base - 1), strip.text = element_text(face = "bold", colour = PAL$ink, size = base),
     plot.margin = margin(6, 12, 6, 6))
 }
+# 핵심 덱(core) 그림 테마: 모든 글자 14pt 이상(fig_text_check가 확인). 색은 두 가지 뜻으로만 쓴다: AUClast 파랑, 외삽·AUCinf 주황.
+# 모델 구분은 색이 아니라 표식 모양·선 모양·명도(검정 계열)로 한다(CORE_MODEL_*).
+theme_core <- function(base = 16) {
+  theme_deck(base) + theme(axis.text = element_text(colour = PAL$ink2, size = base - 2), axis.title = element_text(colour = PAL$ink2, size = base - 1),
+                           legend.text = element_text(colour = PAL$ink2, size = base - 2), strip.text = element_text(face = "bold", colour = PAL$ink, size = base, hjust = 0),
+                           plot.title = element_text(size = base, face = "bold", colour = PAL$ink), plot.subtitle = element_text(size = base - 1, colour = PAL$ink2),
+                           plot.caption = element_text(size = base - 2, colour = PAL$ink2, hjust = 0), plot.tag = element_text(size = base - 2, colour = PAL$ink2))
+}
+PT <- function(pt) pt / ggplot2::.pt                                      # 그림 글자 크기(pt) → ggplot size(mm)
+CORE_MODEL_COL <- c(k2016 = PAL$ink, k2020 = "#7a7974"); CORE_MODEL_SHAPE <- c(k2016 = 16, k2020 = 17); CORE_MODEL_LT <- c(k2016 = "solid", k2020 = "22")
+ORANGE_LIGHT <- "#f5b99c"; BLUE_LIGHT <- "#9cc3ee"
 MODEL_COL <- c(k2016 = PAL$blue, k2020 = PAL$orange); MODEL_SHAPE <- c(k2016 = 16, k2020 = 17); MODEL_LT <- c(k2016 = "solid", k2020 = "22")
 model_lab <- function() { m <- DK$txt$common$models; c(k2016 = m$k2016, k2020 = m$k2020) }
 
@@ -359,7 +429,7 @@ pp_bullets <- function(path) {
     for (sp in xml2::xml_find_all(doc, ".//p:sp[p:spPr/a:solidFill and p:txBody]", ns)) {
       nm <- xml2::xml_attr(xml2::xml_find_first(sp, ".//p:cNvPr", ns), "name"); if (nm %in% c("background", "tag")) next
       ext <- xml2::xml_find_first(sp, "./p:spPr/a:xfrm/a:ext", ns); if (inherits(ext, "xml_missing")) next
-      if (!(nm == "stat" || as.numeric(xml2::xml_attr(ext, "cy")) < CARD_MIN_H * 914400)) next
+      if (!(nm == "stat" || startsWith(nm, "cmid") || as.numeric(xml2::xml_attr(ext, "cy")) < CARD_MIN_H * 914400)) next   # cmid*: 핵심 덱의 세로 가운데 상자
       if (!nzchar(trimws(xml2::xml_text(xml2::xml_find_first(sp, "./p:txBody", ns))))) next
       xml2::xml_set_attr(xml2::xml_find_first(sp, "./p:txBody/a:bodyPr", ns), "anchor", "ctr")
     }

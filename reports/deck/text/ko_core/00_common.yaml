@@ -1,0 +1,96 @@
+# 핵심 덱 v1.1 공통 문구(한국어, 지시 2026-09-29; D-063). 슬라이드별 문구는 같은 폴더의 sN.yaml, aN.yaml.
+# 문구에는 숫자를 쓰지 않고 {이름} 자리표시자로 수치를 받는다(식별자·서지 제외: check.number_contexts).
+common:
+  version: "v1.1"
+  order: [S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, A1, A2, A3a, A3b, A4a, A4b, A5a, A5b, A6, A7, A8, A9, A10, A11, A12, A14]
+  appendix_start: A1
+  # 본문 슬라이드 설계 한도(lib/deck_lib.R DECK_PROFILES$core: 본문 3줄, 주 시각 요소 60%, 제목 2줄)를 적용하는 슬라이드
+  main_limits: [S2, S3, S4, S5, S6, S7, S8, S9, S10]
+  tags:
+    sim: "[모의]"
+    lit: "[문헌]"
+    litsim: "[문헌+모의]"
+  footer:
+    source: "출처:"
+    more: "외 {n}개"
+    commit: "커밋"
+  models:
+    k2016: "2016 모델(주 모델)"
+    k2020: "2020 모델(민감도 모델)"
+  models_short:
+    k2016: "2016 모델"
+    k2020: "2020 모델"
+  terms:
+    reliable: "신뢰할 수 있는 AUCinf"
+    coverage: "AUClast/AUCinf"
+check:
+  # 약어: 첫 등장 슬라이드의 글자에 풀이 정규식이 있어야 한다(읽는 순서로 앞이나 바로 뒤).
+  # abbrev_anywhere_slides: 제목이 지시로 정해진 표지는 같은 슬라이드의 용어 풀이 줄로 충분하다.
+  abbrev_anywhere_slides: [S1]
+  abbreviations:
+    PK: "약동학"
+    AUC: "곡선하 면적"
+    AUClast: "마지막 정량 (시점|농도)까지"
+    AUCinf: "무한대까지"
+    Cmax: "최고 (혈중)?농도"
+    NCA: "비구획 분석"
+    LLOQ: "정량한계"
+    λz: "소실 속도상수"
+    SAP: "통계분석계획"
+    NCT: "ClinicalTrials\\.gov"
+    FDA: "미국 식품의약국"
+    EMA: "유럽 의약품청"
+    BLA: "생물의약품 허가신청"
+    GMR: "기하평균비"
+    CI: "신뢰구간"
+    CV: "변동계수"
+    TMDD: "표적 매개 약물 소실"
+    ADA: "항약물항체"
+    BLQ: "정량한계 미만"
+    SC: "피하"
+    ICH: "국제의약품규제조화위원회"
+    QC: "품질 점검"
+    IgG4: "면역글로불린 G4"
+    tlast: "마지막 정량 시점"
+    tmax: "도달 시간"
+    Clast: "마지막 정량 농도"
+    MTT: "평균 (통과|이동) 시간"
+    CL: "청소율"
+    ka: "흡수 속도상수"
+    ke: "소실 속도상수"
+    Vmax: "최대 (소실 )?속도"
+    V2: "말초 (분포)?용적"
+    Vc: "중심 (분포)?용적"
+    Km: "Michaelis-Menten|반포화 농도"
+    SD: "표준편차"
+    SE: "표준오차"
+    M&S: "모델링.시뮬레이션"
+  number_contexts:
+    - "(Kovalenko|Li|Clot|Cohen|Kamal|Syneos|FDA|EMA|ICH|Certara|Phoenix|WinNonlin|Zhang|Harb|Bansal)( et al\\.)? ?\\(?(19|20)[0-9]{2}\\)?[a-z]?"
+    - "(19|20)[0-9]{2}-[0-9]{2}-[0-9]{2}"
+    - "9[05]% ?(CI|신뢰구간|구간|Wilson)"
+    - "5(~|-| to )95 ?(백분위|th)"
+    - "(?<![0-9.])(5|25|50|75|95) ?(백분위수?|번째 백분위수?)"
+    - "(?<![0-9.])95(th|번째)"
+    - "(?<![0-9.])5(th|번째)"
+    - "(Table|Figure|Appendix|표|그림) ?S?[A-Z]?[0-9]+(\\.[0-9]+)*\\.?[a-z]?(-[0-9]+)?"
+    - "Model [0-9]"
+    - "(2016|2020) ?/ ?(2016|2020) ?(모델|model)"
+    - "(2016|2020) ?(모델|model|Model)"
+    - "[0-9]+(\\.[0-9]+)*절"
+    - "1:1"
+    - "Day 1(?![0-9])"
+    - "BLA ?[0-9]{6}"
+    - "(CPMP|EMA)/[A-Z/]+/[0-9]+/[0-9]+( Rev\\. ?[0-9])?"
+    - "ICH E9 ?\\(?(section )?5\\.7\\)?"
+    - "ICH M15"
+    - "(커밋|commit) [0-9a-f]{7}"
+    - "[0-9]상"
+    - "(?<![0-9.])[123]차(?![0-9])"
+    - "(?<![0-9.])[12]종 오류"
+    - "①|②|③"
+    - "Phoenix [0-9.]+"
+    - "(?<![0-9.])A[0-9]{1,2}[ab]?"
+  atopic_terms: ["아토피", "atopic", "환자 모집단", "patient population"]
+  atopic_sources: ["results/atopic/", "results/weight_generalization/"]
+  atopic_allowed_slides: [A11]

@@ -1,18 +1,20 @@
 #!/usr/bin/env Rscript
-# build_deck.R: 결과보고 슬라이드(v1.0.1)를 만든다. 새 모의 없음: 커밋된 결과·config 파일만 읽는다.
-# 사용법: Rscript reports/deck/build_deck.R [--lang ko] [--only S05,S09] [--out 경로] [--no-strict]
+# build_deck.R: 결과보고 슬라이드(v1.0.1)와 핵심 덱(v1.1, --deck core)을 만든다. 새 모의 없음: 커밋된 결과·config 파일만 읽는다.
+# 사용법: Rscript reports/deck/build_deck.R [--deck results|core] [--lang ko] [--only S05,S09] [--out 경로] [--no-strict]
+#   --deck core: 슬라이드 slides_core/, 문구 text/ko_core/, 산출 dupilumab_AUCinf_core_deck_<버전>.pptx, core_deck_traceability.csv, core_deck_meta*.csv
 #   전체 빌드(--only 없음)는 reports/deck/dupilumab_endpoint_results_v1.0.1.pptx와 추적표(deck_traceability.csv),
 #   슬라이드 목록(deck_meta.csv), 넘침 추정(deck_meta_fit.csv), 핵심 수치 목록(deck_meta_headline.csv)을 쓴다.
 #   --only는 개발용: 지정한 슬라이드만 --out(기본 임시 경로)에 쓰고 추적표는 같은 폴더에 둔다.
 source("R/00_setup.R")
 args <- commandArgs(trailingOnly = TRUE)
 opt <- function(k, default = NULL) { i <- match(k, args); if (is.na(i)) default else args[i + 1] }
-lang <- opt("--lang", "ko"); only <- opt("--only"); strict <- !("--no-strict" %in% args)
+lang <- opt("--lang", "ko"); only <- opt("--only"); strict <- !("--no-strict" %in% args); deck <- opt("--deck", "results")
 source(proj_path("reports", "deck", "lib", "deck_lib.R"))
 source(proj_path("reports", "deck", "lib", "deck_facts_common.R"))
-for (f in sort(list.files(proj_path("reports", "deck", "slides"), pattern = "\\.R$", full.names = TRUE)))   # 부분 빌드에서는 다른 슬라이드 파일의 오류로 멈추지 않는다
+prof <- DECK_PROFILES[[deck]]; if (is.null(prof)) stop("unknown --deck ", deck)
+for (f in sort(list.files(proj_path("reports", "deck", prof$slides), pattern = "\\.R$", full.names = TRUE)))   # 부분 빌드에서는 다른 슬라이드 파일의 오류로 멈추지 않는다
   tryCatch(source(f), error = function(e) if (is.null(only)) stop(e) else message("skipped (does not source): ", basename(f), ": ", conditionMessage(e)))
-deck_init(lang, strict = strict)
+deck_init(lang, strict = strict, deck = deck)
 order <- unlist(DK$txt$common$order)
 sel <- if (is.null(only)) order else intersect(order, strsplit(only, ",")[[1]])
 if (!length(sel)) stop("no slide selected")
@@ -24,11 +26,11 @@ for (id in sel) {
   fn()
   if (is.null(DK$meta[[length(DK$meta)]]) || DK$meta[[length(DK$meta)]]$id != id) stop("slide ", id, " did not call deck_end()")
 }
-base <- sprintf("dupilumab_endpoint_results_%s", DK$version)
+base <- sprintf(prof$base, DK$version)
 if (is.null(only)) {
   out <- opt("--out", proj_path("reports", "deck", paste0(base, if (lang == "ko") "" else paste0("_", lang), ".pptx")))
-  tr <- proj_path("reports", "deck", if (lang == "ko") "deck_traceability.csv" else sprintf("deck_traceability_%s.csv", lang))
-  me <- proj_path("reports", "deck", if (lang == "ko") "deck_meta.csv" else sprintf("deck_meta_%s.csv", lang))
+  tr <- proj_path("reports", "deck", if (lang == "ko") prof$trace else sub("\\.csv$", sprintf("_%s.csv", lang), prof$trace))
+  me <- proj_path("reports", "deck", if (lang == "ko") prof$meta else sub("\\.csv$", sprintf("_%s.csv", lang), prof$meta))
 } else {
   out <- opt("--out", file.path(tempdir(), paste0(base, "_partial.pptx"))); dir.create(dirname(out), showWarnings = FALSE, recursive = TRUE); tr <- sub("\\.pptx$", "_traceability.csv", out); me <- sub("\\.pptx$", "_meta.csv", out)
 }
