@@ -86,3 +86,12 @@ section7:
     statistics: [n, median, p05, p95, pct_below_1]      # 분위수 type 7; pct_below_1 = 100 x mean(ratio < 1)
     output: results/core_deck/extrap_ratio_by_group.csv
     identity_check: "n of the estimable group equals the lambda-z estimable count implied by tp_failure_by_set.csv (n x (1 - lz_pct/100))"
+
+  # 7g. (추가 등록 2026-09-29, 사용자 지시로 핵심 덱의 주 모델을 2020 모델로 바꾼 뒤, 계산 전) S4 대표 대상자를 2020 모델에서 고른다.
+  #     2016 모델 대표 대상자(results/deck_inputs, scripts/62)와 같은 규칙이다. 결과보고 덱이 추적하는 deck_inputs 파일은 바꾸지 않는다.
+  cliff_representative_k2020:
+    source: "results/cliff/cliff_subjects.rds, model k2020, weight base, subjects reaching the LLOQ (scripts/34; 20,000 subjects)"
+    rule: "the subject whose t_lloq is closest to the median t_lloq (scripts/34b and scripts/62 rule for the 2016 model; first in stored order on a tie)"
+    regeneration: "make_subjects with derive_seed(cliff seed 20260928, 'k2020', 'base', 'subj') as in R/cliff.R, then solve_model on a 0.05-day grid to day 70 (the scripts/62 procedure)"
+    identity_check: "the LLOQ crossing of the regenerated profile lies within the 0.05-day grid of the stored t_lloq; the stored start1, len1 and c_start1 are used as they are"
+    outputs: [results/core_deck/cliff_rep_k2020.csv, results/core_deck/cliff_rep_profile_k2020.csv]

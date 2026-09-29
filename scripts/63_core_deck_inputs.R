@@ -143,6 +143,25 @@ ER <- rbindlist(lapply(names(IND), function(m) {
 fwrite(ER, file.path(out_dir, "extrap_ratio_by_group.csv"))
 print(ER)
 
+# ---- 7g S4 대표 대상자, 2020 모델(추가 등록: 덱 주 모델을 2020 모델로 바꾼 뒤, 계산 전) -------------------------------------------------------
+cfc <- read_cfg("oc_design.yaml")$cliff; CSEED <- as.integer(cfc$seed); NCL <- as.integer(cfc$n_subjects)
+cs20 <- readRDS(src("results/cliff/cliff_subjects.rds"))[model == "k2020" & weight == "base"]
+cs_sum <- fread(src("results/cliff/cliff_summary.csv"))[model == "k2020" & weight == "base"]
+chk("k2020 cliff base: n subjects vs cliff_summary.csv", nrow(cs20), cs_sum$n)
+b20 <- cs20[!is.na(t_lloq)]
+chk("k2020 cliff base: median study day at the LLOQ vs cliff_summary.csv", median(b20$t_lloq + 1), cs_sum$lloq_studyday_median)
+rid <- b20$id[which.min(abs(b20$t_lloq - median(b20$t_lloq)))]
+p20c <- load_params("k2020")
+subj20c <- with_seed(derive_seed(CSEED, "k2020", "base", "subj"), make_subjects(NCL, p20c, cliff_weight_spec(design, cfc$weights$base), 0.5, 0))
+pr20 <- as.data.table(solve_model(individual_params(p20c, subj20c[id == rid]), CJ(id = rid, time = seq(0.05, 70, by = 0.05)), design$dose_mg, p20c$model_id))[, .(id, time, C)]
+tc20 <- pr20[C >= study_lloq(), max(time)]
+chk(sprintf("k2020 cliff representative subject %d: LLOQ crossing within the 0.05-day grid of the stored t_lloq", rid), abs(tc20 - b20[id == rid, t_lloq]) <= 0.05, TRUE, 0)
+r20 <- b20[id == rid]
+fwrite(data.table(model = "k2020", id = rid, percentile = 50, t_lloq = r20$t_lloq, start1 = r20$start1, study_day_lloq = r20$t_lloq + 1, len1 = r20$len1, c_start1 = r20$c_start1),
+       file.path(out_dir, "cliff_rep_k2020.csv"))
+fwrite(pr20[C > 0.01], file.path(out_dir, "cliff_rep_profile_k2020.csv"))
+cat(sprintf("  k2020 cliff representative subject %d regenerated %s\n", rid, format(Sys.time(), "%H:%M:%S")))
+
 fwrite(rbindlist(PROV), file.path(out_dir, "provenance.csv"))
 print(CV[, .(case, model, n, median = round(100 * median, 2), p05 = round(100 * p05, 2), min = round(100 * min, 2), pct_lt80, role)]); print(TR); print(rbindlist(RS)[, .(model, role, id, coverage_true, extrap_ratio_nca_to_true)]); print(RL)
 append_run_log(logfile, "done")
