@@ -1,6 +1,6 @@
 A2:
   kicker: "별첨 A2 · 방법 세부"
-  title: "Phoenix는 λz 기준을 강제하지 않아 adjusted R² {r2i}·{r2iii}으로 정했다"
+  title: "Phoenix는 λz 기준을 정하지 않아 관행 하한 {r2i}과 공개 SAP {r2iii}을 썼다"
   rules_label: "비구획 분석 규칙 (Phoenix WinNonlin 호환 엔진)"
   rules:
     - "**AUClast**: 실제 채혈 시각, 선형 증가·로그 감소 사다리꼴"
@@ -27,11 +27,11 @@ A2:
     i: "관행 하한 (S5)"
     ii: "엔진 기본 표시"
     iii: "신뢰할 수 있는\nAUCinf"
-    iv: "NCT04117607\n조건 + 외삽 {ex}% 이하"
+    iv: "NCT04117607\n+ 외삽 {ex}% 이하"
   sap:
     ge: "≥ {x}"
     gt: "> {x}"
-  phoenix: "**Phoenix**의 Lambda Z Acceptance Criteria는 사용자 선택 항목이다: 넣지 않으면 기준이 없고, 넣어도 미충족 프로필은 표시만 되며 제외되지 않는다. **공개 통계분석계획의 λz 기준**: NCT04117607 adjusted R² {s1}·span ≥ 반감기 {sp}배, NCT04441905 {s2}(두 건 원문 확인), NCT04700163 {s3}(검색 발췌)."
+  phoenix: "**Phoenix**의 Lambda Z Acceptance Criteria는 선택 항목이다(Certara Phoenix 8.2 문서, 검색 확인·원문 미대조): 넣지 않으면 기준이 없고, 넣어도 미충족 프로필은 제외되지 않는다. **공개 SAP의 λz 기준**: NCT04117607 adjusted R² {s1}·span ≥ 반감기 {sp}배, NCT04441905 {s2}(두 건 원문 확인), NCT04700163 {s3}(검색 발췌)."
   caption:
     - "엔진 검증: NonCompart·PKNCA와 프로필 {ntot}개 쌍별 비교, λz 구간 {lz} 일치, 최대 상대 차이 {mx}(Phoenix 출력과는 미대조)."
   method:

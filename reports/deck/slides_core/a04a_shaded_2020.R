@@ -16,6 +16,8 @@ slide_A4a <- function() {
   L <- DK$txt$A4a$fig
   p <- core_shaded_panels("k2020", L)
   r <- function(role, col, d, item, unit = "") dv(RSf, sprintf("model=='k2020' & role=='%s'", role), col, d, unit, item)
+  premise(as.numeric(sub(" .*", "", row1(P1, "model=='k2020' & group=='all'")$lambda_ok_pct_ci)) < 100,
+          "not every subject has lambda-z: the NCA median is over lambda-z-estimable subjects, the true median over all subjects (caption denominators; scripts/15 median(pct_extrap, na.rm = TRUE))")
   cap <- tx("A4a.caption", list(nca = dv(P1, "model=='k2020' & group=='all'", "extrap_nca_median", 1, "%", "median NCA extrapolated share, 2020"),
                                 true = dv(P1, "model=='k2020' & group=='all'", "extrap_true_median", 2, "%", "median true extrapolated share, 2020"),
                                 nsub = dint(P1, "model=='k2020' & group=='all'", "n_subjects", "virtual subjects, 2020")))

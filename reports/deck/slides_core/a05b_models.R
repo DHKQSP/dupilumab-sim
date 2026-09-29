@@ -42,6 +42,8 @@ slide_A5b <- function() {
             k = dderived("AUCinf (set iii) + Cmax cells above 5% (point), range over M0 and M1", CG, "analysis_model in (M0, M1) & config=='G2_A_iii' & pass_pct > 5 :: range over models of row counts",
                          k_iii, rng_fmt(min(k_iii), max(k_iii), 0)))
   premise(all(k_iii > 0) && all(vapply(c("M0", "M1"), function(am) nrow(rows(CG, sprintf("analysis_model=='%s' & config=='G2_A_iii'", am))), 1L) == 16), "set (iii) rule A computed for all 16 cells under M0 and M1 (title)")
+  one <- vapply(AM, function(am) nrow(rows(T1, sprintf("analysis_model=='%s' & config=='P2' & pass_pct > 5", am))), 1L); premise(all(one == 1), "one AUClast + Cmax cell above 5% in every analysis model (title)")
+  f$one <- dderived("AUClast + Cmax cells above 5% (point), each of M0, M1, M2", T1, "config=='P2' & pass_pct > 5 :: row count per analysis model (all equal)", one, fnum(one[1], 0))
   y0 <- core_title(tx("A5b.title", f), tx("A5b.kicker", f))
 
   # ---- 아래: 캡션, 본문 ----
@@ -57,7 +59,7 @@ slide_A5b <- function() {
   cap <- c(tx("A5b.mech", mech), tx("A5b.caption", list(r2i = f_set("i", "r2"), ex = f_set("i", "extrap"), span = f_set("ii", "span"))))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
   b <- list(p2 = dv(DE, WD("M1"), "p2_pct", 2, "%", "AUClast + Cmax, 2020 V2 up cell, M1"),
-            bias = a5b_signed(dv(DE, WD("M1"), "auclast_bias_pct", 2, "%", "AUClast GMR bias against the true AUCinf ratio, 2020 V2 cell, M1")),
+            bias = dv(DE, WD("M1"), "auclast_bias_pct", 2, "%", "AUClast GMR bias toward 1 against the true AUCinf ratio, 2020 V2 cell, M1"),
             d = a5b_signed(dv(DE, WD("M1"), "auclast_minus_ref_pp", 2, "", "AUClast term: AUClast alone minus the true-AUCinf reference (points), M1")),
             n = dcount(DE, "analysis_model=='M1'", "boundary cells in the decomposition"))
   by <- core_body(tx("A5b.body", c(b, list(nom = f$nom))), capy - 0.08)
@@ -86,7 +88,7 @@ slide_A5b <- function() {
   xl <- c(floor(min(fd$lo) * 5) / 5 - 0.2, ceiling(max(fd$hi) * 5) / 5 + 0.7)
   p <- ggplot(fd) +
     geom_vline(xintercept = nomv, linetype = "22", colour = PAL$ink2, linewidth = 0.7) +
-    annotate("rect", xmin = -Inf, xmax = Inf, ymin = ann$y - 0.19, ymax = ann$y + 0.19, fill = "white", colour = NA) +   # 효과 글자 줄: 5% 점선·눈금선이 글자를 가르지 않게 흰 바탕
+    annotate("rect", xmin = -Inf, xmax = Inf, ymin = c(ann$y - 0.19, 0.45), ymax = c(ann$y + 0.19, 0.84), fill = "white", colour = NA) +   # 효과·구간 글자 줄: 5% 점선·눈금선이 글자를 가르지 않게 흰 바탕
     geom_segment(aes(x = lo, xend = hi, y = y, yend = y, colour = col), linewidth = 1.1) +
     geom_point(aes(est, y, colour = col), size = 4) +
     geom_text(aes(hi, y, label = paste0(fnum(est, 2), "%"), colour = col), hjust = -0.25, size = PT(16), family = FONT, fontface = "bold") +

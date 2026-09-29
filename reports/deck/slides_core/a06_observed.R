@@ -85,15 +85,15 @@ slide_A6 <- function() {
     geom_point(aes(v, y, shape = shp, colour = ctype), size = 3.4) +
     geom_text(data = lab, aes(v, y, label = lab, hjust = hj), size = PT(14), family = FONT, colour = PAL$ink) +
     geom_text(data = hd, aes(XL[1], y, label = lab), hjust = 0, size = PT(15), family = FONT, fontface = "bold", colour = PAL$ink) +
-    scale_shape_manual(values = c(lit = 15, k2016 = 16, k2020 = 17), labels = c(k2016 = ML$k2016, k2020 = ML$k2020), name = NULL,
-                       breaks = c("k2016", "k2020")) +                                   # 문헌(■)은 행 이름이 말해 준다
+    scale_shape_manual(values = c(lit = 15, k2016 = 16, k2020 = 17), labels = c(lit = FL$lit_shape, k2016 = ML$k2016, k2020 = ML$k2020), name = NULL,
+                       breaks = c("lit", "k2016", "k2020")) +
     scale_colour_manual(values = c(lit = PAL$ink, nca = PAL$orange, tv = PAL$blue), labels = c(nca = FL$c_nca, tv = FL$c_tv), name = NULL, breaks = c("nca", "tv")) +
     guides(shape = guide_legend(order = 1, override.aes = list(colour = PAL$ink)), colour = guide_legend(order = 2, override.aes = list(shape = 15, size = 4.2))) +
     scale_x_continuous(breaks = seq(ceiling(XL[1] / 2) * 2, 100, 2), labels = function(v) paste0(v, "%")) +
     scale_y_continuous(breaks = yt$y, labels = yt$lab) +
     coord_cartesian(xlim = XL, ylim = c(min(yt$y) - 0.6, 0.45), expand = FALSE, clip = "off") +
     labs(x = FL$xlab, y = NULL, subtitle = fill(FL$band, list(tol = tol$p))) + theme_core(16) +
-    theme(legend.position = "top", legend.justification = "left", legend.margin = margin(0, 0, 0, 0), legend.box = "horizontal", legend.spacing.x = grid::unit(2, "pt"),
+    theme(legend.position = "top", legend.justification = "left", legend.margin = margin(0, 0, 0, 0), legend.box = "vertical", legend.box.just = "left", legend.spacing.x = grid::unit(2, "pt"), legend.spacing.y = grid::unit(0, "pt"),
           legend.box.spacing = grid::unit(2, "pt"), legend.text = element_text(size = 14, colour = PAL$ink), panel.grid.minor = element_blank(),
           panel.grid.major.y = element_blank(), axis.text.y = element_text(size = 14, colour = PAL$ink),
           plot.subtitle = element_text(size = 14, colour = PAL$ink2, margin = margin(0, 0, 2, 0)), plot.title.position = "plot", plot.margin = margin(2, 6, 2, 2))
@@ -109,8 +109,8 @@ slide_A6 <- function() {
   dsrc("figure a6: 300 mg arm means", c(A16, A20))
   p2 <- ggplot() +
     geom_segment(data = ob, aes(x = obs * (1 - tolv), xend = obs * (1 + tolv), y = lab, yend = lab), colour = PAL$tint_grey, linewidth = 9) +
-    geom_point(data = ob, aes(obs, lab), shape = 15, size = 3.6, colour = PAL$ink) +
-    geom_point(data = ar, aes(sim, lab, shape = model), colour = PAL$blue, size = 3.4) +
+    geom_point(data = ar, aes(sim, as.numeric(lab) + ifelse(model == "k2016", 0.26, -0.26), shape = model), colour = PAL$blue, size = 3.4) +   # 두 모델 모의 표식은 위아래로 어긋나게
+    geom_point(data = ob, aes(obs, lab), shape = 22, size = 3.9, fill = PAL$ink, colour = "white", stroke = 0.8) +   # 관측 평균은 맨 위에(흰 테두리)
     scale_shape_manual(values = c(k2016 = 16, k2020 = 17), labels = c(k2016 = ML$k2016, k2020 = ML$k2020), name = NULL) +
     scale_x_continuous(limits = c(400, 720), breaks = seq(400, 700, 100), expand = expansion(0)) +
     scale_y_discrete(expand = expansion(add = c(0.6, 0.8))) +

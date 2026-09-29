@@ -51,7 +51,7 @@ slide_A1 <- function() {
   g_all <- c(q16[gate_role == "gate", AUClast_ratio], q20[gate_role == "gate", AUClast_ratio])
   rng <- dderived("simulated / observed AUClast mean, study presentation, range over both models", Q16,
                   sprintf("gate_role=='gate' :: range(AUClast_ratio) over %s and %s", Q16, Q20), range(g_all), rng_fmt(min(g_all), max(g_all), 2))
-  y0 <- core_title(tx("A1.title", list(tol = tol)), tx("A1.kicker"))
+  y0 <- core_title(tx("A1.title", list(tol = tol, n = dcount(Q16, "gate_role=='gate'", "study-presentation gate data sets (title)"))), tx("A1.kicker"))
 
   # ---- 그림: 자료별 모의/관측, 두 모델(표식), 허용 범위 음영 ----
   premise(all(q16$id %in% names(L$ds)), "a label for every data set")
@@ -128,13 +128,13 @@ slide_A1 <- function() {
   w0 <- dcfg("design_clot2021.yaml", c("arm_checks_300mg", "weight", "mean"), "assumed mean weight of the single arms (kg)", num_fmt(0))
   xo <- list(n16 = dcount(H16, "TRUE", "fully external items, 2016 model"), f16 = dcount(H16, "pass_mean==FALSE", "fully external items failing, 2016 model"),
              n20 = dcount(H20, "TRUE", "fully external items, 2020 model"), f20 = dcount(H20, "pass_mean==FALSE", "fully external items failing, 2020 model"))
-  # 배치: 왼쪽 = 그림 + 그 아래 캡션(그림 폭), 오른쪽 = 본문 세 문단(연구 제형, 200 mg 제형, 완전 외부 재판정)
-  FW <- 6.75; XR <- GEO$ML + FW + 0.3; WR <- GEO$W - GEO$MR - XR
+  # 배치: 왼쪽 = 그림, 오른쪽 = 본문 세 문단(연구 제형, 200 mg 제형, 완전 외부 재판정), 아래 = 캡션(전체 폭)
+  FW <- 6.3; XR <- GEO$ML + FW + 0.3; WR <- GEO$W - GEO$MR - XR
   cap <- tx("A1.caption", list(tol = tol, d200 = fb$d200))
-  capy <- core_caption(cap, GEO$BODY_BOTTOM, x = GEO$ML, width = FW, size = 14)
-  body <- tx("A1.body", c(fb, xo, list(w0 = w0))); bh <- core_body_h(body, WR, gap_pt = 12)
-  premise(y0 + 0.1 + bh <= GEO$BODY_BOTTOM, "right-column body fits above the footer")
-  deck_text(body, c(XR, y0 + 0.1, WR, bh), size = SZ$body, label = "body", gap_pt = 12)
+  capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)                                  # 캡션은 전체 폭(아래), 그림과 본문은 그 위
+  body <- tx("A1.body", c(fb, xo, list(w0 = w0))); bh <- core_body_h(body, WR, gap_pt = 8)
+  premise(y0 + 0.1 + bh <= capy - 0.08, "right-column body fits above the caption")
+  deck_text(body, c(XR, y0 + 0.1, WR, bh), size = SZ$body, label = "body", gap_pt = 8)
   deck_figure(p, "a1_qualification", c(GEO$ML, y0, FW, capy - 0.12 - y0), src = c(Q16, Q20))
 
   # ---- 노트: 기준, 자료별 값, 200 mg, Cmax, 단일 arm, 완전 외부 재판정, 문헌 평균비 ----

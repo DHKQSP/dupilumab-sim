@@ -32,10 +32,11 @@ slide_A4b <- function() {
     premise(r0$median < 1, sprintf("observed AUClast median below the true AUCinf (%s): body", m))
   }
   premise(all(rows(P1, "group=='all'")[, extrap_nca_median > extrap_true_median]), "NCA extrapolated share above the true share at the median, both models (body)")
+  premise(all(as.numeric(sub(" .*", "", rows(P1, "group=='all'")$lambda_ok_pct_ci)) < 100), "NCA extrapolation median over lambda-z-estimable subjects, true over all (caption denominators)")
   bmax <- x[metric == MET[["B"]], .(pk_model, max)]
   premise(bmax[which.max(max), pk_model] == "k2016" && all(x[metric == MET[["A"]], max] < max(bmax$max)), "largest NCA-to-true ratio: rule B, 2016 model (title; rule A lower)")
   f <- list(med = drange(TCV, sprintf("metric=='%s'", MW), "median", 0, "%", "window coverage, median, two models", scale = 100),
-            mx = dext(TCV, sprintf("metric=='%s'", MET[["B"]]), "max", max, 1, "", "largest NCA AUCinf (rule B) / true AUCinf over both models"))
+            mx = dv(TCV, wm("B", "k2016"), "max", 1, "", "largest NCA AUCinf (rule B) / true AUCinf, 2016 model (largest of both models, premise)"))
   y0 <- core_title(tx("A4b.title", f), tx("A4b.kicker"))
 
   # ---- 캡션(전체 폭, 아래) ----

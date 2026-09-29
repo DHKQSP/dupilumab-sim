@@ -34,6 +34,7 @@ slide_A5a <- function() {
   # ---- 제목 ----
   f <- list(n = dcount(T1, WP, "boundary cells, M1 P2"), nom = f_nominal(),
             e = dcount(CG, paste(WG, "& class=='exceeding'"), "AUCinf (set iii) + Cmax cells classified exceeding (Wilson lower bound above 5%), M1"),
+            pe = dcount(T1, paste(WP, "& class=='exceeding'"), "AUClast + Cmax cells classified exceeding (Wilson lower bound above 5%), M1 (title)"),
             c = dcount(T1, paste(WP, "& class=='conservative'"), "AUClast + Cmax cells classified conservative (Wilson upper bound below 5%), M1"))
   y0 <- core_title(tx("A5a.title", f), tx("A5a.kicker", f))
 
@@ -50,7 +51,12 @@ slide_A5a <- function() {
     names(df) <- tx("A5a.table.head"); df
   }
   gap <- 0.30; tw <- (GEO$CW - gap) / 2
-  cap <- tx("A5a.caption", list(nom = f$nom, reps = f_reps("boundary"),
+  npk <- uniqueN(a$pk_model); nsc <- uniqueN(a$scenario); premise(npk * nsc == nrow(a), "cells = PK models x boundary conditions (caption)")
+  rt <- rows(T1, "analysis_model=='M1' & config=='AUCinf_true_only'"); premise(nrow(rt) == nrow(a), "true-AUCinf reference in every boundary cell (caption)")
+  cap <- tx("A5a.caption", list(nom = f$nom, n = f$n, reps = f_reps("boundary"),
+                                nm = dderived("PK models in the boundary table", T1, sprintf("%s :: uniqueN(pk_model)", WP), npk, fnum(npk, 0)),
+                                ns = dderived("boundary conditions per PK model", T1, sprintf("%s :: uniqueN(scenario)", WP), nsc, fnum(nsc, 0)),
+                                ref = drange(T1, "analysis_model=='M1' & config=='AUCinf_true_only'", "pass_pct", 2, "%", "reference: judged on the true AUCinf alone, range over the boundary cells, M1"),
                                 ext = dint(T1, sprintf("%s & pk_model=='k2020' & scenario=='V2_up_080'", WP), "n_trials", "trials in the extended cell (2020 model, V2 up)"),
                                 zero = dext(T1, paste(WP, "& grepl('^ka_', scenario)"), "pass_pct", max, 0, "%", "AUClast + Cmax in the ka-down cells, M1")))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
@@ -72,7 +78,7 @@ slide_A5a <- function() {
   # ---- 노트 ----
   cnt <- function(rel, w, cls, item) dcount(rel, sprintf("%s & class=='%s'", w, cls), item)
   deck_notes(tx("A5a.notes", c(f, bf[c("mke", "ke")], list(mech = mech_top, 
-    pn = cnt(T1, WP, "nominal", "AUClast + Cmax cells nominal, M1"), pe = cnt(T1, WP, "exceeding", "AUClast + Cmax cells exceeding, M1"),
+    pn = cnt(T1, WP, "nominal", "AUClast + Cmax cells nominal, M1"),
     gc = cnt(CG, WG, "conservative", "AUCinf (set iii) + Cmax cells conservative, M1"), gn = cnt(CG, WG, "nominal", "AUCinf (set iii) + Cmax cells nominal, M1"),
     gk = dcount(CG, paste(WG, "& pass_pct > 5"), "AUCinf (set iii) + Cmax cells above 5% (point), M1"),
     pk_ = dcount(T1, paste(WP, "& pass_pct > 5"), "AUClast + Cmax cells above 5% (point), M1"),

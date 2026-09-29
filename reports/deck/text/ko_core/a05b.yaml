@@ -1,6 +1,6 @@
 A5b:
   kicker: "별첨 A5b · ③ 세부: 분석 모형과 AUClast + Cmax의 점추정 {nom} 초과 한 칸"
-  title: "AUCinf + Cmax는 M0·M1 모두 {n}칸 중 {k}칸의 점추정이 {nom}를 넘고,\nAUClast + Cmax의 점추정 {nom} 초과 한 칸은 AUClast 편향에서 나온다"   # \n: 줄 나눔 자리(core_title)
+  title: "신뢰할 수 있는 AUCinf + Cmax(규칙 A (iii))는 M0·M1 모두 {k}칸,\nAUClast + Cmax는 {n}칸 중 {one}칸(AUClast 편향)만 점추정이 {nom}를 넘는다"   # \n: 줄 나눔 자리(core_title)
   head_a: "(a) 경계 {n}칸 중 점추정 {nom} 초과 칸 수 · 최대"
   head_b: "(b) AUClast + Cmax 한 칸의 분해"
   table:
@@ -25,12 +25,12 @@ A5b:
     d_cmax: "Cmax 추가 효과 {d}%p"
     ci: "95% 구간 {lo}~{hi}"
   body:
-    - "점추정이 {nom}를 넘는 AUClast + Cmax 한 칸(M1·M2는 Wilson 초과, M0는 명목)은 AUClast 기하평균비(GMR)가 동등 쪽으로 {bias} 치우친 결과로, {n}칸 중 이 칸뿐이다."
+    - "점추정이 {nom}를 넘는 AUClast + Cmax 한 칸(M1·M2는 Wilson 초과, M0는 명목)은 AUClast 기하평균비(GMR)가 1 쪽(동등 판정 쪽)으로 {bias} 치우친 결과로, {n}칸 중 이 칸뿐이다."
   mech:
-    - "기전(M1): 표적 소실 증가 칸(참 비 {tvx})에서 비구획 AUCinf GMR이 1 쪽으로 {bi16}·{bi20} 치우친다(2016/2020 모델; λz 산출 전원 {bb16}·{bb20})."
+    - "표적 소실 증가 칸의 AUCinf GMR 편향(1 쪽): 신뢰할 수 있는 AUCinf만(규칙 A (iii)) {bi16}·{bi20}, λz 산출 전원 {bb16}·{bb20}(2016/2020 모델, M1)"
   caption:
     - "규칙 A: 미달자 제외, 세트 (i) adjusted R² ≥ {r2i}·외삽 ≤ {ex}%, (ii) (i) + span ≥ 반감기 {span}배, (iii) 신뢰할 수 있는 AUCinf"
-    - "규칙 B: λz 산출 전원 · 규칙 C: 미달자에 AUClast 대입 · M1: 체중 층(주분석 후보) · 미산출: 사전 등록 범위(M0·M1) 밖"
+    - "규칙 B: λz 산출 전원 · 규칙 C: 미달자에 AUClast 대입 · M0: 층 없음(현행) · M1: 체중 층 포함(주분석 후보) · M2: log 체중 · 미산출: 사전 등록 범위 밖"
   notes: |
     (a) 분석 모형: M0는 로그 척도 합동 t 검정(현행), M1은 투여군과 무작위배정 체중 층(층 경계 {split} kg)을 고정 효과로 둔 분산분석(주분석 후보, 의뢰자 결정), M2는 log 체중 공분산분석(민감도)이다. 칸 수는 경계 1종 오류 점추정이 {nom}를 넘는 칸이다. Wilson 하한까지 {nom}를 넘는 칸(초과)은 M1에서 규칙 A (iii) {lo_iii}칸, 규칙 B {lo_b}칸이다. 기준 세트별 구성(criteria_g2_type1.csv)은 사전 등록에서 M0와 M1만 돌려 M2 칸은 미산출이다. 규칙 A (ii)는 사전 명시 원래 정의다. 참고로 규칙 A (iv)는 M1에서 {aiv}칸(최대 {aivx}), 규칙 C (iv)는 최대 {civ}다. 규칙 A (iii)의 신뢰할 수 있는 AUCinf = adjusted R² ≥ {r2}, 외삽 ≤ {ex}%.
     AUCinf 쪽 기전(규칙 A (iii), M1; criteria_bias.csv): 시험약이 표적 매개 소실에서 다르면(표적 소실 증가 칸, 참 AUCinf 비 {tvx}) 비구획 AUCinf 기하평균비가 참 비보다 1 쪽으로 2016 모델 {bi16}, 2020 모델 {bi20} 치우치고, λz 산출 전원(규칙 B)으로 구해도 {bb16}, {bb20} 치우친다. 그래서 동등 한계에 있는 제품이 동등으로 판정된다(S9 노트와 같은 값).

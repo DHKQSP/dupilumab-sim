@@ -79,8 +79,9 @@ slide_A2 <- function() {
   df <- data.frame(a = unlist(L$set_names[sets]), b = vapply(sets, function(s_) fill(L$ge, list(x = f_set(s_, "r2"))), ""),
                    d = vapply(sets, spn, ""), s = unlist(L$status[sets]), e = vapply(sets, use, ""), stringsAsFactors = FALSE, check.names = FALSE)
   names(df) <- tx("A2.table.head")
-  TY <- y0 + LH + 0.02; TH <- 2.72
-  deck_table(df, box = c(XR, TY, WR, TH), widths = c(0.5, 1.03, 1.0, 1.39, 1.91), size = 14, label = "table_sets", highlight = 3)
+  TW_ <- c(0.5, 1.03, 1.0, 1.39, 1.91); TY <- y0 + LH + 0.02
+  TH <- deck_table_h(df, WR, TW_, size = 14) + 0.18                  # 렌더링 표 높이(추정보다 조금 크다)
+  deck_table(df, box = c(XR, TY, WR, TH), widths = TW_, size = 14, label = "table_sets", highlight = 3, group_end = 4)   # 행 사이 선 없이 아래 굵은 선(표 끝 표시)
 
   # ---- 오른쪽 아래: 공개 SAP 세 건(사전 등록 6절 문장에서 읽는다) ----
   sap <- core_sap("NCT04117607", "at least", "public SAP NCT04117607: adjusted R-squared at least")
