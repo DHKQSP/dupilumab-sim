@@ -1,6 +1,6 @@
 S15:
   kicker: "논거 ② 경계 1종 오류: 기전별 비교 (M1, M0 함께 제시)"
-  title: "경계 {n}칸 중 1종 오류 점추정이 {nom}를 넘는 칸은 제안한 AUC0-last + Cmax가 {p2n}칸, 규칙 A (i)·(ii)·B의 AUC0-inf + Cmax가 {r}칸이다(M1)"
+  title: "경계 {n}칸 가운데 1종 오류 점추정이 {nom}를 넘는 칸은 AUC0-last + Cmax가 {p2n}칸, 규칙 A (i)·(ii)·B의 AUC0-inf + Cmax가 {r}칸이다(M1)"
   fig:
     xlab: "경계 1종 오류 (%, M1). 점선: 명목 {nom}\n가로선: Wilson 95% 구간(짧은 구간은 표식에 가려짐)"
     ka: "Cmax 모든 시험 불통과"
@@ -35,7 +35,7 @@ S15:
       G2_Ci: "C (i) AUC0-last 대입"
       P2: "AUC0-last + Cmax"
   bullets:
-    - "M1에서 AUC0-inf + Cmax는 Vmax 칸이 가장 높다(규칙 A (ii)에서 {vmax}). V2 칸에서는 A (i)·(ii)·B가 보수적이고, 2016 모델의 A (iii)·(iv)는 초과다({aiii16}, {aiv16})."
+    - "M1에서 AUC0-inf + Cmax는 Vmax 칸이 가장 높다(규칙 A (ii)에서 {vmax}). V2 증가 칸에서는 세 규칙 A (i)·(ii)·B가 모두 보수적이지만, 2016 모델의 A (iii)·(iv)는 초과다({aiii16}, {aiv16})."
   notes: |
     경계 칸: 시험약의 기전(F, ka, ke, Vmax, V2)을 한 방향으로 바꿔 참 AUC0-inf 비가 {tgt}에 닿게 한 칸이다. 칸 이름의 증가·감소는 파라미터 변화 방향이다(예: 2016 모델 Vmax ×{vm} 증가 → 참 비 {vmt}). ka와 V2는 상한에 닿지 않고 Km은 어느 경계에도 닿지 않아 모델당 {npm}칸, 합 {n}칸이다.
     분류(Wilson 95% 구간): 보수적은 상한 < {nom}, 명목은 구간이 {nom}를 포함, 초과는 하한 > {nom}이다. 점추정이 {nom}를 넘어도 구간이 {nom}를 포함하면 명목이다. 표의 칸 수는 점추정 기준이다.

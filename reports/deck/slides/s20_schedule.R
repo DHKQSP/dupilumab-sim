@@ -1,5 +1,5 @@
 # S20 제안의 실행 · 채혈 일정 판단: 현행 B0 유지. 사전 규정 결정 규칙(보고서 3.9절, D-026)의 기준 (a)~(d)를 후보 D1~D4와 B-(Day 50 제거)에
-# 두 모델로 적용한 결과표(보고서 Table 5-14와 같은 열)와, Day 57 이후 채혈의 가치(참 농도가 LLOQ 위에 남는 대상자 비율).
+# 두 모델로 적용한 결과표(보고서 Table 5-14와 같은 열)와, Day 57 이후 채혈의 가치(참 농도가 LLOQ 위에 남는 대상자 비율; 그림은 한 판, Day 58 값은 점과 글자).
 # 시험 모집단(건강인 60~90 kg, 두 구조 모델 base·struct2020)만. 체중 50~90 kg 분포(weight_alt)는 시험 모집단 밖이라 쓰지 않는다(부록 A5).
 # 자료: results/trials/schedule_decision_<base|struct2020>.csv(대상자 20,000명, 시험 500회), results/reliability/reliability_paired_vs_B0.csv(세트 (i)),
 #       results/individual200k/criterion_d_200k_<variant>.csv(200,000명 재평가), results/cliff/cliff_summary.csv(LLOQ 도달일, Day 58 이후 비율),
@@ -121,7 +121,7 @@ slide_S20 <- function() {
             d58 = dderived("study-day threshold in column name lloq_after_day58_pct", CS, "column name lloq_after_day58_pct (100 x mean(t_lloq + 1 > 58))", 58, "58"),
             a16 = ab[[1]], a20 = ab[[2]])
   premise(as.numeric(b$d58) == as.numeric(last) + 1, "Day 58 is the day after the last B0 sample")
-  aw <- rbindlist(lapply(names(S20_V), function(m) rows(s20_sd(S20_V[[m]]), ADD)[, pk := m]))
+  aw <- rbindlist(lapply(names(S20_V), function(m) copy(rows(s20_sd(S20_V[[m]]), ADD))[, pk := m]))
   premise(nrow(aw) == 8 && sum(aw$a_mean_width_rel_decrease > 0) == 1 && aw[a_mean_width_rel_decrease > 0, schedule == "D3" & pk == "k2020"],
           "added samples: the mean CI width narrows only in D3 of the 2020 model and widens in every other schedule and model (bullet)")
   premise(rp[which.max(gain_ii_pp), variant == "base" & schedule == "D3"] && rp[which.max(gain_i_pp), variant == "base" & schedule == "D3"], "largest set (i) and set (ii) gains both at D3 (2016 model)")

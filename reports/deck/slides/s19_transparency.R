@@ -3,7 +3,7 @@
 # 같은 칸의 AUC0-inf 구성과의 대비. 시험 모집단(건강인 60~90 kg, 체중 층화 배정, B0)만.
 # 자료: results/oc_models/type1_models.csv(분석 모형별 경계 1종 오류; *_10k = 처음 10,000회), extension_decision_models.csv(확대 판정),
 #       p2_decomposition_models.csv(분해, AUC0-last 편향), sd_se_models.csv(NCA AUC0-inf 편향), criteria/criteria_g2_type1.csv(세트 (i)~(iv) 구성),
-#       criteria/criteria_bias.csv(세트별 NCA AUC0-inf 편향 방향).
+#       criteria/criteria_bias.csv(세트별 NCA AUC0-inf 편향 방향). 그림의 AUC0-inf + Cmax 묶음은 세트 (i)~(iv)가 모두 있는 criteria_g2_type1.csv에서 그린다.
 # 주의: 확대는 M0의 Wilson 구간이 5%를 포함해 정해졌다. M1은 처음 10,000회에서 이미 하한 > 5%라 스스로 확대 조건을 만들지 않았고,
 #       등록 규칙(prereg section1, D-048 규칙을 분석 모형마다 적용)대로 세 분석 모형(M0·M1·M2)을 모두 20,000회로 보고한다.
 #       D-048 확대는 사전 고정 설계 뒤에 추가한 사후 규칙이라(보고서 3.7절, 부록 D) 10,000회 값을 함께 적는다.
