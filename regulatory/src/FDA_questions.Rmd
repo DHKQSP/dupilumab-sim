@@ -77,7 +77,7 @@ PCf <- "oc_models/type1_paired_change.csv"
 pc_rng <- vrange(PCf, "comparison=='M1 minus M0' & config=='P2'", "diff_pp", 2, item = "P2 M1 minus M0, range (points)")
 pc_mean <- { r <- rows(PCf, "comparison=='M1 minus M0' & config=='P2'"); premise(nrow(r) == 16, "16 paired changes"); .record("P2 M1 minus M0, mean (points)", PCf, "comparison=='M1 minus M0' & config=='P2' :: mean(diff_pp)", mean(r$diff_pp), fnum(mean(r$diff_pp), 2)) }
 pw_d <- v(PWf, "pk_model=='k2016' & scenario=='S00' & analysis_model=='M1' & config=='P2'", "diff_vs_M0_pp", 2, item = "power change M1 minus M0, S00")
-MECH_EN <- c(F = "bioavailability", ka = "absorption rate", ke = "linear elimination", Vmax = "target-mediated elimination capacity", Km = "binding constant", V2 = "peripheral volume")
+MECH_EN <- c(F = "bioavailability", ka = "absorption rate", ke = "linear elimination", Vmax = "target-mediated elimination capacity", Km = "target-mediated elimination constant", V2 = "peripheral volume")
 top_txt <- function(am) { r <- rows(T1f, sprintf("analysis_model=='%s' & config=='P2'", am)); rr <- r[which.max(pass_pct)]
   sprintf("the %s cell with %s %s (multiplier %s), %s", c(k2016 = "primary-model", k2020 = "2020-model")[[rr$pk_model]], MECH_EN[[rr$mechanism]], rr$direction, fnum(rr$multiplier, 2),
           vci(T1f, sprintf("analysis_model=='%s' & config=='P2' & pk_model=='%s' & scenario=='%s'", am, rr$pk_model, rr$scenario), item = sprintf("highest P2 %s", am))) }
@@ -161,7 +161,7 @@ tpad_max <- { r <- rows(TAD, "set=='i' & scenario!='S00'"); .record("largest abs
 
 **Added samples reduce reliability.** They make Best Fit choose a shorter, later window, and a span ratio of at least 2 then fails more often.
 
-**The pre-specified decision rule was not met.** None of the four criteria for adding samples between Day 36 and Day 50 was met in either model. In one sensitivity variant (Vmax x0.8 in both arms), one criterion was met at 20,000 subjects but not on re-evaluation in 200,000 subjects.
+**The decision rule, set before any result was reported, was not met.** None of the four criteria for adding samples between Day 36 and Day 50 was met in either model. In one sensitivity variant (Vmax x0.8 in both arms), one criterion was met at 20,000 subjects but not on re-evaluation in 200,000 subjects.
 
 ## Q5. The terminal phase lies below the LLOQ. How credible are published models for it?
 
@@ -236,7 +236,7 @@ tpad_max <- { r <- rows(TAD, "set=='i' & scenario!='S00'"); .record("largest abs
 
 **Evidence.**
 
-- Varying Km from 0.01-fold to 100-fold in the test arm moves the true AUC0-inf ratio only within `r km_rng` (report Section 5.6).
+- Varying Km (the Michaelis-Menten constant of target-mediated elimination, through which a binding difference acts in this model) from 0.01-fold to 100-fold in the test arm moves the true AUC0-inf ratio only within `r km_rng` (report Section 5.6).
 - AUC0-inf offers no more sensitivity to binding than AUC0-last.
 
 **Where binding similarity is shown.** In the comparative analytical assessment (binding kinetics and functional assays).

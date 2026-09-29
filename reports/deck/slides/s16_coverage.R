@@ -35,8 +35,8 @@ slide_S16 <- function() {
   deck_kicker(tx("S16.kicker")); deck_title(tx("S16.title", f))
 
   # ---- 왼쪽 위: 정의 ----
-  XL <- GEO$ML; WL <- 5.95
-  DH <- 2.45
+  XL <- GEO$ML; WL <- 5.8
+  DH <- 2.12
   deck_text(tx("S16.defs"), c(XL, GEO$BODY_TOP, WL, DH), size = 16, label = "text_defs", bg = PAL$tint_grey, geom = "roundRect", gap_pt = 6)
 
   # ---- 왼쪽 가운데: 창 포착률 분포(두 모델, 0.02 간격 막대, 로그 세로축) ----
@@ -67,12 +67,13 @@ slide_S16 <- function() {
     geom_label(data = lab2, aes(x = x, y = y, label = lab, vjust = vj), hjust = 1, size = 3.8, family = FONT, colour = PAL$ink, fill = "white",
                label.size = 0, label.padding = grid::unit(0.06, "lines"), label.r = grid::unit(0, "lines")) +
     geom_text(data = mlab, aes(x = x, y = y, label = lab), vjust = 0, hjust = 0, size = 3.8, family = FONT, colour = PAL$ink) +
-    scale_fill_manual(values = MFILL, name = L$fig$cov_leg) + scale_colour_manual(values = MLINE, name = L$fig$cov_leg) +
+    scale_fill_manual(values = MFILL, name = NULL) + scale_colour_manual(values = MLINE, name = NULL) +
     scale_x_continuous(breaks = seq(84, 100, by = 4), labels = function(x) paste0(fnum(x, 0), "%"), limits = c(100 * min(hw$bin_lo) - 0.3, 100.3), expand = expansion(0)) +
     scale_y_log10(limits = c(YF, 1000), breaks = c(0.01, 0.1, 1, 10, 100), labels = function(x) ifelse(x %in% c(0.01, 1, 100), formatC(x, format = "fg"), ""), expand = expansion(0)) +
     labs(x = L$fig$cov_xlab, y = NULL) + theme_deck(12) +
-    theme(legend.position = "top", legend.justification = "left", legend.margin = margin(0, 0, 0, 0), legend.box.spacing = grid::unit(2, "pt"),
-          legend.title = element_text(colour = PAL$ink2, size = 12, margin = margin(0, 10, 0, 0)), panel.grid.major.x = element_blank())
+    theme(legend.position = c(0.005, 0.99), legend.justification = c(0, 1), legend.direction = "vertical",   # ggplot2 3.4: 숫자 위치 = 패널 안(왼쪽 위 빈 곳)
+          legend.background = element_rect(fill = "white", colour = NA), legend.margin = margin(1, 3, 1, 1), legend.key.size = grid::unit(0.9, "lines"),
+          legend.text = element_text(size = 12), panel.grid.major.x = element_blank(), axis.title.x = element_text(size = 12, margin = margin(3, 0, 0, 0)))
   FY <- GEO$BODY_TOP + DH + 0.08; TH <- 1.18; FH <- GEO$BODY_BOTTOM - FY - TH - 0.08      # TH = 머리글 두 줄 + 두 행(행 높이가 같게)
   deck_figure(pw, "s16_window_coverage_hist", c(XL, FY, WL, FH), src = CH)
 
@@ -82,7 +83,7 @@ slide_S16 <- function() {
                     d = vapply(M, cv, "", col = "min"), e = vapply(M, s16_lt80, ""), stringsAsFactors = FALSE, check.names = FALSE)
   names(dfc) <- tx("S16.cov_table.head", list(thr = thr))
   TY <- GEO$BODY_BOTTOM - TH
-  deck_table(dfc, box = c(XL, TY, WL, TH), widths = c(1.0, 0.8, 0.82, 0.86, 0.75, 1.72), size = 12, label = "table_cov")
+  deck_table(dfc, box = c(XL, TY, WL, TH), widths = c(0.98, 0.76, 0.8, 0.84, 0.74, 1.68), size = 12, label = "table_cov")
 
   # ---- 오른쪽 위: 관측 대 참 비 분포(AUC0-last 전체, NCA AUC0-inf 규칙 A 세트 (i), 규칙 B), 모델별 ----
   XR <- XL + WL + 0.3; WR <- GEO$W - GEO$MR - XR
@@ -123,11 +124,13 @@ slide_S16 <- function() {
   r_ <- rows(TCV, "grepl('AUCinf', metric) & grepl('observed-to-true', metric)")
   premise(r_[pk_model == "k2016" & metric == MET[["lz_B"]], max] > 5 && all(r_[!(pk_model == "k2016" & metric == MET[["lz_B"]]), max] < 2),
           "only the 2016 model rule B maximum exceeds 5; the other NCA AUC0-inf maxima are below 2")
-  KH <- 0.98; OTH <- 1.78
+  KH <- 0.69; OTH <- 1.78
   OTY <- GEO$BODY_BOTTOM - KH - 0.06 - OTH; OH <- OTY - 0.08 - GEO$BODY_TOP
   deck_figure(po, "s16_observed_to_true_hist", c(XR, GEO$BODY_TOP, WR, OH), src = CH)
-  deck_table(dfo, box = c(XR, OTY, WR, OTH), widths = c(2.1, 1.94, 1.94), size = 12, highlight = 2, label = "table_ot")
-  deck_text(tx("S16.takeaway", list(b16 = q("lz_B", "k2016", "max", 2), b20 = q("lz_B", "k2020", "max", 2), a16 = q("i_A", "k2016", "max", 2), a20 = q("i_A", "k2020", "max", 2))),
+  deck_table(dfo, box = c(XR, OTY, WR, OTH), widths = c(2.2, 1.965, 1.965), size = 12, highlight = 2, label = "table_ot")
+  oth <- dext(TCV, sprintf("(metric=='%s' & pk_model=='k2020') | metric=='%s'", MET[["lz_B"]], MET[["i_A"]]), "max", max, 2, "",
+               "largest observed-to-true NCA AUC0-inf ratio over the other table combinations (2020 model rule B, rule A set (i) both models)")
+  deck_text(tx("S16.takeaway", list(b16 = q("lz_B", "k2016", "max", 2), oth = oth)),
             c(XR, GEO$BODY_BOTTOM - KH, WR, KH), size = 16, label = "text_takeaway")
 
   # ---- 노트 ----
@@ -152,6 +155,7 @@ slide_S16 <- function() {
     fx16 = dv(TCV, wm("extrapolation factor AUCinf / AUClast (lambda-z estimable)", "k2016"), "max", 2, "", "extrapolation factor AUCinf/AUClast, max, k2016"),
     fx20 = dv(TCV, wm("extrapolation factor AUCinf / AUClast (lambda-z estimable)", "k2020"), "max", 2, "", "extrapolation factor AUCinf/AUClast, max, k2020"),
     r2i = f_set("i", "r2"), exi = f_set("i", "extrap"), b16 = q("lz_B", "k2016", "max", 2),
+    b20 = q("lz_B", "k2020", "max", 2), a16 = q("i_A", "k2016", "max", 2), a20 = q("i_A", "k2020", "max", 2),
     top = dderived("lower edge of the open histogram bin of the observed-to-true ratio", CH, "max(bin_lo) of metric aucinf_B", top, fnum(top, 1)),
     o16 = dint(CH, "pk_model=='k2016' & metric=='aucinf_B' & bin_lo >= 1.5", "n", "subjects in the open bin, rule B, k2016"),
     o20 = dint(CH, "pk_model=='k2020' & metric=='aucinf_B' & bin_lo >= 1.5", "n", "subjects in the open bin, rule B, k2020"))))

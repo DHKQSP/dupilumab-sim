@@ -1,6 +1,6 @@
 # Key numbers (dupilumab biosimilar Phase 1 PK simulation)
 
-Generated 2026-09-25. Each line names its source file under results/.
+Generated 2026-09-29. Each line names its source file under results/.
 
 ## NCA engine (Phoenix WinNonlin-compatible)
 
@@ -41,7 +41,7 @@ Generated 2026-09-25. Each line names its source file under results/.
 
 ## Binding constant (Pillar 3 lead sentence)
 
-- Changing the binding constant (Km) from 0.01 to 100 times keeps the true AUC0-inf ratio within 0.999 to 1.059 (both models; range ends and reachable rows with 200,000 common-random-number subjects, screening scan in between with 20,000). Of the 12 pre-specified targets (0.70 to 1.43) the only reachable one is 1.05 (Km about x84 in the 2016 model and x92 in Model 1). Sources: oc/inversion_all.csv, oc/inversion_scan_k2016_Km.csv, oc/inversion_scan_k2020_Km.csv.
+- Changing the Michaelis-Menten constant of target-mediated elimination (Km) from 0.01 to 100 times keeps the true AUC0-inf ratio within 0.999 to 1.059 (both models; range ends and reachable rows with 200,000 common-random-number subjects, screening scan in between with 20,000). Of the 12 pre-specified targets (0.70 to 1.43) the only reachable one is 1.05 (Km about x84 in the 2016 model and x92 in Model 1). Sources: oc/inversion_all.csv, oc/inversion_scan_k2016_Km.csv, oc/inversion_scan_k2020_Km.csv.
 
 ## Preliminary product scenarios (arbitrary multipliers, 2016 model; AUCinf reliability under flag set (ii))
 
@@ -50,7 +50,7 @@ Generated 2026-09-25. Each line names its source file under results/.
 
 ## Sampling density decision (2016 model)
 
-- Final schedule B0. Candidates meeting any pre-specified criterion: none (trials/schedule_decision_base.csv).
+- Final schedule B0. Candidates meeting any decision criterion (rule set before any result was reported): none (trials/schedule_decision_base.csv).
 - D3 versus B0: AUClast CI width change -0.13% (positive = narrower), reliability gain (i) +2.76 [(ii) +1.69] percentage points, NCA extrapolation above 20% ratio 0.599; 200,000 subjects 0.603 (95% CI 0.583 to 0.624).
 
 ## Coverage of total exposure by AUClast (B0, 60 to 90 kg, 20,000 subjects per model)

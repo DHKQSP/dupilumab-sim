@@ -356,7 +356,7 @@ if (!is.null(ln)) {
 # 7. Sampling density conclusion
 add("## 7. Sampling density between Day 36 and Day 50: conclusion", "",
     sprintf("Final schedule: %s (Syneos baseline). Governing model: Kovalenko 2016. Rule application: %s. Decided by %s on %s.", sdec$final_schedule, sdec$rule_application, sdec$decided_by, sdec$decision_date), "",
-    "Pre-specified rule, versus B0: recommend added sampling if at least one holds: (a) mean width of the AUClast 90% CI decreases by at least 2%; (b) AUClast pass rate increases by at least 2 percentage points when ke is multiplied by 1.10; (c) the AUCinf reliability rate rises by at least 5 percentage points; (d) the share of subjects with NCA extrapolation above 20% falls to half or less.", "")
+    "Decision rule (set after the first schedule simulations, before any result was reported), versus B0: recommend added sampling if at least one holds: (a) mean width of the AUClast 90% CI decreases by at least 2%; (b) AUClast pass rate increases by at least 2 percentage points when ke is multiplied by 1.10; (c) the AUCinf reliability rate rises by at least 5 percentage points; (d) the share of subjects with NCA extrapolation above 20% falls to half or less.", "")
 vv <- c(base = "2016 (primary)", struct2020 = "Model 1", vmax080_both = "Vmax x0.8 (both arms)", vmax125_both = "Vmax x1.25 (both arms)")
 rows <- rbindlist(lapply(names(vv), function(v) { d <- R("trials", sprintf("schedule_decision_%s.csv", v)); if (is.null(d)) return(NULL)
   d3 <- d[schedule == "D3"]; k <- R("individual200k", sprintf("criterion_d_200k_%s.csv", v)); k3 <- if (!is.null(k)) k[schedule == "D3"] else NULL
@@ -391,7 +391,7 @@ db_ <- R("trials", "schedule_decision_base.csv")
 premise(db_[schedule %in% c("D1", "D2", "D3", "D4"), all(a_mean_width_rel_decrease <= 0 & b_ke110_gain_pp <= 0)], "neither the AUClast CI width nor the ke x1.10 pass rate improves in the primary model")
 if (!is.null(RF)) premise(!(RF$all$crit_c_i %in% TRUE) & !(RF$all$crit_c_ii %in% TRUE), "criterion (c) not met under either flag set")
 add(sprintf("Rationale: %s; criteria (a), (b) and (c) were not met in any variant (criterion (c) under neither reliability flag set); re-evaluated with 200,000 subjects (4,000 bootstrap resamples), the D3 ratio for criterion (d) is above 0.5 with its whole interval in every re-evaluated variant; the absolute reduction is below one subject per arm; in the primary model neither the AUClast CI width nor power improves with any added schedule; the cost of D3 is %s additional visits. Removing the Day 50 sample (B-) is not recommended because it preserves a terminal point for AUC0-inf as a secondary endpoint and for a fallback analysis. Lesson recorded: a relative-reduction criterion for a rare event needs an absolute floor (for example at least one subject per arm); not applied retroactively.",
-            if (length(trig)) sprintf("at the pre-specified 20,000-subject level, criterion (d) alone was met in %s", paste(trig, collapse = " and ")) else "no variant met any criterion at the pre-specified 20,000-subject level",
+            if (length(trig)) sprintf("at the rule's 20,000-subject level, criterion (d) alone was met in %s", paste(trig, collapse = " and ")) else "no variant met any criterion at the rule's 20,000-subject level",
             format(db_[schedule == "D3", added_visits_total], big.mark = ",")), "")
 
 # 8. Limitations

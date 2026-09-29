@@ -1,6 +1,6 @@
 # Dupilumab biosimilar Phase 1 pharmacokinetic simulation: summary for regulatory briefing
 
-Generated 2026-09-25 from repository results (branch claude/epic-bardeen-axbreo). Every number below is read from the result files used by the full report.
+Generated 2026-09-29 from repository results (branch claude/epic-bardeen-axbreo). Every number below is read from the result files used by the full report.
 
 Abbreviations: area under the concentration-time curve to the last quantifiable concentration (AUClast), to infinity (AUCinf); maximum concentration (Cmax); non-compartmental analysis (NCA); geometric mean ratio (GMR); confidence interval (CI); lower limit of quantification (LLOQ, 0.078 mg/L); inter-individual variability (IIV); target-mediated drug disposition (TMDD); Michaelis-Menten (MM); Monte Carlo (MC); body mass index (BMI); operating characteristic (OC); terminal elimination rate constant (lambda-z); common random numbers (CRN).
 Models: primary model Kovalenko et al. 2016 (CPT Pharmacometrics Syst Pharmacol 5:617, Table 2, BLQ-included column): two-compartment, first-order absorption, parallel linear and MM elimination, Km fixed at 0.01 mg/L, central volume scaled by (weight/75)^0.705. Sensitivity model Kovalenko et al. 2020 Model 1 (Clin Pharmacol Drug Dev 9:756, Table 1 and Supplementary Table 2): transit absorption (3 compartments, mean transit time 0.105 day), its own IIV and residual error (proportional 15.0%, additive 0.03 mg/L).
@@ -866,7 +866,7 @@ Random product space (one trial per product, B0, 117 per arm; truth from 1,000 C
 
 ## 4. Pillar 3: invisibility of binding-constant differences
 
-**Changing the binding constant (Km) from 0.01 to 100 times keeps the true AUC0-inf ratio within 0.999 to 1.059 (both models; range ends and reachable rows with 200,000 common-random-number subjects, screening scan in between with 20,000). Of the 12 pre-specified targets (0.70 to 1.43) the only reachable one is 1.05 (Km about x84 in the 2016 model and x92 in Model 1).**
+**Changing the Michaelis-Menten constant of target-mediated elimination (Km) from 0.01 to 100 times keeps the true AUC0-inf ratio within 0.999 to 1.059 (both models; range ends and reachable rows with 200,000 common-random-number subjects, screening scan in between with 20,000). Of the 12 pre-specified targets (0.70 to 1.43) the only reachable one is 1.05 (Km about x84 in the 2016 model and x92 in Model 1).**
 
 Source: oc/inversion_all.csv (range ends and reachable rows) and oc/inversion_scan_<model>_Km.csv (screening scan); boundary multipliers of all mechanisms are in the boundary scenario table above.
 
@@ -943,7 +943,7 @@ At 600 mg the simulated true coverage (96.8% and 96.9%) is below the published N
 
 Final schedule: B0 (Syneos baseline). Governing model: Kovalenko 2016. Rule application: pre-specified rule applied to the primary model; sensitivity variants assess robustness only. Decided by reviewer, sponsor approved (Donghyun Kim) on 2026-09-24.
 
-Pre-specified rule, versus B0: recommend added sampling if at least one holds: (a) mean width of the AUClast 90% CI decreases by at least 2%; (b) AUClast pass rate increases by at least 2 percentage points when ke is multiplied by 1.10; (c) the AUCinf reliability rate rises by at least 5 percentage points; (d) the share of subjects with NCA extrapolation above 20% falls to half or less.
+Decision rule (set after the first schedule simulations, before any result was reported), versus B0: recommend added sampling if at least one holds: (a) mean width of the AUClast 90% CI decreases by at least 2%; (b) AUClast pass rate increases by at least 2 percentage points when ke is multiplied by 1.10; (c) the AUCinf reliability rate rises by at least 5 percentage points; (d) the share of subjects with NCA extrapolation above 20% falls to half or less.
 
 | Variant | Rule result | D3: AUClast CI width change (%, positive = wider) | D3: reliability gain, (i) [(ii)] (pp) | D3: extrapolation >20% ratio, 20,000 subjects | D3: same ratio, 200,000 subjects | Final recommendation |
 |---|---|---|---|---|---|---|
@@ -956,7 +956,7 @@ AUClast CI width: D1, D2 and D4 widen the mean AUClast 90% CI by 0.40% to 0.47% 
 
 Removing Day 50 (B-): AUClast CI width -0.69% (negative = narrower), AUCinf reliability change (i) -0.05 (-0.24 to 0.15) [(ii) -1.82 (-2.08 to -1.55)] percentage points (2016 model, paired 95% CI), share with NCA extrapolation above 20% multiplied by 1.29 (1.21 to 1.37). Not recommended, to keep a terminal sample for AUC0-inf as a secondary endpoint and for a fallback analysis.
 
-Rationale: at the pre-specified 20,000-subject level, criterion (d) alone was met in Vmax x0.8 (both arms); criteria (a), (b) and (c) were not met in any variant (criterion (c) under neither reliability flag set); re-evaluated with 200,000 subjects (4,000 bootstrap resamples), the D3 ratio for criterion (d) is above 0.5 with its whole interval in every re-evaluated variant; the absolute reduction is below one subject per arm; in the primary model neither the AUClast CI width nor power improves with any added schedule; the cost of D3 is 1,040 additional visits. Removing the Day 50 sample (B-) is not recommended because it preserves a terminal point for AUC0-inf as a secondary endpoint and for a fallback analysis. Lesson recorded: a relative-reduction criterion for a rare event needs an absolute floor (for example at least one subject per arm); not applied retroactively.
+Rationale: at the rule's 20,000-subject level, criterion (d) alone was met in Vmax x0.8 (both arms); criteria (a), (b) and (c) were not met in any variant (criterion (c) under neither reliability flag set); re-evaluated with 200,000 subjects (4,000 bootstrap resamples), the D3 ratio for criterion (d) is above 0.5 with its whole interval in every re-evaluated variant; the absolute reduction is below one subject per arm; in the primary model neither the AUClast CI width nor power improves with any added schedule; the cost of D3 is 1,040 additional visits. Removing the Day 50 sample (B-) is not recommended because it preserves a terminal point for AUC0-inf as a secondary endpoint and for a fallback analysis. Lesson recorded: a relative-reduction criterion for a rare event needs an absolute floor (for example at least one subject per arm); not applied retroactively.
 
 ## 8. Limitations
 

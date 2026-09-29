@@ -416,7 +416,7 @@ key_km_sentence <- function(km, lang = c("ko", "en")) {
   if (lang == "ko") sprintf("결합 상수(Km)를 %s–%s배로 바꿔도 참 AUC0-inf 비는 %s–%s에 머문다(두 모델; 탐색 범위 끝과 도달 행은 %s명%s, 공통 난수). 사전 고정 목표 %d개(%s–%s) 중 도달 가능한 것은 %s 하나다(Km 약 ×%s(2016 모델), ×%s(Model 1)).",
                             fg(km$range_mult[1]), fg(km$range_mult[2]), fmt_num(km$ratio[1], 3), fmt_num(km$ratio[2], 3), format(km$n_subjects, big.mark = ","), scan_ko, km$n_targets,
                             fmt_num(km$targets[1], 2), fmt_num(km$targets[2], 2), fmt_num(km$target, 2), fmt_num(km$mult[["k2016"]], 0), fmt_num(km$mult[["k2020"]], 0))
-  else sprintf("Changing the binding constant (Km) from %s to %s times keeps the true AUC0-inf ratio within %s to %s (both models; range ends and reachable rows with %s common-random-number subjects%s). Of the %d pre-specified targets (%s to %s) the only reachable one is %s (Km about x%s in the 2016 model and x%s in Model 1).",
+  else sprintf("Changing the Michaelis-Menten constant of target-mediated elimination (Km) from %s to %s times keeps the true AUC0-inf ratio within %s to %s (both models; range ends and reachable rows with %s common-random-number subjects%s). Of the %d pre-specified targets (%s to %s) the only reachable one is %s (Km about x%s in the 2016 model and x%s in Model 1).",
                fg(km$range_mult[1]), fg(km$range_mult[2]), fmt_num(km$ratio[1], 3), fmt_num(km$ratio[2], 3), format(km$n_subjects, big.mark = ","), scan_en, km$n_targets,
                fmt_num(km$targets[1], 2), fmt_num(km$targets[2], 2), fmt_num(km$target, 2), fmt_num(km$mult[["k2016"]], 0), fmt_num(km$mult[["k2020"]], 0))
 }

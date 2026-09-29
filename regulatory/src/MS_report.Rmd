@@ -113,7 +113,7 @@ am_over <- function(am, cf) vcount(T1f, sprintf("analysis_model=='%s' & config==
 am_lo5 <- function(am, cf) vcount(T1f, sprintf("analysis_model=='%s' & config=='%s' & lo > 5", am, cf), sprintf("%s %s cells with lower bound above 5%%", am, cf))
 am_max <- function(am, cf) { r <- rows(T1f, sprintf("analysis_model=='%s' & config=='%s'", am, cf)); premise(nrow(r) == 16, "16 boundary cells"); rr <- r[which.max(pass_pct)]
   list(text = vci(T1f, sprintf("analysis_model=='%s' & config=='%s' & pk_model=='%s' & scenario=='%s'", am, cf, rr$pk_model, rr$scenario), item = sprintf("%s %s largest", am, cf)), row = rr) }
-MECH_EN <- c(F = "bioavailability (F)", ka = "absorption rate (ka)", ke = "linear elimination (ke)", Vmax = "target-mediated elimination capacity (Vmax)", Km = "binding constant (Km)", V2 = "peripheral volume (V2)")
+MECH_EN <- c(F = "bioavailability (F)", ka = "absorption rate (ka)", ke = "linear elimination (ke)", Vmax = "target-mediated elimination capacity (Vmax)", Km = "target-mediated elimination constant (Km)", V2 = "peripheral volume (V2)")
 MOD_EN <- c(k2016 = "primary model", k2020 = "2020 model")
 cellname <- function(r) sprintf("%s, %s %s (multiplier %s)", MOD_EN[[r$pk_model]], MECH_EN[[r$mechanism]], r$direction, fnum(r$multiplier, 2))
 OV <- rows(DEf, "p2_pct > 5"); OVc <- unique(OV[, .(pk_model, scenario)])
@@ -274,10 +274,10 @@ p2_atnom <- function(am) { r <- rows(T1f, sprintf("analysis_model=='%s' & config
 - Under the stricter conventional criteria, AUC0-inf + Cmax with rule A exceeds 5% (point estimate) in `r GC$M0$A_iii$n_pt` (set (iii)) and `r GC$M0$A_iv$n_pt` (set (iv)) of 16 boundary scenarios under M0 (`r GC$M1$A_iii$n_pt` and `r GC$M1$A_iv$n_pt` under M1); with rule C the range is `r GC$M0$C_iii$rng` (set (iii), M0).
 - The inflation has two sources. First, NCA AUC0-inf is biased toward a ratio of 1, because the pre-cliff lambda-z overstates the unobserved tail equally in both arms. Second, excluding subjects who fail the criteria selects a non-random subset.
 - Power for identical products is `r pw$k2016` (primary model) and `r pw$k2020` (2020 model) for AUC0-last + Cmax.
-- Changing the target-binding constant (Km) from 0.01-fold to 100-fold moves the true AUC0-inf ratio only within `r km_rng`. A binding difference is therefore not detectable by any AUC endpoint and must be addressed by the comparative analytical assessment.
+- Changing the Michaelis-Menten constant of target-mediated elimination (Km), through which a target-binding difference acts in this model, from 0.01-fold to 100-fold moves the true AUC0-inf ratio only within `r km_rng`. A binding difference is therefore not detectable by any AUC endpoint and must be addressed by the comparative analytical assessment.
 - Between assay LLOQs of 0.02 and 0.5 mg/L, the share of subjects with window coverage below 80% stays within `r lli("k2016", 0.02, "coverage_lt80_pct", 2)`% to `r lli("k2016", 0.5, "coverage_lt80_pct", 2)`% (primary model), and the boundary type I error of AUC0-last + Cmax within `r llt("M0", "P2")` (M0) in the three scenarios examined.
 - At the protocol CV of 43% and a true GMR of 0.95, `r cfgv("trial_design.yaml", "n_per_arm")` evaluable subjects per arm give P2 power of `r p117(43, "M0")`% (M0) and `r p117(43, "M1")`% (M1); 90% power needs `r nn(43, 0.95, "M0", 90)` (M0) or `r nn(43, 0.95, "M1", 90)` (M1) evaluable per arm, and at a CV of 50% `r nn(50, 0.95, "M0", 90)` or `r nn(50, 0.95, "M1", 90)`.
-- The pre-specified criteria for adding samples were not met in either model. In one sensitivity variant (Vmax x0.8 in both arms), one criterion was met at 20,000 subjects but not on re-evaluation in 200,000 subjects. The cliff is shorter than any feasible visit interval, and denser late sampling does not improve AUC0-inf reliability. The planned schedule is retained, including Day 50.
+- The criteria for adding samples, set before any result was reported, were not met in either model. In one sensitivity variant (Vmax x0.8 in both arms), one criterion was met at 20,000 subjects but not on re-evaluation in 200,000 subjects. The cliff is shorter than any feasible visit interval, and denser late sampling does not improve AUC0-inf reliability. The planned schedule is retained, including Day 50.
 
 **Conclusion.** AUC0-last and Cmax quantify total exposure. Their boundary type I error is at or near the nominal 5% across six mechanisms, both directions and two structural models, with the exceptions stated first in the results above. Configurations that rely on NCA AUC0-inf, as commonly analysed, exceed 5% in many scenarios. The sponsor proposes:
 
@@ -334,7 +334,7 @@ qoi <- data.table(
   Element = c("Question of interest 1", "Question of interest 2", "Context of use", "Model influence", "Consequence of a wrong decision", "Model risk", "Credibility activities (proportionate to risk)"),
   Description = c(
     "Can AUC0-last with Cmax replace AUC0-inf with Cmax as the co-primary endpoints of the single-dose PK similarity study, i.e. does AUC0-last measure total exposure and control the probability of concluding similarity for a product whose true AUC0-inf ratio lies at an equivalence limit, at least as well as AUC0-inf?",
-    "Do additional samples between study Day 36 and Day 50 improve AUC0-last precision, sensitivity to product differences or the reliability of AUC0-inf enough to justify them (pre-specified decision rule)?",
+    "Do additional samples between study Day 36 and Day 50 improve AUC0-last precision, sensitivity to product differences or the reliability of AUC0-inf enough to justify them (decision rule set before any result was reported)?",
     "Simulation of the planned study with published population PK models to (a) quantify the fraction of total exposure captured by AUC0-last under the planned schedule, (b) estimate the operating characteristics (boundary type I error, power) of alternative endpoint configurations and AUC0-inf handling rules, and (c) evaluate added samples. The results support the endpoint and sampling proposal discussed with FDA; they do not replace the study, whose observed data will determine the equivalence conclusion.",
     "Medium. The simulations are the main quantitative evidence for the endpoint choice; they are complemented by the mechanistic understanding of target-mediated elimination and by the originator's published statements on the terminal phase.",
     "Medium. An endpoint that fails to control the boundary type I error would raise the chance of concluding PK similarity for a product with a true AUC0-inf ratio outside 80% to 125%; an overly conservative endpoint would raise the chance of failing a similar product. Mitigations: Cmax remains co-primary, AUC0-inf is reported as a secondary endpoint, and the comparative analytical assessment addresses target binding directly.",
@@ -461,7 +461,9 @@ The design below was committed before any result was generated (commit `r vtxt("
 
 `r fint(as.numeric(cfgv("oc_design.yaml", c("random_space", "n_products"))))` virtual products per model were drawn by Latin hypercube sampling of log-uniform multipliers (`r random_space_ranges_text(.read("config/oc_design.yaml"), " to ")`). One trial was simulated per product, and consumer and producer risks were estimated. These risks depend on the assumed product distribution and are therefore a secondary metric.
 
-## 3.9 Sampling schedule evaluation (pre-specified decision rule)
+## 3.9 Sampling schedule evaluation (decision rule set before any result was reported)
+
+The rule was written after the first schedule simulations had run and before any result was reported (Appendix D); it is therefore not described as pre-specified.
 
 Candidate schedules add two to four samples between Day 32 and Day 53, or remove Day 50:
 
@@ -1027,7 +1029,7 @@ kt(t58, caption = "Table 5-13. Consumer and producer risk in the random product 
 
 ## 5.6 Target binding (Km)
 
-A 100-fold range of the target-binding constant in either direction (Km x0.01 to x100 in the test arm) moves the true AUC0-inf ratio only within `r km_rng`, in both models. Of the 12 pre-specified target ratios (0.70 to 1.43), only 1.05 is reachable, at Km x`r km_reach["k2016"]` (primary model) and x`r km_reach["k2020"]` (2020 model).
+A 100-fold range of the Michaelis-Menten constant of target-mediated elimination (Km; not the binding affinity itself) in either direction (Km x0.01 to x100 in the test arm) moves the true AUC0-inf ratio only within `r km_rng`, in both models. Of the 12 pre-specified target ratios (0.70 to 1.43), only 1.05 is reachable, at Km x`r km_reach["k2016"]` (primary model) and x`r km_reach["k2020"]` (2020 model).
 
 Differences in target binding therefore cannot be detected by AUC0-last, by AUC0-inf or by Cmax, and the choice between AUC endpoints does not affect sensitivity to binding. Binding similarity must be demonstrated by the comparative analytical assessment (binding kinetics and functional assays).
 
@@ -1061,7 +1063,7 @@ tab_src("D3 reliability change", "reliability/reliability_paired_vs_B0.csv")
 ```
 
 ```{r t59}
-kt(t59, caption = "Table 5-14. Pre-specified decision criteria for added samples versus the planned schedule (20,000 subjects and 500 trials per model; B-minus removes Day 50).", align = c("l", "l", rep("r", 6)))
+kt(t59, caption = "Table 5-14. Decision criteria for added samples (set before any result was reported) versus the planned schedule (20,000 subjects and 500 trials per model; B-minus removes Day 50).", align = c("l", "l", rep("r", 6)))
 ```
 
 The results below cover both models and all six sensitivity variants: Vmax x0.8 and x1.25 in both arms, variances x1.5, proportional residual error of 12%, an alternative weight distribution, and an ADA-like subgroup.
@@ -1200,7 +1202,7 @@ Rule C (substituting AUC0-last for subjects failing the criteria) may be pre-spe
 
 ## 6.4 Sampling schedule
 
-The planned `r n_samp`-sample schedule to Day 57 is retained. No added-sampling schedule met a pre-specified criterion in either model (in one sensitivity variant, a criterion met at 20,000 subjects was not confirmed in 200,000), and the cliff cannot be sampled at feasible visit intervals. The last planned sample (Day 57) lies after the median time at which the true concentration reaches the LLOQ, and only `r lloq_after58["k2016"]`% (primary model) to `r lloq_after58["k2020"]`% (2020 model) of subjects remain above the LLOQ after Day 58. Extending sampling beyond Day 57 would therefore add few quantifiable samples.
+The planned `r n_samp`-sample schedule to Day 57 is retained. No added-sampling schedule met a decision criterion in either model (in one sensitivity variant, a criterion met at 20,000 subjects was not confirmed in 200,000), and the cliff cannot be sampled at feasible visit intervals. The last planned sample (Day 57) lies after the median time at which the true concentration reaches the LLOQ, and only `r lloq_after58["k2016"]`% (primary model) to `r lloq_after58["k2020"]`% (2020 model) of subjects remain above the LLOQ after Day 58. Extending sampling beyond Day 57 would therefore add few quantifiable samples.
 
 ## 6.5 Limitations and uncertainties
 
@@ -1223,7 +1225,7 @@ The planned `r n_samp`-sample schedule to Day 57 is retained. No added-sampling 
 3. In the trial population, a reliable AUC0-inf cannot be obtained in `r tpf("i")` of subjects under criteria set (i) and in `r tpf("iii")` under criteria set (iii) (two models); the share under set (i) is the lower end of the conventional range. Rule A removes subjects with lower true exposure and more subjects of the heavier stratum, loses the stratified balance of body weight between the arms, and removes a different share of subjects in the two arms when the products differ (up to `r tpad_max("i")` percentage points under set (i)). The window coverage of AUC0-last is at least `r tpcv_min(MW)` in every subject, and the geometric mean of trial AUC0-last GMRs is within `r tpga` of the true AUC0-inf ratio.
 4. With the pooled t-test (M0), AUC0-last + Cmax is `r p2_n_cons` conservative, `r p2_n_nom` nominal and `r p2_n_exc` exceeding of `r p2_n_all` boundary cells; with the weight stratum in the model (M1), `r CLS$M1[["conservative"]]`, `r CLS$M1[["nominal"]]` and `r CLS$M1[["exceeding"]]`. M1 corrects the standard error of M0, which ignores the stratified randomization. Power for identical products is `r pwr("k2016", "S00", "M0")` (M0) and `r pwr("k2016", "S00", "M1")` (M1) in the primary model.
 5. Configurations based on NCA AUC0-inf exceed 5% in `r g_rng_txt` of 16 boundary scenarios with the pooled t-test (`r g_rng_m1_txt` with the weight stratum in the model) under the usual handling rules, because of extrapolation and selection bias; under the stricter criteria set (iii), rule A exceeds 5% in `r GC$M0$A_iii$n_pt` of 16 (M0), and the decision changes with the handling rule or criteria set in `r inst("inst_all")` of trials per boundary scenario. They add little protection at the limits and cause additional failures of similar products.
-6. Target-binding differences do not change exposure enough to be detected by any PK endpoint.
+6. Differences in target binding, represented in this model by Km, do not change exposure enough to be detected by any PK endpoint.
 7. Additional samples between Day 36 and Day 50 are not justified. The planned schedule, including Day 50, is retained.
 8. At the protocol CV of 43%, `r cfgv("trial_design.yaml", "n_per_arm")` evaluable subjects per arm give P2 power of `r p117(43, "M0")`% (M0) and `r p117(43, "M1")`% (M1) at a true GMR of 0.95; at a CV of 50% power is `r p117(50, "M0")`% and `r p117(50, "M1")`%.
 9. The sponsor proposes AUC0-last and Cmax as co-primary endpoints, with AUC0-inf as a secondary endpoint with pre-specified lambda-z criteria. The primary analysis model, the assay LLOQ and the target power remain sponsor decisions.

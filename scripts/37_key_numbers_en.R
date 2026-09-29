@@ -105,7 +105,7 @@ if (!is.null(KF$vm150) || !is.null(KF$ke120)) { v <- KF$vm150; k2 <- KF$ke120; d
 dec <- R("trials", "schedule_decision_base.csv"); k <- R("individual200k", "criterion_d_200k_base.csv")
 if (!is.null(dec)) { d3 <- dec[schedule == "D3"]
   add("Sampling density decision (2016 model)",
-      sprintf("- Final schedule B0. Candidates meeting any pre-specified criterion: %s (trials/schedule_decision_base.csv).", if (any(dec$recommend)) paste(dec[recommend == TRUE, schedule], collapse = ", ") else "none"),
+      sprintf("- Final schedule B0. Candidates meeting any decision criterion (rule set before any result was reported): %s (trials/schedule_decision_base.csv).", if (any(dec$recommend)) paste(dec[recommend == TRUE, schedule], collapse = ", ") else "none"),
       sprintf("- D3 versus B0: AUClast CI width change %s%% (positive = narrower), reliability gain %s percentage points, NCA extrapolation above 20%% ratio %s%s.", f2(100 * d3$a_mean_width_rel_decrease),
               { pv <- if (!is.null(RF)) RF$dense$d3[variant == "base"] else NULL; if (!is.null(pv) && nrow(pv) == 1) FPe(pv$gain_i_pp, pv$gain_ii_pp, 2, "", TRUE) else sprintf("[(ii) %s]", f2(d3$c_reliable_gain_pp)) }, f3(d3$d_extrap20_ratio),
               if (!is.null(k)) sprintf("; 200,000 subjects %s (95%% CI %s to %s)", f3(k[schedule == "D3", extrap_gt20_ratio]), f3(k[schedule == "D3", d_ratio_boot_lo]), f3(k[schedule == "D3", d_ratio_boot_hi])) else ""), "") }
