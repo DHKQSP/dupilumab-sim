@@ -51,7 +51,7 @@ slide_S11 <- function() {
 
   # ---- 배치 ----
   WP <- (GEO$CW - 0.35) / 2; XL <- GEO$ML; XR <- XL + WP + 0.35
-  HH <- 0.42; FY <- GEO$BODY_TOP + HH + 0.02; FH <- 2.18; BY <- FY + FH + 0.08; BHt <- GEO$BODY_BOTTOM - BY
+  HH <- 0.42; FY <- GEO$BODY_TOP + HH + 0.02; FH <- 2.30; BY <- FY + FH + 0.08; BHt <- GEO$BODY_BOTTOM - BY
   s24 <- dv(TRS, "variant=='k2016' & set=='i'", "sigma_prop_pct", 1, "%", "proportional residual, 2016 model")
   s12 <- dv(TRS, "variant=='resid12' & set=='i'", "sigma_prop_pct", 1, "%", "proportional residual, sensitivity variant")
 
@@ -112,7 +112,7 @@ slide_S11 <- function() {
   p2 <- ggplot(q, aes(x = lx, y = reliable_no_span_pct, colour = model_, shape = model_, linetype = rv, group = interaction(model_, rv))) +
     geom_vline(xintercept = log10(lq0), colour = PAL$ink2, linewidth = 0.5, linetype = "22") +
     annotate("text", x = log10(lq0) + 0.035, y = yl[2] + 1.3, label = fill(L$fig$study, list(v = fnum(lq0, 3))), hjust = 1, vjust = 0, size = 3.8, family = FONT, colour = PAL$ink2) +
-    annotate("text", x = log10(max(grid_)), y = min(q[model == "k2016" & lloq >= lq0, reliable_no_span_pct]) - 1.6, label = L$fig$overlap, hjust = 0, vjust = 1,
+    annotate("text", x = log10(max(grid_)), y = min(q[model == "k2016" & lloq >= lq0, reliable_no_span_pct]) - 2.2, label = L$fig$overlap, hjust = 0, vjust = 1,
              size = 3.6, family = FONT, colour = MODEL_COL[[1]]) +                                  # 2016 모델의 두 선이 겹쳐 점선이 보이지 않는 이유
     geom_line(data = q[resid == "fixed"], linewidth = 1.05) + geom_point(data = q[resid == "fixed"], size = 2.6) +
     geom_line(data = q[resid == "scaled"], linewidth = 0.6) + geom_point(data = q[resid == "scaled"], size = 1.7) +          # 비례 변형은 가늘게 위에

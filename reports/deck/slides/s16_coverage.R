@@ -51,19 +51,21 @@ slide_S16 <- function() {
   YF <- 0.004
   lab2 <- dcast(hw, bin_lo ~ pk_model, value.var = "pct")[order(-bin_lo)][1:2]      # 위 두 구간만 값 표시(2016 / 2020 모델, %)
   lab2[, lab := vapply(seq_len(.N), function(i) fill(L$fig$cov_lab, list(a = fnum(k2016[i], 1), b = fnum(k2020[i], 1))), "")]
-  # 가장 높은 구간은 막대 바로 위(오른쪽 맞춤), 그다음 구간은 막대 왼쪽(막대 꼭대기 높이): 두 값이 겹치거나 눈금선에 걸리지 않게
-  lab2[, `:=`(x = 100 * bin_lo + c(1.9, -0.08), y = pmax(k2016, k2020) * c(1.45, 1), hj = 1, vj = c(0, 0.5))]
+  # 두 값 모두 자기 막대 바로 위에 두고(가로로 겹치지 않게 가장 높은 구간은 패널 오른쪽 끝, 그다음 구간은 막대 가운데 조금 오른쪽에서 끝나게),
+  # 흰 바탕 글상자로 눈금선이 글자를 지나가지 않게 한다
+  lab2[, `:=`(x = 100 * bin_lo + c(2.25, 1.3), y = pmax(k2016, k2020) * 1.35)]
   mn <- vapply(M, function(m) row1(TCV, wm(MW, m))$min, 1)
   premise(all(mn >= min(hw$bin_lo)) && all(mn < min(hw$bin_lo) + bw), "the smallest subject of each model lies in the lowest histogram bin")
   low <- dcast(hw[bin_lo == min(bin_lo)], bin_lo ~ pk_model, value.var = "n")                     # 가장 낮은 구간의 대상자 수(아래 꼬리)
   mlab <- data.table(x = 100 * low$bin_lo + 0.1, y = max(hw[bin_lo == min(bin_lo), pct]) * 2.2, lab = fill(L$fig$cov_min, list(a = fint(low$k2016), b = fint(low$k2020))))
   pw <- ggplot(hw) +
     geom_rect(aes(xmin = x0, xmax = x1, ymin = YF, ymax = pct, fill = model), colour = NA) +
-    geom_text(data = lab2, aes(x = x, y = y, label = lab, hjust = hj, vjust = vj), size = 3.8, family = FONT, colour = PAL$ink) +
+    geom_label(data = lab2, aes(x = x, y = y, label = lab), hjust = 1, vjust = 0, size = 3.8, family = FONT, colour = PAL$ink, fill = "white",
+               label.size = 0, label.padding = grid::unit(0.06, "lines"), label.r = grid::unit(0, "lines")) +
     geom_text(data = mlab, aes(x = x, y = y, label = lab), vjust = 0, hjust = 0, size = 3.8, family = FONT, colour = PAL$ink) +
     scale_fill_manual(values = GREY, name = L$fig$cov_leg) +
     scale_x_continuous(breaks = seq(84, 100, by = 4), labels = function(x) paste0(fnum(x, 0), "%"), limits = c(100 * min(hw$bin_lo) - 0.3, 100.3), expand = expansion(0)) +
-    scale_y_log10(limits = c(YF, 1500), breaks = c(0.01, 0.1, 1, 10, 100), labels = function(x) ifelse(x %in% c(0.01, 1, 100), formatC(x, format = "fg"), ""), expand = expansion(0)) +
+    scale_y_log10(limits = c(YF, 1000), breaks = c(0.01, 0.1, 1, 10, 100), labels = function(x) ifelse(x %in% c(0.01, 1, 100), formatC(x, format = "fg"), ""), expand = expansion(0)) +
     labs(x = L$fig$cov_xlab, y = NULL) + theme_deck(12) +
     theme(legend.position = "top", legend.justification = "left", legend.margin = margin(0, 0, 0, 0), legend.box.spacing = grid::unit(2, "pt"),
           legend.title = element_text(colour = PAL$ink2, size = 12, margin = margin(0, 10, 0, 0)), panel.grid.major.x = element_blank())

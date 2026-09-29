@@ -64,10 +64,10 @@ slide_A2 <- function() {
 
   # ---- 카드 세 개(제목 순서: MSB11456, Cohen 2022, PKM14161): 상태 표지 + 기록 내용 ------------------------------------------------------
   # 폭은 글 양에 맞춰 나누고(세 카드의 추정 높이가 비슷하게), 카드 높이는 가장 긴 카드의 추정 높이에 맞춘다(빈 카드 공간을 줄임). 결론 문장은 카드 바로 아래에 둔다.
-  cards <- list(toci = list(bg = PAL$tint_orange, chip = PAL$orange, w = 1.22), cohen = list(bg = PAL$tint_blue, chip = PAL$blue, w = 0.79), pkm = list(bg = PAL$tint_grey, chip = PAL$ink2, w = 0.99))
+  cards <- list(toci = list(bg = PAL$tint_orange, chip = PAL$orange, w = 1.17), cohen = list(bg = PAL$tint_blue, chip = PAL$blue, w = 0.80), pkm = list(bg = PAL$tint_grey, chip = PAL$ink2, w = 1.03))
   gap <- 0.25; ws <- vapply(cards, function(z) z$w, 1); ws <- ws / sum(ws) * (GEO$CW - 2 * gap); yc <- GEO$BODY_TOP + 0.02; chip_h <- 0.42
   body <- lapply(names(cards), function(nm) tx(sprintf("A2.%s.body", nm), f)); names(body) <- names(cards)
-  ch <- max(mapply(function(b, w) est_height(b, w, 16, gap_pt = 7, card = TRUE), body, ws)) + 0.08
+  ch <- max(mapply(function(b, w) est_height(b, w, 16, gap_pt = 7, card = TRUE), body, ws)) + 0.3   # 가장 긴 카드도 마지막 줄 아래 여백이 위 여백 이상
   for (k in seq_along(cards)) {
     nm <- names(cards)[k]; x <- GEO$ML + sum(ws[seq_len(k - 1)]) + (k - 1) * gap
     deck_text(tx(sprintf("A2.%s.chip", nm)), c(x, yc, ws[k], chip_h), size = 16, bold = TRUE, color = "#ffffff", bg = cards[[nm]]$chip, geom = "roundRect", label = sprintf("chip_%s", nm), gap_pt = 0)
@@ -75,6 +75,7 @@ slide_A2 <- function() {
   }
   yb <- yc + chip_h + 0.08 + ch + 0.14
   deck_text(tx("A2.bottom"), c(GEO$ML, yb, GEO$CW, 0.45), size = 16, bold = TRUE, label = "takeaway", gap_pt = 0)
+  deck_src_first(file.path("config", LP))   # 제목과 MSB11456 카드의 출처(검색 발췌 기록)를 바닥글 맨 앞에
   deck_notes(tx("A2.notes", c(f, list(
     wc = a2_cfg("datasets", list(id = "Cohen2022_200mg_AI"), "weight_mean", "Cohen 2022 mean body weight (kg)", function(x) fnum(x, 1)),
     tmc = a2_cfg("datasets", list(id = "Cohen2022_200mg_AI"), "tmax_median", "Cohen 2022 median tmax (day)", function(x) fnum(x, 2)),

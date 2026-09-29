@@ -76,12 +76,13 @@ slide_S15 <- function() {
     scale_colour_manual(values = COL) + scale_shape_manual(values = SHP) +
     scale_y_continuous(breaks = lab_y$row, labels = lab_y$lab, limits = c(0.55, length(SC) + 0.45), expand = expansion(mult = 0)) +
     scale_x_continuous(limits = c(0, xmax), breaks = seq(0, xmax, 5), expand = expansion(add = c(1.2, 1.2))) +
-    labs(x = fill(L$xlab, list(nom = paste0(fnum(nomv, 0), "%"))), y = NULL) + theme_deck(13) +
+    labs(x = fill(L$xlab, list(nom = paste0(fnum(nomv, 0), "%"))), y = NULL, tag = L$ytag) + theme_deck(13) +
     theme(panel.grid.major.y = element_blank(), panel.grid.minor.x = element_blank(), legend.position = "top", legend.justification = "left", legend.text = element_text(size = 12),
           legend.margin = margin(0, 0, 0, 0), legend.box.spacing = grid::unit(2, "pt"), strip.text = element_text(hjust = 0, size = 13),
-          axis.text.y = element_text(size = 12, colour = PAL$ink), panel.spacing.x = grid::unit(26, "pt"), axis.title.x = element_text(size = 12, margin = margin(4, 0, 0, 0))) +
-    guides(colour = guide_legend(ncol = 2), shape = guide_legend(ncol = 2))   # 열 우선: 1열 AUC0-last·규칙 B, 2열 규칙 A (ii)
-  FW <- 6.6; GH <- 1.36; FH <- GEO$BODY_BOTTOM - GEO$BODY_TOP - GH - 0.05
+          axis.text.y = element_text(size = 12, colour = PAL$ink), panel.spacing.x = grid::unit(26, "pt"), axis.title.x = element_text(size = 12, margin = margin(4, 0, 0, 0)),
+          plot.tag = element_text(size = 12, colour = PAL$ink2, hjust = 1, vjust = 0.5, lineheight = 0.95), plot.tag.position = c(0.215, 0.795)) +   # y 눈금 이름 위의 머리말
+    guides(colour = guide_legend(ncol = 1), shape = guide_legend(ncol = 1))
+  FW <- 6.6; GH <- 1.04; FH <- GEO$BODY_BOTTOM - GEO$BODY_TOP - GH - 0.05
   deck_figure(p, "s15_boundary_by_mechanism", c(GEO$ML, GEO$BODY_TOP, FW, FH), src = T1)
   deck_text(tx("S15.gloss", f), c(GEO$ML, GEO$BODY_TOP + FH + 0.05, FW, GH), size = 16, color = PAL$ink2, label = "gloss", gap_pt = 2)
 

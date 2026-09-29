@@ -37,10 +37,12 @@ slide_S12 <- function() {
 
   # ---- 시험별 arm 간 차이(커밋된 인원 파일에서 다시 계산) + 요약·deck_inputs와 대조 ----
   AD <- s12_armdiff()
+  gtc <- grep("^armdiff_abs_gt[0-9]+_pct$", names(sc), value = TRUE); premise(length(gtc) == 1, "one threshold share column in tp_strata_composition.csv")
+  thr_v <- as.numeric(sub("^armdiff_abs_gt([0-9]+)_pct$", "\\1", gtc))                    # 기준(%p)은 열 이름에서 읽는다
   for (m in c("k2016", "k2020")) for (k in c("auclast", "i", "iii")) {
     v <- AD[pk_model == m & analysis_set == k, armdiff]; r <- sc[pk_model == m & analysis_set == k]
     premise(nrow(r) == 1 && length(v) == r$n_trials && abs(median(v) - r$armdiff_median) < 1e-9 && abs(quantile(v, 0.05, names = FALSE) - r$armdiff_p05) < 1e-9 &&
-              abs(quantile(v, 0.95, names = FALSE) - r$armdiff_p95) < 1e-9 && abs(100 * mean(abs(v) > 5) - r$armdiff_abs_gt5_pct) < 1e-9,
+              abs(quantile(v, 0.95, names = FALSE) - r$armdiff_p95) < 1e-9 && abs(100 * mean(abs(v) > thr_v) - r[[gtc]]) < 1e-9,
             sprintf("recomputed arm differences reproduce tp_strata_composition (%s, %s)", m, k))
   }
   hf <- AD[, .(n = .N), by = .(pk_model, analysis_set, bin = floor(armdiff))][, pct := 100 * n / sum(n), by = .(pk_model, analysis_set)]
@@ -55,29 +57,29 @@ slide_S12 <- function() {
   deck_kicker(tx("S12.kicker")); deck_title(tx("S12.title", list(gmr = gmr_i)))
 
   # ---- 왼쪽: 수치 카드 두 개 ----
-  XL <- GEO$ML; WL <- 5.3
+  XL <- GEO$ML; WL <- 5.6
   lo_pct <- 100 * (1 - ch[set == "i", true_aucinf_gmr]); pl <- rng_fmt(min(lo_pct), max(lo_pct), 1, "%")
   pl <- dderived("true AUC0-inf of failing subjects lower than retained, set i, two models (percent)", TCH, "range over 2 rows [set=='i'] :: 100 x (1 - true_aucinf_gmr)", range(lo_pct), pl)
   g3 <- drange(TCH, "set=='iii'", "true_aucinf_gmr", 3, "", "failing versus retained, set iii, true_aucinf_gmr")
-  C1H <- 1.72; GAP <- 0.08
+  C1H <- 1.77; GAP <- 0.08
   deck_stat(gmr_i, tx("S12.card_gmr", list(pl = pl, g3 = g3)), c(XL, GEO$BODY_TOP, WL, C1H))
   sd_i <- drange(TSI, "set=='i'", "diff_pp", 1, "", "stratum difference, set i, diff_pp")
   sd_iii <- drange(TSI, "set=='iii'", "diff_pp", 1, "", "stratum difference, set iii, diff_pp")
   wd <- drange(TCH, "set=='i'", "wt_diff_kg", 2, "", "failing versus retained, set i, wt_diff_kg")
-  C2Y <- GEO$BODY_TOP + C1H + GAP; C2H <- 1.72
+  C2Y <- GEO$BODY_TOP + C1H + GAP; C2H <- 1.77
   deck_stat(paste0(sd_i, "%p"), tx("S12.card_strata", list(split = f_split(), sd3 = sd_iii, wd = wd)), c(XL, C2Y, WL, C2H), color = PAL$ink, bg = PAL$tint_grey)
 
   # ---- 왼쪽 아래: 분석군별 arm 간 차이 요약(두 모델) ----
-  thr <- dderived("threshold in column name armdiff_abs_gt5_pct (points)", TSC, "column name armdiff_abs_gt5_pct", 5, "5")
+  thr <- dderived(sprintf("threshold in column name %s (points)", gtc), TSC, sprintf("column name %s", gtc), thr_v, fnum(thr_v, 0))
   SETS <- c("auclast", "i", "iii")
   w_ <- function(k) sprintf("scenario=='S00' & analysis_set=='%s'", k)
   df <- data.frame(a = unlist(L$table$rows[SETS]),
                    b = vapply(SETS, function(k) paste0(dspan(TSC, w_(k), "armdiff_p05", "armdiff_p95", 1, "", sprintf("armdiff, S00, %s: 5th to 95th percentile, two models", k)), "%p"), ""),
-                   c = vapply(SETS, function(k) drange(TSC, w_(k), "armdiff_abs_gt5_pct", 1, "%", sprintf("share of trials with a between-arm heavier-stratum difference above 5 points, S00, %s", k)), ""),
+                   c = vapply(SETS, function(k) drange(TSC, w_(k), gtc, 1, "%", sprintf("share of trials with a between-arm heavier-stratum difference above 5 points, S00, %s", k)), ""),
                    stringsAsFactors = FALSE, check.names = FALSE)
   names(df) <- tx("S12.table.head", list(thr = thr))
   TY <- C2Y + C2H + GAP
-  deck_table(df, box = c(XL, TY, WL, GEO$BODY_BOTTOM - TY), widths = c(1.75, 2.25, 1.3), size = 13, highlight = 3, label = "table_balance")
+  deck_table(df, box = c(XL, TY, WL, GEO$BODY_BOTTOM - TY), widths = c(1.75, 2.25, 1.3), size = 12, highlight = 3, label = "table_balance")
 
   # ---- 오른쪽: 동일 제품 시험의 arm 간 무거운 층 비율 차이 분포(분석군 × 두 모델) ----
   XR <- XL + WL + 0.3; WR <- GEO$W - GEO$MR - XR
@@ -86,7 +88,7 @@ slide_S12 <- function() {
   h <- AD[, .(n = .N), by = .(pk_model, analysis_set, bin = floor(armdiff + 0.5))][, pct := 100 * n / sum(n), by = .(pk_model, analysis_set)]
   SL <- unlist(L$fig$sets[SETS])
   h[, set := factor(SL[analysis_set], levels = SL)]; h[, model := factor(model_lab()[pk_model], levels = model_lab())]
-  xr <- range(h$bin) + c(-1, 1); thr_n <- 5
+  xr <- range(h$bin) + c(-1, 1); thr_n <- thr_v
   p <- ggplot(h, aes(x = bin, y = pct, fill = model)) +
     annotate("rect", xmin = -Inf, xmax = -thr_n, ymin = -Inf, ymax = Inf, fill = PAL$tint_grey) +
     annotate("rect", xmin = thr_n, xmax = Inf, ymin = -Inf, ymax = Inf, fill = PAL$tint_grey) +
@@ -97,12 +99,10 @@ slide_S12 <- function() {
     scale_fill_manual(values = unname(MODEL_COL)) +
     scale_x_continuous(breaks = seq(-20, 20, by = 5), limits = xr, expand = expansion(add = 0)) +
     scale_y_continuous(expand = expansion(mult = c(0, 0.12)), breaks = function(l) pretty(c(0, l[2]), n = 3)) +
-    labs(x = L$fig$xlab, y = NULL, subtitle = fill(L$fig$ylab, list(n = fint(sc$n_trials[1])))) + theme_deck(13) +
+    labs(x = L$fig$xlab, y = NULL, subtitle = fill(L$fig$ylab, list(n = fint(sc$n_trials[1]), thr = thr))) + theme_deck(13) +          # 회색 영역 설명은 부제에(패널 구석 표지 대신)
     theme(legend.position = "top", legend.justification = "left", legend.margin = margin(0, 0, 0, 0), legend.box.spacing = grid::unit(2, "pt"),
           panel.grid.major.x = element_blank(), panel.spacing = grid::unit(8, "pt"), strip.text = element_text(hjust = 0, size = 13, face = "bold", colour = PAL$ink),
           plot.subtitle = element_text(colour = PAL$ink2, size = 13, margin = margin(0, 0, 2, 0)))
-  p <- p + geom_text(data = data.table(set = factor(SL[["auclast"]], levels = SL), x = xr[2] - 0.3, y = Inf, lab = fill(L$fig$thr, list(thr = thr_n))),
-                     aes(x = x, y = y, label = lab), inherit.aes = FALSE, hjust = 1, vjust = 1.4, size = 4.2, family = FONT, colour = PAL$ink2)
   FH <- 4.1
   deck_figure(p, "s12_strata_armdiff", c(XR, GEO$BODY_TOP, WR, FH), src = c(GZ, HIST, TSC))
   rb <- dext(TSC, "analysis_set=='auclast'", "rand_armdiff_abs_max", max, 1, "", "largest between-arm difference in the heavier-stratum share at randomization (points)")

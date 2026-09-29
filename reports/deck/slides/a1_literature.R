@@ -58,13 +58,13 @@ slide_A1 <- function() {
   deck_kicker(tx("A1.kicker")); premise(as.numeric(.read("config/trial_design.yaml")$dose_mg) == 300, "study dose equals the 300 mg literature rows")
   deck_title(tx("A1.title", list(tol = tol$p, dose = f_dose(), d600 = dint(LN, W$c600, "dose_mg", "dose of the lower-coverage literature row (mg)"))))
   # 해석 열: 판정과 차이 한 줄 + 덧붙임 한 줄(명시적 줄바꿈). 일치 기준과 반올림 전 계산은 머리글에, 하한의 뜻은 표 아래 설명에. 강조 행 없음(색만으로 뜻을 나타내지 않는다)
-  th <- 2.8
+  th <- 2.58   # 표 추정 높이(머리글 두 줄 + 두 줄 행 셋 + 한 줄 행 셋) + 여유
   deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, th), widths = c(3.45, 1.05, 2.2, 2.2, 3.33), size = 13, align_num = TRUE, align_cols = c("left", "center", "center", "center", "left"))
-  yc <- GEO$BODY_TOP + th + 0.08; hc <- 0.42
+  yc <- GEO$BODY_TOP + th + 0.1; hc <- 0.42
   deck_text(tx("A1.caption"), c(GEO$ML, yc, GEO$CW, hc), size = 16, color = PAL$ink2, label = "caption_lowerbound", gap_pt = 0)
   # 정성 서술(프로젝트 문헌 발췌표 literature_qualitative.csv; 보고서 1.1절)
   dsrc("qualitative statements of the originator literature", "literature/literature_qualitative.csv", "(table)")
-  yq <- yc + hc + 0.1; hq <- GEO$BODY_BOTTOM - yq; wq <- (GEO$CW - 0.3) / 2
+  yq <- yc + hc + 0.2; hq <- GEO$BODY_BOTTOM - yq; wq <- (GEO$CW - 0.3) / 2
   deck_text(tx("A1.qual_label"), c(GEO$ML, yq, GEO$CW, 0.4), size = 16, bold = TRUE, color = PAL$ink2, label = "label_qual", gap_pt = 0)
   q <- tx("A1.qual")   # 왼쪽 두 개(각 두 줄), 오른쪽 세 개(두 줄 + 한 줄 + 한 줄)로 두 단의 높이를 맞춘다
   deck_bullets(q[1:2], c(GEO$ML, yq + 0.4, wq, hq - 0.4), size = 16, gap_pt = 4, label = "qual_left")

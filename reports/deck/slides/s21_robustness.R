@@ -103,7 +103,7 @@ slide_S21 <- function() {
                    c = vapply(1:5, function(i) fill(L$table$result[[i]], R[[i]]), ""), d = unlist(L$table$verdict), stringsAsFactors = FALSE, check.names = FALSE)
   names(df) <- tx("S21.table.head")
   TH <- 3.66
-  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, TH), widths = c(1.95, 3.2, 5.63, 1.45), size = 12, align_num = FALSE, label = "table_robust")
+  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, TH), widths = c(2.1, 3.2, 5.48, 1.45), size = 12, align_num = FALSE, label = "table_robust")
 
   # ---- 아래: 요점 ----
   BY <- GEO$BODY_TOP + TH + 0.3

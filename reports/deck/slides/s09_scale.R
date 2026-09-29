@@ -23,6 +23,12 @@ slide_S09 <- function() {
   names(df) <- tx("S09.table.head", list(n = f$n_arm, ex = f_set("i", "extrap")))
   TH <- 1.9
   deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, 7.75, TH), widths = c(2.9, 1.3, 1.35, 2.2), highlight = 3)
+  # 표 아래 설명: 값의 범위(두 모델), 열별 수준(대상자 대 시험), span 정의
+  tpf <- rows(TPF); tpa <- rows(TPA)
+  premise(length(unique(tpf$n)) == 1 && length(unique(tpa$n_trials)) == 1, "same number of subjects and of identical-product trials in both models and all sets (caption)")
+  n_ind <- dint(TPF, "pk_model=='k2016' & set=='i'", "n", "subjects per model"); n_tr <- dint(TPA, "pk_model=='k2016' & set=='i'", "n_trials", "identical-product trials per model")
+  cap <- tx("S09.table.caption", list(n_ind = n_ind, n_tr = n_tr)); CH <- est_height(nobreak(cap), 7.75, 16)
+  deck_text(cap, c(GEO$ML, GEO$BODY_TOP + TH + 0.06, 7.75, CH), size = 16, color = PAL$ink2, label = "caption_table")
 
   # 요점: λz 산출 불가 / 산출되나 미달의 사유, 세트 (i)이 하한인 이유와 공개 SAP, 잔차 크기
   tr_ <- rows(TPR)
@@ -40,25 +46,25 @@ slide_S09 <- function() {
   sap <- .read("config/prereg_20260926.yaml")$section6$s2_1_failure_by_set$public_saps
   ncts <- regmatches(sap, gregexpr("NCT[0-9]{8}", sap))[[1]]
   premise(length(ncts) == 3 && all(grepl("0\\.90", strsplit(sap, "NCT[0-9]{8}")[[1]][-1])), "three public SAPs, each with adjusted R-squared 0.90 (prereg section6)")
-  premise(grepl("web-search excerpt", sub(paste0(".*", ncts[3]), "", sap)), "the last SAP was verified from a web-search excerpt")
+  premise(grepl("web-search excerpt", sub(paste0(".*", ncts[3]), "", sap)), "the last SAP was verified from a web-search excerpt (notes)")
   premise(abs(as.numeric(.read("config/prereg_20260926.yaml")$section4$criteria_sets$iii$adj_r2_min) - 0.90) < 1e-9, "set (iii) threshold equals the SAP threshold")
   nsap <- dderived("public SAPs with adjusted R-squared 0.90 (count of NCT identifiers)", "config/prereg_20260926.yaml", "section6.s2_1_failure_by_set.public_saps :: count of NCT identifiers", length(ncts), as.character(length(ncts)))
   sp4h <- drange(TPR, sprintf("set=='iv' & reason=='%s'", SP), "hierarchical_pct", 1, "%", "set (iv) span below 3 (hierarchical), two models")
   lz <- drange(TPF, "set=='i'", "lz_pct", 2, "%", "lambda-z not estimable (all sets), two models")
-  deck_bullets(tx("S09.bullets", list(lz = lz, r2iii = f$r2iii, sp4h = sp4h, nsap = nsap, ncts = paste(ncts, collapse = ", "),
-                                      r24 = dv(TRS, "variant=='k2016' & set=='iii'", "fail_pct", 1, "%", "set (iii) failing, 2016 model (residual 24.2%)"),
-                                      r12 = dv(TRS, "variant=='resid12' & set=='iii'", "fail_pct", 1, "%", "set (iii) failing, 2016 model with residual 12%"),
-                                      s24 = dv(TRS, "variant=='k2016' & set=='iii'", "sigma_prop_pct", 1, "%", "proportional residual, 2016 model"),
-                                      s12 = dv(TRS, "variant=='resid12' & set=='iii'", "sigma_prop_pct", 1, "%", "proportional residual, variant"))),
-               box = c(GEO$ML, GEO$BODY_TOP + TH + 0.25, 7.75, GEO$BODY_BOTTOM - GEO$BODY_TOP - TH - 0.25), size = 16, gap_pt = 8)
+  BY <- GEO$BODY_TOP + TH + 0.06 + CH + 0.14
+  deck_bullets(tx("S09.bullets", list(lz = lz, r2iii = f$r2iii, sp4h = sp4h, nsap = nsap, ncts = paste(ncts, collapse = ", "))),
+               box = c(GEO$ML, BY, 7.75, GEO$BODY_BOTTOM - BY), size = 16, gap_pt = 8)
   # 그림: 세트별 미달(두 모델 나란히), Wilson 95% 구간. λz 산출 불가/산출되나 미달의 분해는 표에 둔다
   d <- rows(TPF)[, .(pk_model, set, fail_pct, fail_lo, fail_hi)]
+  premise(max(d$fail_hi) < 75, "every Wilson upper bound below 75% (y axis ends at 80 with room for the value labels)")
   L <- DK$txt$S09$fig
   d[, set := factor(set, levels = sets, labels = unlist(DK$txt$common$sets[sets]))]; d[, model := factor(model_lab()[pk_model], levels = model_lab())]
   p <- ggplot(d, aes(x = set, y = fail_pct, fill = model)) + geom_col(position = position_dodge(width = 0.78), width = 0.72, colour = "white", linewidth = 0.6) +
     geom_errorbar(aes(ymin = fail_lo, ymax = fail_hi), position = position_dodge(width = 0.78), width = 0.2, linewidth = 0.5, colour = PAL$ink2) +
-    geom_text(aes(y = fail_hi, label = fnum(fail_pct, 1)), position = position_dodge(width = 0.78), vjust = -0.55, size = 4.3, family = FONT, colour = PAL$ink) +
-    scale_fill_manual(values = unname(MODEL_COL)) + scale_y_continuous(limits = c(0, 100), expand = expansion(mult = c(0, 0.02))) +
+    # 막대 값: 흰 바탕(테두리 없음)으로 가로 격자선이 글자 뒤에서 끊기게 한다
+    geom_label(aes(y = fail_hi, label = fnum(fail_pct, 1)), position = position_dodge(width = 0.78), vjust = -0.3, size = 4.3, family = FONT, colour = PAL$ink,
+               fill = "white", label.size = 0, label.padding = unit(0.08, "lines"), label.r = unit(0, "lines")) +
+    scale_fill_manual(values = unname(MODEL_COL)) + scale_y_continuous(limits = c(0, 80), breaks = seq(0, 75, by = 25), expand = expansion(mult = c(0, 0.01))) +
     labs(x = NULL, y = NULL, subtitle = L$ylab) + theme_deck(14) +
     theme(panel.grid.major.x = element_blank(), legend.justification = "left", legend.margin = margin(0, 0, 0, 0),
           plot.subtitle = element_text(colour = PAL$ink2, size = 13, lineheight = 1.1, margin = margin(0, 0, 4, 0)))
@@ -68,8 +74,11 @@ slide_S09 <- function() {
   deck_notes(tx("S09.notes", list(i = f$i, iii = f$iii, iv = drange(TPF, "set=='iv'", "fail_pct", 1, "%", "set (iv) failing"),
                                   r4_24 = dv(TRS, "variant=='k2016' & set=='iv'", "fail_pct", 1, "%", "set (iv), residual 24.2%"),
                                   r4_12 = dv(TRS, "variant=='resid12' & set=='iv'", "fail_pct", 1, "%", "set (iv), residual 12%"),
-                                  n_ind = dint(TPF, "pk_model=='k2016' & set=='i'", "n", "subjects per model"),
-                                  n_tr = dint(TPA, "pk_model=='k2016' & set=='i'", "n_trials", "identical-product trials per model"),
+                                  n_ind = n_ind, n_tr = n_tr,
+                                  r24 = dv(TRS, "variant=='k2016' & set=='iii'", "fail_pct", 1, "%", "set (iii) failing, 2016 model (residual 24.2%)"),
+                                  r12 = dv(TRS, "variant=='resid12' & set=='iii'", "fail_pct", 1, "%", "set (iii) failing, 2016 model with residual 12%"),
+                                  s24 = dv(TRS, "variant=='k2016' & set=='iii'", "sigma_prop_pct", 1, "%", "proportional residual, 2016 model"),
+                                  s12 = dv(TRS, "variant=='resid12' & set=='iii'", "sigma_prop_pct", 1, "%", "proportional residual, variant"),
                                   n = f$n_arm, nsap = nsap, sp4 = f_set("iv", "span"), sp4h = sp4h,
                                   r2h_i = hr("i", RR, "set (i) adjusted R-squared below 0.80 (hierarchical), two models"),
                                   r2h_iii = hr("iii", RR, "set (iii) adjusted R-squared below 0.90 (hierarchical), two models"),

@@ -121,14 +121,20 @@ slide_S25 <- function() {
   if (nzchar(Sys.getenv("S25_DEBUG"))) { data.table::fwrite(df, Sys.getenv("S25_DEBUG")); writeLines(c(tx("S25.card_nca", f), "", tx("S25.card_qc", f)), paste0(Sys.getenv("S25_DEBUG"), ".cards")) }
   tw <- 8.4
   deck_text(tx("S25.left_label"), c(GEO$ML, GEO$BODY_TOP - 0.04, tw, 0.45), size = 16, bold = TRUE, color = PAL$ink2, label = "label_model")
-  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP + 0.43, tw, GEO$BODY_BOTTOM - GEO$BODY_TOP - 0.43), widths = c(2.05, 3.65, 2.7), size = 14, align_num = FALSE)
+  tsz <- 13; tws <- c(2.0, 3.4, 3.0); ty <- GEO$BODY_TOP + 0.43
+  deck_table(df, box = c(GEO$ML, ty, tw, GEO$BODY_BOTTOM - ty), widths = tws, size = tsz, align_num = FALSE)
+  # 표의 렌더링 높이 추정(deck_table과 같은 줄 수 x LibreOffice 실측 줄 높이 1.264 x 글자 크기 + 행마다 셀 여백 8 pt): 오른쪽 카드의 아래 끝을 표의 아래 선에 맞춘다
+  twi <- tws / sum(tws) * tw
+  nl <- function(v, w, b) vapply(as.character(v), function(s) est_lines(s, w - 0.14, tsz, b), 1L)
+  tl <- max(mapply(function(v, w) nl(v, w, TRUE), names(df), twi)) + sum(apply(sapply(seq_along(twi), function(j) nl(df[[j]], twi[j], j == 1)), 1, max))
+  tab_bot <- min(GEO$BODY_BOTTOM, ty + tl * tsz * 1.264 / 72 + (nrow(df) + 1) * 8 / 72)
 
   # ---- 오른쪽: 검증 절차 한계 카드 두 개 ------------------------------------------------------------------------------------------
   xr <- GEO$ML + tw + 0.25; wr <- GEO$W - GEO$MR - xr
   deck_text(tx("S25.right_label"), c(xr, GEO$BODY_TOP - 0.04, wr, 0.45), size = 16, bold = TRUE, color = PAL$ink2, label = "label_verif")
-  # 두 카드 높이는 추정 글 높이에 비례해 나눈다(아래 끝 = 본문 아래 끝)
-  y0 <- GEO$BODY_TOP + 0.43; cg <- 0.18; cn <- tx("S25.card_nca", f); cq <- tx("S25.card_qc", f)
-  he <- c(est_height(cn, wr, 16, 5, card = TRUE), est_height(cq, wr, 16, 5, card = TRUE)); ch <- he / sum(he) * (GEO$BODY_BOTTOM - y0 - cg)
+  # 두 카드 높이는 추정 글 높이에 비례해 나눈다(위 끝 = 표 위 끝, 아래 끝 = 표 아래 선)
+  y0 <- ty; cg <- 0.18; cn <- tx("S25.card_nca", f); cq <- tx("S25.card_qc", f)
+  he <- c(est_height(cn, wr, 16, 5, card = TRUE), est_height(cq, wr, 16, 5, card = TRUE)); ch <- he / sum(he) * (tab_bot - y0 - cg)
   deck_text(cn, c(xr, y0, wr, ch[1]), size = 16, bg = PAL$tint_orange, geom = "roundRect", label = "card_nca", gap_pt = 5)
   deck_text(cq, c(xr, y0 + ch[1] + cg, wr, ch[2]), size = 16, bg = PAL$tint_orange, geom = "roundRect", label = "card_qc", gap_pt = 5)
 

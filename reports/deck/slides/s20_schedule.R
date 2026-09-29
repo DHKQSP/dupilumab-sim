@@ -29,6 +29,11 @@ s20_pair <- function(s, col, d, item, scale = 1, signed = FALSE) {
     if (signed) s20_signed(p) else p }, "")
   s20_nb(paste(v, collapse = " / "))
 }
+# 두 모델 값이 인쇄 자릿수에서 같을 때 한 번만 적는다(두 값 모두 추적; 다르면 전제 실패)
+s20_same <- function(s, col, d, item, scale = 1) {
+  v <- vapply(names(S20_V), function(m) dv(s20_sd(S20_V[[m]]), sprintf("schedule == '%s'", s), col, d, "", sprintf("%s, schedule %s, %s", item, s, m), scale), "")
+  premise(length(unique(v)) == 1, paste("same printed value in both models:", item)); s20_nb(v[[1]])
+}
 # 두 결과 파일에 걸친 범위(부호 붙임, 파생값; 두 파일을 locator에 적는다)
 s20_rng2 <- function(where, col, d, item, scale = 1) {
   x <- unlist(lapply(S20_V, function(v) rows(s20_sd(v), where)[[col]] * scale))
@@ -95,7 +100,7 @@ slide_S20 <- function() {
   df <- rbind(setNames(as.data.frame(as.list(crit), stringsAsFactors = FALSE), names(df)), df)
   names(df) <- tx("S20.table.head", thr)
   TH <- 2.46   # 렌더링 실측(빈 칸이 있는 기준 행은 조금 높다)
-  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, TH), widths = c(2.4, 1.12, 2.0, 2.0, 2.0, 2.0, 0.71), size = 12, highlight = 1, highlight_fill = PAL$tint_blue, label = "table_schedule")
+  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, TH), widths = c(2.3, 1.55, 1.95, 1.95, 1.95, 1.93, 0.6), size = 12, highlight = 1, highlight_fill = PAL$tint_blue, label = "table_schedule")
   FY <- GEO$BODY_TOP + TH + 0.02; FTH <- 0.4
   deck_text(tx("S20.foot"), c(GEO$ML, FY, GEO$CW, FTH), size = 16, color = PAL$ink2, label = "text_table_note", gap_pt = 0)
 
@@ -110,17 +115,21 @@ slide_S20 <- function() {
             c = thr$c, a = thr$a, x = thr$x,
             bma = s20_pair("Bminus", "a_mean_width_rel_decrease", 2, "(a) CI width decrease when Day 50 is removed (%)", scale = 100),
             bmd = s20_pair("Bminus", "d_extrap20_ratio", 2, "(d) ratio of the share above 20% extrapolation when Day 50 is removed"),
+            bmd1 = s20_same("Bminus", "d_extrap20_ratio", 2, "(d) ratio of the share above 20% extrapolation when Day 50 is removed, same in both models"),
             bmc = s20_pair("Bminus", "c_reliable_gain_pp", 2, "(c) reliability change, set (ii), when Day 50 is removed (points)"),
             d50 = s20_diff("Bminus", "removed"), last = last,
             d58 = dderived("study-day threshold in column name lloq_after_day58_pct", CS, "column name lloq_after_day58_pct (100 x mean(t_lloq + 1 > 58))", 58, "58"),
             a16 = ab[[1]], a20 = ab[[2]])
   premise(as.numeric(b$d58) == as.numeric(last) + 1, "Day 58 is the day after the last B0 sample")
+  aw <- rbindlist(lapply(names(S20_V), function(m) rows(s20_sd(S20_V[[m]]), ADD)[, pk := m]))
+  premise(nrow(aw) == 8 && sum(aw$a_mean_width_rel_decrease > 0) == 1 && aw[a_mean_width_rel_decrease > 0, schedule == "D3" & pk == "k2020"],
+          "added samples: the mean CI width narrows only in D3 of the 2020 model and widens in every other schedule and model (bullet)")
   premise(rp[which.max(gain_ii_pp), variant == "base" & schedule == "D3"] && rp[which.max(gain_i_pp), variant == "base" & schedule == "D3"], "largest set (i) and set (ii) gains both at D3 (2016 model)")
   premise(grepl("AUC0-inf", .read("config/schedule_decision.yaml")$day50_removal) && grepl("fallback", .read("config/schedule_decision.yaml")$day50_removal), "recorded reason for keeping Day 50: AUC0-inf secondary endpoint and fallback terminal points")
   for (v in S20_V) premise(all(rows(s20_sd(v), "schedule=='Bminus'")$c_reliable_gain_pp < 0), paste("removing Day 50 lowers reliability under set (ii),", v))
   deck_bullets(tx("S20.bullets", b), box = c(GEO$ML, BY, LW, GEO$BODY_BOTTOM - BY), size = 16, gap_pt = 5)
 
-  # ---- 오른쪽 아래: 참 농도가 LLOQ 위인 대상자 비율(연구일별), B0 채혈일, Day 57 이후(확대 그림 포함) ----
+  # ---- 오른쪽 아래: 참 농도가 LLOQ 위인 대상자 비율(연구일별), B0 채혈일, Day 58 값 ----
   XR <- GEO$ML + LW + 0.2; WR <- GEO$W - GEO$MR - XR
   dmax <- max(h$day_bin) + 1; grid_ <- seq(min(h$day_bin), dmax)
   sv <- rbindlist(lapply(names(S20_V), function(m) { hh <- h[pk_model == m]; data.table(model = m, day = grid_, pct = vapply(grid_, function(d) sum(hh[day_bin >= d, pct]), 0)) }))
@@ -131,30 +140,26 @@ slide_S20 <- function() {
   FL <- L$fig
   FH <- GEO$BODY_BOTTOM - BY
   scm <- list(scale_colour_manual(values = unname(MODEL_COL)), scale_linetype_manual(values = unname(MODEL_LT)), scale_shape_manual(values = unname(MODEL_SHAPE)))
-  # 확대 그림: Day 57 이후, 세로축 0~(최댓값 x 1.3)
-  si <- sv[day >= lastn]; yin <- max(si$pct) * 1.25
-  pin <- ggplot(si, aes(day, pct, colour = mod, linetype = mod)) + geom_step(linewidth = 0.8, direction = "hv") +
-    geom_point(data = tail_, aes(day, pct, colour = mod, shape = mod), size = 1.8, inherit.aes = FALSE) +
-    geom_label(data = tail_, aes(day + 1.3, pct, label = lab, colour = mod), hjust = 0, vjust = 0.5, size = 3.5, family = FONT, fontface = "bold", fill = "white",
-               label.size = 0, label.padding = grid::unit(0.08, "lines"), inherit.aes = FALSE) +
-    scm + scale_x_continuous(breaks = seq(lastn, dmax, by = 14), expand = expansion(add = c(0.3, 0.3))) +
-    scale_y_continuous(limits = c(0, yin), breaks = scales::breaks_pretty(3), expand = expansion(add = c(0.1, 0))) +
-    labs(x = NULL, y = NULL, title = fill(FL$inset, list(d = fnum(lastn, 0), d1 = fnum(lastn + 1, 0)))) + theme_deck(10) +
-    theme(legend.position = "none", panel.grid.major.x = element_blank(), panel.border = element_rect(colour = PAL$muted, fill = NA, linewidth = 0.5),
-          plot.title = element_text(size = 9.5, colour = PAL$ink2, margin = margin(0, 0, 2, 0)), plot.title.position = "plot",
-          plot.background = element_rect(fill = "white", colour = NA), plot.margin = margin(2, 4, 2, 2))
+  # 한 판: 참 농도가 LLOQ 위인 대상자 비율. Day 58 값은 곡선 위 점으로 표시하고, 곡선이 지나지 않는 오른쪽 위 빈 곳에 글자로 적는다(확대 그림 없음)
+  mlab <- c(k2016 = FL$m16, k2020 = FL$m20)
+  tl <- tail_[order(-pct)]
+  premise(max(sv[day > lastn + 4, pct]) < 20 && max(tl$pct) < 20, "the upper right part of the panel (after Day 61, above 20%) is free of curves for the value labels")
+  ty <- c(88, 73, 58)                                                                  # 글자 줄 위치(%)
+  tx_ <- data.table(x = lastn + 5, y = ty, lab = c(fill(FL$tail, list(d = fnum(lastn + 1, 0))), paste(mlab[tl$model], tl$lab)),
+                    col = c(PAL$ink2, unname(MODEL_COL[tl$model])), face = c("plain", "bold", "bold"))
+  xb <- c(b0t, seq(lastn + 14, dmax, by = 14))
   p <- ggplot(sv, aes(day, pct, colour = mod, linetype = mod)) +
-    annotate("rect", xmin = lastn, xmax = Inf, ymin = -Inf, ymax = Inf, fill = PAL$tint_orange, alpha = 0.8) +
     geom_vline(xintercept = setdiff(b0t, lastn), colour = PAL$grid, linewidth = 0.5) +
     geom_vline(xintercept = lastn, colour = PAL$ink2, linewidth = 0.6, linetype = "22") +
     geom_step(linewidth = 1.0, direction = "hv") +
-    annotate("text", x = lastn + 0.8, y = 99, hjust = 0, vjust = 1, size = 3.5, family = FONT, colour = PAL$ink2, label = fill(FL$last, list(d = fnum(lastn, 0)))) +
-    annotation_custom(ggplotGrob(pin), xmin = lastn + 1, xmax = dmax + 0.5, ymin = 6, ymax = 89) +
-    scm + scale_x_continuous(breaks = b0t, expand = expansion(add = c(0.5, 0.5))) +
-    scale_y_continuous(limits = c(0, 100), breaks = c(0, 25, 50, 75, 100), expand = expansion(add = c(1, 1))) +
+    geom_point(data = tail_, aes(day, pct, colour = mod, shape = mod), size = 2.4, inherit.aes = FALSE, show.legend = FALSE) +
+    geom_text(data = tx_, aes(x = x, y = y, label = lab), hjust = 0, vjust = 0.5, size = 11 / .pt, family = FONT, colour = tx_$col, fontface = tx_$face, inherit.aes = FALSE) +
+    scm + scale_x_continuous(breaks = xb, expand = expansion(add = c(0.5, 0.5))) +
+    scale_y_continuous(limits = c(0, 100), breaks = c(0, 25, 50, 75, 100), expand = expansion(add = c(1.5, 1))) +
     labs(x = FL$xlab, y = NULL, subtitle = FL$ylab) + theme_deck(12) +
     theme(legend.position = "top", legend.justification = "left", legend.key.width = grid::unit(2.2, "lines"), legend.margin = margin(0, 0, 0, 0),
-          legend.box.spacing = grid::unit(2, "pt"), panel.grid.major.x = element_blank(), plot.subtitle = element_text(colour = PAL$ink2, size = 12, margin = margin(0, 0, 2, 0)))
+          legend.box.spacing = grid::unit(2, "pt"), panel.grid.major.x = element_blank(), plot.subtitle = element_text(colour = PAL$ink2, size = 12, margin = margin(0, 0, 2, 0)),
+          axis.title.x = element_text(size = 11.5, margin = margin(3, 0, 0, 0)), plot.margin = margin(4, 8, 4, 4))
   deck_figure(p, "s20_lloq_tail", c(XR, BY, WR, FH), src = c(CH, CS))
 
   # ---- 노트 ----
