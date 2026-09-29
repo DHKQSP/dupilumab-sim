@@ -1,0 +1,196 @@
+check,slide,status,detail
+1 numbers traced,S1,pass,2 traced values
+1 numbers traced,S2,pass,18 traced values
+1 numbers traced,S3,pass,11 traced values
+1 numbers traced,S4,pass,20 traced values
+1 numbers traced,S5,pass,23 traced values
+1 numbers traced,S6,pass,13 traced values
+1 numbers traced,S7,pass,21 traced values
+1 numbers traced,S8,pass,26 traced values
+1 numbers traced,S9,pass,17 traced values
+1 numbers traced,S10,pass,8 traced values
+1 numbers traced,A1,pass,56 traced values
+1 numbers traced,A2,pass,30 traced values
+1 numbers traced,A3a,pass,96 traced values
+1 numbers traced,A3b,pass,69 traced values
+1 numbers traced,A4a,pass,30 traced values
+1 numbers traced,A4b,pass,66 traced values
+1 numbers traced,A5a,pass,74 traced values
+1 numbers traced,A5b,pass,79 traced values
+1 numbers traced,A6,pass,43 traced values
+1 numbers traced,A7,pass,100 traced values
+1 numbers traced,A8,pass,51 traced values
+1 numbers traced,A9,pass,74 traced values
+1 numbers traced,A10,pass,54 traced values
+1 numbers traced,A11,pass,77 traced values
+1 numbers traced,A12,pass,57 traced values
+1 numbers traced,A14,pass,35 traced values
+2 empty values,S1,pass,""
+3 dashes,S1,pass,""
+2 empty values,S2,pass,""
+3 dashes,S2,pass,""
+2 empty values,S3,pass,""
+3 dashes,S3,pass,""
+2 empty values,S4,pass,""
+3 dashes,S4,pass,""
+2 empty values,S5,pass,""
+3 dashes,S5,pass,""
+2 empty values,S6,pass,""
+3 dashes,S6,pass,""
+2 empty values,S7,pass,""
+3 dashes,S7,pass,""
+2 empty values,S8,pass,""
+3 dashes,S8,pass,""
+2 empty values,S9,pass,""
+3 dashes,S9,pass,""
+2 empty values,S10,pass,""
+3 dashes,S10,pass,""
+2 empty values,A1,pass,""
+3 dashes,A1,pass,""
+2 empty values,A2,pass,""
+3 dashes,A2,pass,""
+2 empty values,A3a,pass,""
+3 dashes,A3a,pass,""
+2 empty values,A3b,pass,""
+3 dashes,A3b,pass,""
+2 empty values,A4a,pass,""
+3 dashes,A4a,pass,""
+2 empty values,A4b,pass,""
+3 dashes,A4b,pass,""
+2 empty values,A5a,pass,""
+3 dashes,A5a,pass,""
+2 empty values,A5b,pass,""
+3 dashes,A5b,pass,""
+2 empty values,A6,pass,""
+3 dashes,A6,pass,""
+2 empty values,A7,pass,""
+3 dashes,A7,pass,""
+2 empty values,A8,pass,""
+3 dashes,A8,pass,""
+2 empty values,A9,pass,""
+3 dashes,A9,pass,""
+2 empty values,A10,pass,""
+3 dashes,A10,pass,""
+2 empty values,A11,pass,""
+3 dashes,A11,pass,""
+2 empty values,A12,pass,""
+3 dashes,A12,pass,""
+2 empty values,A14,pass,""
+3 dashes,A14,pass,""
+4 atopic outside A11,S1,pass,""
+4 atopic outside A11,S2,pass,""
+4 atopic outside A11,S3,pass,""
+4 atopic outside A11,S4,pass,""
+4 atopic outside A11,S5,pass,""
+4 atopic outside A11,S6,pass,""
+4 atopic outside A11,S7,pass,""
+4 atopic outside A11,S8,pass,""
+4 atopic outside A11,S9,pass,""
+4 atopic outside A11,S10,pass,""
+4 atopic outside A11,A1,pass,""
+4 atopic outside A11,A2,pass,""
+4 atopic outside A11,A3a,pass,""
+4 atopic outside A11,A3b,pass,""
+4 atopic outside A11,A4a,pass,""
+4 atopic outside A11,A4b,pass,""
+4 atopic outside A11,A5a,pass,""
+4 atopic outside A11,A5b,pass,""
+4 atopic outside A11,A6,pass,""
+4 atopic outside A11,A7,pass,""
+4 atopic outside A11,A8,pass,""
+4 atopic outside A11,A9,pass,""
+4 atopic outside A11,A10,pass,""
+4 atopic outside A11,A12,pass,""
+4 atopic outside A11,A14,pass,""
+5 abbreviation first use,S1,pass,PK (glossary on the slide)
+5 abbreviation first use,S1,pass,AUClast
+5 abbreviation first use,S1,pass,AUCinf (glossary on the slide)
+5 abbreviation first use,S1,pass,Cmax
+5 abbreviation first use,S3,pass,NCA
+5 abbreviation first use,S4,pass,LLOQ
+5 abbreviation first use,S3,pass,λz
+5 abbreviation first use,S5,pass,SAP
+5 abbreviation first use,S5,pass,NCT
+5 abbreviation first use,S4,pass,FDA
+5 abbreviation first use,S8,pass,EMA
+5 abbreviation first use,S4,pass,BLA
+5 abbreviation first use,A5b,pass,GMR
+5 abbreviation first use,A9,pass,CV
+5 abbreviation first use,A2,pass,BLQ
+5 abbreviation first use,A12,pass,QC
+5 abbreviation first use,S7,pass,tlast
+5 abbreviation first use,A1,pass,tmax
+5 abbreviation first use,A2,pass,Clast
+5 abbreviation first use,A8,pass,ka
+5 abbreviation first use,A8,pass,ke
+5 abbreviation first use,A8,pass,Vmax
+5 abbreviation first use,A8,pass,V2
+5 abbreviation first use,A8,pass,Km
+6 limits,S1,pass,"bullets 0, table rows 0"
+6 limits,S2,pass,"bullets 0, table rows 0"
+6 main-slide design,S2,pass,"body lines 1, main visual 69% of the body area, title lines 2"
+6 limits,S3,pass,"bullets 0, table rows 0"
+6 main-slide design,S3,pass,"body lines 2, main visual 83% of the body area, title lines 1"
+6 limits,S4,pass,"bullets 0, table rows 0"
+6 main-slide design,S4,pass,"body lines 2, main visual 75% of the body area, title lines 1"
+6 limits,S5,pass,"bullets 0, table rows 0"
+6 main-slide design,S5,pass,"body lines 3, main visual 64% of the body area, title lines 2"
+6 limits,S6,pass,"bullets 0, table rows 0"
+6 main-slide design,S6,pass,"body lines 2, main visual 80% of the body area, title lines 2"
+6 limits,S7,pass,"bullets 0, table rows 0"
+6 main-slide design,S7,pass,"body lines 2, main visual 82% of the body area, title lines 1"
+6 limits,S8,pass,"bullets 0, table rows 0"
+6 main-slide design,S8,pass,"body lines 1, main visual 79% of the body area, title lines 2"
+6 limits,S9,pass,"bullets 0, table rows 0"
+6 main-slide design,S9,pass,"body lines 2, main visual 77% of the body area, title lines 1"
+6 limits,S10,pass,"bullets 0, table rows 0"
+6 main-slide design,S10,pass,"body lines 2, main visual 79% of the body area, title lines 2"
+6 limits,A1,pass,"bullets 0, table rows 0"
+6 limits,A2,pass,"bullets 3, table rows 4"
+6 limits,A3a,pass,"bullets 1, table rows 8"
+6 limits,A3b,pass,"bullets 2, table rows 0"
+6 limits,A4a,pass,"bullets 0, table rows 0"
+6 limits,A4b,pass,"bullets 0, table rows 4"
+6 limits,A5a,pass,"bullets 0, table rows 8"
+6 limits,A5b,pass,"bullets 0, table rows 6"
+6 limits,A6,pass,"bullets 0, table rows 0"
+6 limits,A7,pass,"bullets 2, table rows 6"
+6 limits,A8,pass,"bullets 0, table rows 6"
+6 limits,A9,pass,"bullets 0, table rows 6"
+6 limits,A10,pass,"bullets 0, table rows 5"
+6 limits,A11,pass,"bullets 0, table rows 5"
+6 limits,A12,pass,"bullets 0, table rows 7"
+6 limits,A14,pass,"bullets 0, table rows 0"
+7 trace sources,all,pass,"95 source files, 1205 trace rows"
+8 report cross-check,all,pass,"2308 deck values share file, filter and column with a report value; 2308 identical raw values; 2308 printed values consistent"
+8 key numbers cross-check,all,pass,consistent after rounding: 42; file not cited: 579; matched: 157; not in key numbers: 372
+8 headline,S2,pass,33~39% (report: TRUE; key numbers: consistent after rounding)
+8 headline,S2,pass,84% (report: TRUE; key numbers: consistent after rounding)
+8 headline,S2,pass,17.5% (report: TRUE; key numbers: not in key numbers)
+8 headline,S2,pass,5.6% (report: TRUE; key numbers: consistent after rounding)
+9 rendered layout,S1,pass,0 unmatched lines
+9 rendered layout,S2,pass,0 unmatched lines
+9 rendered layout,S3,pass,0 unmatched lines
+9 rendered layout,S4,pass,0 unmatched lines
+9 rendered layout,S5,pass,0 unmatched lines
+9 rendered layout,S6,pass,0 unmatched lines
+9 rendered layout,S7,pass,0 unmatched lines
+9 rendered layout,S8,pass,0 unmatched lines
+9 rendered layout,S9,pass,0 unmatched lines
+9 rendered layout,S10,pass,0 unmatched lines
+9 rendered layout,A1,pass,0 unmatched lines
+9 rendered layout,A2,pass,0 unmatched lines
+9 rendered layout,A3a,pass,0 unmatched lines
+9 rendered layout,A3b,pass,0 unmatched lines
+9 rendered layout,A4a,pass,0 unmatched lines
+9 rendered layout,A4b,pass,0 unmatched lines
+9 rendered layout,A5a,pass,0 unmatched lines
+9 rendered layout,A5b,pass,0 unmatched lines
+9 rendered layout,A6,pass,0 unmatched lines
+9 rendered layout,A7,pass,0 unmatched lines
+9 rendered layout,A8,pass,0 unmatched lines
+9 rendered layout,A9,pass,0 unmatched lines
+9 rendered layout,A10,pass,0 unmatched lines
+9 rendered layout,A11,pass,0 unmatched lines
+9 rendered layout,A12,pass,0 unmatched lines
+9 rendered layout,A14,pass,0 unmatched lines
