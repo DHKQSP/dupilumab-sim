@@ -76,3 +76,13 @@ section7:
     cells: "16 boundary cells (both models, 8 mechanisms x direction as in oc_design.yaml), point estimates of the pass rate"
     fallback: "if G2_A_iii under M1 is absent, use G2_A_i and say so in a footnote"
     headline: "number of cells above 5% and the maximum for each configuration; the Wilson classification stays in the appendix"
+
+  # 7f. (추가 등록 2026-09-29, 내용 검토 뒤, 계산 전) 비구획 외삽 면적 대 참 외삽 면적. S7의 대표 대상자 3명(2016 모델)은 모두 세트 (iii) 미달이라,
+  #     신뢰할 수 있는 AUCinf를 얻은 대상자에서도 비구획 외삽이 참값보다 큰지 모집단으로 보인다(S7 캡션·노트, 별첨 A4a).
+  extrap_ratio_by_group:
+    source: "stored NCA of scripts/10 (nca_base_20000.rds, nca_struct2020_20000.rds), schedule B0"
+    ratio: "(AUCINF_obs - AUClast) / (AUCinf_true - AUClast_true), subjects with an estimable lambda-z"
+    groups: {estimable: "lambda-z estimable", reliable_iii: "meeting set (iii)", failing_iii_estimable: "lambda-z estimable and not meeting set (iii)"}
+    statistics: [n, median, p05, p95, pct_below_1]      # 분위수 type 7; pct_below_1 = 100 x mean(ratio < 1)
+    output: results/core_deck/extrap_ratio_by_group.csv
+    identity_check: "n of the estimable group equals the lambda-z estimable count implied by tp_failure_by_set.csv (n x (1 - lz_pct/100))"
