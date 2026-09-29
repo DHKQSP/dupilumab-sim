@@ -11,7 +11,7 @@ slide_S5 <- function() {
   d <- copy(rows(TPF, "set %in% c('i','iii')"))[, .(pk_model, set, fail_pct, fail_lo, fail_hi)]
   premise(nrow(d) == 4, "sets (i) and (iii), two models")
   premise(all(rows(TPF, "set=='iii'")[, est_fail_pct > lz_pct]), "set (iii): most failures have an estimable lambda-z (text: mostly below the fit criterion)")
-  d[, x := c(i = 0, iii = 2.6)[set] + c(k2016 = 1, k2020 = 2)[pk_model]]
+  d[, x := c(i = 0, iii = 2.6)[set] + c(k2020 = 1, k2016 = 2)[pk_model]]
   d[, lab := paste0(fnum(fail_pct, 1), "%")]
   r2i <- fnum(.read("config/prereg_20260926.yaml")$section4$criteria_sets$i$adj_r2_min, 2); r2iii <- fnum(.read("config/prereg_20260926.yaml")$section4$criteria_sets$iii$adj_r2_min, 2)
   grp <- data.table(x = c(1.5, 4.1), lab = c(fill(L$g80, list(v = r2i)), fill(L$g90, list(v = r2iii))), face = c("plain", "bold"))
@@ -30,7 +30,7 @@ slide_S5 <- function() {
   na <- as.numeric(f_n_arm())
   r <- copy(rows(TRA, "set=='iii'"))[, .(pk_model, med = retained_median, lo = retained_p05, hi = retained_p95)]
   premise(nrow(r) == 2 && all(r$hi <= na), "set (iii) retained per arm: two models, at most the evaluable count")
-  r[, y := c(k2016 = 2, k2020 = 1)[pk_model]][, lab := vapply(seq_len(.N), function(i) fill(L$ret, list(m = fnum(med[i], 0), lo = fnum(lo[i], 0), hi = fnum(hi[i], 0))), "")]
+  r[, y := c(k2020 = 2, k2016 = 1)[pk_model]][, lab := vapply(seq_len(.N), function(i) fill(L$ret, list(m = fnum(med[i], 0), lo = fnum(lo[i], 0), hi = fnum(hi[i], 0))), "")]
   p2 <- ggplot(r) +
     geom_rect(aes(xmin = 0, xmax = na, ymin = y - 0.32, ymax = y + 0.32), fill = PAL$tint_grey) +
     geom_rect(aes(xmin = 0, xmax = med, ymin = y - 0.32, ymax = y + 0.32), fill = PAL$orange) +

@@ -213,7 +213,7 @@ deck_slide <- function(id, tag = c("sim", "lit", "litsim", "none"), dark = FALSE
   # 관련 별첨 안내 한 줄(문구 파일의 <id>.xref, 핵심 덱 본문): 본문 영역 맨 아래에 두고 그 위를 본문 영역으로 쓴다(deck_end가 되돌린다)
   xr <- DK$txt[[id]]$xref
   if (!is.null(xr)) {
-    h <- 0.30; DK$cur$bb0 <- GEO$BODY_BOTTOM
+    h <- 0.40; DK$cur$bb0 <- GEO$BODY_BOTTOM
     deck_text(xr, c(GEO$ML, GEO$BODY_BOTTOM - h + 0.04, GEO$CW, h - 0.04), size = if (is.null(SZ$caption_min)) 14 else SZ$caption_min, color = PAL$ink2, label = "caption_xref", gap_pt = 0)
     GEO$BODY_BOTTOM <<- GEO$BODY_BOTTOM - h
   }

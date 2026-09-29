@@ -1,45 +1,55 @@
-# S7 ② 총노출 포착(지시 §2, 그림 4-1): 2016 모델 대표 대상자 3명(창 포착률 중앙값·5백분위·최솟값; 사전 등록 7c)의 음영 그림.
+# S6 ② 총노출 포착(v1.2: 주 모델 = 2020 모델, D-065; 그림 4-1): 2020 모델 대표 대상자 3명(AUClast/AUCinf(참값) 중앙값·5백분위·최솟값; 사전 등록 7c)의 음영 그림.
+# 2016 모델(민감도 모델) 대표 대상자는 별첨 A4a. 최솟값 대상자는 λz를 산출하지 못해 비구획 외삽이 없다(삽입도 제목 L$no_lz).
 # 제목: 중앙값 대상자와 최솟값 대상자(패널과 같은 대상자)의 AUClast/AUCinf. 캡션: 모집단 외삽 비율 중앙값(비구획 대 참, pillar1_coverage_B0.csv).
 slide_S6 <- function() {
-  RSf <- "core_deck/rep_subjects.csv"; P1 <- "rationale/pillar1_coverage_B0.csv"
+  RSf <- "core_deck/rep_subjects.csv"; ROf <- "core_deck/rep_obs.csv"; P1 <- "rationale/pillar1_coverage_B0.csv"; NR <- "config/nca_rules.yaml"; ER <- "core_deck/extrap_ratio_by_group.csv"
   deck_slide("S6", tag = "sim")
-  med <- dv(RSf, "model=='k2016' & role=='median'", "coverage_true", 0, "%", "window coverage (true), 2016 median-coverage subject", scale = 100)
-  mn <- dv(RSf, "model=='k2016' & role=='min'", "coverage_true", 1, "%", "window coverage (true), 2016 minimum-coverage subject", scale = 100)
+  S <- rows(RSf, "model=='k2020'")
+  premise(nrow(S) == 3 && setequal(S$role, c("median", "p05", "min")), "three representative subjects of the 2020 model")
+  premise(!isTRUE(S[role == "min", lambda_ok]) && all(S[role != "min", lambda_ok]), "2020 model: only the minimum-coverage subject has no estimable lambda-z (caption)")
+  premise(all(S[role != "min", reliable_iii]) && all(S[role != "min", extrap_ratio_nca_to_true] > 1),
+          "2020 model: median and 5th percentile subjects meet set (iii) and their NCA extrapolated area exceeds the true one (caption)")
+  premise(row1(P1, "model=='k2020' & group=='all'")[, extrap_nca_median > extrap_true_median], "2020 model: NCA extrapolated share above the true share at the median (caption: over-estimates)")
+  premise(as.numeric(sub(" .*", "", row1(P1, "model=='k2020' & group=='all'")$lambda_ok_pct_ci)) < 100,
+          "not every subject has lambda-z: the NCA median is over lambda-z-estimable subjects, the true median over all subjects (caption denominators)")
+  med <- dv(RSf, "model=='k2020' & role=='median'", "coverage_true", 0, "%", "window coverage (true), 2020 median-coverage subject", scale = 100)
+  mn <- dv(RSf, "model=='k2020' & role=='min'", "coverage_true", 1, "%", "window coverage (true), 2020 minimum-coverage subject", scale = 100)
   y0 <- core_title(tx("S6.title", list(med = med, min = mn)), tx("S6.kicker"))
   L <- DK$txt$S6$fig
-  p <- core_shaded_panels("k2016", L)
-  rr <- drange("core_deck/extrap_ratio_by_group.csv", "group=='reliable_iii'", "median", 1, "", "median NCA-to-true extrapolated area ratio, subjects with a reliable AUCinf, two models")
-  premise(all(!rows(RSf, "model=='k2016'")$reliable_iii), "all three 2016 representative subjects fail set (iii) (notes)")
-  cap <- tx("S6.caption", list(nsub = dint(P1, "model=='k2016' & group=='all'", "n_subjects", "virtual subjects, 2016"), rr = rr, nca = dv(P1, "model=='k2016' & group=='all'", "extrap_nca_median", 1, "%", "median NCA extrapolated share, 2016"),
-                               true = dv(P1, "model=='k2016' & group=='all'", "extrap_true_median", 2, "%", "median true extrapolated share, 2016"),
-                               q3 = dv(RSf, "model=='k2016' & role=='min'", "extrap_ratio_nca_to_true", 2, "", "NCA-to-true extrapolated area ratio, minimum subject")))
-  premise(row1(RSf, "model=='k2016' & role=='min'")$extrap_ratio_nca_to_true < 1 && row1(RSf, "model=='k2016' & role=='median'")$extrap_ratio_nca_to_true > 1, "median subject NCA over, minimum subject NCA under (caption)")
+  p <- core_shaded_panels("k2020", L)
+  r <- function(role, col, d, item, unit = "") dv(RSf, sprintf("model=='k2020' & role=='%s'", role), col, d, unit, item)
+  cap <- tx("S6.caption", list(nca = dv(P1, "model=='k2020' & group=='all'", "extrap_nca_median", 1, "%", "median NCA extrapolated share, 2020"),
+                               true = dv(P1, "model=='k2020' & group=='all'", "extrap_true_median", 2, "%", "median true extrapolated share, 2020"),
+                               q1 = r("median", "extrap_ratio_nca_to_true", 1, "NCA-to-true extrapolated area ratio, median subject"),
+                               q2 = r("p05", "extrap_ratio_nca_to_true", 1, "NCA-to-true extrapolated area ratio, 5th percentile subject"),
+                               nsub = dint(P1, "model=='k2020' & group=='all'", "n_subjects", "virtual subjects, 2020")))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
   by <- core_body(tx("S6.body"), capy - 0.06)
-  deck_figure(p, "s6_shaded_k2016", c(GEO$ML, y0, GEO$CW, by - 0.08 - y0), src = c(RSf, "core_deck/rep_profiles.csv", "core_deck/rep_obs.csv"))
-  r <- function(role, col, d, item, unit = "") dv(RSf, sprintf("model=='k2016' & role=='%s'", role), col, d, unit, item)
-  deck_notes(tx("S6.notes", list(
+  deck_figure(p, "s6_shaded_k2020", c(GEO$ML, y0, GEO$CW, by - 0.08 - y0), src = c(RSf, "core_deck/rep_profiles.csv", ROf))
+
+  # 노트: 대상자, 삽입도, 최솟값 대상자가 λz를 얻지 못한 이유, 모집단 외삽 면적 비(7f)
+  s3 <- row1(RSf, "model=='k2020' & role=='min'"); ob <- rows(ROf, sprintf("model=='k2020' & id==%d", s3$id))[blq == FALSE][order(time_after_dose)]
+  npost <- nrow(ob) - which.max(ob$conc_obs); mp <- as.integer(.read(NR)$standard$lambda_z$min_points)
+  premise(npost < mp && isTRUE(.read(NR)$standard$lambda_z$after_tmax_only), "2020 minimum subject: fewer quantified samples after the highest concentration than the lambda-z minimum (notes)")
+  deck_notes(tx("S6.notes", list(nca = dv(P1, "model=='k2020' & group=='all'", "extrap_nca_median", 1, "%", "median NCA extrapolated share, 2020"),
+    true = dv(P1, "model=='k2020' & group=='all'", "extrap_true_median", 2, "%", "median true extrapolated share, 2020"),
     i1 = r("median", "id", 0, "subject id, median"), i2 = r("p05", "id", 0, "subject id, 5th percentile"), i3 = r("min", "id", 0, "subject id, minimum"),
-    t1 = r("median", "study_day_tlast", 1, "study day of the observed tlast, median subject"), t2 = r("p05", "study_day_tlast", 1, "study day of tlast, 5th percentile subject"), t3 = r("min", "study_day_tlast", 1, "study day of tlast, minimum subject"),
+    t1 = r("median", "study_day_tlast", 1, "study day of the observed tlast, median subject"), t2 = r("p05", "study_day_tlast", 1, "study day of tlast, 5th percentile subject"),
+    t3 = r("min", "study_day_tlast", 1, "study day of tlast, minimum subject"),
     a1 = r("median", "extrap_area_nca", 1, "NCA extrapolated area, median subject"), b1 = r("median", "extrap_area_true", 1, "true extrapolated area, median subject"),
-    a3 = r("min", "extrap_area_nca", 1, "NCA extrapolated area, minimum subject"), b3 = r("min", "extrap_area_true", 1, "true extrapolated area, minimum subject"),
-    q3 = r("min", "extrap_ratio_nca_to_true", 2, "NCA-to-true extrapolated area ratio, minimum subject"), nsub = dint(P1, "model=='k2016' & group=='all'", "n_subjects", "virtual subjects, 2016"),
-    r3 = r("min", "adj_r2", 2, "adjusted R-squared, minimum subject"), e3 = r("min", "pct_extrap_nca", 1, "NCA extrapolated share, minimum subject", "%"),
-    cobs = r("min", "Clast", 2, "observed Clast, minimum subject (mg/L)"),
-    ctrue = { s_ <- row1(RSf, "model=='k2016' & role=='min'"); o <- rows("core_deck/rep_obs.csv", sprintf("model=='k2016' & id==%d", s_$id))
-      x <- o[abs(time_after_dose - s_$tlast) < 1e-9, conc_true]; premise(length(x) == 1, "true concentration at the observed tlast")
-      dderived("true concentration at the observed tlast, minimum subject (mg/L)", "core_deck/rep_obs.csv", "model=='k2016' & id==<minimum subject> & time_after_dose==tlast :: conc_true", x, fnum(x, 2)) },
-    cr = { s_ <- row1(RSf, "model=='k2016' & role=='min'"); o <- rows("core_deck/rep_obs.csv", sprintf("model=='k2016' & id==%d", s_$id)); x <- s_$Clast / o[abs(time_after_dose - s_$tlast) < 1e-9, conc_true]
-      dderived("observed Clast / true concentration at tlast, minimum subject", "core_deck/rep_obs.csv", "Clast (rep_subjects.csv) / conc_true at tlast", x, fnum(x, 2)) },
-    xr = { s_ <- row1(RSf, "model=='k2016' & role=='min'"); o <- rows("core_deck/rep_obs.csv", sprintf("model=='k2016' & id==%d", s_$id)); x <- o[abs(time_after_dose - s_$tlast) < 1e-9, conc_true] / s_$lambda_z / s_$extrap_area_true
-      dderived("extrapolation from the true concentration with the NCA lambda-z / true extrapolated area, minimum subject", "core_deck/rep_obs.csv", "conc_true at tlast / lambda_z / extrap_area_true (rep_subjects.csv)", x, fnum(x, 2)) },
-    r1 = r("median", "adj_r2", 2, "adjusted R-squared, median subject"), r2v = r("p05", "adj_r2", 2, "adjusted R-squared, 5th percentile subject"),
-    ea = drange("core_deck/extrap_ratio_by_group.csv", "group=='estimable'", "median", 1, "", "median NCA-to-true extrapolated area ratio, lambda-z estimable, two models"),
-    rr = rr, b1p = dv("core_deck/extrap_ratio_by_group.csv", "model=='k2016' & group=='reliable_iii'", "pct_below_1", 1, "%", "share with NCA below true, reliable subjects, 2016"),
-    b2p = dv("core_deck/extrap_ratio_by_group.csv", "model=='k2020' & group=='reliable_iii'", "pct_below_1", 2, "%", "share with NCA below true, reliable subjects, 2020"),
-    nca = dv(P1, "model=='k2016' & group=='all'", "extrap_nca_median", 1, "%", "median NCA extrapolated share, 2016"),
-    true = dv(P1, "model=='k2016' & group=='all'", "extrap_true_median", 2, "%", "median true extrapolated share, 2016"),
-    wt = f_wt_range(), p95n = dv(P1, "model=='k2016' & group=='all'", "extrap_nca_p95", 1, "%", "95th percentile NCA extrapolated share, 2016"),
-    p95t = dv(P1, "model=='k2016' & group=='all'", "extrap_true_p95", 1, "%", "95th percentile true extrapolated share, 2016"))))
+    a2 = r("p05", "extrap_area_nca", 1, "NCA extrapolated area, 5th percentile subject"), b2 = r("p05", "extrap_area_true", 1, "true extrapolated area, 5th percentile subject"),
+    r1 = r("median", "adj_r2", 3, "adjusted R-squared, median subject"), r2 = r("p05", "adj_r2", 3, "adjusted R-squared, 5th percentile subject"),
+    e1 = r("median", "pct_extrap_nca", 1, "NCA extrapolated share, median subject", "%"), e2 = r("p05", "pct_extrap_nca", 1, "NCA extrapolated share, 5th percentile subject", "%"),
+    r2iii = f_set("iii", "r2"), exiii = f_set("iii", "extrap"),
+    b3 = r("min", "extrap_area_true", 1, "true extrapolated area, minimum subject"),
+    np = dderived("quantified samples after the highest observed concentration, 2020 minimum subject", ROf,
+                  sprintf("model=='k2020' & id==%d & blq==FALSE :: count after which.max(conc_obs)", s3$id), npost, fnum(npost, 0)),
+    mp = dcfg("nca_rules.yaml", c("standard", "lambda_z", "min_points"), "lambda-z minimum number of points", num_fmt(0)),
+    rr = drange(ER, "group=='reliable_iii'", "median", 1, "", "median NCA-to-true extrapolated area ratio, subjects with a reliable AUCinf, two models"),
+    ea = drange(ER, "group=='estimable'", "median", 1, "", "median NCA-to-true extrapolated area ratio, lambda-z estimable subjects, two models"),
+    b2p = dv(ER, "model=='k2020' & group=='reliable_iii'", "pct_below_1", 2, "%", "share with NCA below true, reliable subjects, 2020"),
+    b1p = dv(ER, "model=='k2016' & group=='reliable_iii'", "pct_below_1", 1, "%", "share with NCA below true, reliable subjects, 2016"),
+    wt = f_wt_range(), p95n = dv(P1, "model=='k2020' & group=='all'", "extrap_nca_p95", 1, "%", "95th percentile NCA extrapolated share, 2020"),
+    p95t = dv(P1, "model=='k2020' & group=='all'", "extrap_true_p95", 1, "%", "95th percentile true extrapolated share, 2020"))))
   deck_end()
 }

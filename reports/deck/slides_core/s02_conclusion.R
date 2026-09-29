@@ -10,9 +10,9 @@ slide_S2 <- function() {
 
   f <- list(fail = headline(drange(TPF, "set=='iii'", "fail_pct", 0, "%", "share without a reliable AUCinf, set (iii), two models")),
             r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap"))
-  cmin <- { r <- rows(TCV, MW); premise(nrow(r) == 2, "window coverage: two models"); x <- 100 * min(r$min)
-    headline(dderived("window coverage (true), base case, smallest subject over both models, rounded down", TCV, sprintf("%s :: floor(min(min) x 100)", MW), x, paste0(fnum(fl(x, 0), 0), "%"))) }
-  cmed <- drange(TCV, MW, "median", 0, "%", "window coverage (true), median, two models", scale = 100)
+  RSf <- "core_deck/rep_subjects.csv"                                # 카드 2 = 본문 S6의 수치(주 모델 2020 대표 대상자; v1.2 지시: 본문 수치만)
+  cmin <- dv(RSf, "model=='k2020' & role=='min'", "coverage_true", 1, "%", "window coverage (true), 2020 minimum-coverage subject", scale = 100)
+  cmed <- dv(RSf, "model=='k2020' & role=='median'", "coverage_true", 0, "%", "window coverage (true), 2020 median-coverage subject", scale = 100)
   t_inf <- headline(dext(CG, "analysis_model=='M1' & config=='G2_A_iii'", "pass_pct", max, 1, "%", "largest boundary type I error, AUCinf (set iii, rule A) + Cmax, M1"))
   t_last <- headline(dext(T1, "analysis_model=='M1' & config=='P2'", "pass_pct", max, 1, "%", "largest boundary type I error, AUClast + Cmax, M1"))
   nom <- f_nominal()
@@ -21,7 +21,7 @@ slide_S2 <- function() {
   gap <- 0.25; cw <- (GEO$CW - 2 * gap) / 3; ch <- 3.45; cy <- y0 + 0.10
   C <- DK$txt$S2$cards
   core_card(C$c1$head, list(list(f$fail, PAL$orange)), fill(C$c1$label, f), c(GEO$ML, cy, cw, ch), bg = PAL$tint_orange)
-  nsub <- dint(TPF, "pk_model=='k2016' & set=='iii'", "n", "virtual subjects per model (trial population)")
+  nsub <- dint(TPF, "pk_model=='k2020' & set=='iii'", "n", "virtual subjects per model (trial population)")
   core_card(C$c2$head, list(list(fill(C$c2$value, list(v = cmin)), PAL$blue)), fill(C$c2$label, list(med = cmed, nsub = nsub)), c(GEO$ML + cw + gap, cy, cw, ch), bg = PAL$tint_blue)
   core_card(fill(C$c3$head, list(nom = nom)), list(list(list(t_inf, PAL$orange, 40), list(C$c3$inf, PAL$ink2, 18)), list(list(t_last, PAL$blue, 40), list(C$c3$last, PAL$ink2, 18))),
             fill(C$c3$label, list(nom = nom, n = dcount(T1, "analysis_model=='M1' & config=='P2'", "boundary cells"))), c(GEO$ML + 2 * (cw + gap), cy, cw, ch), bg = PAL$tint_grey)
