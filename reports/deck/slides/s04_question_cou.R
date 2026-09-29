@@ -14,7 +14,7 @@ s04_qwin <- function() {
 s04_km <- function() {
   INV <- "oc/inversion_all.csv"; r <- rows(INV, "mechanism=='Km' & is.finite(end_auc_ratio)"); r2 <- rows(INV, "mechanism=='Km' & reachable==TRUE")
   x <- range(c(r$end_auc_ratio, r2$auc_ratio)); lim <- unlist(.read("config/trial_design.yaml")$be$limits)
-  premise(x[1] > lim[1] && x[2] < lim[2], "Km changes keep the true AUC0-inf ratio inside the equivalence limits (text: binding not visible in AUC)")
+  premise(x[1] > lim[1] && x[2] < lim[2], "Km changes keep the true AUC0-inf ratio inside the equivalence limits (text: Km difference not visible in AUC)")
   dderived("true AUC0-inf ratio range over Km changes (range ends and reached rows)", INV, "mechanism=='Km' :: range of end_auc_ratio, auc_ratio", x, rng_fmt(x[1], x[2], 3))
 }
 

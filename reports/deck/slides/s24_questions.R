@@ -4,7 +4,8 @@
 S24_T1 <- "oc_models/type1_models.csv"; S24_DE <- "oc_models/p2_decomposition_models.csv"; S24_CS <- "cliff/cliff_summary.csv"; S24_CP <- "cliff/cliff_points.csv"
 s24_w <- function(am, cf, extra = "") sprintf("analysis_model=='%s' & config=='%s'%s", am, cf, extra)
 S24_V2 <- function(am) sprintf("pk_model=='k2020' & mechanism=='V2' & analysis_model=='%s'", am)
-S24_CPW <- function(timing) sprintf("model=='k2016' & weight=='base' & timing=='%s' & definition_day==1 & schedule=='daily_29_57'", timing)
+# 매일 채혈 3점 이상: 두 모델 범위(S10의 dly, dy3w와 같은 행·자릿수: 명목일 1자리, 허용창 반영 2자리)
+S24_CPW <- function(timing) sprintf("weight=='base' & timing=='%s' & definition_day==1 & schedule=='daily_29_57'", timing)
 # 매일 채혈 구간(연구일): config/oc_design.yaml cliff.schedules.daily_29_57의 "a..b"(투여 후 일) + 1
 s24_daily <- function() {
   s <- .read("config/oc_design.yaml")$cliff$schedules$daily_29_57; m <- regmatches(s, regexec("([0-9]+)\\.\\.([0-9]+)", s))[[1]]
@@ -32,9 +33,9 @@ slide_S24 <- function() {
   premise(rows(DE, S24_V2("M1"))$auclast_bias_dir == "toward_1" && rows(DE, S24_V2("M1"))$auclast_bias_pct > 0, "AUC0-last GMR biased toward 1 in the exceeding cell (Q7)")
   premise(rows(DE, S24_V2("M0"))$class == "nominal", "the same cell is nominal under M0 (Q7)")
   sd_ <- rbindlist(lapply(c("base", "struct2020"), function(k) rows(sprintf("trials/schedule_decision_%s.csv", k))[, variant := k]))
-  premise(nrow(sd_) > 0 && !any(sd_$recommend %in% TRUE), "the pre-specified rule recommended no added samples in either model (Q4)")
+  premise(nrow(sd_) > 0 && !any(sd_$recommend %in% TRUE), "the schedule decision rule (set before any result was reported) recommended no added samples in either model (Q4)")
   premise(rows(CS, "model=='k2016' & weight=='base'")$lloq_studyday_median < max(unlist(.read("config/trial_design.yaml")$schedules$B0$days)) + 1, "median LLOQ day before the last B0 sample (Q3)")
-  premise(nrow(sd_) > 0 && !any(unlist(sd_[, .(crit_a, crit_b, crit_c, crit_d)]) %in% TRUE), "no candidate schedule met any of the pre-specified criteria (a) to (d) in either model (Q4)")
+  premise(nrow(sd_) > 0 && !any(unlist(sd_[, .(crit_a, crit_b, crit_c, crit_d)]) %in% TRUE), "no candidate schedule met any of the decision-rule criteria (a) to (d) in either model (Q4)")
   premise(rows(PC, "model=='k2016' & group=='all'")$extrap_true_median < 1, "median true extrapolation below 1% (Q1: AUC0-last captures nearly all of AUC0-inf)")
   premise(all(rows(TPF, "set=='i'")$fail_pct < rows(TPF, "set=='iii'")$fail_pct), "set (iii) fails more often than set (i) in both models (Q11: failing shares listed in the order (i), (iii))")
   ssr <- rows(SS, "endpoint=='AUCinf_true' & !scenario %in% c('S00','F097')")
@@ -59,11 +60,11 @@ slide_S24 <- function() {
             # Q19, Q11
             fiii = drange(TPF, "set=='iii'", "fail_pct", 1, "%", "trial population, set (iii) failing, two models"),
             # Q4, Q3
-            len = dv(CS, "model=='k2016' & weight=='base'", "len1_median", 2, "", "cliff length median, 2016 model (days)"),
+            len = drange(CS, "weight=='base'", "len1_median", 2, "", "cliff length median, two models (days)"),
             dd = s24_daily(),
             k3 = dderived("sample-count threshold in column name pct_ge3", CP, "column name pct_ge3 (share of subjects with 3 or more samples in the cliff)", 3, "3"),
-            pct = dv(CP, S24_CPW("nominal"), "pct_ge3", 1, "%", "daily sampling, 3 or more samples on the cliff, nominal days (%)"),
-            pctw = dv(CP, S24_CPW("windowed"), "pct_ge3", 1, "%", "daily sampling, 3 or more samples on the cliff, windowed times (%)"),
+            pct = drange(CP, S24_CPW("nominal"), "pct_ge3", 1, "%", "daily sampling, 3 or more samples on the cliff, nominal days, two models (%)"),
+            pctw = drange(CP, S24_CPW("windowed"), "pct_ge3", 2, "%", "daily sampling, 3 or more samples on the cliff, windowed times, two models (%)"),
                     day16 = dv(CS, "model=='k2016' & weight=='base'", "lloq_studyday_median", 1, "", "LLOQ study day median, 2016 model"),
             d58 = dderived("study-day threshold in column name lloq_after_day58_pct", CS, "column name lloq_after_day58_pct (100 x mean(t_lloq + 1 > 58))", 58, "58"),
             a16 = dv(CS, "model=='k2016' & weight=='base'", "lloq_after_day58_pct", 1, "%", "above LLOQ after Day 58, 2016 model (%)"),

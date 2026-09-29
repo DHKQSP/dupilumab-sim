@@ -19,11 +19,12 @@ slide_S13 <- function() {
   premise(all(abs(a[scenario == "S00", diff_mean]) < 0.5) && all(a[scenario == "S00", diff_lo < 0 & diff_hi > 0]), "identical products: arm difference near zero and 95% interval includes zero (sets i and iii, two models)")
   premise(all(g("VM125", "i")$diff_lo > 0) && all(g("ka_down_080", "i")$diff_lo > 0) && all(g("Vmax_up_080", "i")$diff_lo > 0), "Vmax x1.25, ka decreased and Vmax increased: test arm fails more (set i)")
   premise(all(a[scenario == "V2_up_080", diff_hi] < 0), "V2 increased: test arm fails less (sets i and iii)")
+  premise(min(g("ka_down_080", "i")$diff_mean) > 2 * max(abs(g("V2_up_080", "i")$diff_mean)), "same true ratio 0.80, set i: ka decreased gap (test fails more) is over twice the V2 increased gap (test fails less) in both models (title: asymmetric)")
   premise(length(BND) == 8 && all(abs(a[grepl("_080$", scenario), auc_ratio] - 0.8) < 0.005) && all(abs(a[grepl("_125$", scenario), auc_ratio] - 1.25) < 0.005) &&
             all(grepl("_(080|125)$", BND)), "boundary cells: true AUC0-inf ratio 0.80 or 1.25")
   premise(all(g("KE110", "iii")$diff_hi < 0) && all(g("KE120", "iii")$diff_hi < 0), "ke scenarios under set iii: 95% interval excludes zero (negative)")
   ri <- a[set == "i" & scenario != "S00"]; k <- which.max(abs(ri$diff_mean))
-  premise(ri$scenario[k] == "ka_down_080", "largest set i difference is the ka decreased boundary cell")
+  premise(ri$scenario[k] == "ka_down_080" && ri$pk_model[k] == "k2016", "largest set i difference is the ka decreased boundary cell of the 2016 model (title names the model)")
   f_ <- rows(TAF, "set %in% c('i','iii')")
   premise(f_[pk_model == "k2020" & set == "i", slope_lo < 0 & slope_hi > 0] && all(f_[set == "iii", slope_lo < 0 & slope_hi > 0]) && f_[pk_model == "k2016" & set == "i", slope_hi < 0],
           "fit slope CI includes zero for k2020 set i and both models set iii only")

@@ -54,8 +54,10 @@ slide_S08 <- function() {
   r2s <- vapply(c("i", "ii", "iii", "iv"), function(s_) as.numeric(sets_[[s_]]$adj_r2_min), 0)
   premise(r2s[["i"]] == min(r2s) && is.null(sets_$i$span_ratio_min), "set (i) has the lowest adjusted R-squared and no span condition (caption: most lenient)")
 
+  premise(as.numeric(.read("config/nca_rules.yaml")$standard$lambda_z$min_points) > 1, "lambda-z window needs more points than the one in-cliff sample, so most of the window lies before the cliff (premise card)")
   f <- list(
     nom = f_nominal(), ns = s08_study_days("B0", "n"), last = s08_study_days("B0", "last"), cmax = s08_cliff_max(), r2iii = f_set("iii", "r2"),
+    minpts = dcfg("nca_rules.yaml", c("standard", "lambda_z", "min_points"), "lambda-z minimum points", num_fmt(0)),
     len = headline(drange(CS, CB, "len1_median", 2, "", "cliff length (1-day definition), median, two models")),
     iii = headline(drange(TPF, "set=='iii'", "fail_pct", 1, "%", "trial population, set (iii) failing, two models")),
     i = drange(TPF, "set=='i'", "fail_pct", 1, "%", "trial population, set (i) failing, two models"),
@@ -117,7 +119,6 @@ slide_S08 <- function() {
   deck_notes(tx("S08.notes", c(f, list(
     cst = drange(CS, CB, "c_start1_median", 2, "", "cliff start concentration (mg/L), median, two models"),
     len595 = dspan(CS, CB, "len1_p05", "len1_p95", 2, "", "cliff length, 5th to 95th percentile, two models"),
-    minpts = dcfg("nca_rules.yaml", c("standard", "lambda_z", "min_points"), "lambda-z minimum points", num_fmt(0)),
     cw = dcount(CGf, "analysis_model=='M1' & config=='G2_C_i' & class=='exceeding'", "M1 G2_C_i cells exceeding (Wilson lower bound above 5%)"),
     aii = dcount(CGf, "analysis_model=='M1' & config=='G2_A_ii' & pass_pct > 5", "M1 G2_A_ii cells above 5% (point)"),
     b = dcount(CGf, "analysis_model=='M1' & config=='G2_B' & pass_pct > 5", "M1 G2_B cells above 5% (point)"),

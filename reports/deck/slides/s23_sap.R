@@ -73,6 +73,7 @@ slide_S23 <- function() {
   ex_ <- function(m, s_, col, d, it) dv(EX, sprintf("model=='%s' & set=='%s'", m, s_), col, d, "", it)
   ad_ <- function(g, col, d, it) dv(AD, sprintf("ada==%d & schedule=='B0'", g), col, d, "", it)
   pw_ <- function(am, cf = "P2") dci(PW, sprintf("pk_model=='k2016' & scenario=='S00' & analysis_model=='%s' & config=='%s'", am, cf), "pass_pct", "lo", "hi", 1, "%", sprintf("power k2016 S00 %s %s", am, cf))
+  premise(all(rows("trialpop/tp_characteristics.csv", "set=='i'")$true_aucinf_gmr_hi < 1), "set (i) failing subjects have a lower true AUC0-inf than retained subjects (notes)")
   deck_notes(tx("S23.notes", c(f, list(
     split = f_split(), wt = f_wt_range(),
     sd0 = drange(SS, "endpoint=='AUCinf_true' & analysis_model=='M0' & !scenario %in% c('S00','F097')", "sd_se_ratio", 3, "", "SD/SE M0 AUCinf_true boundary cells"),
@@ -82,8 +83,8 @@ slide_S23 <- function() {
     lz = drange(RS, "variant %in% c('base','struct2020')", "lambda_ok_pct", 1, "%", "lambda-z estimable, two models"),
     ri = drange(RS, "variant %in% c('base','struct2020')", "reliable_i_pct", 1, "%", "reliability criteria (i), two models"),
     wd16 = ex_("k2016", "criteria_i", "wt_diff", 1, "criteria (i) exclusion k2016 wt_diff"), wd20 = ex_("k2020", "criteria_i", "wt_diff", 1, "criteria (i) exclusion k2020 wt_diff"),
-    gr16 = ex_("k2016", "criteria_i", "aucinf_true_gm_ratio_excluded_to_retained", 2, "criteria (i) exclusion k2016 true AUC0-inf GM ratio"),
-    gr20 = ex_("k2020", "criteria_i", "aucinf_true_gm_ratio_excluded_to_retained", 2, "criteria (i) exclusion k2020 true AUC0-inf GM ratio"),
+    # S02·S08·S12와 같은 파일·조건·자릿수(참 AUC0-inf 탈락/유지 비, 세트 (i), 두 모델 범위)
+    gri = drange("trialpop/tp_characteristics.csv", "set=='i'", "true_aucinf_gmr", 3, "", "true AUC0-inf ratio failing to retained, set (i)"),
     exb16 = paste0(ex_("k2016", "rule_B", "excluded_pct", 1, "rule B exclusion k2016"), "%"), exb20 = paste0(ex_("k2020", "rule_B", "excluded_pct", 1, "rule B exclusion k2020"), "%"),
     gc0ci = s23_max(CG, "M0", "G2_C_i", TRUE, "M0 rule C set (i) largest with CI"), gc1ci = s23_max(CG, "M1", "G2_C_i", TRUE, "M1 rule C set (i) largest with CI"),
     gco1 = dcount(CG, s23_w("M1", "G2_C_i", " & pass_pct > 5"), "M1 G2_C_i cells above 5% (point)"),
@@ -92,6 +93,8 @@ slide_S23 <- function() {
     ada = dcfg("trial_design.yaml", c("other_schedules_out_of_scope", "ADA_days"), "ADA sampling days after the pre-dose sample (non-zero entries)", function(x) paste(fnum(x[x > 0], 0), collapse = ", ")),
     adaf = dcfg("trial_design.yaml", c("ada_sensitivity", "fraction"), "ADA-like subgroup share (%)", function(x) paste0(fnum(100 * x, 0), "%")),
     onset = dcfg("trial_design.yaml", c("ada_sensitivity", "onset_day"), "ADA-like subgroup onset (day)", num_fmt(0)),
+    onset1 = dderived("ADA-like subgroup onset as study day (study day = days after dose + 1)", "config/trial_design.yaml", "ada_sensitivity.onset_day + 1",
+                      .read("config/trial_design.yaml")$ada_sensitivity$onset_day + 1, fnum(.read("config/trial_design.yaml")$ada_sensitivity$onset_day + 1, 0)),
     kem = dcfg("trial_design.yaml", c("ada_sensitivity", "ke_multiplier"), "ADA-like subgroup linear elimination multiplier", num_fmt(0)),
     tl1 = ad_(1L, "tlast_median", 1, "ADA-like subgroup median tlast (days)"), tl0 = ad_(0L, "tlast_median", 1, "other subjects median tlast (days)"),
     ex1 = paste0(ad_(1L, "extrap_true_median", 2, "ADA-like subgroup median true extrapolation (%)"), "%"),

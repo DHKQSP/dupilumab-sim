@@ -1,5 +1,7 @@
-# S06 방법 개요: 모델 -> 대상자·채혈(B0) -> 비구획 분석(NCA) -> 가상 시험(TOST, M1) -> 경계 1종 오류(사전 등록) 흐름도,
-# NCA 엔진 검증 표(results/nca_engine/engine_validation_summary.csv), 사전 등록 상자. 결과 수치는 다른 슬라이드에서 다룬다.
+# S06 방법 개요: 모델 -> 대상자·채혈(B0) -> 비구획 분석(NCA) -> 가상 시험(TOST, M1) -> 경계 1종 오류(사전 명시) 흐름도,
+# NCA 엔진 검증 표(results/nca_engine/engine_validation_summary.csv), 사전 명시·등록 상자. 결과 수치는 다른 슬라이드에서 다룬다.
+# 용어: 운용 특성 설계(커밋 779e068)는 '사전 명시'(등록부 Status pre-specified), prereg 절(v1.0.1)은 '사전 등록'(pre-registered).
+# NCA 엔진은 NonCompart·PKNCA와만 대조했다(실제 Phoenix 출력 없음, 슬라이드 25): '재현'이라 쓰지 않고 '규칙으로 구현'이라 쓴다.
 # B0 채혈일: config는 투여 후 일, 연구일 = 투여 후 일 + 1. (공용 f_study_days는 YAML 목록이 정수·실수 혼합이라 d + 1에서 멈추므로 여기서 unlist)
 s06_days <- function(which = c("n", "last")) {
   which <- match.arg(which); d <- unlist(.read("config/trial_design.yaml")$schedules$B0$days); premise(length(d) > 0, "schedule B0")
@@ -62,15 +64,18 @@ slide_S06 <- function() {
   deck_table(df, box = c(GEO$ML, yb, tw, th), widths = c(2.6, 1.0, 1.3, 1.2, 1.2), size = 13)
   deck_text(unlist(DK$txt$S06$table$caption), c(GEO$ML, yb + th + 0.04, tw, 0.72), size = 16, color = PAL$ink2, label = "table_note", gap_pt = 2)
 
-  # ---- 사전 등록 상자 ----
+  # ---- 사전 명시·등록 상자 ----
   c779 <- s06_commit("^Operating-characteristic design", "pre-registration commit, operating-characteristic design")
   c521 <- s06_commit("^Analysis-model re-judgement", "pre-registration commit, analysis models (v1.0.1)")
   c68b <- s06_commit("^Extension to 20,000 trials", "commit of the post hoc extension rule (v1.0)")
   pr <- rows("regulatory/tables/prespecification_register.csv")
   premise(grepl("^post hoc", pr[grepl("^Extension to 20,000 trials", Item), Status]) && grepl("^pre-registered", pr[grepl("^Analysis-model re-judgement", Item), Status]),
           "register: extension rule post hoc in v1.0, analysis models and per-model extension rule pre-registered in v1.0.1 (prereg box)")
+  premise(pr[grepl("^Operating-characteristic design", Item), Status] == "pre-specified", "register: operating-characteristic design is pre-specified, not pre-registered (card 5 and prereg box wording)")
+  premise(!any(grepl("phoenix", list.files(proj_path("results/nca_engine"), recursive = TRUE), ignore.case = TRUE)) && !any(grepl("Phoenix", rows(EV)$comparison)),
+          "no Phoenix output in results/nca_engine: engine compared with NonCompart and PKNCA only (table caption: not compared with Phoenix)")
   premise(startsWith(rows("oc/prereg.csv")$prereg_commit, c779) && !isTRUE(as.logical(rows("oc/prereg.csv")$changed_since)), "oc/prereg.csv: same commit, design unchanged since")
-  # 사전 등록 상자: 커밋은 따로 한 줄(문장 안에서 "커밋"과 해시가 줄 끝에서 갈라지지 않게)
+  # 사전 명시·등록 상자: 커밋은 따로 한 줄(문장 안에서 "커밋"과 해시가 줄 끝에서 갈라지지 않게)
   xr <- GEO$ML + tw + 0.25
   deck_text(tx("S06.prereg", list(c1 = c779, c2 = c521)), c(xr, yb, GEO$W - GEO$MR - xr, hb), size = 16, label = "prereg", bg = PAL$tint_grey, geom = "roundRect")
 

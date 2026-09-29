@@ -115,8 +115,13 @@ slide_S17 <- function() {
     premise(length(unique(x)) == 1, "same trial count in both concordance files")
     for (r in CONC) dderived("trials per product scenario, concordance file", r, "schedule=='B0' :: unique(n_trials)", x[[r]], fint(x[[r]])); fint(x[[1]]) })
   agr <- drange("rationale/pillar2_products_B0.csv", "TRUE", "agree", 1, "%", "decision agreement AUC0-last vs NCA AUC0-inf rule A (ii), product scenarios, two models")
+  na_ <- local({ x <- range(rows("rationale/pillar2_products_B0.csv", "TRUE")$n_trials)
+    dderived("trials per product scenario, agreement with rule A (ii), range over scenarios and models", "rationale/pillar2_products_B0.csv", "TRUE :: range(n_trials)", x,
+             if (x[1] == x[2]) fint(x[1]) else sprintf("%s~%s", fint(x[1]), fint(x[2]))) })
   NY <- TY + TH + 0.07
-  deck_text(tx("S17.na", list(cor = cor, agr = agr, agr_b = agr_b)), c(XR, NY, WR, GEO$BODY_BOTTOM - NY), size = 16, label = "text_na", bg = PAL$tint_grey, geom = "roundRect", gap_pt = 4)
+  premise(local({ r <- range(rows("rationale/pillar2_products_B0.csv", "TRUE")$n_trials); x <- as.numeric(gsub(",", "", n_conc)); x >= r[1] && x <= r[2] }),
+          "the concordance files' trial count lies inside the pillar2 range, so one range covers all three quantities (text)")
+  deck_text(tx("S17.na", list(cor = cor, agr = agr, agr_b = agr_b, na = na_)), c(XR, NY, WR, GEO$BODY_BOTTOM - NY), size = 16, label = "text_na", bg = PAL$tint_grey, geom = "roundRect", gap_pt = 4)
 
   # ---- 노트 ----
   rng <- function(ep, am = "M1") drange(SSf, wb(ep, am), "bias_pct", 2, "%", sprintf("bias range, 16 boundary cells, %s, %s", ep, am))
@@ -136,6 +141,6 @@ slide_S17 <- function() {
     v2 = s17_signed(v2), a = f$a, b = f$b, c = f$c,
     g_last = gm("AUClast", "k2016", "Vmax_up_080"), g_ai = gm("AUCinf_Ai", "k2016", "Vmax_up_080"), g_b = gm("AUCinf_B", "k2016", "Vmax_up_080"),
     g_true = gm("AUCinf_true", "k2016", "Vmax_up_080"), t_v = tr("k2016", "Vmax_up_080"), n = nb,
-    agr = agr, agr_b = agr_b, n_conc = n_conc, cor = cor)))
+    agr = agr, agr_b = agr_b, n_conc = n_conc, cor = cor, na = na_)))
   deck_end()
 }

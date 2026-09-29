@@ -41,6 +41,9 @@ slide_S15 <- function() {
   for (cf in c("G2_A_iii", "G2_A_iv")) premise(rows(CG, sprintf("analysis_model=='M1' & config=='%s' & pk_model=='k2016' & scenario=='V2_up_080'", cf))$class == "exceeding" &&
                                                rows(CB, sprintf("analysis_model=='M1' & config=='%s' & pk_model=='k2016' & scenario=='V2_up_080'", sub("G2_", "", cf)))$bias_dir == "toward_1",
                                                sprintf("%s exceeding and biased toward 1 in the 2016 V2 cell (text, notes)", cf))
+  w20 <- rows(T1, "config=='P2' & pk_model=='k2020' & scenario=='V2_up_080'")
+  premise(setequal(w20$analysis_model, c("M0", "M1", "M2")) && length(unique(w20$n_trials)) == 1 && all(w20$n_trials > w20$n_trials_10k) && w20[analysis_model == "M0", class_10k] == "nominal",
+          "extended cell: all three analysis models reported at the extended count; the M0 interval at the pre-registered count includes 5% (notes, D-048)")
   p2m0r <- rows(T1, "analysis_model=='M0' & config=='P2' & pass_pct > 5"); premise(nrow(p2m0r) == 1 && p2m0r$class == "nominal", "M0 P2: the one cell with a point estimate above 5% is nominal (text)")
 
   # ---- 제목 ----

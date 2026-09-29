@@ -9,6 +9,13 @@ slide_S03 <- function() {
   deck_slide("S03", tag = "lit")
   deck_kicker(tx("S03.kicker")); deck_title(tx("S03.title"))
   f <- list(ci = f_ci_level(), lim = f_limits())
+  # EMA 2012 카드 문구의 출처: config/literature_precedents.yaml(ema_2012_mab, 검색 발췌). 상태가 바뀌면 '원문 대조 전' 표시를 다시 본다
+  LP <- "literature_precedents.yaml"; ema <- .read(file.path("config", LP))$ema_2012_mab
+  premise(identical(ema$status, "search excerpt"), "EMA 2012 record status is 'search excerpt' (card header says the original was not compared)")
+  premise(identical(ema$primary_endpoint_single_dose, "AUC0-inf") && identical(ema$subcutaneous_co_primary, "Cmax"), "EMA 2012 record: AUC0-inf primary in single dose, Cmax co-primary for SC (card text)")
+  dsrc("EMA 2012 mAb biosimilar guideline statement on single-dose PK endpoints (search excerpt)", file.path("config", LP), what = "(text)")
+  f$ema_ref <- dcfg(LP, c("ema_2012_mab", "reference"), "EMA 2012 mAb biosimilar guideline, document reference")
+  f$ema_st <- dcfg(LP, c("ema_2012_mab", "status"), "EMA 2012 mAb biosimilar guideline, record status")
 
   # 위: 지침 카드 세 개(연도순)
   y0 <- GEO$BODY_TOP + 0.05; gw <- 0.25; cw <- (GEO$CW - 2 * gw) / 3; chh <- 2.62
@@ -32,5 +39,6 @@ slide_S03 <- function() {
   deck_bullets(bl, c(GEO$ML + lw + 0.2, yb, bw, hb), size = 16, gap_pt = 6)
 
   deck_notes(tx("S03.notes", f))
+  deck_src_first(file.path("config", LP))
   deck_end()
 }

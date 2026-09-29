@@ -3,7 +3,8 @@
 # 수치: results/trialpop/tp_coverage_individual.csv, results/rationale/pillar1_coverage_B0.csv(group 'all'; reg_helpers가 한글 라벨을 영문 코드로 바꿈).
 # 분포 그림: results/deck_inputs/coverage_hist.csv(로컬 대상자 수준 결과에서 만든 0.02 간격 분포, 커밋된 요약과 대조: deck_inputs/checks.csv).
 # 주의: coverage의 p95 열은 위쪽 꼬리(~1.000)라 정보가 적다(요청 항목이라 표에 함께 싣는다). 의미 있는 값은 아래쪽 5번째 백분위수(p05)다.
-# 색: 오른쪽 그림의 파랑·주황은 평가변수(AUC0-last, NCA AUC0-inf)라서 왼쪽 분포 그림의 모델은 회색 두 톤으로 구분한다.
+# 색: 덱 전체의 모델 색(MODEL_COL: 파랑 2016, 주황 2020)을 왼쪽 분포 그림의 모델에 쓴다(2016 채움, 2020 옅은 채움 + 테두리로 색 외 단서).
+#     그래서 오른쪽 그림의 평가변수는 파랑·주황을 피해 검정(AUC0-last)과 초록 계열(NCA AUC0-inf, 규칙 A (i) 점선, 규칙 B 실선)으로 구분한다.
 #       'AUC0-inf 개인 최대 5배 이상'은 2016 모델 규칙 B(λz 산출 가능군)에만 해당한다. 2020 모델 규칙 B는 1.87, 규칙 A 세트 (i)는 1.40/1.29.
 # 창 포착률 80% 미만 대상자: 수(최소가 80% 이상이면 0명, 개인 수준 요약의 최솟값으로 확인)와 Wilson 95% CI(보고서 열 'est [lo, hi]')
 s16_lt80 <- function(m) {
@@ -34,18 +35,19 @@ slide_S16 <- function() {
   deck_kicker(tx("S16.kicker")); deck_title(tx("S16.title", f))
 
   # ---- 왼쪽 위: 정의 ----
-  XL <- GEO$ML; WL <- 5.6
-  DH <- 2.14
+  XL <- GEO$ML; WL <- 5.95
+  DH <- 2.45
   deck_text(tx("S16.defs"), c(XL, GEO$BODY_TOP, WL, DH), size = 16, label = "text_defs", bg = PAL$tint_grey, geom = "roundRect", gap_pt = 6)
 
   # ---- 왼쪽 가운데: 창 포착률 분포(두 모델, 0.02 간격 막대, 로그 세로축) ----
-  # 색: 이 슬라이드에서 파랑·주황은 평가변수(오른쪽 그림: AUC0-last, NCA AUC0-inf)이므로 모델은 회색 두 톤으로 구분한다.
+  # 색: 모델은 덱의 모델 색(2016 파랑 채움, 2020 옅은 주황 채움 + 주황 테두리). 구간 안 위치(왼쪽 2016, 오른쪽 2020)도 모델을 가른다.
   thr <- dderived("window coverage threshold in column name coverage_lt80_pct_ci (percent)", PC, "column name coverage_lt80_pct_ci", 80, "80")
   hw <- copy(rows(CH, "metric=='window'"))
   premise(nrow(hw) > 0 && all(abs(hw[, sum(pct), by = pk_model]$V1 - 100) < 1e-6), "window coverage histogram sums to 100% per model")
   bw <- unique(round(diff(sort(unique(hw$bin_lo))), 6)); premise(length(bw) == 1, "window coverage bins have one width")
   premise(all(hw$pct > 0.005), "every window coverage bin is above the log-axis floor")
-  GREY <- setNames(c(PAL$ink2, "#b9b8b2"), model_lab())
+  MFILL <- setNames(c(MODEL_COL[["k2016"]], grDevices::adjustcolor(MODEL_COL[["k2020"]], alpha.f = 0.28)), model_lab())
+  MLINE <- setNames(unname(MODEL_COL[c("k2016", "k2020")]), model_lab())
   hw[, model := factor(model_lab()[pk_model], levels = model_lab())]
   hw[, `:=`(x0 = 100 * bin_lo + ifelse(pk_model == "k2016", 0.12, 1.0), x1 = 100 * bin_lo + ifelse(pk_model == "k2016", 0.98, 1.86))]
   YF <- 0.004
@@ -60,12 +62,12 @@ slide_S16 <- function() {
   low <- dcast(hw[bin_lo == min(bin_lo)], bin_lo ~ pk_model, value.var = "n")                     # 가장 낮은 구간의 대상자 수(아래 꼬리)
   mlab <- data.table(x = 100 * low$bin_lo + 0.1, y = max(hw[bin_lo == min(bin_lo), pct]) * 2.2, lab = fill(L$fig$cov_min, list(a = fint(low$k2016), b = fint(low$k2020))))
   pw <- ggplot(hw) +
-    geom_rect(aes(xmin = x0, xmax = x1, ymin = YF, ymax = pct, fill = model), colour = NA) +
+    geom_rect(aes(xmin = x0, xmax = x1, ymin = YF, ymax = pct, fill = model, colour = model), linewidth = 0.45) +
     geom_segment(data = lead2, aes(x = x, y = y, xend = xend, yend = yend), colour = PAL$ink2, linewidth = 0.35) +
     geom_label(data = lab2, aes(x = x, y = y, label = lab, vjust = vj), hjust = 1, size = 3.8, family = FONT, colour = PAL$ink, fill = "white",
                label.size = 0, label.padding = grid::unit(0.06, "lines"), label.r = grid::unit(0, "lines")) +
     geom_text(data = mlab, aes(x = x, y = y, label = lab), vjust = 0, hjust = 0, size = 3.8, family = FONT, colour = PAL$ink) +
-    scale_fill_manual(values = GREY, name = L$fig$cov_leg) +
+    scale_fill_manual(values = MFILL, name = L$fig$cov_leg) + scale_colour_manual(values = MLINE, name = L$fig$cov_leg) +
     scale_x_continuous(breaks = seq(84, 100, by = 4), labels = function(x) paste0(fnum(x, 0), "%"), limits = c(100 * min(hw$bin_lo) - 0.3, 100.3), expand = expansion(0)) +
     scale_y_log10(limits = c(YF, 1000), breaks = c(0.01, 0.1, 1, 10, 100), labels = function(x) ifelse(x %in% c(0.01, 1, 100), formatC(x, format = "fg"), ""), expand = expansion(0)) +
     labs(x = L$fig$cov_xlab, y = NULL) + theme_deck(12) +
@@ -80,7 +82,7 @@ slide_S16 <- function() {
                     d = vapply(M, cv, "", col = "min"), e = vapply(M, s16_lt80, ""), stringsAsFactors = FALSE, check.names = FALSE)
   names(dfc) <- tx("S16.cov_table.head", list(thr = thr))
   TY <- GEO$BODY_BOTTOM - TH
-  deck_table(dfc, box = c(XL, TY, WL, TH), widths = c(0.96, 0.73, 0.76, 0.8, 0.73, 1.62), size = 12, label = "table_cov")
+  deck_table(dfc, box = c(XL, TY, WL, TH), widths = c(1.0, 0.8, 0.82, 0.86, 0.75, 1.72), size = 12, label = "table_cov")
 
   # ---- 오른쪽 위: 관측 대 참 비 분포(AUC0-last 전체, NCA AUC0-inf 규칙 A 세트 (i), 규칙 B), 모델별 ----
   XR <- XL + WL + 0.3; WR <- GEO$W - GEO$MR - XR
@@ -96,7 +98,7 @@ slide_S16 <- function() {
   premise(nrow(ovf) > 0 && all(ovf$metric == "aucinf_B"), "only rule B has subjects in the open bin (label marker is the rule B square)")
   ovf[, lab := vapply(seq_len(.N), function(i) fill(L$fig$ovf, list(v = fnum(top, 1), n = fint(n[i]), p = fnum(pct[i], if (pct[i] < 0.01) 3 else 2))), "")]
   LY <- 30                                                     # 열린 구간 값: 패널 위쪽 오른쪽(점 바로 위에서 끝나게), 점까지 세로 지시선
-  COLS <- setNames(c(PAL$blue, "#a8441c", PAL$orange), SER); LTS <- setNames(c("solid", "22", "solid"), SER); SHP <- setNames(c(16, 17, 15), SER)
+  COLS <- setNames(c(PAL$ink, "#0b7a55", PAL$green), SER); LTS <- setNames(c("solid", "22", "solid"), SER); SHP <- setNames(c(16, 17, 15), SER)
   po <- ggplot(body_, aes(x = x, y = pct, colour = ser, linetype = ser)) +
     geom_vline(xintercept = 1, colour = PAL$ink2, linewidth = 0.5) +
     geom_line(linewidth = 0.85) +
@@ -124,7 +126,7 @@ slide_S16 <- function() {
   KH <- 0.98; OTH <- 1.78
   OTY <- GEO$BODY_BOTTOM - KH - 0.06 - OTH; OH <- OTY - 0.08 - GEO$BODY_TOP
   deck_figure(po, "s16_observed_to_true_hist", c(XR, GEO$BODY_TOP, WR, OH), src = CH)
-  deck_table(dfo, box = c(XR, OTY, WR, OTH), widths = c(2.25, 2.04, 2.04), size = 12, highlight = 2, label = "table_ot")
+  deck_table(dfo, box = c(XR, OTY, WR, OTH), widths = c(2.1, 1.94, 1.94), size = 12, highlight = 2, label = "table_ot")
   deck_text(tx("S16.takeaway", list(b16 = q("lz_B", "k2016", "max", 2), b20 = q("lz_B", "k2020", "max", 2), a16 = q("i_A", "k2016", "max", 2), a20 = q("i_A", "k2020", "max", 2))),
             c(XR, GEO$BODY_BOTTOM - KH, WR, KH), size = 16, label = "text_takeaway")
 

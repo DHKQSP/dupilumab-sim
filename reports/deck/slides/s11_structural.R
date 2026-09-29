@@ -32,6 +32,7 @@ slide_S11 <- function() {
   premise(all(rows(LI, sprintf("abs(lloq - %s) < 1e-9", format(lqmin)))$d_rel_i_hi < 0), "set (i) reliability at the lowest LLOQ below the study LLOQ in all four cases (paired CI)")
   premise(row1(LI, wl("k2020", "fixed", lqmin))$d_rel_ii_hi < 0, "set (ii), 2020 model, residual as estimated: reliability falls at the lowest LLOQ (paired CI below 0; bullet: set (ii) not consistent)")
   ov <- li[model == "k2016", .(d = abs(diff(reliable_no_span_pct[order(resid)]))), by = lloq]$d
+  premise(all(li[resid == "scaled" & abs(lloq - lqmin) < 1e-9, d_rel_i_hi] < 0), "residual scaled to the LLOQ: set (i) reliability also falls at the lowest LLOQ in both models (bullet)")
   premise(max(ov) < 0.5, "2016 model: the two residual variants differ by less than 0.5 points at every LLOQ (figure note: lines nearly overlap)")
   r2 <- row1(LI, wl("k2016", "fixed", lqmin)); premise(r2$d_rel_ii_lo < 0 && r2$d_rel_ii_hi > 0 && !li[model == "k2016" & resid == "fixed"][order(lloq), all(diff(reliable_pct) > 0)],
                                                        "set (ii), 2016 model, residual as estimated: no decrease at the lowest LLOQ (CI includes 0) and not monotone")
@@ -66,15 +67,16 @@ slide_S11 <- function() {
   premise(is.null(spv("i")) && is.null(spv("iii")) && !is.null(spv("ii")) && !is.null(spv("iv")), "sets (ii) and (iv) carry a span condition, (i) and (iii) do not (figure labels)")
   premise(g("resid12", "ii", "fail_hi") < g("k2016", "ii", "fail_lo"), "set (ii), also with a span condition, falls with the smaller residual (figure)")
   premise(max(tr[variant %in% c("k2016", "resid12") & set %in% c("ii", "iv"), fail_hi]) < 85, "bars and error bars of sets (ii) and (iv) stay below the span-condition labels at the top")
-  # 두 잔차 수준은 같은 2016 모델이므로 모델 색(파랑/주황)을 쓰지 않고 파랑 계열 명암으로 구분한다. 음영 = span 조건이 있는 세트 (ii), (iv)(같은 모양, 막대 위에 조건)
+  # 두 잔차 수준은 같은 2016 모델이므로 주황(이 덱의 2020 모델 색, 오른쪽 그림)을 쓰지 않고 2016 모델의 파랑 하나로, 채운 막대(추정값) 대 파랑 테두리의 옅은 막대(민감도)로 구분한다.
+  # 음영 = span 조건이 있는 세트 (ii), (iv)(같은 모양, 막대 위에 조건)
   p1 <- ggplot(d, aes(x = sx, y = fail_pct, fill = res)) + geom_blank() +
     annotate("rect", xmin = c(1.52, 3.52), xmax = c(2.48, 4.48), ymin = 0, ymax = 100, fill = PAL$tint_grey) +                  # span 조건이 있는 세트 (ii), (iv)
     annotate("text", x = c(2, 4), y = 97, label = vapply(c("ii", "iv"), function(s_) fill(L$fig$iv_note, list(v = fnum(spv(s_), 0))), ""), vjust = 1, size = 3.8,
              family = FONT, colour = PAL$ink2, fontface = "bold") +
-    geom_col(position = pd, width = 0.74, colour = "white", linewidth = 0.5) +
+    geom_col(aes(colour = res), position = pd, width = 0.74, linewidth = 0.9) +
     geom_errorbar(aes(ymin = fail_lo, ymax = fail_hi), position = pd, width = 0.2, linewidth = 0.45, colour = PAL$ink2) +
     geom_text(aes(y = fail_hi, label = fnum(fail_pct, 1)), position = pd, vjust = -0.5, size = 3.8, family = FONT, colour = PAL$ink) +
-    scale_fill_manual(values = c(PAL$blue, "#9cc3ef")) + scale_y_continuous(limits = c(0, 100), breaks = c(0, 25, 50, 75, 100), expand = expansion(mult = c(0, 0))) +
+    scale_fill_manual(values = c(PAL$blue, PAL$tint_blue)) + scale_colour_manual(values = c(PAL$blue, PAL$blue)) +          # 둘째 단서: 채운 막대 대 테두리 막대 scale_y_continuous(limits = c(0, 100), breaks = c(0, 25, 50, 75, 100), expand = expansion(mult = c(0, 0))) +
     labs(x = NULL, y = NULL, subtitle = L$fig$ylab1) + theme_deck(12) +
     theme(legend.position = "top", legend.justification = "left", legend.margin = margin(0, 0, 0, 0), legend.box.spacing = grid::unit(2, "pt"),
           panel.grid.major.x = element_blank(), plot.subtitle = element_text(colour = PAL$ink2, size = 12, margin = margin(0, 0, 2, 0)))
@@ -132,7 +134,7 @@ slide_S11 <- function() {
   lq <- f_lloq(); lqm <- dv(LI, wl("k2016", "fixed", lqmin), "lloq", 2, "", "lowest LLOQ in the sensitivity grid (mg/L)")
   dd <- function(m, rv) s11_nb(dv(LI, wl(m, rv, lqmin), "d_rel_i_pp", 2, "", sprintf("set (i) reliability change, lowest LLOQ vs study LLOQ, %s, residual %s (points)", m, rv)))
   mech <- function(m, lq_, col, d_, it, unit = "%") dv(LK[[m]], sprintf("resid=='fixed' & abs(lloq - %s) < 1e-9", format(lq_)), col, d_, unit, it)
-  br <- list(lq = lq, lqm = lqm, d16 = dd("k2016", "fixed"), d20 = dd("k2020", "fixed"), s16 = dd("k2016", "scaled"), s20 = dd("k2020", "scaled"),
+  br <- list(lq = lq, lqm = lqm, d16 = dd("k2016", "fixed"), d20 = dd("k2020", "fixed"),          # 비례 변형 값은 그림 끝 숫자와 노트(cs16, cs20)
              sa = dcfg("params_variability.yaml", c("residual", "sigma_add", "value"), "additive residual SD (mg/L), both models", num_fmt(2)),
              f0 = mech("k2016", lq0, "flag_rsq_pct", 1, "adjusted R-squared below 0.80, 2016 model, study LLOQ (%)"),
              f1 = mech("k2016", lqmin, "flag_rsq_pct", 1, "adjusted R-squared below 0.80, 2016 model, lowest LLOQ (%)"),

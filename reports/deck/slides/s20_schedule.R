@@ -1,4 +1,4 @@
-# S20 제안의 실행 · 채혈 일정 판단: 현행 B0 유지. 사전 규정 결정 규칙(보고서 3.9절, D-026)의 기준 (a)~(d)를 후보 D1~D4와 B-(Day 50 제거)에
+# S20 제안의 실행 · 채혈 일정 판단: 현행 B0 유지. 결과 보고 전(첫 일정 모의 뒤) 정한 결정 규칙(보고서 3.9절, D-026)의 기준 (a)~(d)를 후보 D1~D4와 B-(Day 50 제거)에
 # 두 모델로 적용한 결과표(보고서 Table 5-14와 같은 열)와, Day 57 이후 채혈의 가치(참 농도가 LLOQ 위에 남는 대상자 비율; 그림은 한 판, Day 58 값은 점과 글자).
 # 시험 모집단(건강인 60~90 kg, 두 구조 모델 base·struct2020)만. 체중 50~90 kg 분포(weight_alt)는 시험 모집단 밖이라 쓰지 않는다(부록 A5).
 # 자료: results/trials/schedule_decision_<base|struct2020>.csv(대상자 20,000명, 시험 500회), results/reliability/reliability_paired_vs_B0.csv(세트 (i)),
@@ -7,7 +7,7 @@
 #       results/individual/individual_<base|struct2020>.csv(마지막 채혈 시료 정량 비율).
 # 주의: 기준 (a)·(b)는 합동 t 검정(M0, trial_design.yaml be.method)으로만 계산했다. M1 일정 판정 파일은 없다(미산출).
 #       Day 57 이후 채혈 일정은 어떤 결과 파일에서도 모의하지 않았다(Day 85 연장안은 DECISIONS D-016에서 철회). 그래서 "Day 85 불필요"를 직접 보이는 결과는 없고,
-#       Day 58 이후에도 참 농도가 LLOQ 위인 대상자 비율로만 말한다.
+#       슬라이드에는 Day 85 채혈이 미모의(필요성 미산출)임과 Day 58 이후에도 참 농도가 LLOQ 위인 대상자 비율만 적는다.
 S20_V <- c(k2016 = "base", k2020 = "struct2020")
 S20_SCHED <- c("D1", "D2", "D3", "D4", "Bminus")
 s20_sd <- function(v) sprintf("trials/schedule_decision_%s.csv", v)
@@ -95,7 +95,7 @@ slide_S20 <- function() {
                    cc = vapply(S20_SCHED, s20_pair, "", col = "c_reliable_gain_pp", d = 2, item = "(c) reliability change, set (ii) (points)", signed = TRUE),
                    cd = vapply(S20_SCHED, s20_pair, "", col = "d_extrap20_ratio", d = 2, item = "(d) share with NCA extrapolation above 20%, ratio to B0"),
                    met = rep(L$table$none, length(S20_SCHED)), stringsAsFactors = FALSE, check.names = FALSE)
-  # 첫 행: 사전 기준(머리글과 같은 색). 기준값은 config에서
+  # 첫 행: 결정 규칙의 기준(머리글과 같은 색). 기준값은 config에서
   crit <- vapply(unlist(L$table$crit), fill, "", facts = thr, USE.NAMES = FALSE)
   df <- rbind(setNames(as.data.frame(as.list(crit), stringsAsFactors = FALSE), names(df)), df)
   names(df) <- tx("S20.table.head", thr)

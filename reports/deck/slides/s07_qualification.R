@@ -63,7 +63,9 @@ slide_S07 <- function() {
     scale_y_continuous(breaks = I$y, labels = I$lab, limits = c(min(I$y) - 0.5, max(H$y) + 1.75), expand = expansion(0)) +
     scale_x_continuous(limits = xl, breaks = seq(0.7, 1.3, by = 0.1), expand = expansion(0)) +
     labs(x = L$xlab, y = NULL) + theme_deck(13) +
-    theme(panel.grid.major.y = element_blank(), axis.text.y = element_text(size = 12, colour = PAL$ink), legend.margin = margin(0, 0, 0, 0))
+    # 범례는 패널 오른쪽 끝에 맞춘다: 두 모델 이름이 패널 폭보다 길어 가운데 정렬이면 그림 오른쪽 끝에서 잘린다(왼쪽 y축 글자 위 빈 곳으로 넘친다)
+    theme(panel.grid.major.y = element_blank(), axis.text.y = element_text(size = 12, colour = PAL$ink), legend.margin = margin(0, 0, 0, 0),
+          legend.justification = "right")
   deck_figure(p, "s07_validation_ratios", c(GEO$ML, GEO$BODY_TOP, FW, GEO$BODY_BOTTOM - GEO$BODY_TOP), src = c(Q16, Q20, A16, A20))
 
   # ---- 요점 ----

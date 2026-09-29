@@ -66,7 +66,10 @@ slide_S09 <- function() {
                fill = "white", label.size = 0, label.padding = unit(0.05, "lines"), label.r = unit(0, "lines")) +
     scale_fill_manual(values = unname(MODEL_COL)) + scale_y_continuous(limits = c(0, 80), breaks = seq(0, 75, by = 25), expand = expansion(mult = c(0, 0.01))) +
     labs(x = NULL, y = NULL, subtitle = L$ylab) + theme_deck(14) +
-    theme(panel.grid.major.x = element_blank(), legend.justification = "left", legend.margin = margin(0, 0, 0, 0),
+    # 범례는 패널 왼쪽 위 빈 곳(세트 (i)·(ii) 막대 위)에 두 줄로: 한 줄이면 두 모델 이름이 그림 폭을 넘어 잘린다
+    guides(fill = guide_legend(ncol = 1)) +
+    theme(panel.grid.major.x = element_blank(), legend.position = c(0.02, 0.99), legend.justification = c(0, 1),   # ggplot2 3.4: 숫자 위치 = 패널 안
+          legend.background = element_rect(fill = "white", colour = NA), legend.margin = margin(2, 4, 2, 2),
           plot.subtitle = element_text(colour = PAL$ink2, size = 13, lineheight = 1.1, margin = margin(0, 0, 4, 0)))
   FX <- GEO$ML + 7.75 + 0.3
   deck_figure(p, "s09_failure_by_set", c(FX, GEO$BODY_TOP, GEO$W - GEO$MR - FX, 5.0), src = TPF)

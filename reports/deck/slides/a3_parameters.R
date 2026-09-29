@@ -67,15 +67,15 @@ slide_A3 <- function() {
   df <- cbind(data.frame(a = tx("A3.rows", list(wr = wr)), stringsAsFactors = FALSE), cols("k2016"), cols("k2020"))
   names(df)[1] <- tx("A3.table.param")
   wd <- c(2.05, 1.55, 1.45, 2.05, 1.55, 1.45, 2.05); wd <- wd / sum(wd) * GEO$CW
-  ly <- GEO$BODY_TOP; lh <- 0.68; ty <- ly + lh + 0.02; th_ <- 2.67
+  ly <- GEO$BODY_TOP; lh <- 0.68; ty <- ly + lh + 0.02; th_ <- 2.50
   for (k in 1:2) {
     m <- c("k2016", "k2020")[k]; x <- GEO$ML + wd[1] + (k - 1) * sum(wd[2:4])
     deck_text(tx(sprintf("A3.label.%s", m)), c(x, ly, sum(wd[2:4]), lh), size = 16, label = sprintf("label_%s", m), gap_pt = 0)
   }
   deck_table(df, box = c(GEO$ML, ty, GEO$CW, th_), widths = wd, size = 13, label = "table_params")
   # 두 모델 열 묶음 사이 세로 구분선(1 pt): 모델 이름표 위에서 표 아래 테두리까지. deck_table은 세로 테두리를 두지 않으므로 글자 없는 가는 도형으로 그린다.
-  # 표 행 높이는 내용으로 정해져 렌더링한 표가 상자(th_)보다 조금 길다(실측 2.714 in: 한 줄 행 23.5 pt, 두 줄 행 39 pt). 선 끝은 그 실측 아래 테두리에 맞춘다
-  xd <- GEO$ML + sum(wd[1:4]); lw <- 1 / 72; tb <- ty + th_ + 0.044
+  # 표 행 높이는 내용으로 정해진다(실측: 한 줄 행 23.5 pt, 두 줄 행 39 pt; 머리글 + 한 줄 행 5개 + 두 줄 행 1개 = 180 pt = 2.50 in). 선 끝은 그 실측 아래 테두리에 맞춘다
+  xd <- GEO$ML + sum(wd[1:4]); lw <- 1 / 72; tb <- ty + 180 / 72
   deck_text(" ", c(xd - lw / 2, ly + 0.06, lw, tb - ly - 0.06), size = 16, bg = PAL$muted, geom = "rect", label = "rule_models", gap_pt = 0)
 
   # ---- 아래: 75 kg 환산(CL, Q, 말초 용적), 2020 흡수 구조, 잔차 ----

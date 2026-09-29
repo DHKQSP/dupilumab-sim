@@ -70,7 +70,7 @@ slide_S02 <- function() {
     ncell = dcount(CGf, "analysis_model=='M1' & config=='G2_A_i'", "boundary cells per configuration (M1)"),
     alo = dcount(CGf, "analysis_model=='M1' & config=='G2_A_i' & lo > 5", "M1 G2_A_i cells with Wilson lower bound above 5%"),
     c = dcount(CGf, "analysis_model=='M1' & config=='G2_C_i' & pass_pct > 5", "M1 G2_C_i cells above 5% (point)"),
-    gmr2 = drange(TCH, "set=='i'", "true_aucinf_gmr", 2, "", "true AUC0-inf ratio failing to retained, set (i), two models"),
+    gmr2 = drange(TCH, "set=='i'", "true_aucinf_gmr", 3, "", "true AUC0-inf ratio failing to retained, set (i), two models"),
     # 논거 ③ 대표 수치: 창 포착률 중앙값(두 모델)
     cov = headline(drange(TCV, MW, "median", 1, "%", "window coverage, median, two models", scale = 100)),
     cmin = s02_cov_min(),
@@ -113,7 +113,6 @@ slide_S02 <- function() {
     ntr = dint(T1f, "analysis_model=='M1' & config=='P2' & pk_model=='k2020' & scenario=='V2_up_080'", "n_trials", "trials, exceeding cell"),
     m0c = dcount(T1f, "analysis_model=='M0' & config=='P2' & class=='conservative'", "M0 P2 cells classified conservative"),
     m0n = dcount(T1f, "analysis_model=='M0' & config=='P2' & class=='nominal'", "M0 P2 cells classified nominal"),
-    m0max = dv(T1f, "analysis_model=='M0' & config=='P2' & pk_model=='k2020' & scenario=='V2_up_080'", "pass_pct", 2, "%", "M0 P2 maximum"),
-    gmr = drange(TCH, "set=='i'", "true_aucinf_gmr", 3, "", "true AUC0-inf ratio failing to retained, set (i)")))))
+    m0max = dv(T1f, "analysis_model=='M0' & config=='P2' & pk_model=='k2020' & scenario=='V2_up_080'", "pass_pct", 2, "%", "M0 P2 maximum")))))
   deck_end()
 }
