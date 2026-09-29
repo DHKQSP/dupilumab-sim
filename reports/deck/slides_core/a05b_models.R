@@ -71,7 +71,7 @@ slide_A5b <- function() {
   fd[, col := c(ref = PAL$ink2, last = PAL$blue, p2 = PAL$blue)[k]]
   ann <- data.table(y = c(2.5, 1.5), lab = c(fill(G$d_last, list(d = a5b_signed(fnum(de1$auclast_minus_ref_pp, 2)))), fill(G$d_cmax, list(d = a5b_signed(fnum(de1$p2_minus_auclast_pp, 2))))),
                     col = c(PAL$blue, PAL$ink2))
-  xl <- c(floor(min(fd$lo) * 5) / 5 - 0.2, ceiling(max(fd$hi) * 5) / 5 + 0.55)
+  xl <- c(floor(min(fd$lo) * 5) / 5 - 0.2, ceiling(max(fd$hi) * 5) / 5 + 0.7)
   p <- ggplot(fd) +
     geom_vline(xintercept = nomv, linetype = "22", colour = PAL$ink2, linewidth = 0.7) +
     annotate("text", x = nomv, y = 3.62, label = fill(G$nom, list(v = f$nom)), hjust = -0.08, size = PT(14), family = FONT, colour = PAL$ink2) +
@@ -81,9 +81,9 @@ slide_A5b <- function() {
     geom_label(data = ann, aes(xl[1] + 0.02, y, label = lab, colour = col), hjust = 0, size = PT(14), family = FONT, fill = "white", label.size = 0, label.padding = grid::unit(1, "pt")) +
     scale_colour_identity() +
     scale_y_continuous(breaks = 3:1, labels = unlist(G$rows[c("ref", "last", "p2")]), limits = c(0.6, 3.75), expand = expansion(mult = 0)) +
-    scale_x_continuous(limits = xl, breaks = seq(ceiling(xl[1] * 2) / 2, floor(xl[2] * 2) / 2, 0.5), expand = expansion(mult = 0)) +
+    scale_x_continuous(limits = xl, breaks = seq(ceiling(xl[1] * 2) / 2, floor(max(fd$hi) * 2) / 2, 0.5), expand = expansion(mult = 0)) +
     labs(x = G$xlab, y = NULL, subtitle = G$sub) + theme_core(16) +
-    theme(panel.grid.major.y = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 14, colour = PAL$ink, lineheight = 0.95), plot.margin = margin(4, 8, 4, 4))
+    theme(panel.grid.major.y = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 14, colour = PAL$ink, lineheight = 0.95), plot.margin = margin(4, 14, 4, 4))
   xr <- GEO$ML + TW + 0.3; wr <- GEO$W - GEO$MR - xr
   deck_text(tx("A5b.head_b"), c(xr, y0, wr, hh), size = 16, bold = TRUE, label = "label_b", gap_pt = 0)
   deck_figure(p, "a5b_decomposition", c(xr, ty, wr, th), src = c(T1, DE))
