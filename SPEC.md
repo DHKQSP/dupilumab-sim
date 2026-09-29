@@ -477,4 +477,5 @@ Km 근거: Kovalenko 2016에서 0.01 미만은 목적함수가 둔감했으므�
 - 도구: 결과보고 덱과 같은 라이브러리(`lib/deck_lib.R`)에 덱 종류(`DECK_PROFILES`: results, core)를 두었다. 기본값 results는 이전과 같은 결과를 낸다(다시 빌드해 32장 슬라이드 XML이 커밋 표기 외에 같고, 추적표 1,733행이 source_commit 열 외에 같음을 확인). core: `build_deck.R --deck core`, 슬라이드 `slides_core/`, 문구 `text/ko_core/`, 그림 `figures_core/`, 산출 `dupilumab_AUCinf_core_deck_v1.1.pptx`·PDF, `core_deck_traceability.csv`, `core_deck_meta*.csv`.
 - 형식(빌드와 검사 6이 강제): 제목 28pt 2줄 이내(결론 문장), 킥커 16pt, 본문 18pt, 표·캡션·그림 글자 14pt 이상(그림은 ggplot 테마와 글자 레이어를 빌드에서 검사), 요점 3개·표 8행 이하. 본문 슬라이드 S2~S10은 본문 3줄 이내, 주 시각 요소(그림·도식·카드) 면적이 본문 영역의 60% 이상. 색은 AUClast 파랑, 외삽·AUCinf 주황 두 가지(모델은 표식·선 모양). 바닥글은 출처와 버전만. 근거 태그 유지.
 - 약어: 표지 제목은 지시 문구 그대로 두고(PK, AUCinf) 같은 표지의 용어 줄에서 풀이한다(검사 5에 표지 예외 `abbrev_anywhere_slides`). 나머지는 첫 등장 슬라이드에서 읽는 순서로 풀이.
+- 검토: 본문과 별첨을 각각 두 차례(시각·내용) 새 검토자가 보고 반영했다(D-063). 용어 규칙과 표 선택 인자는 `reports/deck/AUTHORING_CORE.md`.
 - 검사: 결과보고 덱과 같은 9종(`check_deck.R --deck core`)에 본문 슬라이드 설계 한도(본문 줄 수, 주 시각 요소 비율, 제목 줄 수)를 더했다. 아토피 결과 허용 슬라이드는 별첨 A11.

@@ -9,21 +9,21 @@ check,slide,status,detail
 1 numbers traced,S8,pass,29 traced values
 1 numbers traced,S9,pass,28 traced values
 1 numbers traced,S10,pass,9 traced values
-1 numbers traced,A1,pass,61 traced values
+1 numbers traced,A1,pass,62 traced values
 1 numbers traced,A2,pass,30 traced values
 1 numbers traced,A3a,pass,96 traced values
-1 numbers traced,A3b,pass,73 traced values
+1 numbers traced,A3b,pass,77 traced values
 1 numbers traced,A4a,pass,30 traced values
 1 numbers traced,A4b,pass,67 traced values
-1 numbers traced,A5a,pass,74 traced values
-1 numbers traced,A5b,pass,84 traced values
+1 numbers traced,A5a,pass,77 traced values
+1 numbers traced,A5b,pass,85 traced values
 1 numbers traced,A6,pass,44 traced values
-1 numbers traced,A7,pass,108 traced values
+1 numbers traced,A7,pass,111 traced values
 1 numbers traced,A8,pass,53 traced values
-1 numbers traced,A9,pass,82 traced values
-1 numbers traced,A10,pass,62 traced values
-1 numbers traced,A11,pass,80 traced values
-1 numbers traced,A12,pass,61 traced values
+1 numbers traced,A9,pass,85 traced values
+1 numbers traced,A10,pass,68 traced values
+1 numbers traced,A11,pass,84 traced values
+1 numbers traced,A12,pass,74 traced values
 1 numbers traced,A14,pass,35 traced values
 2 empty values,S1,pass,""
 3 dashes,S1,pass,""
@@ -161,9 +161,9 @@ check,slide,status,detail
 6 limits,A11,pass,"bullets 0, table rows 5"
 6 limits,A12,pass,"bullets 0, table rows 8"
 6 limits,A14,pass,"bullets 0, table rows 0"
-7 trace sources,all,pass,"101 source files, 1294 trace rows"
-8 report cross-check,all,pass,"2395 deck values share file, filter and column with a report value; 2395 identical raw values; 2395 printed values consistent"
-8 key numbers cross-check,all,pass,consistent after rounding: 45; file not cited: 633; matched: 168; not in key numbers: 389
+7 trace sources,all,pass,"101 source files, 1332 trace rows"
+8 report cross-check,all,pass,"2491 deck values share file, filter and column with a report value; 2491 identical raw values; 2491 printed values consistent"
+8 key numbers cross-check,all,pass,consistent after rounding: 45; file not cited: 656; matched: 176; not in key numbers: 396
 8 headline,S2,pass,33~39% (report: TRUE; key numbers: consistent after rounding)
 8 headline,S2,pass,84% (report: TRUE; key numbers: consistent after rounding)
 8 headline,S2,pass,17.5% (report: TRUE; key numbers: not in key numbers)
