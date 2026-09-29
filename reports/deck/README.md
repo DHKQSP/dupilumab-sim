@@ -1,8 +1,21 @@
-# 결과보고 슬라이드 (v1.0.1, 사내 검토용)
+# 사내 검토용 슬라이드: 핵심 덱 v1.1과 결과보고 덱 v1.0.1(기술 백업)
 
-`dupilumab_endpoint_results_v1.0.1.pptx`(16:9)와 같은 이름의 PDF(빠른 열람용). 청중: 임상약리·임상개발 담당자. 제출 문서가 아니다.
+- **핵심 덱 v1.1**: `dupilumab_AUCinf_core_deck_v1.1.pptx`와 같은 이름의 PDF. "AUCinf는 1차 평가변수로 적절하지 않다"를 정량 근거로 보이는 짧은 덱(표지 + 본문 10장 + 별첨).
+  지시 2026-09-29, 사전 등록 `config/prereg_20260929.yaml`, SPEC §16, DECISIONS D-063. 작성 규칙 `AUTHORING_CORE.md`.
+- **결과보고 덱 v1.0.1(기술 백업)**: `dupilumab_endpoint_results_v1.0.1.pptx`와 PDF(32장). 핵심 덱의 세부 근거를 담은 원본이며 그대로 둔다(파일·추적표·출처 해시 불변).
+- 청중: 임상약리·임상개발 담당자. 둘 다 제출 문서가 아니다.
 
-## 만들기
+## 핵심 덱 만들기
+```
+Rscript scripts/63_core_deck_inputs.R          # results/core_deck/(케이스별 창 포착률, 대표 대상자 등; 로컬 .rds 필요, 커밋된 결과와 대조)
+Rscript reports/deck/build_deck.R --deck core  # pptx + core_deck_traceability.csv + core_deck_meta*.csv
+python3 reports/deck/render_deck.py reports/deck/dupilumab_AUCinf_core_deck_v1.1.pptx <PNG 폴더> \
+        --pdf reports/deck/dupilumab_AUCinf_core_deck_v1.1.pdf
+Rscript reports/deck/check_deck.R --deck core  # 검사 9종 + 핵심 덱 설계 한도(본문 3줄, 주 그림 60%, 제목 2줄, 글자 하한)
+Rscript scripts/60_regulatory_package.R        # 추적 행을 regulatory/traceability.csv(document deck_core_ko)에 합친다
+```
+
+## 결과보고 덱(v1.0.1) 만들기
 ```
 Rscript reports/deck/make_template.R          # 16:9 템플릿(처음 한 번; 결과는 template_16x9.pptx로 커밋됨)
 Rscript scripts/62_deck_inputs.R               # 분포 그림 입력(results/deck_inputs/; 로컬 대상자 수준 .rds 필요, 커밋된 요약과 대조)
@@ -17,8 +30,9 @@ Rscript scripts/60_regulatory_package.R        # 덱 추적 행을 regulatory/tr
 ## 구성
 - `lib/deck_lib.R`: 배치(officer), 문구(yaml, 자리표시자), 수치 함수(`d*`, 출처 기록), 넘침 추정, 그림 테마, 글머리표 후처리.
 - `lib/deck_facts_common.R`: 설계 상수(config에서 읽음). `slides/sNN_*.R`: 슬라이드별 코드. `text/ko/*.yaml`: 문구(숫자 없음).
-- `check_deck.R`: 숫자 추적, 빈 값, 대시, 부록 A5 밖 아토피, 약어 첫 등장, 글자 크기·요점·표 행 수, 출처 해시, M&S 보고서 추적표·key_numbers_en.md와의 대조.
-- `AUTHORING.md`: 작성 규칙.
+- `check_deck.R`: 숫자 추적, 빈 값, 대시, 허용 별첨(결과보고 덱 A5, 핵심 덱 A11) 밖 아토피, 약어 첫 등장, 글자 크기·요점·표 행 수, 출처 해시, M&S 보고서 추적표·key_numbers_en.md와의 대조, 렌더링 배치.
+- 핵심 덱: `slides_core/`(공용 도우미 `c00_helpers.R`), `text/ko_core/`, 그림 `figures_core/`. 덱 종류별 설정은 `lib/deck_lib.R`의 `DECK_PROFILES`.
+- `AUTHORING.md`: 작성 규칙(공통). `AUTHORING_CORE.md`: 핵심 덱 추가 규칙.
 
 ## 실행 환경(렌더링)
 - R 패키지: officer 0.6.4, flextable 0.9.4, ragg 1.2.7, systemfonts 1.0.5와 의존 패키지(renv.lock에 기록).

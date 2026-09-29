@@ -55,13 +55,22 @@ if (file.exists(deck_tr_f)) {
   dtr <- dtr[, .(document = "deck_ko", section = sprintf("%s (slide %d)", section, slide_n), item, source_file, locator, value_raw, value_printed, source_sha256, source_commit)]
   n_deck <- nrow(dtr[!value_printed %in% c("(figure)", "(table)")]); tr <- rbind(tr, dtr, fill = TRUE)
 }
+# 핵심 덱(v1.1, reports/deck --deck core, D-063)도 같은 방식으로 합친다(document = deck_core_ko)
+core_tr_f <- proj_path("reports", "deck", "core_deck_traceability.csv"); n_core <- 0L
+if (file.exists(core_tr_f)) {
+  ctr <- fread(core_tr_f, encoding = "UTF-8", colClasses = list(character = c("value_raw", "value_printed", "locator", "source_commit")))
+  now <- vapply(unique(ctr$source_file), function(f) digest::digest(file = proj_path(f), algo = "sha256"), "")
+  stale <- unique(ctr[source_sha256 != now[source_file], source_file]); if (length(stale)) stop("core deck is stale (rebuild reports/deck --deck core): ", paste(stale, collapse = ", "))
+  ctr <- ctr[, .(document = "deck_core_ko", section = sprintf("%s (slide %d)", section, slide_n), item, source_file, locator, value_raw, value_printed, source_sha256, source_commit)]
+  n_core <- nrow(ctr[!value_printed %in% c("(figure)", "(table)")]); tr <- rbind(tr, ctr, fill = TRUE)
+}
 fwrite(tr, file.path(reg_dir, "traceability.csv"))
 unlink(file.path(tab_dir, sprintf("trace_%s.csv", docs)))
 tf <- tempfile(fileext = ".csv"); fwrite(tr[, .(document, section, item, source_file, locator, value_printed)], tf); check_english(tf)
 
 # 4) manifest: programs, configuration, dependency lock, tests, every result file cited, figures and the package itself
 tracked <- git("ls-files")
-keep <- tracked[grepl("^(R|scripts|config|tests|regulatory|reports/deck|results/deck_inputs)/", tracked) | tracked %in% c("renv.lock", "renv/settings.json", "renv/activate.R", ".Rprofile", "SPEC.md", "DECISIONS.md", "README.md")]
+keep <- tracked[grepl("^(R|scripts|config|tests|regulatory|reports/deck|results/deck_inputs|results/core_deck)/", tracked) | tracked %in% c("renv.lock", "renv/settings.json", "renv/activate.R", ".Rprofile", "SPEC.md", "DECISIONS.md", "README.md")]
 cited <- unique(tr$source_file[file.exists(proj_path(tr$source_file))])
 rendered <- unlist(lapply(docs, function(d) paste0(out_name[[d]], ".", doc_formats[[d]])))
 files <- sort(unique(c(keep, cited, file.path("regulatory", c(rendered, "traceability.csv")),
@@ -69,7 +78,7 @@ files <- sort(unique(c(keep, cited, file.path("regulatory", c(rendered, "traceab
 files <- files[file.exists(proj_path(files)) & !grepl("^regulatory/(manifest_sha256\\.csv|README\\.md|release_notes\\.md)$", files)]
 mf <- data.table(path = files, bytes = file.size(proj_path(files)), sha256 = vapply(files, function(f) digest::digest(file = proj_path(f), algo = "sha256"), ""),
                  git_tracked = files %in% tracked, role = fifelse(grepl("^regulatory/", files), "regulatory document", fifelse(grepl("^results/", files), "result cited in the documents",
-                                                             fifelse(grepl("^reports/deck/", files), "results deck (Korean, internal review)", fifelse(grepl("^(R|scripts)/", files), "program", fifelse(grepl("^config/", files), "configuration", fifelse(grepl("^tests/", files), "test", "project record")))))))
+                                                             fifelse(grepl("^reports/deck/(slides_core|text/ko_core|figures_core)/|^reports/deck/(dupilumab_AUCinf_core_deck|core_deck_|AUTHORING_CORE)", files), "core deck (Korean, internal review)", fifelse(grepl("^reports/deck/", files), "results deck (Korean, internal review)", fifelse(grepl("^(R|scripts)/", files), "program", fifelse(grepl("^config/", files), "configuration", fifelse(grepl("^tests/", files), "test", "project record"))))))))
 fwrite(mf, file.path(reg_dir, "manifest_sha256.csv"))
 
 # 5) reviewer guide
@@ -88,6 +97,7 @@ readme <- c(
   "| `MS_report.docx` / `MS_report.html` | Modeling and Simulation Report (ICH M15 structure): question of interest, context of use, model risk, methods, credibility evidence, results, discussion, appendices A to H. |",
   "| `FDA_questions.docx` / `FDA_questions.html` | Anticipated FDA questions with evidence-based responses and pointers to the report. |",
   if (n_deck > 0) sprintf("| `../reports/deck/dupilumab_endpoint_results_v1.0.1.pptx` (and `.pdf`) | Internal results-review deck in Korean for clinical pharmacology and clinical development (not a submission document). Its %s printed values are in `traceability.csv` as document `deck_ko`, one section per slide. |", format(n_deck, big.mark = ",")) else NULL,
+  if (n_core > 0) sprintf("| `../reports/deck/dupilumab_AUCinf_core_deck_v1.1.pptx` (and `.pdf`) | Internal core deck in Korean (v1.1): the quantitative case against AUC0-inf as a primary endpoint in ten main slides with appendices; the earlier results deck is kept as the technical backup. Its %s printed values are in `traceability.csv` as document `deck_core_ko`. |", format(n_core, big.mark = ",")) else NULL,
   "| `sap_text_proposals_en.md` | Proposed statistical analysis plan text for the PK analyses (primary endpoints and analysis model options, AUC0-inf as secondary endpoint, fallback, ADA, BLQ and AUC rules, sample size), with the supporting numbers. |",
   "| `release_notes.md` | Changes in this version. |",
   "| `tables/assumptions_register.csv` | Assumptions, their impact and the actions required before submission. |",
@@ -159,6 +169,11 @@ rn <- c(
       sprintf("- Results-review deck (Korean, internal): `reports/deck/dupilumab_endpoint_results_v1.0.1.pptx` and PDF, %d slides (%d main, %d appendix), built by `reports/deck/build_deck.R` from the committed results; %s printed values traced (`traceability.csv`, document `deck_ko`)%s.",
               nrow(m_), sum(!grepl("^A", m_$id)), sum(grepl("^A", m_$id)), format(n_deck, big.mark = ","),
               if (is.null(ck_)) "" else sprintf("; automatic checks (numbers traced, no empty values, no dashes, no atopic results outside appendix A5, abbreviations, font sizes and limits, sources unchanged, agreement with the report and key numbers, rendered layout of the PDF without overflow or overlap): %d passed, %d failed", sum(ck_$status == "pass"), sum(ck_$status == "FAIL"))) } else NULL },
+  { cm <- proj_path("reports", "deck", "core_deck_meta.csv"); if (file.exists(cm)) { m_ <- fread(cm, encoding = "UTF-8"); cck <- proj_path("reports", "deck", "dupilumab_AUCinf_core_deck_v1.1_checks.csv")
+      ck_ <- if (file.exists(cck)) fread(cck) else NULL
+      sprintf("- Core deck v1.1 (Korean, internal; directive 2026-09-29, pre-registration `config/prereg_20260929.yaml` section7): `reports/deck/dupilumab_AUCinf_core_deck_v1.1.pptx` and PDF, %d slides (%d main including the cover, %d appendix), no new trial simulation; new summaries in `results/core_deck/` from `scripts/63_core_deck_inputs.R` (regenerated inputs matched the committed results); %s printed values traced (document `deck_core_ko`)%s.",
+              nrow(m_), sum(!grepl("^A", m_$id)), sum(grepl("^A", m_$id)), format(n_core, big.mark = ","),
+              if (is.null(ck_)) "" else sprintf("; automatic checks: %d passed, %d failed", sum(ck_$status == "pass"), sum(ck_$status == "FAIL"))) } else NULL },
   sprintf("- Analysis model (report Section 5.9). Boundary type I error of AUC0-last + Cmax in 16 cells: pooled t-test (M0) %s; ANOVA with the randomization weight stratum (M1) %s. Cells above 5%% (point estimate): %s.", cls("M0"), cls("M1"), ov_l),
   sprintf("- Expectations recorded before the results: %s.", paste(sprintf("%s (%s)", ex$expectation, ifelse(ex$consistent, "consistent", "not consistent")), collapse = "; ")),
   sprintf("- LLOQ (report Section 5.10). The study LLOQ is set in `config/assay.yaml` (single source). Between 0.02 and 0.5 mg/L: window coverage of AUC0-last below 80%% in %s%% to %s%% of subjects; AUC0-inf reliability, criteria (i), %s%% (0.02 mg/L) to %s%% (0.5 mg/L); boundary type I error of AUC0-last + Cmax %s (M0) and %s (M1) in three boundary scenarios.",
