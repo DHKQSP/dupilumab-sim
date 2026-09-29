@@ -77,7 +77,7 @@ slide_S14 <- function() {
   RW <- c(AB, C_i = CC[["C_i"]])
   m <- do.call(rbind, lapply(names(RW), function(k) one(k, RW[[k]])))
   df <- as.data.frame(m, stringsAsFactors = FALSE); names(df) <- tx("S14.table.head", f)
-  LW <- 7.85; th <- 2.52
+  LW <- 7.85; th <- 2.58   # 머리글은 렌더러가 한 줄 더 높게 잡는다(실측 0.71 in)
   deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, LW, th), widths = c(1.74, 1.21, 1.66, 0.84, 1.27, 1.12), size = 12, highlight = 6)
 
   # ---- 요점(표 아래) ----
@@ -86,7 +86,7 @@ slide_S14 <- function() {
   WV2 <- "analysis_model=='M1' & pk_model=='k2020' & scenario=='V2_up_080'"
   # 규칙 C 세트별 값(세트 사이 범위로 합치지 않는다)
   cv2 <- lapply(CC, function(cf) dv(CG, sprintf("%s & config=='%s'", WV2, cf), "pass_pct", 2, "%", sprintf("M1 %s, 2020 model V2 up cell", cf)))
-  yb <- GEO$BODY_TOP + th + 0.14
+  yb <- GEO$BODY_TOP + th + 0.08
   deck_bullets(tx("S14.bullets", list(c = f$c, nom = f$nom, p2 = p2v, abmax = abmax, ci = cv2$C_i, cii = cv2$C_ii, ciii = cv2$C_iii, civ = cv2$C_iv, one = one_)),
                box = c(GEO$ML, yb, LW, GEO$BODY_BOTTOM - yb), size = 16, gap_pt = 6)
 
