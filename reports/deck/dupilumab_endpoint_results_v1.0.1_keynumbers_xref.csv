@@ -9,8 +9,9 @@ S02,criteria set (iii) adj_r2_min,config/prereg_20260926.yaml,0.90,file not cite
 S02,criteria set (i) adj_r2_min,config/prereg_20260926.yaml,0.80,file not cited
 S02,M1 G2_A_i cells above 5% (point),results/criteria/criteria_g2_type1.csv,10,not in key numbers
 S02,boundary cells per configuration (M1),results/criteria/criteria_g2_type1.csv,16,matched
+S02,M1 G2_A_i cells with Wilson lower bound above 5%,results/criteria/criteria_g2_type1.csv,8,matched
 S02,M1 G2_C_i cells above 5% (point),results/criteria/criteria_g2_type1.csv,1,matched
-S02,"decision instability inst_all, median over 16 boundary cells, M1",results/criteria/criteria_instability.csv,13.3%,not in key numbers
+S02,"true AUC0-inf ratio failing to retained, set (i), two models",results/trialpop/tp_characteristics.csv,0.79~0.81,consistent after rounding
 S02,"window coverage, median, two models",results/trialpop/tp_coverage_individual.csv,99.3~99.4%,matched
 S02,"window coverage (true AUC0-tlast / true AUC0-inf), smallest subject-level value over both models",results/trialpop/tp_coverage_individual.csv,84.3%,matched
 S02,M1 P2 boundary cells,results/oc_models/type1_models.csv,16,not in key numbers
@@ -21,7 +22,10 @@ S02,subjects per model,results/trialpop/tp_failure_by_set.csv,"20,000",matched
 S02,dose (mg),config/trial_design.yaml,300,file not cited
 S02,M1 G2_A_i largest boundary pass rate,results/criteria/criteria_g2_type1.csv,20.27%,not in key numbers
 S02,M1 G2_A_ii cells above 5% (point),results/criteria/criteria_g2_type1.csv,12,matched
+S02,M1 G2_C_i cells with Wilson lower bound above 5%,results/criteria/criteria_g2_type1.csv,0,matched
+S02,M1 G2_C_i cell above 5% (point) with Wilson 95% CI,results/criteria/criteria_g2_type1.csv,5.06% (95% CI 4.76~5.37),not in key numbers
 S02,M1 G2_B cells above 5% (point),results/criteria/criteria_g2_type1.csv,10,not in key numbers
+S02,"decision instability inst_all, median over 16 boundary cells, M1",results/criteria/criteria_instability.csv,13.3%,not in key numbers
 S02,"decision instability inst_all, max over 16 boundary cells, M1",results/criteria/criteria_instability.csv,39.4%,not in key numbers
 S02,"decision instability inst_all, median over 16 boundary cells, M0",results/criteria/criteria_instability.csv,12.6%,matched
 S02,"decision instability inst_all, max over 16 boundary cells, M0",results/criteria/criteria_instability.csv,39.6%,matched
@@ -96,7 +100,7 @@ S06,"largest relative parameter difference, theoph",results/nca_engine/engine_va
 S06,"comparisons passed, theoph",results/nca_engine/engine_validation_summary.csv,3,not in key numbers
 S06,"NCA engine validation: profiles, indometh",results/nca_engine/engine_validation_summary.csv,6,not in key numbers
 S06,"lambda-z windows identical, indometh, three comparisons",results/nca_engine/engine_validation_summary.csv,18 / 18,not in key numbers
-S06,"largest relative parameter difference, indometh",results/nca_engine/engine_validation_summary.csv,5e-15,consistent after rounding
+S06,"largest relative parameter difference, indometh",results/nca_engine/engine_validation_summary.csv,5.0e-15,not in key numbers
 S06,"comparisons passed, indometh",results/nca_engine/engine_validation_summary.csv,3,not in key numbers
 S06,"NCA engine validation: profiles, dupi",results/nca_engine/engine_validation_summary.csv,"1,000",not in key numbers
 S06,"lambda-z windows identical, dupi, three comparisons",results/nca_engine/engine_validation_summary.csv,"3,000 / 3,000",not in key numbers
@@ -104,6 +108,7 @@ S06,"largest relative parameter difference, dupi",results/nca_engine/engine_vali
 S06,"comparisons passed, dupi",results/nca_engine/engine_validation_summary.csv,3,not in key numbers
 S06,"pre-registration commit, operating-characteristic design",regulatory/tables/prespecification_register.csv,779e068,file not cited
 S06,"pre-registration commit, analysis models (v1.0.1)",regulatory/tables/prespecification_register.csv,521645a,file not cited
+S06,commit of the post hoc extension rule (v1.0),regulatory/tables/prespecification_register.csv,68be707,file not cited
 S06,"Km, both models (mg/L)",config/params_typical.yaml,0.01,file not cited
 S06,"proportional residual, 2016 model (%)",config/params_variability.yaml,24.2%,file not cited
 S06,"proportional residual, 2020 model (%)",config/params_k2020_model1.yaml,15.0%,file not cited
@@ -121,8 +126,11 @@ S06,degrees of freedom of the pooled t-test (2 x n_per_arm - 2),config/trial_des
 S06,boundary cells per PK model,results/oc_models/type1_models.csv,8,not in key numbers
 S06,extension threshold (%),config/prereg_20260926.yaml,5,file not cited
 S06,"M0 P2 boundary type I error at 10,000 trials, extended cell",results/oc_models/extension_decision_models.csv,5.32% (95% CI 4.90~5.78),file not cited
+S06,"M1 P2 boundary type I error at 10,000 trials, extended cell",results/oc_models/extension_decision_models.csv,5.74% (95% CI 5.30~6.21),file not cited
 S07,validation criterion: simulated AUC0-last mean within +-x% of observed (%),config/design_clot2021.yaml,15,file not cited
 S07,dose of the other presentation (mg),results/step1/step1b_quant_gate.csv,200,file not cited
+S07,"observed median tmax, other presentation (days)",results/step1/step1b_quant_gate.csv,3.0~3.1,file not cited
+S07,"simulated median tmax, other presentation (days)",results/step1/step1b_quant_gate.csv,7,file not cited
 S07,dose (mg),config/trial_design.yaml,300,file not cited
 S07,"AUC0-last sim/obs range, 2016, study presentation",results/step1/step1b_quant_gate.csv,0.94~1.07,file not cited
 S07,"AUC0-last sim/obs range, 2020, study presentation",results/step1_k2020/step1b_quant_gate.csv,1.02~1.13,file not cited
@@ -130,8 +138,6 @@ S07,"Cmax sim/obs range, 2016",results/step1/step1b_quant_gate.csv,1.08~1.27,fil
 S07,"Cmax sim/obs range, 2020",results/step1_k2020/step1b_quant_gate.csv,1.00~1.17,file not cited
 S07,other presentation: volume (mL),results/step1/step1b_quant_gate.csv,1.14,file not cited
 S07,other presentation: concentration (mg/mL),results/step1/step1b_quant_gate.csv,175,file not cited
-S07,"observed median tmax, other presentation (days)",results/step1/step1b_quant_gate.csv,3.0~3.1,file not cited
-S07,"simulated median tmax, other presentation (days)",results/step1/step1b_quant_gate.csv,7,file not cited
 S07,"AUC0-last sim/obs, other presentation, 2016",results/step1/step1b_quant_gate.csv,0.82~0.91,file not cited
 S07,"AUC0-last sim/obs, other presentation, 2020",results/step1_k2020/step1b_quant_gate.csv,0.90~1.00,file not cited
 S07,absorption diagnostic: ka multipliers,results/step1/appendix_dose_shape_model.csv,1.5~2.0,file not cited
@@ -148,8 +154,9 @@ S07,"fully external items failing, 2020",results/step1_k2020/step1h_external_onl
 S07,"PKM12350 test arm sim/obs, 2016 (fully external judgement)",results/step1/step1h_external_only_gate.csv,1.17,file not cited
 S07,assumed mean weight of the single arms (kg),config/design_clot2021.yaml,78,file not cited
 S07,PKM12350 test arm observed mean AUC0-last,results/step1/step1f_300mg_arm_check.csv,487.5,file not cited
-S07,PKM12350 reference arm observed mean AUC0-last,results/step1/step1f_300mg_arm_check.csv,500,file not cited
-S07,largest observed 300 mg single-arm mean AUC0-last,results/step1/step1f_300mg_arm_check.csv,630,file not cited
+S07,PKM12350 reference arm observed mean AUC0-last,results/step1/step1f_300mg_arm_check.csv,500.0,file not cited
+S07,largest observed 300 mg single-arm mean AUC0-last,results/step1/step1f_300mg_arm_check.csv,630.0,file not cited
+S07,"dose of the cohort with the largest Cmax sim/obs, 2016",results/step1/step1b_quant_gate.csv,600,file not cited
 S07,"assumed weight, lowest (kg)",results/step1/step1i_arm_weight_sensitivity.csv,70,file not cited
 S07,"assumed weight, highest (kg)",results/step1/step1i_arm_weight_sensitivity.csv,90,file not cited
 S07,"PKM12350 test sim/obs at the lowest assumed weight, 2016",results/step1/step1i_arm_weight_sensitivity.csv,1.31,file not cited
@@ -162,6 +169,7 @@ S07,"pooled simulated mean AUC0-last, 300 mg, 2016",results/step1/step1f_300mg_a
 S07,"pooled simulated mean AUC0-last, 300 mg, 2020",results/step1_k2020/step1f_300mg_arm_check_summary.csv,614,file not cited
 S07,observed 300 mg single-arm mean range,results/step1/step1f_300mg_arm_check_summary.csv,487.5~630.0,file not cited
 S07,"PKM12350 test sim/obs at the assumed weight, weight-sensitivity run, 2016",results/step1/step1i_arm_weight_sensitivity.csv,1.16,file not cited
+S07,"smallest Cmax sim/obs, 2020, study presentation",results/step1_k2020/step1b_quant_gate.csv,0.997,file not cited
 S08,nominal type I error per one-sided test (%) = (1 - be.ci_level) / 2,config/trial_design.yaml,5%,file not cited
 S08,"schedule B0, n (study day = days after dose + 1)",config/trial_design.yaml,13,file not cited
 S08,"schedule B0, last (study day = days after dose + 1)",config/trial_design.yaml,57,file not cited
@@ -169,6 +177,8 @@ S08,"cliff length (1-day definition), median, two models",results/cliff/cliff_su
 S08,"trial population, set (iii) failing, two models",results/trialpop/tp_failure_by_set.csv,33.2~38.8%,matched
 S08,"trial population, set (i) failing, two models",results/trialpop/tp_failure_by_set.csv,8.2~13.4%,matched
 S08,M1 G2_A_i cells above 5% (point),results/criteria/criteria_g2_type1.csv,10,not in key numbers
+S08,M1 G2_A_i cells exceeding (Wilson lower bound above 5%),results/criteria/criteria_g2_type1.csv,8,matched
+S08,"true AUC0-inf ratio failing to retained, set (i)",results/trialpop/tp_characteristics.csv,0.786~0.815,matched
 S08,boundary cells per configuration (M1),results/criteria/criteria_g2_type1.csv,16,matched
 S08,M1 G2_C_i cells above 5% (point),results/criteria/criteria_g2_type1.csv,1,matched
 S08,"window coverage, median, two models",results/trialpop/tp_coverage_individual.csv,99.3~99.4%,matched
@@ -179,7 +189,7 @@ S08,M1 P2 cells classified exceeding,results/oc_models/type1_models.csv,1,matche
 S08,M1 P2 maximum,results/oc_models/type1_models.csv,5.63%,matched
 S08,"cliff start concentration (mg/L), median, two models",results/cliff/cliff_summary.csv,0.88~0.89,not in key numbers
 S08,"cliff length, 5th to 95th percentile, two models",results/cliff/cliff_summary.csv,1.33~1.43,not in key numbers
-S08,"true AUC0-inf ratio failing to retained, set (i)",results/trialpop/tp_characteristics.csv,0.786~0.815,matched
+S08,M1 G2_C_i cells exceeding (Wilson lower bound above 5%),results/criteria/criteria_g2_type1.csv,0,matched
 S08,M1 G2_A_ii cells above 5% (point),results/criteria/criteria_g2_type1.csv,12,matched
 S08,M1 G2_B cells above 5% (point),results/criteria/criteria_g2_type1.csv,10,not in key numbers
 S08,"decision instability inst_all, median over 16 boundary cells, M1",results/criteria/criteria_instability.csv,13.3%,not in key numbers
@@ -193,14 +203,10 @@ S09,evaluable subjects per arm,config/trial_design.yaml,117,file not cited
 S09,body weight inclusion range (kg),config/trial_design.yaml,60~90,file not cited
 S09,criteria set (iii) adj_r2_min,config/prereg_20260926.yaml,0.90,file not cited
 S09,criteria set (i) adj_r2_min,config/prereg_20260926.yaml,0.80,file not cited
-S09,criteria set (i) extrap_max_pct,config/prereg_20260926.yaml,20,file not cited
 S09,criteria set (ii) adj_r2_min,config/prereg_20260926.yaml,0.80,file not cited
-S09,criteria set (ii) extrap_max_pct,config/prereg_20260926.yaml,20,file not cited
 S09,criteria set (ii) span_ratio_min,config/prereg_20260926.yaml,2,file not cited
 S09,criteria set (iii) adj_r2_min,config/prereg_20260926.yaml,0.90,file not cited
-S09,criteria set (iii) extrap_max_pct,config/prereg_20260926.yaml,20,file not cited
 S09,criteria set (iv) adj_r2_min,config/prereg_20260926.yaml,0.90,file not cited
-S09,criteria set (iv) extrap_max_pct,config/prereg_20260926.yaml,20,file not cited
 S09,criteria set (iv) span_ratio_min,config/prereg_20260926.yaml,3,file not cited
 S09,"failing, set (i)",results/trialpop/tp_failure_by_set.csv,8.2~13.4%,matched
 S09,"failing, set (ii)",results/trialpop/tp_failure_by_set.csv,16.1~19.3%,matched
@@ -218,6 +224,9 @@ S09,"retained per arm, median, set (iii)",results/trialpop/tp_retained_per_arm.c
 S09,"retained per arm, 5th to 95th percentile, set (iii)",results/trialpop/tp_retained_per_arm.csv,63~86,matched
 S09,"retained per arm, median, set (iv)",results/trialpop/tp_retained_per_arm.csv,32~40,not in key numbers
 S09,"retained per arm, 5th to 95th percentile, set (iv)",results/trialpop/tp_retained_per_arm.csv,24~48,not in key numbers
+S09,criteria set (i) extrap_max_pct,config/prereg_20260926.yaml,20,file not cited
+S09,public SAPs with adjusted R-squared 0.90 (count of NCT identifiers),config/prereg_20260926.yaml,3,file not cited
+S09,"set (iv) span below 3 (hierarchical), two models",results/trialpop/tp_failure_reasons.csv,27.1~39.2%,file not cited
 S09,"lambda-z not estimable (all sets), two models",results/trialpop/tp_failure_by_set.csv,0.62~1.46%,matched
 S09,"set (iii) failing, 2016 model (residual 24.2%)",results/trialpop/tp_residual_sensitivity.csv,38.8%,matched
 S09,"set (iii) failing, 2016 model with residual 12%",results/trialpop/tp_residual_sensitivity.csv,27.2%,matched
@@ -229,7 +238,13 @@ S09,"set (iv), residual 12%",results/trialpop/tp_residual_sensitivity.csv,66.0%,
 S09,subjects per model,results/trialpop/tp_failure_by_set.csv,"20,000",matched
 S09,identical-product trials per model,results/trialpop/tp_retained_per_arm.csv,"10,000",not in key numbers
 S09,criteria set (iv) span_ratio_min,config/prereg_20260926.yaml,3,file not cited
+S09,"set (i) adjusted R-squared below 0.80 (hierarchical), two models",results/trialpop/tp_failure_reasons.csv,7.0~11.4%,file not cited
+S09,"set (iii) adjusted R-squared below 0.90 (hierarchical), two models",results/trialpop/tp_failure_reasons.csv,32.1~36.8%,file not cited
+S09,"set (ii) span below 2 (hierarchical), two models",results/trialpop/tp_failure_reasons.csv,5.8~7.9%,file not cited
+S09,"set (iv) span below 3 (hierarchical), 2020 model",results/trialpop/tp_failure_reasons.csv,39.2%,file not cited
+S09,"set (iv) adjusted R-squared below 0.90 (hierarchical), 2020 model",results/trialpop/tp_failure_reasons.csv,32.1%,file not cited
 S10,"two or more samples on the cliff, fixed schedules, windowed days, max over schedules and models",results/cliff/cliff_points.csv,0.04%,not in key numbers
+S10,"two or more samples on the cliff, fixed schedules, nominal days, max",results/cliff/cliff_points.csv,0.0%,matched
 S10,"largest reliability gain versus B0 (set (i); set (ii) lower), trial population, D1 to D4",results/reliability/reliability_paired_vs_B0.csv,2.76,matched
 S10,"median cliff length, 1-day definition, two models (60-90 kg)",results/cliff/cliff_summary.csv,1.38,not in key numbers
 S10,lambda-z minimum points,config/nca_rules.yaml,3,file not cited
@@ -239,15 +254,16 @@ S10,minimum interval after Day 22 with added samples (days),results/cliff/cliff_
 S10,"one or more samples on the cliff, B0, two models",results/cliff/cliff_points.csv,18.8~20.0%,not in key numbers
 S10,"one or more samples on the cliff, D3, two models",results/cliff/cliff_points.csv,36.3~37.1%,not in key numbers
 S10,"three or more samples on the cliff, daily sampling, two models",results/cliff/cliff_points.csv,0.0%,matched
+S10,"three or more samples on the cliff, daily sampling, windowed, two models",results/cliff/cliff_points.csv,7.49~7.72%,not in key numbers
 S10,"reliability change versus B0, set (i), two models, D1 to D4",results/reliability/reliability_paired_vs_B0.csv,-1.02~2.76,not in key numbers
 S10,"reliability change versus B0, set (ii), two models, D1 to D4",results/reliability/reliability_paired_vs_B0.csv,-3.50~1.69,not in key numbers
-S10,"cells where reliability under set (ii) falls, trial population",results/reliability/reliability_paired_vs_B0.csv,7,not in key numbers
-S10,"added-sampling cells, trial population (two models x D1 to D4)",results/reliability/reliability_paired_vs_B0.csv,8,not in key numbers
+S10,"schedule-model combinations where reliability under set (ii) falls, trial population",results/reliability/reliability_paired_vs_B0.csv,7,not in key numbers
+S10,"added-sampling schedule-model combinations, trial population (two models x D1 to D4)",results/reliability/reliability_paired_vs_B0.csv,8,not in key numbers
 S10,criterion (c) threshold (points),config/trial_design.yaml,5,file not cited
-S10,schedule D1: study days added to B0,config/trial_design.yaml,39·46,file not cited
-S10,schedule D2: study days added to B0,config/trial_design.yaml,39·46·53,file not cited
-S10,schedule D3: study days added to B0,config/trial_design.yaml,32·39·46·53,file not cited
-S10,schedule D4: study days added to B0,config/trial_design.yaml,40·47,file not cited
+S10,schedule D1: study days added to B0,config/trial_design.yaml,"39, 46",file not cited
+S10,schedule D2: study days added to B0,config/trial_design.yaml,"39, 46, 53",file not cited
+S10,schedule D3: study days added to B0,config/trial_design.yaml,"32, 39, 46, 53",file not cited
+S10,schedule D4: study days added to B0,config/trial_design.yaml,"40, 47",file not cited
 S10,"reliability change versus B0, set (i), k2016, D1",results/reliability/reliability_paired_vs_B0.csv,0.38,not in key numbers
 S10,"reliability change versus B0, set (i), k2016, D2",results/reliability/reliability_paired_vs_B0.csv,0.23,not in key numbers
 S10,"reliability change versus B0, set (i), k2016, D3",results/reliability/reliability_paired_vs_B0.csv,2.76,matched
@@ -278,9 +294,7 @@ S10,minimum interval with daily sampling (days),results/cliff/cliff_schedules.cs
 S10,"one or more samples on the cliff, D1, two models",results/cliff/cliff_points.csv,29.8~30.0%,not in key numbers
 S10,"one or more samples on the cliff, D2, two models",results/cliff/cliff_points.csv,31.4~31.8%,not in key numbers
 S10,"one or more samples on the cliff, D4, two models",results/cliff/cliff_points.csv,29.3~29.4%,not in key numbers
-S10,"two or more samples on the cliff, fixed schedules, nominal days, max",results/cliff/cliff_points.csv,0.0%,matched
 S10,"two or more samples on the cliff, daily sampling, nominal, two models",results/cliff/cliff_points.csv,32.6~34.0%,not in key numbers
-S10,"three or more samples on the cliff, daily sampling, windowed, two models",results/cliff/cliff_points.csv,7.49~7.72%,not in key numbers
 S10,"two or more samples on the cliff, fixed schedules, nominal, 2-day definition, max",results/cliff/cliff_points.csv,0.1%,not in key numbers
 S10,"two or more samples on the cliff, fixed schedules, windowed, 2-day definition, max",results/cliff/cliff_points.csv,4.53%,not in key numbers
 S10,"subjects per model, paired reliability comparison",results/reliability/reliability_paired_vs_B0.csv,"20,000",not in key numbers
@@ -306,6 +320,7 @@ S11,criteria set (iv) span_ratio_min,config/prereg_20260926.yaml,3,file not cite
 S11,"median lambda-z window, B0, two models (days)",results/reliability/reliability_lz_window_by_schedule.csv,14.9~15.0,not in key numbers
 S11,"median half-life from lambda-z, B0, two models (days)",results/reliability/reliability_lz_window_by_schedule.csv,5.3~5.8,not in key numbers
 S11,"span ratio below 3 (any flag), two models",results/trialpop/tp_failure_reasons.csv,38.5~46.8%,file not cited
+S11,"median span ratio, B0, two models",results/reliability/reliability_lz_window_by_schedule.csv,3.07~3.29,not in key numbers
 S11,study LLOQ (mg/L),config/assay.yaml,0.078,file not cited
 S11,lowest LLOQ in the sensitivity grid (mg/L),results/lloq/lloq_individual_table.csv,0.02,matched
 S11,"set (i) reliability change, lowest LLOQ vs study LLOQ, k2016, residual fixed (points)",results/lloq/lloq_individual_table.csv,-2.33,not in key numbers
@@ -315,6 +330,7 @@ S11,"set (i) reliability change, lowest LLOQ vs study LLOQ, k2020, residual scal
 S11,"additive residual SD (mg/L), both models",config/params_variability.yaml,0.03,file not cited
 S11,"adjusted R-squared below 0.80, 2016 model, study LLOQ (%)",results/lloq/lloq_individual_k2016.csv,11.4%,file not cited
 S11,"adjusted R-squared below 0.80, 2016 model, lowest LLOQ (%)",results/lloq/lloq_individual_k2016.csv,14.8%,file not cited
+S11,"set (ii) reliability change with paired 95% CI, lowest LLOQ vs study LLOQ, 2016 model, residual as estimated",results/lloq/lloq_individual_table.csv,0.16%p (95% CI -0.32~0.64),not in key numbers
 S11,body weight inclusion range (kg),config/trial_design.yaml,60~90,file not cited
 S11,"subjects per model, trial population",results/trialpop/tp_failure_by_set.csv,"20,000",matched
 S11,criteria set (i) adj_r2_min,config/prereg_20260926.yaml,0.80,file not cited
@@ -329,9 +345,9 @@ S11,"median adjusted R-squared, 2016 model",results/trialpop/tp_residual_sensiti
 S11,"median adjusted R-squared, residual 12%",results/trialpop/tp_residual_sensitivity.csv,0.946,not in key numbers
 S11,"set (iv) failing, 2020 model",results/trialpop/tp_residual_sensitivity.csv,72.5%,not in key numbers
 S11,"set (iii) failing, 2020 model",results/trialpop/tp_residual_sensitivity.csv,33.2%,not in key numbers
+S11,criteria set (ii) span_ratio_min,config/prereg_20260926.yaml,2,file not cited
 S11,"span below 3 (hierarchical), two models",results/trialpop/tp_failure_reasons.csv,27.1~39.2%,file not cited
 S11,"shortest three-point nominal window after Day 22, B0 (days)",results/reliability/reliability_lz_window_by_schedule.csv,14,matched
-S11,"median span ratio, B0, two models",results/reliability/reliability_lz_window_by_schedule.csv,3.07~3.29,not in key numbers
 S11,highest LLOQ in the sensitivity grid (mg/L),results/lloq/lloq_individual_table.csv,0.5,matched
 S11,"set (i) reliability change with paired 95% CI, lowest LLOQ vs study LLOQ, k2016, residual fixed",results/lloq/lloq_individual_table.csv,-2.33%p (95% CI -2.80~-1.86),not in key numbers
 S11,"set (i) reliability change with paired 95% CI, lowest LLOQ vs study LLOQ, k2020, residual fixed",results/lloq/lloq_individual_table.csv,-5.93%p (95% CI -6.39~-5.47),not in key numbers
@@ -343,7 +359,6 @@ S11,"reliable_no_span_pct, k2016, residual fixed, LLOQ 0.5",results/lloq/lloq_in
 S11,"reliable_no_span_pct, k2020, residual fixed, LLOQ 0.02",results/lloq/lloq_individual_table.csv,85.9%,not in key numbers
 S11,"reliable_no_span_pct, k2020, residual fixed, LLOQ 0.078",results/lloq/lloq_individual_table.csv,91.8%,not in key numbers
 S11,"reliable_no_span_pct, k2020, residual fixed, LLOQ 0.5",results/lloq/lloq_individual_table.csv,95.0%,not in key numbers
-S11,"set (ii) reliability change with paired 95% CI, lowest LLOQ vs study LLOQ, 2016 model, residual as estimated",results/lloq/lloq_individual_table.csv,0.16%p (95% CI -0.32~0.64),not in key numbers
 S11,"set (ii) reliability change, lowest LLOQ, 2020 model, residual as estimated",results/lloq/lloq_individual_table.csv,-2.52%p,not in key numbers
 S11,"set (ii) reliability change, lowest LLOQ, 2016 model, residual scaled",results/lloq/lloq_individual_table.csv,-1.27%p,not in key numbers
 S11,"set (ii) reliability change, lowest LLOQ, 2020 model, residual scaled",results/lloq/lloq_individual_table.csv,-1.62%p,not in key numbers
@@ -377,6 +392,11 @@ S12,dose (mg),config/trial_design.yaml,300,file not cited
 S12,subjects per model,results/trialpop/tp_failure_by_set.csv,"20,000",matched
 S12,"true AUC0-inf GMR failing to retained, set i, k2016",results/trialpop/tp_characteristics.csv,0.815,matched
 S12,"true AUC0-inf GMR failing to retained, set i, k2020",results/trialpop/tp_characteristics.csv,0.786,matched
+S12,"failing versus retained, set ii, true_aucinf_gmr, two models",results/trialpop/tp_characteristics.csv,0.842~0.847,matched
+S12,"failing versus retained, set iv, true_aucinf_gmr, two models",results/trialpop/tp_characteristics.csv,0.909~0.934,matched
+S12,"failing minus retained body weight with Welch 95% CI, set i, k2016",results/trialpop/tp_characteristics.csv,1.13 kg (95% CI 0.84~1.42),not in key numbers
+S12,"failing minus retained body weight with Welch 95% CI, set i, k2020",results/trialpop/tp_characteristics.csv,0.81 kg (95% CI 0.44~1.18),not in key numbers
+S12,"failing minus retained body weight, set iii, two models",results/trialpop/tp_characteristics.csv,0.35~0.42 kg,not in key numbers
 S12,"AUC0-last GMR failing to retained, set i, two models",results/trialpop/tp_characteristics.csv,0.772~0.783,not in key numbers
 S12,"failing, lighter stratum, set i, k2016",results/trialpop/tp_strata_individual.csv,12.1%,not in key numbers
 S12,"failing, heavier stratum, set i, k2016",results/trialpop/tp_strata_individual.csv,14.8%,not in key numbers
@@ -388,18 +408,17 @@ S12,evaluable subjects per arm,config/trial_design.yaml,117,file not cited
 S12,"armdiff median, S00, rule A sets i and iii, two models",results/trialpop/tp_strata_composition.csv,-0.07~0.05,not in key numbers
 S13,reference value: no between-arm difference in the share failing (points),results/trialpop/tp_arm_difference.csv,0,consistent after rounding
 S13,largest absolute test minus reference difference in the share failing set i over the test scenarios of both models (points),results/trialpop/tp_arm_difference.csv,12.3,consistent after rounding
+S13,"widest 95% CI of the mean arm difference, sets i and iii, all scenarios, two models (points)",results/trialpop/tp_arm_difference.csv,0.57,not in key numbers
 S13,"true AUC0-inf ratio, boundary cells at 0.80, two models",results/trialpop/tp_arm_difference.csv,0.80,matched
 S13,"true AUC0-inf ratio, boundary cells at 1.25, two models",results/trialpop/tp_arm_difference.csv,1.25,not in key numbers
 S13,scenario F097 multiplier on F,config/scenarios.yaml,0.97,file not cited
 S13,scenario KE110 multiplier on ke,config/scenarios.yaml,1.10,file not cited
 S13,scenario KE120 multiplier on ke,config/scenarios.yaml,1.20,file not cited
 S13,scenario VM125 multiplier on Vmax,config/scenarios.yaml,1.25,file not cited
-S13,"test minus reference failing, S00, set i, diff_mean",results/trialpop/tp_arm_difference.csv,-0.09~0.00,matched
-S13,"test minus reference failing, S00, set iii, diff_mean",results/trialpop/tp_arm_difference.csv,-0.17~0.06,not in key numbers
+S13,"largest absolute mean arm difference, identical products, sets i and iii, two models (points)",results/trialpop/tp_arm_difference.csv,0.17,not in key numbers
 S13,"test minus reference failing, VM125, set i, diff_mean",results/trialpop/tp_arm_difference.csv,4.27~6.64,matched
 S13,"test minus reference failing, ka_down_080, set i, diff_mean",results/trialpop/tp_arm_difference.csv,10.26~12.29,matched
 S13,"reference minus test failing (magnitude), V2_up_080, set i, -diff_mean",results/trialpop/tp_arm_difference.csv,3.49~4.06,matched
-S13,"reference minus test failing (magnitude), V2_up_080, set iii, -diff_mean",results/trialpop/tp_arm_difference.csv,8.45~9.38,not in key numbers
 S13,"arm difference per 10% lower true ratio, set i, r_squared",results/trialpop/tp_arm_difference_fit.csv,0.23~0.36,file not cited
 S13,"arm difference per 10% lower true ratio, set iii, r_squared",results/trialpop/tp_arm_difference_fit.csv,0.17~0.18,file not cited
 S13,"regenerated per-arm counts identical to section1 (rows compared, both models)",results/trialpop/tp_identity_check.csv,"264,000",file not cited
@@ -410,19 +429,18 @@ S13,"reference-arm mean share failing, set iii, two models",results/trialpop/tp_
 S13,"true AUC0-inf ratio, product scenarios, two models",results/trialpop/tp_arm_difference.csv,0.86~0.95,not in key numbers
 S13,boundary cells per model,results/trialpop/tp_arm_difference.csv,8,not in key numbers
 S13,"per-trial arm difference, identical products, set i, 5th to 95th percentile, two models",results/trialpop/tp_arm_difference.csv,-7.69~7.69,not in key numbers
+S13,"test minus reference failing, S00, set i, diff_mean",results/trialpop/tp_arm_difference.csv,-0.09~0.00,matched
+S13,"test minus reference failing, S00, set iii, diff_mean",results/trialpop/tp_arm_difference.csv,-0.17~0.06,not in key numbers
 S13,"test minus reference failing, KE120, set i, diff_mean",results/trialpop/tp_arm_difference.csv,-0.16~0.05,matched
+S13,"reference minus test failing (magnitude), V2_up_080, set iii, -diff_mean",results/trialpop/tp_arm_difference.csv,8.45~9.38,not in key numbers
+S13,"test minus reference failing, ka_down_080, set iii, diff_mean",results/trialpop/tp_arm_difference.csv,12.60~12.96,not in key numbers
 S13,"reference minus test failing (magnitude), ke scenarios, set iii, two models",results/trialpop/tp_arm_difference.csv,0.46~0.76,not in key numbers
 S13,scenario means per linear fit,results/trialpop/tp_arm_difference_fit.csv,13,file not cited
+S14,reference ratio of the bias direction toward 1 (identical products),results/criteria/criteria_bias.csv,1,file not cited
 S14,nominal type I error per one-sided test (%) = (1 - be.ci_level) / 2,config/trial_design.yaml,5%,file not cited
 S14,boundary cells per variant (M1),results/criteria/criteria_g2_type1.csv,16,matched
 S14,"M1 rules A (i) to (iv) and B: cells above 5% (point), range over variants",results/criteria/criteria_g2_type1.csv,10~12,not in key numbers
-S14,"M1 rule C (i) to (iv): cells above 5% (point), range over variants",results/criteria/criteria_g2_type1.csv,1,matched
-S14,"M0 rule C (i) to (iv): cells above 5% (point), range over variants",results/criteria/criteria_g2_type1.csv,0~1,matched
-S14,"M1 rule C (i) to (iv): cells with Wilson lower bound above 5%, range over variants",results/criteria/criteria_g2_type1.csv,0~1,matched
-S14,"M0 rule C (i) to (iv): cells with Wilson lower bound above 5%, range over variants",results/criteria/criteria_g2_type1.csv,0~1,matched
-S14,"M1 rule C (i) to (iv): largest boundary pass rate, range over variants",results/criteria/criteria_g2_type1.csv,5.06~6.65%,not in key numbers
-S14,"M1 AUC0-inf GMR bias against the true ratio, rule C (i) to (iv)",results/criteria/criteria_bias.csv,-1.65~0.96%,file not cited
-S14,"M1 rule C (i) to (iv): cells with AUC0-inf GMR biased toward 1, range over variants",results/criteria/criteria_bias.csv,1,file not cited
+S14,"M1 rule C (i) to (iv): cells above 5% (point), same count in every set",results/criteria/criteria_g2_type1.csv,1,matched
 S14,M1 G2_A_i cells above 5% (point),results/criteria/criteria_g2_type1.csv,10,not in key numbers
 S14,M0 G2_A_i cells above 5% (point),results/criteria/criteria_g2_type1.csv,8,matched
 S14,M1 G2_A_i cells with Wilson lower bound above 5%,results/criteria/criteria_g2_type1.csv,8,matched
@@ -458,13 +476,23 @@ S14,M0 G2_B cells with Wilson lower bound above 5%,results/criteria/criteria_g2_
 S14,M1 G2_B largest boundary pass rate,results/criteria/criteria_g2_type1.csv,16.03%,not in key numbers
 S14,"M1 AUC0-inf GMR bias against the true ratio, B",results/criteria/criteria_bias.csv,-0.87~3.83%,file not cited
 S14,M1 B cells with AUC0-inf GMR biased toward 1,results/criteria/criteria_bias.csv,11,file not cited
+S14,M1 G2_C_i cells above 5% (point),results/criteria/criteria_g2_type1.csv,1,matched
+S14,M0 G2_C_i cells above 5% (point),results/criteria/criteria_g2_type1.csv,0,matched
+S14,M1 G2_C_i cells with Wilson lower bound above 5%,results/criteria/criteria_g2_type1.csv,0,matched
+S14,M0 G2_C_i cells with Wilson lower bound above 5%,results/criteria/criteria_g2_type1.csv,0,matched
+S14,M1 G2_C_i largest boundary pass rate,results/criteria/criteria_g2_type1.csv,5.06%,not in key numbers
+S14,"M1 AUC0-inf GMR bias against the true ratio, C_i",results/criteria/criteria_bias.csv,-0.93~0.44%,file not cited
+S14,M1 C_i cells with AUC0-inf GMR biased toward 1,results/criteria/criteria_bias.csv,1,file not cited
 S14,M1 rules A and B: largest boundary pass rate,results/criteria/criteria_g2_type1.csv,27.44%,not in key numbers
 S14,"M1 AUC0-last + Cmax, 2020 model V2 up cell",results/oc_models/type1_models.csv,5.63%,matched
+S14,"M1 G2_C_i, 2020 model V2 up cell",results/criteria/criteria_g2_type1.csv,5.06%,not in key numbers
+S14,"M1 G2_C_ii to G2_C_iv, 2020 model V2 up cell, range over sets (ii) to (iv)",results/criteria/criteria_g2_type1.csv,5.39~6.65%,not in key numbers
 S14,ka-down boundary cells (M1),results/criteria/criteria_instability.csv,2,not in key numbers
 S14,"decision instability in the ka-down cells, M1",results/criteria/criteria_instability.csv,0%,not in key numbers
 S14,informative boundary cells (M1),results/criteria/criteria_instability.csv,14,not in key numbers
-S14,"decision instability inst_all, median over 16 boundary cells, M1",results/criteria/criteria_instability.csv,13.3%,not in key numbers
 S14,number of AUC0-inf + Cmax variants (rule x criteria set),results/criteria/criteria_g2_type1.csv,9,matched
+S14,"decision instability inst_all, median over 16 boundary cells, M1",results/criteria/criteria_instability.csv,13.3%,not in key numbers
+S14,"decision instability inst_all, median over 14 boundary cells, M1",results/criteria/criteria_instability.csv,14.0%,not in key numbers
 S14,"decision instability inst_all, max over 16 boundary cells, M1",results/criteria/criteria_instability.csv,39.4%,not in key numbers
 S14,"decision instability inst_all, median over 16 boundary cells, M0",results/criteria/criteria_instability.csv,12.6%,matched
 S14,"decision instability inst_all, max over 16 boundary cells, M0",results/criteria/criteria_instability.csv,39.6%,matched
@@ -472,6 +500,34 @@ S14,"decision instability inst_sets_C, max over 16 boundary cells, M1",results/c
 S14,"decision instability inst_sets_A, median over 16 boundary cells, M1",results/criteria/criteria_instability.csv,12.1%,not in key numbers
 S14,"decision instability inst_sets_A, max over 16 boundary cells, M1",results/criteria/criteria_instability.csv,37.0%,not in key numbers
 S14,"decision instability inst_sets_C, median over 16 boundary cells, M1",results/criteria/criteria_instability.csv,1.3%,not in key numbers
+S14,M1 G2_C_i cells above 5% (point),results/criteria/criteria_g2_type1.csv,1,matched
+S14,M0 G2_C_i cells above 5% (point),results/criteria/criteria_g2_type1.csv,0,matched
+S14,M1 G2_C_i cells with Wilson lower bound above 5%,results/criteria/criteria_g2_type1.csv,0,matched
+S14,M0 G2_C_i cells with Wilson lower bound above 5%,results/criteria/criteria_g2_type1.csv,0,matched
+S14,"M1 AUC0-inf GMR bias against the true ratio, C_i",results/criteria/criteria_bias.csv,-0.93~0.44%,file not cited
+S14,M1 C_i cells with AUC0-inf GMR biased toward 1,results/criteria/criteria_bias.csv,1,file not cited
+S14,M0 G2_C_i largest boundary pass rate,results/criteria/criteria_g2_type1.csv,4.63%,not in key numbers
+S14,M1 G2_C_ii cells above 5% (point),results/criteria/criteria_g2_type1.csv,1,matched
+S14,M0 G2_C_ii cells above 5% (point),results/criteria/criteria_g2_type1.csv,1,matched
+S14,M1 G2_C_ii cells with Wilson lower bound above 5%,results/criteria/criteria_g2_type1.csv,1,matched
+S14,M0 G2_C_ii cells with Wilson lower bound above 5%,results/criteria/criteria_g2_type1.csv,0,matched
+S14,"M1 AUC0-inf GMR bias against the true ratio, C_ii",results/criteria/criteria_bias.csv,-1.38~0.44%,file not cited
+S14,M1 C_ii cells with AUC0-inf GMR biased toward 1,results/criteria/criteria_bias.csv,1,file not cited
+S14,M0 G2_C_ii largest boundary pass rate,results/criteria/criteria_g2_type1.csv,5.01%,not in key numbers
+S14,M1 G2_C_iii cells above 5% (point),results/criteria/criteria_g2_type1.csv,1,matched
+S14,M0 G2_C_iii cells above 5% (point),results/criteria/criteria_g2_type1.csv,1,matched
+S14,M1 G2_C_iii cells with Wilson lower bound above 5%,results/criteria/criteria_g2_type1.csv,1,matched
+S14,M0 G2_C_iii cells with Wilson lower bound above 5%,results/criteria/criteria_g2_type1.csv,0,matched
+S14,"M1 AUC0-inf GMR bias against the true ratio, C_iii",results/criteria/criteria_bias.csv,-1.13~0.49%,file not cited
+S14,M1 C_iii cells with AUC0-inf GMR biased toward 1,results/criteria/criteria_bias.csv,1,file not cited
+S14,M0 G2_C_iii largest boundary pass rate,results/criteria/criteria_g2_type1.csv,5.21%,matched
+S14,M1 G2_C_iv cells above 5% (point),results/criteria/criteria_g2_type1.csv,1,matched
+S14,M0 G2_C_iv cells above 5% (point),results/criteria/criteria_g2_type1.csv,1,matched
+S14,M1 G2_C_iv cells with Wilson lower bound above 5%,results/criteria/criteria_g2_type1.csv,1,matched
+S14,M0 G2_C_iv cells with Wilson lower bound above 5%,results/criteria/criteria_g2_type1.csv,1,matched
+S14,"M1 AUC0-inf GMR bias against the true ratio, C_iv",results/criteria/criteria_bias.csv,-1.65~0.96%,file not cited
+S14,M1 C_iv cells with AUC0-inf GMR biased toward 1,results/criteria/criteria_bias.csv,1,file not cited
+S14,M0 G2_C_iv largest boundary pass rate,results/criteria/criteria_g2_type1.csv,6.05%,not in key numbers
 S14,body weight inclusion range (kg),config/trial_design.yaml,60~90,file not cited
 S14,evaluable subjects per arm,config/trial_design.yaml,117,file not cited
 S14,trials per boundary scenario (pre-specified),config/oc_design.yaml,"10,000",file not cited
@@ -487,7 +543,6 @@ S14,"M1 G2_C_ii, k2020 V2_up_080",results/criteria/criteria_g2_type1.csv,5.39% (
 S14,"M1 G2_C_iii, k2020 V2_up_080",results/criteria/criteria_g2_type1.csv,5.65% (95% CI 5.33~5.97),not in key numbers
 S14,"M1 G2_C_iv, k2020 V2_up_080",results/criteria/criteria_g2_type1.csv,6.65% (95% CI 6.31~7.00),not in key numbers
 S14,"M1 AUC0-last + Cmax, 2020 model V2 up cell",results/oc_models/type1_models.csv,5.63% (95% CI 5.31~5.95),matched
-S14,"M0 rule C (i) to (iv): largest boundary pass rate, range over variants",results/criteria/criteria_g2_type1.csv,4.63~6.05%,not in key numbers
 S14,"M1 G2_A_ii, k2020 Vmax_down_125",results/criteria/criteria_g2_type1.csv,27.44% (95% CI 26.57~28.32),not in key numbers
 S14,"M1 G2_B, k2016 Vmax_up_080",results/criteria/criteria_g2_type1.csv,16.03% (95% CI 15.32~16.76),not in key numbers
 S14,M0 G2_A_ii largest boundary pass rate,results/criteria/criteria_g2_type1.csv,27.60%,not in key numbers
@@ -498,12 +553,11 @@ S14,upper boundary true AUC0-inf ratio,config/oc_design.yaml,1.25,file not cited
 S14,"M1 AUC0-inf GMR bias, A_ii, without ka cells",results/criteria/criteria_bias.csv,-5.26~5.37%,file not cited
 S14,"M1 AUC0-inf GMR bias, B, without ka cells",results/criteria/criteria_bias.csv,-0.87~3.27%,file not cited
 S14,"M0 AUC0-inf GMR bias, A_ii",results/criteria/criteria_bias.csv,-5.44~8.22%,file not cited
-S14,"M0 AUC0-inf GMR bias, rule C (i) to (iv)",results/criteria/criteria_bias.csv,-1.65~0.96%,file not cited
+S14,"M0 AUC0-inf GMR bias, C_i",results/criteria/criteria_bias.csv,-0.93~0.43%,file not cited
 S14,"decision instability inst_rules_i, median over 16 boundary cells, M1",results/criteria/criteria_instability.csv,4.9%,not in key numbers
 S14,"decision instability inst_rules_ii, median over 16 boundary cells, M1",results/criteria/criteria_instability.csv,6.8%,not in key numbers
 S14,"decision instability inst_rules_iii, median over 16 boundary cells, M1",results/criteria/criteria_instability.csv,6.4%,not in key numbers
 S14,"decision instability inst_rules_iv, median over 16 boundary cells, M1",results/criteria/criteria_instability.csv,8.7%,not in key numbers
-S14,"decision instability inst_all, median over 14 boundary cells, M1",results/criteria/criteria_instability.csv,14.0%,not in key numbers
 S14,"decision instability, identical products, M1, two models",results/criteria/criteria_instability.csv,24.6~45.9%,not in key numbers
 S14,"instability across sets within rule A, identical products, M1",results/criteria/criteria_instability.csv,24.4~45.6%,not in key numbers
 S14,"instability across rules with set (i), identical products, M1",results/criteria/criteria_instability.csv,0.4~0.8%,not in key numbers
@@ -516,25 +570,26 @@ S15,"M1 P2, 2020 model V2 up cell",results/oc_models/type1_models.csv,5.63% (95%
 S15,M1 P2 cells classified exceeding,results/oc_models/type1_models.csv,1,matched
 S15,"M1 P2, 2020 model V2 up cell",results/oc_models/type1_models.csv,5.63%,matched
 S15,"P2 cells at or below nominal, M0",results/oc_models/type1_models.csv,16,not in key numbers
-S15,M1 G2_Aii cells above 5% (point),results/oc_models/type1_models.csv,12,not in key numbers
-S15,M1 G2_Aii largest boundary pass rate,results/oc_models/type1_models.csv,27.44%,not in key numbers
+S15,"M0 P2, 2020 model V2 up cell",results/oc_models/type1_models.csv,5.18%,matched
 S15,M1 G2_Ai cells above 5% (point),results/oc_models/type1_models.csv,10,not in key numbers
-S15,M1 G2_Ai largest boundary pass rate,results/oc_models/type1_models.csv,20.27%,not in key numbers
+S15,M1 G2_Aii cells above 5% (point),results/oc_models/type1_models.csv,12,not in key numbers
 S15,M1 G2_B cells above 5% (point),results/oc_models/type1_models.csv,10,not in key numbers
-S15,M1 G2_B largest boundary pass rate,results/oc_models/type1_models.csv,16.03%,not in key numbers
-S15,M1 G2_Cii cells above 5% (point),results/oc_models/type1_models.csv,1,matched
-S15,M1 G2_Cii largest boundary pass rate,results/oc_models/type1_models.csv,5.39%,not in key numbers
+S15,M1 G2_Ci cells above 5% (point),results/oc_models/type1_models.csv,1,matched
 S15,M1 P2 cells above 5% (point),results/oc_models/type1_models.csv,1,matched
+S15,M1 G2_Ai largest boundary pass rate,results/oc_models/type1_models.csv,20.27%,not in key numbers
+S15,M1 G2_Aii largest boundary pass rate,results/oc_models/type1_models.csv,27.44%,not in key numbers
+S15,M1 G2_B largest boundary pass rate,results/oc_models/type1_models.csv,16.03%,not in key numbers
+S15,M1 G2_Ci largest boundary pass rate,results/oc_models/type1_models.csv,5.06%,not in key numbers
 S15,M1 P2 largest boundary pass rate,results/oc_models/type1_models.csv,5.63%,matched
-S15,M0 G2_Aii cells above 5% (point),results/oc_models/type1_models.csv,12,not in key numbers
-S15,M0 G2_Aii largest boundary pass rate,results/oc_models/type1_models.csv,27.60%,not in key numbers
 S15,M0 G2_Ai cells above 5% (point),results/oc_models/type1_models.csv,8,not in key numbers
-S15,M0 G2_Ai largest boundary pass rate,results/oc_models/type1_models.csv,19.91%,not in key numbers
+S15,M0 G2_Aii cells above 5% (point),results/oc_models/type1_models.csv,12,not in key numbers
 S15,M0 G2_B cells above 5% (point),results/oc_models/type1_models.csv,8,not in key numbers
-S15,M0 G2_B largest boundary pass rate,results/oc_models/type1_models.csv,15.06%,not in key numbers
-S15,M0 G2_Cii cells above 5% (point),results/oc_models/type1_models.csv,1,matched
-S15,M0 G2_Cii largest boundary pass rate,results/oc_models/type1_models.csv,5.01%,not in key numbers
+S15,M0 G2_Ci cells above 5% (point),results/oc_models/type1_models.csv,0,matched
 S15,M0 P2 cells above 5% (point),results/oc_models/type1_models.csv,1,matched
+S15,M0 G2_Ai largest boundary pass rate,results/oc_models/type1_models.csv,19.91%,not in key numbers
+S15,M0 G2_Aii largest boundary pass rate,results/oc_models/type1_models.csv,27.60%,not in key numbers
+S15,M0 G2_B largest boundary pass rate,results/oc_models/type1_models.csv,15.06%,not in key numbers
+S15,M0 G2_Ci largest boundary pass rate,results/oc_models/type1_models.csv,4.63%,not in key numbers
 S15,M0 P2 largest boundary pass rate,results/oc_models/type1_models.csv,5.18%,matched
 S15,"M1 G2_Aii, Vmax cells, range",results/oc_models/type1_models.csv,22.52~27.44%,not in key numbers
 S15,boundary true AUC0-inf ratios,config/oc_design.yaml,"0.80, 1.25",file not cited
@@ -555,6 +610,12 @@ S15,"M1 P2, 2016 model V2 cell",results/oc_models/type1_models.csv,4.33%,not in 
 S15,M0 P2 cells conservative,results/oc_models/type1_models.csv,15,matched
 S15,M0 P2 cells nominal,results/oc_models/type1_models.csv,1,matched
 S15,"M0 P2, 2020 model V2 cell",results/oc_models/type1_models.csv,5.18% (95% CI 4.88~5.50),matched
+S15,M1 G2_Ci largest,results/oc_models/type1_models.csv,5.06% (95% CI 4.76~5.37),not in key numbers
+S15,M0 G2_Ci largest,results/oc_models/type1_models.csv,4.63% (95% CI 4.34~4.92),not in key numbers
+S15,M1 G2_Cii largest,results/oc_models/type1_models.csv,5.39% (95% CI 5.09~5.71),not in key numbers
+S15,M0 G2_Cii largest,results/oc_models/type1_models.csv,5.01% (95% CI 4.71~5.32),not in key numbers
+S15,"M1 G2_A_iii, 2016 model V2 up cell",results/criteria/criteria_g2_type1.csv,6.22%,not in key numbers
+S15,"M1 G2_A_iv, 2016 model V2 up cell",results/criteria/criteria_g2_type1.csv,11.16%,not in key numbers
 S15,"true Cmax ratio, ka-down cells",results/oc_models/type1_models.csv,0.632~0.633,not in key numbers
 S15,P2 in the ka-down cells,results/oc_models/type1_models.csv,0%,matched
 S15,informative boundary cells,results/oc_models/type1_models.csv,14,not in key numbers
@@ -573,7 +634,7 @@ S15,M1 unbiased reference (true AUC0-inf) boundary range,results/oc_models/type1
 S15,SD/SE AUCinf_true M0,results/oc_models/sd_se_models.csv,0.961~0.993,matched
 S15,SD/SE AUCinf_true M1,results/oc_models/sd_se_models.csv,0.991~1.020,matched
 S15,P2 paired change M1 minus M0 (points),results/oc_models/type1_paired_change.csv,0.00~0.45,file not cited
-S15,"V2 cells with AUC0-inf GMR bias away from 1, rules A (ii) and B, M1",results/criteria/criteria_bias.csv,4,file not cited
+S15,"V2 cells with AUC0-inf GMR bias away from 1, rules A (i), A (ii) and B, M1",results/criteria/criteria_bias.csv,6,file not cited
 S16,"window coverage, median, two models",results/trialpop/tp_coverage_individual.csv,99.3~99.4%,matched
 S16,"window coverage, smallest subject over both models",results/trialpop/tp_coverage_individual.csv,84.3%,matched
 S16,window coverage threshold in column name coverage_lt80_pct_ci (percent),results/rationale/pillar1_coverage_B0.csv,80,matched
@@ -581,10 +642,14 @@ S16,"window coverage, median, k2016",results/trialpop/tp_coverage_individual.csv
 S16,"window coverage, median, k2020",results/trialpop/tp_coverage_individual.csv,99.4%,matched
 S16,"window coverage, p05, k2016",results/trialpop/tp_coverage_individual.csv,96.4%,not in key numbers
 S16,"window coverage, p05, k2020",results/trialpop/tp_coverage_individual.csv,96.5%,not in key numbers
+S16,"window coverage, p95, k2016",results/trialpop/tp_coverage_individual.csv,100.0%,not in key numbers
+S16,"window coverage, p95, k2020",results/trialpop/tp_coverage_individual.csv,100.0%,not in key numbers
 S16,"window coverage, min, k2016",results/trialpop/tp_coverage_individual.csv,84.8%,not in key numbers
 S16,"window coverage, min, k2020",results/trialpop/tp_coverage_individual.csv,84.3%,matched
-S16,"share of subjects with window coverage below 80 percent, Wilson 95% CI, k2016",results/rationale/pillar1_coverage_B0.csv,0.00% (0.00~0.02),matched
-S16,"share of subjects with window coverage below 80 percent, Wilson 95% CI, k2020",results/rationale/pillar1_coverage_B0.csv,0.00% (0.00~0.02),matched
+S16,"subjects with window coverage below 80 percent, k2016",results/trialpop/tp_coverage_individual.csv,0,not in key numbers
+S16,"share of subjects with window coverage below 80 percent, Wilson 95% CI, k2016",results/rationale/pillar1_coverage_B0.csv,0.00~0.02%,matched
+S16,"subjects with window coverage below 80 percent, k2020",results/trialpop/tp_coverage_individual.csv,0,not in key numbers
+S16,"share of subjects with window coverage below 80 percent, Wilson 95% CI, k2020",results/rationale/pillar1_coverage_B0.csv,0.00~0.02%,matched
 S16,"observed-to-true, AUClast (lambda-z estimable), median, k2016",results/trialpop/tp_coverage_individual.csv,0.963,not in key numbers
 S16,"observed-to-true, AUClast (lambda-z estimable), median, k2020",results/trialpop/tp_coverage_individual.csv,0.967,not in key numbers
 S16,"observed-to-true, AUCinf rule B (lambda-z estimable), median, k2016",results/trialpop/tp_coverage_individual.csv,1.003,not in key numbers
@@ -594,12 +659,12 @@ S16,"observed-to-true, AUClast (meeting set (i)), median, k2020",results/trialpo
 S16,"observed-to-true, AUCinf rule A (meeting set (i)), median, k2016",results/trialpop/tp_coverage_individual.csv,1.005,not in key numbers
 S16,"observed-to-true, AUCinf rule A (meeting set (i)), median, k2020",results/trialpop/tp_coverage_individual.csv,1.009,not in key numbers
 S16,"observed-to-true, AUClast (lambda-z estimable), max, k2016",results/trialpop/tp_coverage_individual.csv,1.32,not in key numbers
-S16,"observed-to-true, AUCinf rule B (lambda-z estimable), max, k2016",results/trialpop/tp_coverage_individual.csv,5.28,not in key numbers
-S16,"observed-to-true, AUClast (meeting set (i)), max, k2016",results/trialpop/tp_coverage_individual.csv,1.32,not in key numbers
-S16,"observed-to-true, AUCinf rule A (meeting set (i)), max, k2016",results/trialpop/tp_coverage_individual.csv,1.40,not in key numbers
 S16,"observed-to-true, AUClast (lambda-z estimable), max, k2020",results/trialpop/tp_coverage_individual.csv,1.19,not in key numbers
+S16,"observed-to-true, AUCinf rule B (lambda-z estimable), max, k2016",results/trialpop/tp_coverage_individual.csv,5.28,not in key numbers
 S16,"observed-to-true, AUCinf rule B (lambda-z estimable), max, k2020",results/trialpop/tp_coverage_individual.csv,1.87,not in key numbers
+S16,"observed-to-true, AUClast (meeting set (i)), max, k2016",results/trialpop/tp_coverage_individual.csv,1.32,not in key numbers
 S16,"observed-to-true, AUClast (meeting set (i)), max, k2020",results/trialpop/tp_coverage_individual.csv,1.19,not in key numbers
+S16,"observed-to-true, AUCinf rule A (meeting set (i)), max, k2016",results/trialpop/tp_coverage_individual.csv,1.40,not in key numbers
 S16,"observed-to-true, AUCinf rule A (meeting set (i)), max, k2020",results/trialpop/tp_coverage_individual.csv,1.29,not in key numbers
 S16,"observed-to-true, AUCinf rule B (lambda-z estimable), max, k2016",results/trialpop/tp_coverage_individual.csv,5.28,not in key numbers
 S16,"observed-to-true, AUCinf rule B (lambda-z estimable), max, k2020",results/trialpop/tp_coverage_individual.csv,1.87,not in key numbers
@@ -631,11 +696,22 @@ S16,"extrapolation factor AUCinf/AUClast, max, k2020",results/trialpop/tp_covera
 S16,criteria set (i) adj_r2_min,config/prereg_20260926.yaml,0.80,file not cited
 S16,criteria set (i) extrap_max_pct,config/prereg_20260926.yaml,20,file not cited
 S16,"observed-to-true, AUCinf rule B (lambda-z estimable), max, k2016",results/trialpop/tp_coverage_individual.csv,5.28,not in key numbers
+S16,lower edge of the open histogram bin of the observed-to-true ratio,results/deck_inputs/coverage_hist.csv,1.5,file not cited
+S16,"subjects in the open bin, rule B, k2016",results/deck_inputs/coverage_hist.csv,20,file not cited
+S16,"subjects in the open bin, rule B, k2020",results/deck_inputs/coverage_hist.csv,1,file not cited
+S17,lower equivalence limit,config/trial_design.yaml,0.80,file not cited
+S17,upper equivalence limit,config/trial_design.yaml,1.25,file not cited
 S17,"boundary cells (both models), M1",results/oc_models/sd_se_models.csv,16,not in key numbers
 S17,"AUC0-last: largest absolute bias of the geometric mean trial GMR vs the true AUC0-inf ratio, 16 boundary cells, M1",results/oc_models/sd_se_models.csv,1.50%,not in key numbers
-S17,"NCA AUC0-inf rules A (i), A (ii), B, C (i): largest absolute bias, 16 boundary cells, M1",results/oc_models/sd_se_models.csv,8.08%,not in key numbers
+S17,"NCA AUC0-inf rules A (i), A (ii), B: largest absolute bias, 16 boundary cells, M1",results/oc_models/sd_se_models.csv,8.08%,not in key numbers
+S17,"NCA AUC0-inf rule A criteria sets (iii) and (iv): largest absolute bias, 16 boundary cells, M1",results/criteria/criteria_bias.csv,10.89%,file not cited
 S17,"AUC0-last bias, 2020 model V2 up (true ratio 0.80), M1",results/oc_models/sd_se_models.csv,0.41%,not in key numbers
 S17,"AUC0-last cells biased away from 1, M1",results/oc_models/sd_se_models.csv,15,not in key numbers
+S17,"cells biased toward 1, NCA rules A (i), A (ii), B, M1: range of the three counts",results/oc_models/sd_se_models.csv,10~14,not in key numbers
+S17,"cells biased toward 1 (Monte Carlo interval excludes 0), AUCinf_Ci, M1",results/oc_models/sd_se_models.csv,1,consistent after rounding
+S17,trials per boundary cell,results/oc_models/sd_se_models.csv,"10,000",not in key numbers
+S17,common virtual subjects for the true ratio,config/oc_design.yaml,"200,000",file not cited
+S17,"F multiplier of the F097 product scenario, test arm",config/prereg_20260926.yaml,0.97,file not cited
 S17,"cells biased toward 1 (Monte Carlo interval excludes 0), AUCinf_true, M1",results/oc_models/sd_se_models.csv,0,not in key numbers
 S17,"cells biased toward 1 (Monte Carlo interval excludes 0), AUClast, M1",results/oc_models/sd_se_models.csv,1,consistent after rounding
 S17,"cells biased toward 1 (Monte Carlo interval excludes 0), AUCinf_Ai, M1",results/oc_models/sd_se_models.csv,10,not in key numbers
@@ -660,10 +736,16 @@ S17,"geometric mean of trial GMRs, AUCinf_Ai, k2016, F097, M1",results/oc_models
 S17,"geometric mean of trial GMRs, AUCinf_A, k2016, F097, M1",results/oc_models/sd_se_models.csv,0.9557,not in key numbers
 S17,"geometric mean of trial GMRs, AUCinf_B, k2016, F097, M1",results/oc_models/sd_se_models.csv,0.9543,not in key numbers
 S17,"geometric mean of trial GMRs, AUCinf_Ci, k2016, F097, M1",results/oc_models/sd_se_models.csv,0.9521,not in key numbers
-S17,"true AUC0-inf ratio, k2016, Vmax_up_080",results/oc_models/sd_se_models.csv,0.7994,not in key numbers
-S17,"true AUC0-inf ratio, k2020, ka_down_080",results/oc_models/sd_se_models.csv,0.8006,not in key numbers
-S17,"true AUC0-inf ratio, k2016, F097",results/oc_models/sd_se_models.csv,0.9521,not in key numbers
-S17,trials per boundary cell,results/oc_models/sd_se_models.csv,"10,000",not in key numbers
+S17,"true AUC0-inf ratio (common virtual subjects), k2016, Vmax_up_080",results/oc_models/sd_se_models.csv,0.7994,not in key numbers
+S17,"true AUC0-inf ratio (common virtual subjects), k2020, ka_down_080",results/oc_models/sd_se_models.csv,0.8006,not in key numbers
+S17,"true AUC0-inf ratio (common virtual subjects), k2016, F097",results/oc_models/sd_se_models.csv,0.9521,not in key numbers
+S17,"correlation of trial log GMR, AUC0-last vs true AUC0-inf (trial subjects), v1.0 product scenarios (minimum over both models)",results/trials/products_concordance.csv,0.96,file not cited
+S17,"correlation of trial log GMR, AUC0-last vs true AUC0-inf (trial subjects), v1.0 product scenarios (maximum over both models)",results/trials/products_concordance_struct2020.csv,0.99,file not cited
+S17,"decision agreement AUC0-last vs NCA AUC0-inf rule B (lambda-z estimable), v1.0 product scenarios (minimum over both models)",results/trials/products_concordance.csv,72.4%,file not cited
+S17,"decision agreement AUC0-last vs NCA AUC0-inf rule B (lambda-z estimable), v1.0 product scenarios (maximum over both models)",results/trials/products_concordance.csv,100.0%,file not cited
+S17,"trials per product scenario, concordance file",results/trials/products_concordance.csv,500,file not cited
+S17,"trials per product scenario, concordance file",results/trials/products_concordance_struct2020.csv,500,file not cited
+S17,"decision agreement AUC0-last vs NCA AUC0-inf rule A (ii), product scenarios, two models",results/rationale/pillar2_products_B0.csv,68.6~99.2%,file not cited
 S17,"trials, 2020 model V2 cell",results/oc_models/sd_se_models.csv,"20,000",not in key numbers
 S17,evaluable subjects per arm,config/trial_design.yaml,117,file not cited
 S17,body weight inclusion range (kg),config/trial_design.yaml,60~90,file not cited
@@ -674,6 +756,22 @@ S17,"bias range, 16 boundary cells, AUCinf_Ai, M1",results/oc_models/sd_se_model
 S17,"bias range, 16 boundary cells, AUCinf_A, M1",results/oc_models/sd_se_models.csv,-5.26~8.08%,not in key numbers
 S17,"bias range, 16 boundary cells, AUCinf_B, M1",results/oc_models/sd_se_models.csv,-0.87~3.83%,not in key numbers
 S17,"bias range, 16 boundary cells, AUCinf_Ci, M1",results/oc_models/sd_se_models.csv,-0.93~0.44%,not in key numbers
+S17,"bias range, 16 boundary cells, criteria set config A_iii, M1",results/criteria/criteria_bias.csv,-2.64~10.81%,file not cited
+S17,"bias range, 16 boundary cells, criteria set config A_iv, M1",results/criteria/criteria_bias.csv,-8.36~10.89%,file not cited
+S17,"bias range, 16 boundary cells, criteria set config C_ii, M1",results/criteria/criteria_bias.csv,-1.38~0.44%,file not cited
+S17,"bias range, 16 boundary cells, criteria set config C_iii, M1",results/criteria/criteria_bias.csv,-1.13~0.49%,file not cited
+S17,"bias range, 16 boundary cells, criteria set config C_iv, M1",results/criteria/criteria_bias.csv,-1.65~0.96%,file not cited
+S17,"cells biased toward 1 (Monte Carlo interval excludes 0), AUCinf_true, M1",results/oc_models/sd_se_models.csv,0,not in key numbers
+S17,"cells biased toward 1 (Monte Carlo interval excludes 0), AUCinf_true, M0",results/oc_models/sd_se_models.csv,0,not in key numbers
+S17,"cells biased toward 1 (Monte Carlo interval excludes 0), AUClast, M1",results/oc_models/sd_se_models.csv,1,consistent after rounding
+S17,"cells biased toward 1 (Monte Carlo interval excludes 0), AUClast, M0",results/oc_models/sd_se_models.csv,1,consistent after rounding
+S17,"cells biased toward 1 (Monte Carlo interval excludes 0), AUCinf_Ai, M1",results/oc_models/sd_se_models.csv,10,not in key numbers
+S17,"cells biased toward 1 (Monte Carlo interval excludes 0), AUCinf_Ai, M0",results/oc_models/sd_se_models.csv,11,not in key numbers
+S17,"cells biased toward 1 (Monte Carlo interval excludes 0), AUCinf_A, M1",results/oc_models/sd_se_models.csv,14,not in key numbers
+S17,"cells biased toward 1 (Monte Carlo interval excludes 0), AUCinf_A, M0",results/oc_models/sd_se_models.csv,14,not in key numbers
+S17,"cells biased toward 1 (Monte Carlo interval excludes 0), AUCinf_B, M1",results/oc_models/sd_se_models.csv,11,not in key numbers
+S17,"cells biased toward 1 (Monte Carlo interval excludes 0), AUCinf_B, M0",results/oc_models/sd_se_models.csv,11,not in key numbers
+S17,"cells biased toward 1 (Monte Carlo interval excludes 0), AUCinf_Ci, M0",results/oc_models/sd_se_models.csv,1,consistent after rounding
 S17,"identical products: geometric mean of trial GMRs, two models, AUCinf_true, M1",results/oc_models/sd_se_models.csv,1.0000~1.0001,not in key numbers
 S17,"identical products: geometric mean of trial GMRs, two models, AUClast, M1",results/oc_models/sd_se_models.csv,1.0002~1.0005,not in key numbers
 S17,"identical products: geometric mean of trial GMRs, two models, AUCinf_Ai, M1",results/oc_models/sd_se_models.csv,1.0000~1.0001,not in key numbers
@@ -681,8 +779,8 @@ S17,"identical products: geometric mean of trial GMRs, two models, AUCinf_B, M1"
 S17,"geometric mean of trial GMRs, AUClast, k2016, Vmax_up_080, M1",results/oc_models/sd_se_models.csv,0.7874,not in key numbers
 S17,"geometric mean of trial GMRs, AUCinf_Ai, k2016, Vmax_up_080, M1",results/oc_models/sd_se_models.csv,0.8343,not in key numbers
 S17,"geometric mean of trial GMRs, AUCinf_B, k2016, Vmax_up_080, M1",results/oc_models/sd_se_models.csv,0.8256,not in key numbers
-S17,"true AUC0-inf ratio, k2016, Vmax_up_080",results/oc_models/sd_se_models.csv,0.7994,not in key numbers
-S17,"decision agreement AUC0-last vs NCA AUC0-inf rule A (ii), product scenarios, two models",results/rationale/pillar2_products_B0.csv,68.6~99.2%,file not cited
+S17,"geometric mean of trial GMRs, AUCinf_true, k2016, Vmax_up_080, M1",results/oc_models/sd_se_models.csv,0.7996,not in key numbers
+S17,"true AUC0-inf ratio (common virtual subjects), k2016, Vmax_up_080",results/oc_models/sd_se_models.csv,0.7994,not in key numbers
 S18,"Km multiplier search range, test arm",config/oc_design.yaml,0.01~100,file not cited
 S18,true AUC0-inf ratio range over Km x0.01 to x100 (range ends and reached rows),results/oc/inversion_all.csv,0.999~1.059,matched
 S18,lower equivalence limit,config/trial_design.yaml,0.80,file not cited
@@ -707,6 +805,9 @@ S18,"Vmax multiplier reaching 1.25, k2016",results/oc/inversion_all.csv,0.66,not
 S18,"Vmax multiplier reaching 1.25, k2020",results/oc/inversion_all.csv,0.65,not in key numbers
 S18,V2: rows reaching target 1.25 (none),results/oc/inversion_all.csv,0,consistent after rounding
 S18,Km: rows reaching target 1.25 (none),results/oc/inversion_all.csv,0,consistent after rounding
+S18,common virtual subjects for the true ratio,config/oc_design.yaml,"200,000",file not cited
+S18,Km multiplier search range (caption),config/oc_design.yaml,×0.01~×100,file not cited
+S18,"search range of the other mechanisms (F, ka, ke, Vmax, V2)",config/oc_design.yaml,×0.1~×10,file not cited
 S18,pre-specified target ratios,results/oc/inversion_all.csv,12,matched
 S18,true Cmax ratio range over Km x0.01 to x100 (range ends and reached rows),results/oc/inversion_all.csv,1.000~1.010,not in key numbers
 S18,"true AUC0-inf ratio range over Km x0.01 to x100, k2016",results/oc/inversion_all.csv,0.999~1.059,matched
@@ -715,7 +816,6 @@ S18,"pre-specified target ratios, range",results/oc/inversion_all.csv,0.70~1.43,
 S18,reachable Km target,results/oc/inversion_all.csv,1.05,matched
 S18,"Km multiplier reaching 1.05, k2016",results/oc/inversion_all.csv,84,not in key numbers
 S18,"Km multiplier reaching 1.05, k2020",results/oc/inversion_all.csv,92,not in key numbers
-S18,common virtual subjects for the true ratio,config/oc_design.yaml,"200,000",file not cited
 S18,screening subjects,config/oc_design.yaml,"20,000",file not cited
 S18,body weight inclusion range (kg),config/trial_design.yaml,60~90,file not cited
 S18,"true AUC0-inf ratio at Km x0.01, k2016",results/oc/inversion_all.csv,0.999,matched
@@ -724,6 +824,8 @@ S18,"true AUC0-inf ratio at Km x0.01, k2020",results/oc/inversion_all.csv,0.999,
 S18,"true AUC0-inf ratio at Km x100, k2020",results/oc/inversion_all.csv,1.054,not in key numbers
 S18,"true Cmax ratio at Km x100, k2016",results/oc/inversion_all.csv,1.010,not in key numbers
 S18,"true Cmax ratio at Km x100, k2020",results/oc/inversion_all.csv,1.010,not in key numbers
+S18,"true Cmax ratio at Km x0.01, k2016",results/oc/inversion_all.csv,1.000,not in key numbers
+S18,"true Cmax ratio at Km x0.01, k2020",results/oc/inversion_all.csv,1.000,not in key numbers
 S18,"Km multiplier reaching 1.05, k2016 (2 decimals)",results/oc/inversion_all.csv,84.04,not in key numbers
 S18,"Km multiplier reaching 1.05, k2020 (2 decimals)",results/oc/inversion_all.csv,91.95,not in key numbers
 S18,"smallest multiplier reaching 0.80 or 1.25, other mechanisms, two models",results/oc/inversion_all.csv,0.42,not in key numbers
@@ -735,13 +837,22 @@ S19,2020 V2 AUC0-last bias M1,results/oc_models/p2_decomposition_models.csv,0.41
 S19,M1 G2_Ai boundary cells above 5% (point),results/oc_models/type1_models.csv,10,not in key numbers
 S19,M1 G2_Aii boundary cells above 5% (point),results/oc_models/type1_models.csv,12,not in key numbers
 S19,M1 G2_B boundary cells above 5% (point),results/oc_models/type1_models.csv,10,not in key numbers
+S19,M1 G2_Ai boundary cells above 5% (Wilson lower bound),results/oc_models/type1_models.csv,8,not in key numbers
+S19,M1 G2_Aii boundary cells above 5% (Wilson lower bound),results/oc_models/type1_models.csv,12,not in key numbers
+S19,M1 G2_B boundary cells above 5% (Wilson lower bound),results/oc_models/type1_models.csv,8,not in key numbers
+S19,boundary cells,results/oc_models/type1_models.csv,16,not in key numbers
+S19,"AUC0-inf rules A (i) to (iv) and B + Cmax in the 2020 V2 cell, M1",results/criteria/criteria_g2_type1.csv,1.07~4.04%,not in key numbers
+S19,"G2_C_i, 2020 V2 cell, M1",results/criteria/criteria_g2_type1.csv,5.06%,not in key numbers
+S19,"G2_C_iv, 2020 V2 cell, M1",results/criteria/criteria_g2_type1.csv,6.65%,not in key numbers
+S19,"M1 boundary cells above 5% (point), rules A (i), A (ii), B: range of the three counts",results/oc_models/type1_models.csv,10~12,not in key numbers
+S19,"M1 boundary cells with Wilson lower bound above 5%, rules A (i), A (ii), B: range of the three counts",results/oc_models/type1_models.csv,8~12,not in key numbers
+S19,M1 P2 boundary cells above 5% (point),results/oc_models/type1_models.csv,1,matched
 S19,pre-specified trials,results/oc_models/extension_decision_models.csv,"10,000",file not cited
 S19,trials after extension,results/oc_models/extension_decision_models.csv,"20,000",file not cited
-S19,"P2 at the pre-specified 10,000 trials, 2020 V2 cell, M1",results/oc_models/extension_decision_models.csv,5.74% (95% CI 5.30~6.21),file not cited
-S19,"P2 at the pre-specified 10,000 trials, 2020 V2 cell, M0",results/oc_models/extension_decision_models.csv,5.32% (95% CI 4.90~5.78),file not cited
-S19,"AUC0-inf rules A (i), A (ii), B + Cmax in the 2020 V2 cell, M1",results/oc_models/type1_models.csv,1.28~4.04%,not in key numbers
-S19,"NCA AUC0-inf rule A (ii) bias, 2020 V2 cell, M1",results/oc_models/sd_se_models.csv,-3.12%,not in key numbers
-S19,boundary cells,results/oc_models/type1_models.csv,16,not in key numbers
+S19,"P2 at the pre-specified 10,000 trials, 2020 V2 cell, M1",results/oc_models/extension_decision_models.csv,5.74%,file not cited
+S19,"P2 at the pre-specified 10,000 trials, 2020 V2 cell, M0",results/oc_models/extension_decision_models.csv,5.32%,file not cited
+S19,"Wilson lower bound, P2 at 10,000 trials, M0",results/oc_models/extension_decision_models.csv,4.90%,file not cited
+S19,"Wilson upper bound, P2 at 10,000 trials, M0",results/oc_models/extension_decision_models.csv,5.78%,file not cited
 S19,V2 multiplier k2016,results/oc_models/p2_decomposition_models.csv,3.21,file not cited
 S19,true AUC0-inf ratio targeted in the V2 cells,results/oc_models/p2_decomposition_models.csv,0.80,file not cited
 S19,"P2, 2016 model V2 cell, M1",results/oc_models/type1_models.csv,4.33%,not in key numbers
@@ -793,9 +904,13 @@ S19,"G2_C_i, 2020 V2 cell, M0",results/criteria/criteria_g2_type1.csv,4.63%,not 
 S19,"G2_C_ii, 2020 V2 cell, M0",results/criteria/criteria_g2_type1.csv,5.01%,not in key numbers
 S19,"G2_C_iii, 2020 V2 cell, M0",results/criteria/criteria_g2_type1.csv,5.21%,matched
 S19,"G2_C_iv, 2020 V2 cell, M0",results/criteria/criteria_g2_type1.csv,6.05%,not in key numbers
+S19,"NCA AUCinf_A bias, 2020 V2 cell, M1",results/oc_models/sd_se_models.csv,-3.12%,not in key numbers
 S19,"NCA AUCinf_Ai bias, 2020 V2 cell, M1",results/oc_models/sd_se_models.csv,-1.51%,not in key numbers
 S19,"NCA AUCinf_B bias, 2020 V2 cell, M1",results/oc_models/sd_se_models.csv,-0.46%,not in key numbers
 S19,"NCA AUCinf_C bias, 2020 V2 cell, M1",results/oc_models/sd_se_models.csv,0.31%,not in key numbers
+S19,"NCA AUCinf_Ci bias, 2020 V2 cell, M1",results/oc_models/sd_se_models.csv,0.14%,not in key numbers
+S19,M1 G2_Ci boundary cells above 5% (point),results/oc_models/type1_models.csv,1,matched
+S19,M1 G2_Ci boundary cells above 5% (Wilson lower bound),results/oc_models/type1_models.csv,0,matched
 S19,M1 rule C (ii) cells above 5% (point),results/criteria/criteria_g2_type1.csv,1,matched
 S19,"unbiased reference, 2016 ka down, M1",results/oc_models/type1_models.csv,5.60%,not in key numbers
 S19,"unbiased reference, 2020 ka down, M1",results/oc_models/type1_models.csv,5.83%,not in key numbers
@@ -812,6 +927,7 @@ S20,criterion (d) threshold (ratio to B0),config/trial_design.yaml,0.5,file not 
 S20,NCA extrapolation flag threshold (%),config/nca_rules.yaml,20,file not cited
 S20,confidence level of the equivalence CI (%),config/trial_design.yaml,90,file not cited
 S20,ke multiplier of the scenario for criterion (b),config/scenarios.yaml,1.10,file not cited
+S20,added visits per added sample point,config/trial_design.yaml,260,file not cited
 S20,schedule D1: study days added relative to B0,config/trial_design.yaml,"39, 46",file not cited
 S20,schedule D2: study days added relative to B0,config/trial_design.yaml,"39, 46, 53",file not cited
 S20,schedule D3: study days added relative to B0,config/trial_design.yaml,"32, 39, 46, 53",file not cited
@@ -864,12 +980,16 @@ S20,"(d) share with NCA extrapolation above 20%, ratio to B0, schedule Bminus, k
 S20,"(d) share with NCA extrapolation above 20%, ratio to B0, schedule Bminus, k2020",results/trials/schedule_decision_struct2020.csv,1.29,file not cited
 S20,"share above the LLOQ after study Day 58, k2016",results/cliff/cliff_summary.csv,2.5%,matched
 S20,"share above the LLOQ after study Day 58, k2020",results/cliff/cliff_summary.csv,4.6%,not in key numbers
+S20,"relative decrease of the mean AUC0-last CI width with added samples (%), range over D1 to D4, two models",results/trials/schedule_decision_base.csv,-0.47~+0.06,not in key numbers
 S20,"largest relative decrease of the mean AUC0-last CI width with added samples (%), two models",results/trials/schedule_decision_base.csv,0.06,not in key numbers
 S20,"largest reliability gain versus B0, set (i), trial population, D1 to D4",results/reliability/reliability_paired_vs_B0.csv,2.76,matched
+S20,"largest reliability gain versus B0, set (ii), trial population, D1 to D4",results/reliability/reliability_paired_vs_B0.csv,1.69,matched
 S20,"(a) CI width decrease when Day 50 is removed (%), schedule Bminus, k2016",results/trials/schedule_decision_base.csv,0.69,not in key numbers
 S20,"(a) CI width decrease when Day 50 is removed (%), schedule Bminus, k2020",results/trials/schedule_decision_struct2020.csv,0.87,file not cited
 S20,"(d) ratio of the share above 20% extrapolation when Day 50 is removed, schedule Bminus, k2016",results/trials/schedule_decision_base.csv,1.29,not in key numbers
 S20,"(d) ratio of the share above 20% extrapolation when Day 50 is removed, schedule Bminus, k2020",results/trials/schedule_decision_struct2020.csv,1.29,file not cited
+S20,"(c) reliability change, set (ii), when Day 50 is removed (points), schedule Bminus, k2016",results/trials/schedule_decision_base.csv,-1.82,not in key numbers
+S20,"(c) reliability change, set (ii), when Day 50 is removed (points), schedule Bminus, k2020",results/trials/schedule_decision_struct2020.csv,-3.18,file not cited
 S20,schedule Bminus: study days removed relative to B0,config/trial_design.yaml,50,file not cited
 S20,study-day threshold in column name lloq_after_day58_pct,results/cliff/cliff_summary.csv,58,matched
 S20,added visits per added sample point,config/trial_design.yaml,260,file not cited
@@ -908,6 +1028,8 @@ S21,"largest P2 boundary type I error, k2016, M1",results/oc_models/type1_models
 S21,"largest P2 boundary type I error, k2020, M1",results/oc_models/type1_models.csv,5.63%,matched
 S21,"M1 G2_Ai cells above 5%, k2016",results/oc_models/type1_models.csv,6,consistent after rounding
 S21,"M1 G2_Ai cells above 5%, k2020",results/oc_models/type1_models.csv,4,not in key numbers
+S21,"M1 G2_Ai cells with Wilson lower bound above 5%, k2016",results/oc_models/type1_models.csv,4,not in key numbers
+S21,"M1 G2_Ai cells with Wilson lower bound above 5%, k2020",results/oc_models/type1_models.csv,4,not in key numbers
 S21,"Km multiplier search range, test arm",config/oc_design.yaml,0.01~×100,file not cited
 S21,true AUC0-inf ratio range over Km x0.01 to x100 (range ends and reached rows),results/oc/inversion_all.csv,0.999~1.059,matched
 S21,window coverage threshold in column name coverage_lt80_pct (percent),results/curve_shape/curve_shape_B0.csv,80,file not cited
@@ -930,6 +1052,8 @@ S21,LLOQ grid M1 G2_Aii cells with Wilson lower bound above 5% (denominator),res
 S21,number of LLOQ values in the sensitivity grid,config/assay.yaml,6,file not cited
 S21,boundary cells in the LLOQ trials,results/lloq/lloq_trial_type1.csv,3,consistent after rounding
 S21,"proportional residual, 2016 model",results/trialpop/tp_residual_sensitivity.csv,24.2%,matched
+S21,"set (i) failing, residual 24.2%",results/trialpop/tp_residual_sensitivity.csv,13.4%,matched
+S21,"set (i) failing, residual 12%",results/trialpop/tp_residual_sensitivity.csv,5.8%,matched
 S21,"set (iii) failing, residual 24.2%",results/trialpop/tp_residual_sensitivity.csv,38.8%,matched
 S21,"set (iii) failing, residual 12%",results/trialpop/tp_residual_sensitivity.csv,27.2%,matched
 S21,"set (iv) failing, residual 24.2%",results/trialpop/tp_residual_sensitivity.csv,65.9%,matched
@@ -970,8 +1094,8 @@ S21,LLOQ grid M1 G2_B range,results/lloq/lloq_trial_type1.csv,3.92~18.36%,not in
 S21,"LLOQ grid, share below 80% window coverage, 2016 model",results/lloq/lloq_individual_table.csv,0.00~0.01%,matched
 S21,"LLOQ grid, reliability set (i), 2016 model",results/lloq/lloq_individual_table.csv,84.2~88.0%,matched
 S21,study LLOQ (mg/L),config/assay.yaml,0.078,file not cited
-S21,"set (i) failing, residual 24.2%",results/trialpop/tp_residual_sensitivity.csv,13.4%,matched
-S21,"set (i) failing, residual 12%",results/trialpop/tp_residual_sensitivity.csv,5.8%,matched
+S21,"M1 G2_Ai cells above 5% (point estimate), both models",results/oc_models/type1_models.csv,10,not in key numbers
+S21,"M1 G2_Ai cells with Wilson lower bound above 5%, both models",results/oc_models/type1_models.csv,8,not in key numbers
 S21,"residual 12%, D2, criterion (a) (%)",results/trials/schedule_decision_resid12.csv,-0.50%,file not cited
 S21,"residual 12%, D2, criterion (c) (points)",results/trials/schedule_decision_resid12.csv,-2.33,file not cited
 S21,"residual 12%, D2, criterion (d) ratio",results/trials/schedule_decision_resid12.csv,0.99,file not cited
@@ -997,6 +1121,8 @@ S22,"largest grid CV with power at the target, protocol n (%)",results/sample_si
 S22,P2 power n 117 CV 46 GMR 0.95 M1,results/sample_size/ss_table_power.csv,92.0%,not in key numbers
 S22,sensitivity CV (%),results/sample_size/ss_table_power.csv,50,matched
 S22,P2 power n 117 CV 50 GMR 0.95 M1,results/sample_size/ss_table_power.csv,88.0%,matched
+S22,protocol CV (%),results/sample_size/ss_table_power.csv,43,matched
+S22,P2 power n 117 CV 43 GMR 0.95 M1,results/sample_size/ss_table_power.csv,94.5%,matched
 S22,grid CV 35 (%),results/sample_size/ss_table_power.csv,35,not in key numbers
 S22,grid CV 40 (%),results/sample_size/ss_table_power.csv,40,not in key numbers
 S22,grid CV 43 (%),results/sample_size/ss_table_power.csv,43,matched
@@ -1038,10 +1164,10 @@ S22,evaluable subjects per arm (grid column),results/sample_size/ss_table_power.
 S22,evaluable subjects per arm (grid column),results/sample_size/ss_table_power.csv,130,not in key numbers
 S22,evaluable subjects per arm (grid column),results/sample_size/ss_table_power.csv,140,not in key numbers
 S22,evaluable subjects per arm (grid column),results/sample_size/ss_table_power.csv,117,matched
-S22,protocol CV (%),results/sample_size/ss_table_power.csv,43,matched
 S22,n M1 CV 43 GMR 0.95 target 90,results/sample_size/ss_table_n_needed.csv,97,matched
 S22,n M1 CV 50 GMR 0.95 target 90,results/sample_size/ss_table_n_needed.csv,126,matched
 S22,n randomized M1 CV 50 GMR 0.95 target 90,results/sample_size/ss_table_n_needed.csv,140,matched
+S22,n randomized M1 CV 43 GMR 0.95 target 90,results/sample_size/ss_table_n_needed.csv,108,matched
 S22,"AUC0-last CV, 2016 model (%)",results/sample_size/ss_inputs.csv,40.3%,file not cited
 S22,"AUC0-last CV, 2020 model (%)",results/sample_size/ss_inputs.csv,42.8%,file not cited
 S22,"Li 2020 Table 3, 300 mg arms, SD/mean range (%)",config/design_clot2021.yaml,35~51,file not cited
@@ -1067,7 +1193,8 @@ S22,P2 power n 117 CV 43 GMR 0.95 M0,results/sample_size/ss_table_power.csv,94.0
 S22,P2 power n 117 CV 50 GMR 0.95 M0,results/sample_size/ss_table_power.csv,87.2%,matched
 S22,"P2 power, next grid n above the protocol n, sensitivity CV, M1",results/sample_size/ss_table_power.csv,90.9%,not in key numbers
 S22,next grid n above the protocol n,results/sample_size/ss_table_power.csv,130,not in key numbers
-S22,"PK-model trials per check cell, true GMR 0.90",results/sample_size/ss_pk_check.csv,"5,000",file not cited
+S22,"PK-model trials per check cell, F-decrease cells (true GMR 0.90 and 0.95)",results/sample_size/ss_pk_check.csv,"5,000",file not cited
+S22,"PK-model trials per check cell, S00 and F097",results/sample_size/ss_pk_check.csv,"10,000",file not cited
 S23,M1 P2 boundary type I error range,results/oc_models/type1_models.csv,0.00~5.63%,matched
 S23,M0 P2 boundary type I error range,results/oc_models/type1_models.csv,0.00~5.18%,matched
 S23,M1 P2 cells classified conservative,results/oc_models/type1_models.csv,15,matched
@@ -1075,12 +1202,14 @@ S23,M1 P2 cells classified exceeding,results/oc_models/type1_models.csv,1,matche
 S23,criteria set (i) adj_r2_min,config/prereg_20260926.yaml,0.80,file not cited
 S23,criteria set (i) extrap_max_pct,config/prereg_20260926.yaml,20,file not cited
 S23,criteria set (iii) adj_r2_min,config/prereg_20260926.yaml,0.90,file not cited
+S23,criteria set (iii) extrap_max_pct,config/prereg_20260926.yaml,20,file not cited
 S23,"trial population, set (i) failing, two models",results/trialpop/tp_failure_by_set.csv,8.2~13.4%,matched
 S23,"trial population, set (iii) failing, two models",results/trialpop/tp_failure_by_set.csv,33.2~38.8%,matched
 S23,M0 rule C set (i) largest boundary value,results/criteria/criteria_g2_type1.csv,4.63%,not in key numbers
 S23,M1 rule C set (i) largest boundary value,results/criteria/criteria_g2_type1.csv,5.06%,not in key numbers
 S23,M1 F3B boundary type I error range,results/oc_models/type1_models.csv,0.00~3.95%,not in key numbers
 S23,M1 G2_B cells with point estimate above 5%,results/oc_models/type1_models.csv,10,not in key numbers
+S23,M1 G2_B cells with Wilson lower bound above 5%,results/oc_models/type1_models.csv,8,not in key numbers
 S23,boundary cells per configuration (M1),results/oc_models/type1_models.csv,16,not in key numbers
 S23,nominal type I error per one-sided test (%) = (1 - be.ci_level) / 2,config/trial_design.yaml,5%,file not cited
 S23,randomization stratum split (kg),config/trial_design.yaml,75,file not cited
@@ -1118,16 +1247,20 @@ S23,M0 F3B boundary type I error range,results/oc_models/type1_models.csv,0.00~3
 S23,M1 F3B maximum,results/oc_models/type1_models.csv,3.95% (95% CI 3.59~4.35),not in key numbers
 S23,M1 G2_B maximum,results/oc_models/type1_models.csv,16.03% (95% CI 15.32~16.76),not in key numbers
 S23,M0 G2_B cells with point estimate above 5%,results/oc_models/type1_models.csv,8,not in key numbers
-S23,M1 F3A boundary type I error range,results/oc_models/type1_models.csv,0.00~3.39%,not in key numbers
-S23,M1 F3C boundary type I error range,results/oc_models/type1_models.csv,0.00~5.16%,not in key numbers
+S23,M0 G2_B cells with Wilson lower bound above 5%,results/oc_models/type1_models.csv,6,consistent after rounding
+S23,M1 F3A (set ii) boundary type I error range,results/oc_models/type1_models.csv,0.00~3.39%,not in key numbers
+S23,M1 F3C (set ii) boundary type I error range,results/oc_models/type1_models.csv,0.00~5.16%,not in key numbers
 S24,nominal type I error per one-sided test (%) = (1 - be.ci_level) / 2,config/trial_design.yaml,5%,file not cited
 S24,criteria set (i) adj_r2_min,config/prereg_20260926.yaml,0.80,file not cited
 S24,criteria set (iii) adj_r2_min,config/prereg_20260926.yaml,0.90,file not cited
+S24,criteria set (i) extrap_max_pct,config/prereg_20260926.yaml,20,file not cited
+S24,criteria set (iii) extrap_max_pct,config/prereg_20260926.yaml,20,file not cited
 S24,"schedule B0, last (study day = days after dose + 1)",config/trial_design.yaml,57,file not cited
 S24,"median true extrapolation, 2016 model (%)",results/rationale/pillar1_coverage_B0.csv,0.65%,matched
 S24,"trial population, set (i) failing, two models",results/trialpop/tp_failure_by_set.csv,8.2~13.4%,matched
 S24,boundary cells per configuration (M1),results/oc_models/type1_models.csv,16,not in key numbers
 S24,M1 G2_Ai cells with point estimate above 5%,results/oc_models/type1_models.csv,10,not in key numbers
+S24,M1 G2_Ai cells with Wilson lower bound above 5%,results/oc_models/type1_models.csv,8,not in key numbers
 S24,M1 P2 cells classified conservative,results/oc_models/type1_models.csv,15,matched
 S24,M1 P2 cells classified exceeding,results/oc_models/type1_models.csv,1,matched
 S24,M1 P2 range,results/oc_models/type1_models.csv,0.00~5.63%,matched
@@ -1140,6 +1273,7 @@ S24,"cliff length median, 2016 model (days)",results/cliff/cliff_summary.csv,1.3
 S24,daily sampling window of the cliff check (study days = days after dose + 1),config/oc_design.yaml,29~57,file not cited
 S24,sample-count threshold in column name pct_ge3,results/cliff/cliff_points.csv,3,not in key numbers
 S24,"daily sampling, 3 or more samples on the cliff, nominal days (%)",results/cliff/cliff_points.csv,0.0%,matched
+S24,"daily sampling, 3 or more samples on the cliff, windowed times (%)",results/cliff/cliff_points.csv,7.5%,not in key numbers
 S24,"LLOQ study day median, 2016 model",results/cliff/cliff_summary.csv,38.5,matched
 S24,study-day threshold in column name lloq_after_day58_pct,results/cliff/cliff_summary.csv,58,matched
 S24,"above LLOQ after Day 58, 2016 model (%)",results/cliff/cliff_summary.csv,2.5%,matched
@@ -1168,7 +1302,6 @@ S24,2020 V2 cell P2 M0,results/oc_models/p2_decomposition_models.csv,5.18% (95% 
 S24,"trial population, set (iv) failing, two models",results/trialpop/tp_failure_by_set.csv,65.9~72.5%,matched
 S24,"LLOQ study day median, 2020 model",results/cliff/cliff_summary.csv,40.8,not in key numbers
 S24,"above LLOQ after Day 58, 2020 model (%)",results/cliff/cliff_summary.csv,4.6%,not in key numbers
-S24,"daily sampling, 3 or more samples on the cliff, windowed times (%)",results/cliff/cliff_points.csv,7.5%,not in key numbers
 S24,power n117 CV 50 M0,results/sample_size/ss_table_power.csv,87.2%,matched
 S24,target power (%),results/sample_size/ss_table_n_needed.csv,90,matched
 S24,n_evaluable_per_arm M1 CV 43 target 90,results/sample_size/ss_table_n_needed.csv,97,matched
@@ -1182,8 +1315,8 @@ S24,"P2 M1 minus M0, mean (points)",results/oc_models/type1_paired_change.csv,0.
 S25,window coverage threshold (%) of the column coverage_lt80_pct,results/curve_shape/curve_shape_B0.csv,80,file not cited
 S25,"Km (mg/L), fixed in both models",config/params_typical.yaml,0.01,file not cited
 S25,"Km multipliers, both arms, curve-shape variants",config/scenarios.yaml,0.5~10,file not cited
-S25,"Vmax multipliers, both arms, variants consistent with the data",config/scenarios.yaml,0.8~1.25,file not cited
-S25,"largest share below 80% window coverage, non-stress curve-shape variants",results/curve_shape/curve_shape_B0.csv,0.00%,file not cited
+S25,"Vmax multipliers, both arms, non-stress curve-shape variants",config/scenarios.yaml,0.8~1.25,file not cited
+S25,"share below 80% window coverage, non-stress curve-shape variants (all equal)",results/curve_shape/curve_shape_B0.csv,0.00%,file not cited
 S25,smallest 95th-percentile coverage (100 - max 95th percentile of true extrapolation) over both models and non-stress curve-shape variants,results/curve_shape/curve_shape_B0.csv,94.7,file not cited
 S25,Km multipliers searched in the test arm (range ends),results/oc/inversion_all.csv,0.01~100,matched
 S25,true AUC0-inf ratio range over Km x0.01 to x100 (range ends and reached rows),results/oc/inversion_all.csv,0.999~1.059,matched
@@ -1192,6 +1325,7 @@ S25,"Cmax sim/obs range, 2020",results/step1_k2020/step1b_quant_gate.csv,1.00~1.
 S25,"largest Cmax over-prediction (%), 2016 model, study presentation",results/step1/step1b_quant_gate.csv,27,file not cited
 S25,"largest Cmax over-prediction (%), 2016 model, 300 mg data sets",results/step1/step1b_quant_gate.csv,16,file not cited
 S25,"largest Cmax over-prediction (%), 2020 model, study presentation",results/step1_k2020/step1b_quant_gate.csv,17,file not cited
+S25,"largest Cmax over-prediction (%), 2020 model, 300 mg data sets",results/step1_k2020/step1b_quant_gate.csv,7,file not cited
 S25,dose of the data set with the largest Cmax ratio (mg),results/step1/step1b_quant_gate.csv,600,file not cited
 S25,dose (mg),config/trial_design.yaml,300,file not cited
 S25,dose of the 175 mg/mL external data sets (mg),results/step1/step1b_quant_gate.csv,200,file not cited
@@ -1210,7 +1344,7 @@ S25,"ADA-like subgroup, median true extrapolation (%)",results/individual/indivi
 S25,"other subjects, median true extrapolation (%)",results/individual/individual_ada10_by_subgroup.csv,0.68,file not cited
 S25,"ADA-like subgroup, window coverage below 80% (%)",results/individual/individual_ada10_by_subgroup.csv,0.00,file not cited
 S25,lambda-z windows identical over all comparisons,results/nca_engine/engine_validation_summary.csv,"3,054 / 3,054",matched
-S25,largest relative parameter difference,results/nca_engine/engine_validation_summary.csv,4.9e-13,matched
+S25,largest relative parameter difference,results/nca_engine/engine_validation_summary.csv,4.9×10⁻¹³,not in key numbers
 S25,independent human QC status,regulatory/tables/verification_qc.csv,PENDING (sponsor),file not cited
 S25,percentile level of the column extrap_true_p95,results/curve_shape/curve_shape_B0.csv,95,file not cited
 S25,"Km variants, median true extrapolation",results/curve_shape/curve_shape_B0.csv,0.40~0.67%,file not cited
@@ -1227,6 +1361,7 @@ S25,"Cmax sim/obs, 200 mg data sets, 2020",results/step1_k2020/step1b_quant_gate
 S25,"ADA-like subgroup, median tlast (day)",results/individual/individual_ada10_by_subgroup.csv,28.4,file not cited
 S25,"other subjects, median tlast (day)",results/individual/individual_ada10_by_subgroup.csv,34.7,file not cited
 S25,study-presentation data sets,results/step1/step1b_quant_gate.csv,5,file not cited
+S25,Vmax multiplier of the non-stress variant outside the exposure check,config/scenarios.yaml,0.8,file not cited
 S25,evaluable subjects per arm,config/trial_design.yaml,117,file not cited
 S26,study LLOQ (mg/L),config/assay.yaml,0.078,file not cited
 S26,LLOQ sensitivity range (mg/L),config/assay.yaml,0.02~0.50,file not cited
@@ -1234,6 +1369,12 @@ S26,window coverage threshold (%) of the column coverage_lt80_pct,results/lloq/l
 S26,"LLOQ grid, window coverage below 80%, 2016 model",results/lloq/lloq_individual_table.csv,0.00~0.01%,matched
 S26,LLOQ grid M1 P2 range,results/lloq/lloq_trial_type1.csv,2.60~4.62%,matched
 S26,Day 1 post-dose sampling time (day after dose),config/trial_design.yaml,0.25,file not cited
+S26,Day 1 post-dose sampling time (hours after dose = value x 24),config/trial_design.yaml,6,file not cited
+S26,body weight mean (kg),config/trial_design.yaml,75,file not cited
+S26,body weight SD (kg),config/trial_design.yaml,9,file not cited
+S26,boundary cells in the LLOQ trials,results/lloq/lloq_trial_type1.csv,3,consistent after rounding
+S26,LLOQ trials per cell,results/lloq/lloq_trial_type1.csv,"5,000",not in key numbers
+S26,randomized subjects per arm,config/trial_design.yaml,130,file not cited
 S26,"visit window, first post-dose interval (hours)",config/trial_design.yaml,2,file not cited
 S26,visit window thereafter (days),config/trial_design.yaml,1,file not cited
 S26,randomization stratum split (kg),config/trial_design.yaml,75,file not cited
@@ -1253,11 +1394,8 @@ S26,LLOQ grid M0 P2 range,results/lloq/lloq_trial_type1.csv,2.22~4.22%,matched
 S26,"visit window, end of first interval (day after dose)",config/trial_design.yaml,1,file not cited
 S26,"visit window, end of second interval (day after dose)",config/trial_design.yaml,14,file not cited
 S26,"visit window, second interval (hours)",config/trial_design.yaml,6,file not cited
-S26,body weight mean (kg),config/trial_design.yaml,75,file not cited
-S26,body weight SD (kg),config/trial_design.yaml,9,file not cited
 S26,body weight inclusion range (kg),config/trial_design.yaml,60~90,file not cited
 S26,share male,config/trial_design.yaml,0.5,file not cited
-S26,randomized subjects per arm,config/trial_design.yaml,130,file not cited
 S26,"P2 power at the protocol n, M0",results/sample_size/ss_table_power.csv,94.0%,matched
 S26,"n per arm for the higher target, M0",results/sample_size/ss_table_n_needed.csv,100,matched
 S26,"n per arm for the lower target, M0",results/sample_size/ss_table_n_needed.csv,85,matched
@@ -1310,7 +1448,7 @@ A1,PKM12350 test arm published AUC0-t and AUC0-inf (from the note),results/liter
 A1,"simulated subjects per literature condition, 2016",results/step1/step1g_literature_coverage.csv,"16,000",file not cited
 A2,"PKM14161 test arm, published mean AUC0-last (Li 2020 Table 3)",config/design_clot2021.yaml,587,file not cited
 A2,"PKM14161 reference arm, published mean AUC0-last (Li 2020 Table 3)",config/design_clot2021.yaml,575,file not cited
-A2,"PKM14161 test arm, published median tmax (day)",config/design_clot2021.yaml,7.0,file not cited
+A2,"PKM14161 published median tmax (day), same in both arms",config/design_clot2021.yaml,7.0,file not cited
 A2,dose (mg),config/trial_design.yaml,300,file not cited
 A2,"PKM14161 test, sim/obs AUC0-last, 2016",results/step1/step1f_300mg_arm_check.csv,0.97,file not cited
 A2,"PKM14161 reference, sim/obs AUC0-last, 2016",results/step1/step1f_300mg_arm_check.csv,0.99,file not cited
@@ -1321,12 +1459,27 @@ A2,Cohen 2022 dose (mg),config/design_clot2021.yaml,200,file not cited
 A2,Cohen 2022 concentration (mg/mL),results/step1/step1b_quant_gate.csv,175,file not cited
 A2,Cohen 2022 autoinjector n,config/design_clot2021.yaml,62,file not cited
 A2,Cohen 2022 prefilled syringe n,config/design_clot2021.yaml,63,file not cited
+A2,"Cohen 2022 autoinjector, published mean AUC0-last (Table 2)",config/design_clot2021.yaml,311,file not cited
+A2,"Cohen 2022 prefilled syringe, published mean AUC0-last (Table 2)",config/design_clot2021.yaml,284,file not cited
 A2,Cohen 2022 AUC0-last GMR,config/design_clot2021.yaml,1.11,file not cited
 A2,Cohen 2022 AUC0-last GMR 90% CI,config/design_clot2021.yaml,0.96~1.28,file not cited
 A2,Cohen 2022 implied log SD of AUC0-last,results/step1/step1d_cohen2022_logsd.csv,0.49,file not cited
+A2,"MSB11456 IV study, randomized healthy adults",config/literature_precedents.yaml,128,file not cited
+A2,"MSB11456 IV study, test arm n",config/literature_precedents.yaml,62,file not cited
+A2,"MSB11456 IV study, reference arm n",config/literature_precedents.yaml,66,file not cited
+A2,"MSB11456 IV study, dose (mg/kg)",config/literature_precedents.yaml,8,file not cited
+A2,"MSB11456 IV study, last sampling day",config/literature_precedents.yaml,48,file not cited
+A2,"MSB11456 IV study, infusion duration (h)",config/literature_precedents.yaml,1,file not cited
+A2,"MSB11456 IV study, geometric LS mean ratio (%) and 90% CI, AUC0-last",config/literature_precedents.yaml,103.34% (98.53~108.37),file not cited
+A2,"MSB11456 IV study, geometric LS mean ratio (%) and 90% CI, AUC0-inf",config/literature_precedents.yaml,103.15% (97.86~108.73),file not cited
+A2,"MSB11456 IV study, geometric LS mean ratio (%) and 90% CI, Cmax",config/literature_precedents.yaml,101.48% (97.23~105.92),file not cited
 A2,Cohen 2022 mean body weight (kg),config/design_clot2021.yaml,80.6,file not cited
 A2,Cohen 2022 median tmax (day),config/design_clot2021.yaml,3.00,file not cited
 A2,"Cohen 2022 sim/obs AUC0-last, 2016",results/step1/step1b_quant_gate.csv,0.84~0.91,file not cited
+A2,"MSB11456 IV study, DOI",config/literature_precedents.yaml,10.1080/1744666X.2023.2174104,file not cited
+A2,"MSB11456 IV study, publication year",config/literature_precedents.yaml,2023,file not cited
+A2,"MSB11456 IV study, published online",config/literature_precedents.yaml,2023-02-13,file not cited
+A2,"MSB11456 IV study, PubMed ID",config/literature_precedents.yaml,36715299,file not cited
 A3,"reference body weight for Vc (kg), both models",config/params_typical.yaml,75,file not cited
 A3,"2016 model, Vc (L at 75 kg)",config/params_typical.yaml,2.74,file not cited
 A3,"2016 model, weight exponent on Vc",config/params_typical.yaml,0.705,file not cited
@@ -1376,16 +1529,21 @@ A3,variability sensitivity: multiplier on all IIV variances,config/params_variab
 A3,residual sensitivity: alternative proportional residual (%),config/params_variability.yaml,12%,file not cited
 A4,criteria set (i) adj_r2_min,config/prereg_20260926.yaml,0.80,file not cited
 A4,criteria set (iii) adj_r2_min,config/prereg_20260926.yaml,0.90,file not cited
+A4,public SAP NCT04117607: adjusted R-squared at least,config/prereg_20260926.yaml,0.90,file not cited
+A4,public SAP NCT04441905: adjusted R-squared at least,config/prereg_20260926.yaml,0.90,file not cited
+A4,public SAP NCT04700163: adjusted R-squared above,config/prereg_20260926.yaml,0.90,file not cited
 A4,lambda-z minimum points,config/nca_rules.yaml,3,file not cited
 A4,lambda-z adjusted R-squared tie tolerance,config/nca_rules.yaml,0.0001,file not cited
 A4,BLQ before the first quantifiable value is set to zero,config/nca_rules.yaml,0,file not cited
 A4,lambda-z windows identical over all comparisons,results/nca_engine/engine_validation_summary.csv,"3,054/3,054",matched
-A4,largest relative parameter difference,results/nca_engine/engine_validation_summary.csv,4.9e-13,matched
+A4,largest relative parameter difference (scientific notation),results/nca_engine/engine_validation_summary.csv,4.9×10⁻¹³,not in key numbers
 A4,NonCompart version (renv.lock),regulatory/tables/software_environment.csv,0.8.4,file not cited
 A4,PKNCA version (renv.lock),regulatory/tables/software_environment.csv,0.12.1,file not cited
 A4,Theoph profiles,results/nca_engine/engine_validation_summary.csv,12,not in key numbers
 A4,Indometh profiles,results/nca_engine/engine_validation_summary.csv,6,not in key numbers
 A4,simulated profiles,results/nca_engine/engine_validation_summary.csv,"1,000",not in key numbers
+A4,profiles per engine comparison (Theoph + Indometh + simulated),results/nca_engine/engine_validation_summary.csv,"1,018",not in key numbers
+A4,engine pairs compared per data set,results/nca_engine/engine_validation_summary.csv,3,not in key numbers
 A4,criteria set (i) adj_r2_min,config/prereg_20260926.yaml,0.80,file not cited
 A4,criteria set (ii) adj_r2_min,config/prereg_20260926.yaml,0.80,file not cited
 A4,criteria set (iii) adj_r2_min,config/prereg_20260926.yaml,0.90,file not cited
@@ -1401,6 +1559,7 @@ A4,criteria set (ii) span_ratio_min,config/prereg_20260926.yaml,2,file not cited
 A4,criteria set (iv) span_ratio_min,config/prereg_20260926.yaml,3,file not cited
 A5,"smallest coverage of the true AUC0-inf by the sampling window in patients failing criteria set (iii), three model variants, rounded down to 0.1 (%)",results/atopic/atopic_coverage_failing.csv,78.9,not in key numbers
 A5,body weight inclusion range (kg),config/trial_design.yaml,60~90,file not cited
+A5,lower bound of the weight band flagged as possibly outside the model development data (kg),results/weight_generalization/weight_bands_B0_abcd.csv,130,file not cited
 A5,"weight bands, 2016 model, reliable under set (i), lightest band",results/weight_generalization/weight_bands_B0_abcd.csv,90.8%,file not cited
 A5,"weight bands, 2016 model, reliable under set (i), heaviest band",results/weight_generalization/weight_bands_B0_abcd.csv,70.9%,file not cited
 A5,"weight bands, 2020 Model 1, reliable under set (i), lightest band",results/weight_generalization/weight_bands_B0_abcd.csv,94.1%,file not cited
@@ -1411,6 +1570,8 @@ A5,window coverage threshold in column name coverage_lt80_pct (percent),results/
 A5,"uniform weight bands, lowest and highest bound (kg)",results/weight_generalization/weight_bands_B0_abcd.csv,40~150,file not cited
 A5,subjects per weight band,results/weight_generalization/weight_bands_B0_abcd.csv,"20,000",file not cited
 A5,dropouts heavier than retained subjects (kg),results/weight_generalization/obese_trials_dropout_a.csv,3.2~6.4,file not cited
+A5,weight threshold in column name below_60 (kg),results/atopic/atopic_weight_table.csv,60,matched
+A5,weight threshold in column name above_90 (kg),results/atopic/atopic_weight_table.csv,90,matched
 A5,"atopic population, 2016 model, share failing criteria set (i)",results/atopic/atopic_criteria_by_band.csv,14.9%,matched
 A5,"atopic population, 2016 model, share failing criteria set (iii)",results/atopic/atopic_criteria_by_band.csv,39.5%,matched
 A5,"atopic, three variants, set i, band all, fail_pct",results/atopic/atopic_criteria_by_band.csv,8.9~15.3%,matched
@@ -1422,7 +1583,6 @@ A5,"primary weight distribution, simulated, share above 90 kg",results/atopic/at
 A5,"atopic placeholder distribution, mean (kg)",config/population_atopic.yaml,78,file not cited
 A5,"atopic placeholder distribution, SD (kg)",config/population_atopic.yaml,19,file not cited
 A5,"share of the primary distribution above 130 kg (analytic, truncated)",config/population_atopic.yaml,1.2,file not cited
-A5,lower bound of the weight band flagged as possibly outside the model development data (kg),results/weight_generalization/weight_bands_B0_abcd.csv,130,file not cited
 A5,"atopic placeholder distribution, truncation (kg)",config/population_atopic.yaml,40~180,file not cited
 A5,"primary weight distribution, simulated, share above 100 kg",results/atopic/atopic_weight_table.csv,12.9%,matched
 A5,weight threshold in column name above_100 (kg),results/atopic/atopic_weight_table.csv,100,matched
@@ -1436,15 +1596,19 @@ A5,"atopic trials, P2 and G2 A_i decision agreement, M0",results/atopic/atopic_t
 A5,"atopic trials, test minus reference failing set i, VM125 (points)",results/atopic/atopic_trials_arm_failure.csv,4.59~6.99,file not cited
 A5,atopic trials per scenario (pre-registered),config/prereg_20260926.yaml,"2,000",file not cited
 A6,"runs before the fix, run numbers",results/ci/ci_failures_before.csv,1~71,file not cited
+A6,runs before the fix (failed before any test),results/ci/ci_failures_before.csv,71,file not cited
 A6,runs failed: no renv.lock in commit,results/ci/ci_failure_summary.csv,1,file not cited
 A6,runs failed: xml2 missing for JunitReporter,results/ci/ci_failure_summary.csv,70,file not cited
 A6,first run after the fix,results/ci/ci_runs_after_fix.csv,72,file not cited
-A6,latest tests run (v1.0.1 package commit),results/ci/ci_runs_v101.csv,98,file not cited
+A6,last tests run of the v1.0.1 record (v1.0.1 package commit),results/ci/ci_runs_v101.csv,98,file not cited
 A6,"failed runs after the fix (strict-skip rule), run numbers",results/ci/ci_runs_v101.csv,87~91,file not cited
 A6,run that fixed the strict-skip failures,results/ci/ci_runs_v101.csv,92,file not cited
-A6,tests runs after the fix with conclusion success (after_fix + v101),results/ci/ci_runs_v101.csv,19,file not cited
-A6,tests runs after the fix with conclusion cancelled (after_fix + v101),results/ci/ci_runs_v101.csv,3,file not cited
-A6,tests runs after the fix with conclusion failure (after_fix + v101),results/ci/ci_runs_v101.csv,5,file not cited
+A6,failed run of the deck record (environment setup),results/ci/ci_runs_deck.csv,99,file not cited
+A6,run that fixed the deck-record failure,results/ci/ci_runs_deck.csv,100,file not cited
+A6,latest tests run recorded (deck record),results/ci/ci_runs_deck.csv,101,file not cited
+A6,tests runs after the fix with conclusion success (after_fix + v101 + deck),results/ci/ci_runs_v101.csv,21,file not cited
+A6,tests runs after the fix with conclusion cancelled (after_fix + v101 + deck),results/ci/ci_runs_v101.csv,3,file not cited
+A6,tests runs after the fix with conclusion failure (after_fix + v101 + deck),results/ci/ci_runs_v101.csv,6,file not cited
 A6,GitHub reproducibility run: n_pass_github,results/repro/repro_github_run.csv,7,file not cited
 A6,GitHub reproducibility run: n_items,results/repro/repro_github_run.csv,7,file not cited
 A6,"GitHub reproducibility run: items (all pass, title)",results/repro/repro_github_run.csv,7,file not cited
@@ -1476,6 +1640,9 @@ A6,"register s4: registered (UTC, commit)",regulatory/tables/prespecification_re
 A6,"register s4: first results (UTC, commit)",regulatory/tables/prespecification_register.csv,09-25 15:40 (5b94d3e),file not cited
 A6,"register s6: registered (UTC, commit)",regulatory/tables/prespecification_register.csv,09-25 12:45 (bae3574),file not cited
 A6,"register s6: first results (UTC, commit)",regulatory/tables/prespecification_register.csv,09-25 15:18 (b207bf2),file not cited
+A6,"register s5: registered (UTC, commit)",regulatory/tables/prespecification_register.csv,09-25 11:04 (325e63b),file not cited
+A6,"register s5: first results (UTC, commit)",regulatory/tables/prespecification_register.csv,09-25 12:12 (fa60914),file not cited
+A6,year of every registration and first-result date in the table,regulatory/tables/prespecification_register.csv,2026,file not cited
 A6,rows of the pre-specification register,regulatory/tables/prespecification_register.csv,23,file not cited
 A6,register rows pre-specified,regulatory/tables/prespecification_register.csv,4,file not cited
 A6,register rows pre-registered,regulatory/tables/prespecification_register.csv,6,file not cited

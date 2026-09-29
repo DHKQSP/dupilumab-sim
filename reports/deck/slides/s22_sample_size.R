@@ -62,7 +62,7 @@ slide_S22 <- function() {
   names(df) <- c(L$table$h_cv, vapply(ns, function(n) fill(if (n == n_arm) L$table$h_now else L$table$h_n, list(n = nlab(n))), ""),
                  fill(L$table$h_m0, list(n = nlab(n_arm))))
   yt <- y0 + 0.42; TH <- 2.5
-  deck_table(df, box = c(GEO$ML, yt, tw, TH), widths = c(1.95, 1.08, 1.3, 1.08, 1.08, 1.11), size = 13, highlight = which(cvs %in% c(cv_b, cv_s)))
+  deck_table(df, box = c(GEO$ML, yt, tw, TH), widths = c(1.85, 1.05, 1.45, 1.05, 1.05, 1.15), size = 13, highlight = which(cvs %in% c(cv_b, cv_s)))
 
   # ---- 왼쪽 아래: 요점 ----
   nn_ <- function(cv, am, col = "n_evaluable_per_arm", it = "n") dint(NN, s22_wn(cv, am, tg), col, sprintf("%s %s CV %s GMR 0.95 target %s", it, am, cv, tg))
@@ -96,7 +96,7 @@ slide_S22 <- function() {
              g95 = drange(PK, "analysis_model != 'M2' & auc_ratio > 0.93 & auc_ratio < 1.01", "auc_ratio", 2, "", "true GMRs of the PK-model check band 0.93 to 1.01"),
              amax = s22_pk(0.93, 1.01, "absmax"))
   yc <- GEO$BODY_TOP + hf + 0.12
-  deck_text(tx("S22.caution", f2), c(xr, yc, wr, GEO$BODY_BOTTOM - yc), size = 16, bg = PAL$tint_orange, geom = "roundRect", label = "caution", gap_pt = 4)
+  deck_text(tx("S22.caution", f2), c(xr, yc, wr, GEO$BODY_BOTTOM - yc), size = 16, bg = PAL$tint_orange, geom = "roundRect", label = "caution", gap_pt = 0)
 
   # ---- 노트 ----
   deck_notes(tx("S22.notes", c(f, b, f2, list(

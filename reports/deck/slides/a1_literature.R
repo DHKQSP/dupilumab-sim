@@ -50,7 +50,7 @@ slide_A1 <- function() {
   deck_title(tx("A1.title", list(tol = tol$p, dose = f_dose(), d600 = dint(LN, W$c600, "dose_mg", "dose of the lower-coverage literature row (mg)"))))
   # 해석 열: 판정과 차이 한 줄 + 덧붙임 한 줄(명시적 줄바꿈). 일치 기준과 반올림 전 계산은 머리글에, 하한의 뜻은 표 아래 설명에. 강조 행 없음(색만으로 뜻을 나타내지 않는다)
   th <- 2.8
-  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, th), widths = c(2.95, 1.1, 2.2, 2.2, 3.78), size = 13, align_num = TRUE)
+  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, th), widths = c(2.95, 1.1, 2.2, 2.2, 3.78), size = 13, align_num = TRUE, align_cols = c("left", "center", "center", "center", "left"))
   yc <- GEO$BODY_TOP + th + 0.08; hc <- 0.42
   deck_text(tx("A1.caption"), c(GEO$ML, yc, GEO$CW, hc), size = 16, color = PAL$ink2, label = "caption_lowerbound", gap_pt = 0)
   # 정성 서술(프로젝트 문헌 발췌표 literature_qualitative.csv; 보고서 1.1절)

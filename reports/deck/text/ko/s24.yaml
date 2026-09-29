@@ -10,7 +10,7 @@ S24:
       a: "2016 모델에서 참 농도는 중앙값 Day {day16}에 LLOQ에 닿고 Day {d58} 뒤 LLOQ 위는 {a16}뿐이다. 절벽(중앙값 {len}일)에는 Day {dd} 매일 채혈로도 {k3}점 이상 잡히는 대상자가 명목일 기준 {pct}, 방문 허용창 반영 {pctw}다. 사전 규정 채혈 추가 규칙은 두 모델 모두 충족되지 않았다."
     - id: "Q7"
       q: "경계 1종 오류는? 왜 한 칸이 {nom}를 넘나?"
-      a: "AUC0-last + Cmax(M1)는 {ncell}칸 중 {e1}칸만 초과(Wilson 하한 > {nom}): 2020 모델 말초 분포용적 ×{mult} 칸, {p2ci}. AUC0-last GMR이 동등 쪽(1 방향)으로 {bias} 치우친 결과다. M0는 {m0}(명목: Wilson 구간이 {nom} 포함). 이 칸은 SAP에 공개한다."
+      a: "AUC0-last + Cmax(M1)는 {ncell}칸 중 {e1}칸만 초과(Wilson 하한 > {nom}): 2020 모델 V2(말초 분포용적) ×{mult} 칸, {p2ci}. AUC0-last GMR이 동등 쪽(1 방향)으로 {bias} 치우친 결과다. M0는 {m0}(명목: Wilson 구간이 {nom} 포함). 이 칸은 SAP에 공개한다."
     - id: "Q11 · Q19"
       q: "AUC0-inf 보고는? R² ≥ {r2i}은 Phoenix 기준?"
       a: "이차 평가변수로만, 두 분석군(λz 산출 전원, 기준 충족자)으로 보고한다. Phoenix에는 기본 기준이 없다(사용자 선택 항목, 미달은 표시만). 정의는 세트 (i)(R² ≥ {r2i}, 외삽 ≤ {exi}%; 관행 범위의 하한), 병기는 세트 (iii)(R² ≥ {r2iii}, 외삽 ≤ {exiii}%)이며 미달은 {fi}, {fiii}(두 모델)."

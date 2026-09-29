@@ -1,36 +1,36 @@
 check,slide,status,detail
 1 numbers traced,S01,pass,2 traced values
-1 numbers traced,S02,pass,31 traced values
+1 numbers traced,S02,pass,35 traced values
 1 numbers traced,S03,pass,2 traced values
 1 numbers traced,S04,pass,12 traced values
 1 numbers traced,S05,pass,29 traced values
-1 numbers traced,S06,pass,46 traced values
-1 numbers traced,S07,pass,41 traced values
-1 numbers traced,S08,pass,25 traced values
-1 numbers traced,S09,pass,42 traced values
+1 numbers traced,S06,pass,48 traced values
+1 numbers traced,S07,pass,43 traced values
+1 numbers traced,S08,pass,27 traced values
+1 numbers traced,S09,pass,46 traced values
 1 numbers traced,S10,pass,65 traced values
-1 numbers traced,S11,pass,62 traced values
-1 numbers traced,S12,pass,30 traced values
-1 numbers traced,S13,pass,27 traced values
-1 numbers traced,S14,pass,95 traced values
-1 numbers traced,S15,pass,66 traced values
-1 numbers traced,S16,pass,57 traced values
-1 numbers traced,S17,pass,52 traced values
-1 numbers traced,S18,pass,45 traced values
-1 numbers traced,S19,pass,74 traced values
-1 numbers traced,S20,pass,97 traced values
-1 numbers traced,S21,pass,90 traced values
-1 numbers traced,S22,pass,79 traced values
-1 numbers traced,S23,pass,52 traced values
-1 numbers traced,S24,pass,59 traced values
-1 numbers traced,S25,pass,49 traced values
-1 numbers traced,S26,pass,35 traced values
+1 numbers traced,S11,pass,63 traced values
+1 numbers traced,S12,pass,35 traced values
+1 numbers traced,S13,pass,30 traced values
+1 numbers traced,S14,pass,126 traced values
+1 numbers traced,S15,pass,73 traced values
+1 numbers traced,S16,pass,64 traced values
+1 numbers traced,S17,pass,82 traced values
+1 numbers traced,S18,pass,49 traced values
+1 numbers traced,S19,pass,87 traced values
+1 numbers traced,S20,pass,102 traced values
+1 numbers traced,S21,pass,94 traced values
+1 numbers traced,S22,pass,82 traced values
+1 numbers traced,S23,pass,55 traced values
+1 numbers traced,S24,pass,62 traced values
+1 numbers traced,S25,pass,51 traced values
+1 numbers traced,S26,pass,38 traced values
 1 numbers traced,A1,pass,45 traced values
-1 numbers traced,A2,pass,19 traced values
+1 numbers traced,A2,pass,34 traced values
 1 numbers traced,A3,pass,47 traced values
-1 numbers traced,A4,pass,25 traced values
-1 numbers traced,A5,pass,36 traced values
-1 numbers traced,A6,pass,48 traced values
+1 numbers traced,A4,pass,30 traced values
+1 numbers traced,A5,pass,38 traced values
+1 numbers traced,A6,pass,55 traced values
 2 empty values,S01,pass,""
 3 dashes,S01,pass,""
 2 empty values,S02,pass,""
@@ -145,16 +145,22 @@ check,slide,status,detail
 5 abbreviation first use,S01,pass,M&S
 5 abbreviation first use,A1,pass,BLQ
 5 abbreviation first use,S01,pass,SC
+5 abbreviation first use,S01,pass,AUC0-inf
+5 abbreviation first use,S07,pass,tmax
+5 abbreviation first use,S02,pass,λz
+5 abbreviation first use,A3,pass,MTT
+5 abbreviation first use,A3,pass,CL
+5 abbreviation first use,S22,pass,P2
 6 limits,S01,pass,"bullets 0, table rows 0"
 6 limits,S02,pass,"bullets 0, table rows 0"
-6 limits,S03,pass,"bullets 3, table rows 0"
+6 limits,S03,pass,"bullets 4, table rows 0"
 6 limits,S04,pass,"bullets 4, table rows 5"
 6 limits,S05,pass,"bullets 0, table rows 4"
 6 limits,S06,pass,"bullets 0, table rows 3"
 6 limits,S07,pass,"bullets 5, table rows 0"
 6 limits,S08,pass,"bullets 0, table rows 0"
 6 limits,S09,pass,"bullets 3, table rows 4"
-6 limits,S10,pass,"bullets 3, table rows 5"
+6 limits,S10,pass,"bullets 3, table rows 4"
 6 limits,S11,pass,"bullets 4, table rows 0"
 6 limits,S12,pass,"bullets 0, table rows 3"
 6 limits,S13,pass,"bullets 5, table rows 0"
@@ -162,10 +168,10 @@ check,slide,status,detail
 6 limits,S15,pass,"bullets 1, table rows 5"
 6 limits,S16,pass,"bullets 0, table rows 4"
 6 limits,S17,pass,"bullets 2, table rows 6"
-6 limits,S18,pass,"bullets 2, table rows 6"
+6 limits,S18,pass,"bullets 3, table rows 6"
 6 limits,S19,pass,"bullets 2, table rows 4"
-6 limits,S20,pass,"bullets 3, table rows 5"
-6 limits,S21,pass,"bullets 1, table rows 5"
+6 limits,S20,pass,"bullets 3, table rows 6"
+6 limits,S21,pass,"bullets 2, table rows 5"
 6 limits,S22,pass,"bullets 3, table rows 6"
 6 limits,S23,pass,"bullets 0, table rows 0"
 6 limits,S24,pass,"bullets 0, table rows 0"
@@ -177,9 +183,9 @@ check,slide,status,detail
 6 limits,A4,pass,"bullets 5, table rows 4"
 6 limits,A5,pass,"bullets 2, table rows 0"
 6 limits,A6,pass,"bullets 1, table rows 6"
-7 trace sources,all,pass,"121 source files, 1535 trace rows"
-8 report cross-check,all,pass,"842 deck values share file, filter and column with a report value; 842 identical raw values; 842 printed values consistent"
-8 key numbers cross-check,all,pass,consistent after rounding: 19; file not cited: 639; matched: 331; not in key numbers: 495
+7 trace sources,all,pass,"120 source files, 1700 trace rows"
+8 report cross-check,all,pass,"876 deck values share file, filter and column with a report value; 876 identical raw values; 876 printed values consistent"
+8 key numbers cross-check,all,pass,consistent after rounding: 25; file not cited: 714; matched: 362; not in key numbers: 550
 8 headline,S02,pass,33.2~38.8% (report: TRUE; key numbers: matched)
 8 headline,S02,pass,10 (report: TRUE; key numbers: not in key numbers)
 8 headline,S02,pass,99.3~99.4% (report: FALSE; key numbers: matched)
