@@ -32,7 +32,8 @@ slide_A5b <- function() {
   premise(nrow(d1) == 3 && abs(d1[config == "AUCinf_true_only", pass_pct] - de1$ref_pct) < 1e-9 && abs(d1[config == "AUClast_only", pass_pct] - de1$auclast_pct) < 1e-9 &&
             abs(d1[config == "P2", pass_pct] - de1$p2_pct) < 1e-9, "figure values (type1_models) equal the decomposition file")
   premise(de1$ref_pct < nomv && de1$p2_pct > nomv && de1$auclast_minus_ref_pp > de1$p2_minus_5_pp && de1$p2_minus_auclast_pp < 0, "reference below 5%, the AUClast term carries the excess, Cmax lowers it slightly (title, body)")
-  premise(row1(T1, sprintf("%s & analysis_model=='M1' & config=='P2'", W))$class == "exceeding" && row1(T1, sprintf("%s & analysis_model=='M0' & config=='P2'", W))$class == "nominal", "M1 exceeding, M0 nominal (notes)")
+  premise(row1(T1, sprintf("%s & analysis_model=='M1' & config=='P2'", W))$class == "exceeding" && row1(T1, sprintf("%s & analysis_model=='M0' & config=='P2'", W))$class == "nominal" &&
+            row1(T1, sprintf("%s & analysis_model=='M2' & config=='P2'", W))$class == "exceeding", "M1 and M2 exceeding, M0 nominal (notes)")
 
   # ---- 제목 ----
   k_iii <- vapply(c("M0", "M1"), function(am) nrow(rows(CG, sprintf("analysis_model=='%s' & config=='G2_A_iii' & pass_pct > 5", am))), 1L)
@@ -78,10 +79,11 @@ slide_A5b <- function() {
     geom_segment(aes(x = lo, xend = hi, y = y, yend = y, colour = col), linewidth = 1.1) +
     geom_point(aes(est, y, colour = col), size = 4) +
     geom_text(aes(hi, y, label = paste0(fnum(est, 2), "%"), colour = col), hjust = -0.25, size = PT(16), family = FONT, fontface = "bold") +
+    geom_text(data = fd[k == "p2"], aes(lo, y - 0.24, label = fill(G$ci, list(lo = fnum(lo, 2), hi = fnum(hi, 2))), colour = col), hjust = 0, vjust = 1, size = PT(14), family = FONT) +
     geom_label(data = ann, aes(xl[1] + 0.02, y, label = lab, colour = col), hjust = 0, size = PT(14), family = FONT, fill = "white", label.size = 0, label.padding = grid::unit(1, "pt")) +
     scale_colour_identity() +
-    scale_y_continuous(breaks = 3:1, labels = unlist(G$rows[c("ref", "last", "p2")]), limits = c(0.6, 3.75), expand = expansion(mult = 0)) +
-    scale_x_continuous(limits = xl, breaks = seq(ceiling(xl[1] * 2) / 2, floor(max(fd$hi) * 2) / 2, 0.5), expand = expansion(mult = 0)) +
+    scale_y_continuous(breaks = 3:1, labels = unlist(G$rows[c("ref", "last", "p2")]), limits = c(0.42, 3.75), expand = expansion(mult = 0)) +
+    scale_x_continuous(limits = xl, breaks = seq(ceiling(xl[1] * 2) / 2, ceiling(max(fd$hi) * 2) / 2, 0.5), expand = expansion(mult = 0)) +
     labs(x = G$xlab, y = NULL, subtitle = G$sub) + theme_core(16) +
     theme(panel.grid.major.y = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 14, colour = PAL$ink, lineheight = 0.95), plot.margin = margin(4, 14, 4, 4))
   xr <- GEO$ML + TW + 0.3; wr <- GEO$W - GEO$MR - xr

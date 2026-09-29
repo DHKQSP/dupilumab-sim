@@ -1,6 +1,6 @@
 A9:
   kicker: "별첨 A9 · 표본 수"
-  title: "arm당 무작위배정 {n_rand}명을 유지한다: 프로토콜 변동계수에서 AUClast + Cmax 동시 통과 검정력 {p_b}"
+  title: "arm당 무작위배정 {n_rand}명을 유지한다: 프로토콜 변동계수에서 AUClast\u00a0+\u00a0Cmax 동시 통과 검정력 {p_b}"   # \u00a0: 평가변수 묶음이 줄 끝에서 갈라지지 않게
   head: "동시 통과 검정력(%, M1) · 무작위배정 {n_rand}명 = 평가 가능 {n_arm}명"
   table:
     h_cv: "AUClast\n변동계수(CV)"   # \n: 머리글 칸 안 줄바꿈

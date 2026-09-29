@@ -1,8 +1,8 @@
 # 별첨 A4b ② 세부: 관측 대 참 비. 시험 모집단(건강인, 체중 층화 범위, 현행 채혈 B0), 모델당 20,000명.
-#  왼쪽 그림: 대상자 수준 분포(results/deck_inputs/coverage_hist.csv, 0.02 간격, 1.5 이상은 한 구간; 위 2016 모델, 아래 2020 모델):
+#  위 그림: 대상자 수준 분포(results/deck_inputs/coverage_hist.csv, 0.02 간격, 1.5 이상은 한 구간; 왼쪽 2016 모델, 오른쪽 2020 모델, 로그 세로축):
 #        창 포착률(참 AUClast ÷ 참 AUCinf) 옅은 파랑 막대, 관측 AUClast ÷ 참 AUCinf 파랑 선(전체),
 #        NCA AUCinf ÷ 참 AUCinf 규칙 B(λz 산출 가능 전원) 주황 실선, 규칙 A 세트 (i)(기준 충족자만) 주황 점선.
-#  오른쪽 표: results/trialpop/tp_coverage_individual.csv(대상자 수, 중앙값, 5~95백분위, 최대; 칸마다 위 2016 모델, 아래 2020 모델). 최솟값은 노트.
+#  아래 표 두 개(모델마다, 각 패널 아래): results/trialpop/tp_coverage_individual.csv(대상자 수, 중앙값, 5~95백분위, 최대). 최솟값은 노트.
 #  세트 (iii)(신뢰할 수 있는 AUCinf)의 관측 대 참 비는 결과 파일에 없어 세트 (i)로 적는다(노트). 외삽 비율 중앙값은 pillar1_coverage_B0.csv(S7과 같은 열).
 # 전제와 분포 자료 처리는 결과보고 덱 S16(slides/s16_coverage.R)을 따른다.
 A4B_TCV <- "trialpop/tp_coverage_individual.csv"
@@ -32,8 +32,7 @@ slide_A4b <- function() {
     premise(r0$median < 1, sprintf("observed AUClast median below the true AUCinf (%s): body", m))
   }
   premise(all(rows(P1, "group=='all'")[, extrap_nca_median > extrap_true_median]), "NCA extrapolated share above the true share at the median, both models (body)")
-  f <- list(med = drange(TCV, sprintf("metric=='%s'", MW), "median", 0, "%", "window coverage, median, two models", scale = 100),
-            p05 = drange(TCV, sprintf("metric=='%s'", MW), "p05", 0, "%", "window coverage, 5th percentile, two models", scale = 100))
+  f <- list(med = drange(TCV, sprintf("metric=='%s'", MW), "median", 0, "%", "window coverage, median, two models", scale = 100))
   y0 <- core_title(tx("A4b.title", f), tx("A4b.kicker"))
 
   # ---- 캡션(전체 폭, 아래) ----

@@ -1,6 +1,6 @@
 A4b:
   kicker: "별첨 A4b · ② 세부: 관측 대 참 비"
-  title: "AUClast는 참 AUCinf의 중앙값 {med}(5번째 백분위수 {p05})를 담고, NCA AUCinf 대 참 비는 위쪽 꼬리가 길다"
+  title: "AUClast는 참 AUCinf의 중앙값 {med}를 담고, NCA\u00a0AUCinf는 꼬리가 길다"
   fig:
     xlab: "같은 대상자의 참 AUCinf에 대한 비 (세로선 = 참값). 세로축: 대상자 비율 ({bw} 간격, 로그 눈금)"
     s_win: "참 AUClast (창 포착률)"
@@ -17,7 +17,7 @@ A4b:
       B: "NCA 규칙 B"
       A: "NCA 규칙 A (i)"
   caption:
-    - "관측 AUClast 대 참 비에는 잔차 오차와 사다리꼴 근사가 두 arm에 같게 들어간다. NCA AUCinf는 외삽 면적을 과대추정한다(외삽 비율 중앙값 비구획 {n} 대 참 {t}, S7)."
+    - "관측 AUClast 대 참 비에는 잔차 오차와 사다리꼴 근사가 두 arm에 같게 들어간다. NCA AUCinf는 외삽을 과대추정한다(외삽 비율 중앙값 {n} 대 참 {t}, S7)."
     - "규칙 B: λz 산출 가능자 전원의 NCA AUCinf. 규칙 A (i): 세트 (i)(adjusted R² ≥ {r2}, 외삽 ≤ {ex}%) 충족자만."
   notes: |
     시험 모집단(건강인 {wt} kg, 체중 층화, 현행 채혈, {dose} mg), 모델당 {n}명의 대상자 수준 결과다. 참값은 잔차 없는 모델 적분값이다. 창 포착률(참 AUClast ÷ 참 AUCinf)은 분자·분모 모두 참 곡선의 적분이라 잔차 오차가 tlast를 통해서만 들어간다. 관측 대 참 비(관측 AUClast 또는 NCA AUCinf ÷ 같은 대상자의 참 AUCinf)는 비례 잔차 오차와 사다리꼴 근사도 담으며, 잔차 모형이 두 arm에 같으므로 두 arm에 같게 들어간다(M&S 보고서 Table 5-3).

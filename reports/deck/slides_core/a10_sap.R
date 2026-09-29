@@ -19,7 +19,6 @@ slide_A10 <- function() {
   premise(all(rows(T1, w1("F3B"))$class == "conservative"), "fallback F3B conservative in all 16 cells under M1 (card)")
   premise(all(rows(TC, "set %in% c('i','iii')")$true_aucinf_gmr_hi < 1), "failing subjects have a lower true AUCinf than retained subjects, sets (i) and (iii), both models (card: low-exposure subjects drop out)")
   premise(all(rows(TR, "set %in% c('i','iii','lambda')")$retained_median <= n_arm) && all(rows(TR, "set %in% c('i','iii','lambda')")$n_trials == rows(TR, "set=='iii'")$n_trials[1]), "retained per arm at most the evaluable count; one trial count")
-  premise(all(rows(TC, "set=='iii'")$wt_diff_lo > 0), "set (iii) failing subjects are heavier than retained subjects, both models (notes)")
   fc <- rows(FC, "TRUE"); premise(all(fc$cost_iii_pp >= 0) && setequal(fc$scenario, c("S00", "KE110", "F097")) && all(fc$true_ratio > 0.94), "fallback cost: three near-equivalent products, non-negative loss (card: 'at most')")
   ep <- rows(EP, "model=='k2016'"); premise(all(abs(ep$power_last_cmax - fc[match(ep$scenario, fc$scenario), i_last_cmax]) < 1e-9), "empirical power and fallback cost come from the same trials (AUClast + Cmax column identical)")
   for (cf in c("G2_A_iii", "G2_B", "G2_Ai")) { r <- rows(if (cf == "G2_A_iii") CG else T1, w1(cf)); premise(sum(r$pass_pct > 5) >= 8, sprintf("%s: many cells above 5%% (card)", cf)) }
@@ -82,13 +81,13 @@ slide_A10 <- function() {
     fa = dext(T1, w1("F3A"), "pass_pct", max, 2, "%", "largest boundary type I error, F3A (rule A set ii), M1"),
     fcx = dext(T1, w1("F3C"), "pass_pct", max, 2, "%", "largest boundary type I error, F3C (rule C set ii), M1"),
     fcn = dcount(T1, w1("F3C", " & pass_pct > 5"), "F3C cells above 5% (point), M1"),
-    p0 = fcv("S00", "i_last_cmax", 2, "joint pass AUClast + Cmax, identical products (%)"), p3 = fcv("S00", "iii_plus_inf_all", 2, "joint pass with AUCinf rule B, identical products (%)"),
-    c0 = dci(FC, "scenario=='S00'", "cost_iii_pp", "cost_iii_lo", "cost_iii_hi", 3, "", "loss adding AUCinf rule B, identical products (points)"),
-    ck = dci(FC, "scenario=='KE110'", "cost_iii_pp", "cost_iii_lo", "cost_iii_hi", 2, "", "loss adding AUCinf rule B, KE110 (points)"),
-    cf9 = dci(FC, "scenario=='F097'", "cost_iii_pp", "cost_iii_lo", "cost_iii_hi", 2, "", "loss adding AUCinf rule B, F097 (points)"),
+    p0 = paste0(fcv("S00", "i_last_cmax", 2, "joint pass AUClast + Cmax, identical products (%)"), "%"), p3 = paste0(fcv("S00", "iii_plus_inf_all", 2, "joint pass with AUCinf rule B, identical products (%)"), "%"),
+    c0 = dci(FC, "scenario=='S00'", "cost_iii_pp", "cost_iii_lo", "cost_iii_hi", 3, "%p", "loss adding AUCinf rule B, identical products (points)"),
+    ck = dci(FC, "scenario=='KE110'", "cost_iii_pp", "cost_iii_lo", "cost_iii_hi", 2, "%p", "loss adding AUCinf rule B, KE110 (points)"),
+    cf9 = dci(FC, "scenario=='F097'", "cost_iii_pp", "cost_iii_lo", "cost_iii_hi", 2, "%p", "loss adding AUCinf rule B, F097 (points)"),
     rk = fcv("KE110", "true_ratio", 3, "true AUCinf ratio KE110"), rf = fcv("F097", "true_ratio", 3, "true AUCinf ratio F097"),
     ca = drange(FC, "scenario %in% c('KE110','F097')", "cost_ii_pp", 2, "", "loss adding AUCinf rule A (set ii), KE110 and F097 (points)"),
-    ntrf = drange(FC, "TRUE", "n_trials", 0, "", "trials per product in the fallback cost set"),
+    ntrf = local({ x <- range(rows(FC, "TRUE")$n_trials); dderived("trials per product in the fallback cost set", FC, "TRUE :: range(n_trials)", x, sprintf("%s~%s", fint(x[1]), fint(x[2]))) }),
     ep = dv(EP, "model=='k2016' & scenario=='F097'", "power_last_cmax", 2, "%", "empirical power AUClast + Cmax, F097, 2016 model"),
     pd = pdiff,
     gb = dext(T1, w1("G2_B"), "pass_pct", max, 2, "%", "largest boundary type I error, G2_B, M1"), kb = dcount(T1, w1("G2_B", " & pass_pct > 5"), "G2_B cells above 5% (point), M1"), gbl = dcount(T1, w1("G2_B", " & lo > 5"), "G2_B cells with Wilson lower bound above 5%, M1"),
@@ -96,7 +95,6 @@ slide_A10 <- function() {
     fail3 = drange(TPF, "set=='iii'", "fail_pct", 1, "%", "share without a reliable AUCinf, set (iii), two models"),
     fail1 = drange(TPF, "set=='i'", "fail_pct", 1, "%", "share failing set (i), two models"),
     lz = drange(TPF, "set=='iii'", "lz_pct", 2, "%", "share without an estimable lambda-z, two models"),
-    wd = drange(TC, "set=='iii'", "wt_diff_kg", 1, "", "body weight difference failing minus retained, set (iii), two models (kg)"),
     ret3 = drange(TR, "set=='iii'", "retained_median", 0, "", "median subjects per arm with a reliable AUCinf, two models"),
     ntr = dint(TR, "pk_model=='k2016' & set=='iii'", "n_trials", "simulated trials (retained per arm)"), n_arm = f_n_arm()))))
   deck_end()

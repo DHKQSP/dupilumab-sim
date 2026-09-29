@@ -19,7 +19,7 @@ A6:
     xlab2: "arm별 평균 AUClast (mg·day/L)"
     band2: "■ 관측 평균, 회색: 관측 ±{tol}%(검증 허용 범위)"
   body:
-    - "arm별 관측 평균 AUClast: PKM14161 두 arm은 모의 평균과 ±{tol}% 안(모의/관측 {r1})이고, PKM12350 두 arm은 모의가 더 높다({r2}; 체중 미보고, {wt} kg 가정)."
+    - "arm별 관측 평균 AUClast는 PKM14161에서 모의 평균과 ±{tol}% 안(모의/관측 {r1})이고, PKM12350에서는 모의가 더 높다({r2}; 체중 미보고로 {wt} kg 가정)."
   caption: "비구획 평균비는 외삽을 과대추정해 참 AUClast/AUCinf의 하한이다(S7). 출처: FDA BLA 761055 임상약리 리뷰 Table 4.2.c, Clot 2021 Table 3; arm별 AUClast: {src}."
   notes: |
     평균비는 평균 AUClast를 평균 AUCinf로 나눈 값이다. 모의는 문헌과 같은 용량({dose} mg), 채혈 일정, 코호트 평균 체중(PKM12350 {pw} kg 가정, Clot 2021 {cw} kg)으로 만들었고, 모의 참 평균비는 모델 적분 참 AUClast 평균을 참 AUCinf 평균으로 나눈 값이다.

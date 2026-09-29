@@ -8,11 +8,12 @@ A10:
         - "2차: AUCinf, 두 분석군(λz 산출 전원 / 신뢰할 수 있는 AUCinf)"
     - head: "AUCinf 공동 1차 요구 시"
       lines:
-        - "AUClast를 유지하고 AUCinf(λz 산출 전원)를 더한다"
+        - "AUClast + AUCinf + Cmax"
+        - "AUCinf는 λz 산출 전원 포함"
         - "동시 통과율 감소 {cost}%p 이하"
     - head: "권하지 않음: AUCinf + Cmax만"
       lines:
-        - "{n}칸 중 {k}칸이 {nom} 초과"
+        - "1종 오류: {n}칸 중 {k}칸이 {nom} 초과"
         - "신뢰 기준을 쓰면 노출이 낮은 대상자가 빠진다"
   table:
     head: ["판정 구성", "{nom} 초과 칸", "최대", "arm당 빠지는 인원", "빠지는 대상자의 참 AUCinf 비"]
@@ -34,6 +35,6 @@ A10:
   notes: |
     [제안 SAP] 1차 평가변수는 AUClast + Cmax(두 지표 모두 동등 기준 통과), 주분석 모형은 M1(투여군 + 무작위배정 체중 층, 의뢰자 결정 대기). 2차 평가변수 AUCinf는 동등성 판정에 쓰지 않고 두 분석군으로 보고한다: λz를 산출한 대상자 전원, 신뢰할 수 있는 AUCinf(adjusted R² ≥ {r2}, 외삽 ≤ {ex}%)를 얻은 대상자. 두 분석군의 인원, 빠진 대상자의 체중과 AUClast를 함께 제시한다.
     [대응안] 규제기관이 AUCinf 공동 1차를 요구할 때만 쓴다. AUClast를 빼지 않고 AUCinf를 더한 세 지표 공동 1차(구성 F3B). AUCinf는 규칙 B(λz 산출 전원 포함; 기준 미달자는 제외하지 않고 표시만)다. 경계 1종 오류는 M1에서 {n}칸 모두 보수적이고 최대 {fbci}, M0 최대 {fb0}. 참고로 AUCinf를 규칙 A(세트 (ii) 미달자 제외)로 더하면 최대 {fa}, 규칙 C(미달자에 AUClast 대입)로 더하면 최대 {fcx}({fcn}칸이 {nom} 초과)다.
-    대응안의 비용(같은 시험에서 AUClast + Cmax 대비 동시 통과율 감소, 2016 모델, 체중 층 없는 분석, 제품당 시험 {ntrf}회): 동일 제품 {c0}%p(동시 통과율 {p0} → {p3}), 참 AUCinf 비 {rk} 제품 {ck}%p, {rf} 제품 {cf9}%p. 같은 제품에서 AUClast + Cmax만의 검정력은 {ep}다. AUCinf를 규칙 A(세트 (ii))로 더하면 감소가 {ca}%p로 커진다. M1 운용 특성 모의(두 모델, 동일 제품과 F097 제품)에서도 검정력 차이는 {pd}%p다. 표본 수는 AUClast + Cmax 기준(별첨 A9)으로 정한다.
-    [AUCinf + Cmax만] AUClast 없이 AUCinf + Cmax로 판정하는 안은 권하지 않는다. M1 경계 1종 오류: 신뢰할 수 있는 AUCinf만(규칙 A 세트 (iii)) 최대 {gi}, Wilson 하한까지 {nom} 초과 {gil}칸; 규칙 B 최대 {gb}, {gbl}칸. 신뢰 기준을 쓰면 AUCinf 분석에서 빠지는 대상자가 많고(세트 (iii) 미달 {fail3}, arm당 남는 인원 중앙값 {ret3}명(시험 {ntr}회); 세트 (i) {r2i} 기준 미달 {fail1}) 빠지는 대상자는 참 AUCinf가 낮아(표의 비) 노출이 낮은 쪽이 체계적으로 빠진다(세트 (iii) 미달자는 남는 대상자보다 {wd} kg 무겁다). 규칙 B는 λz 산출 불가({lz})만 빠져 인원 손실은 작지만 {n}칸 중 {kb}칸이 {nom}를 넘는다.
+    대응안의 비용(같은 시험에서 AUClast + Cmax 대비 동시 통과율 감소, 2016 모델, 체중 층 없는 분석, 제품당 시험 {ntrf}회): 동일 제품 {c0}(동시 통과율 {p0} → {p3}), 참 AUCinf 비 {rk} 제품 {ck}, {rf} 제품 {cf9}. F097 제품에서 AUClast + Cmax만의 검정력은 {ep}다. AUCinf를 규칙 A(세트 (ii))로 더하면 감소가 {ca}%p로 커진다. M1 운용 특성 모의(두 모델, 동일 제품과 F097 제품)에서도 검정력 차이는 {pd}%p다. 표본 수는 AUClast + Cmax 기준(별첨 A9)으로 정한다.
+    [AUCinf + Cmax만] AUClast 없이 AUCinf + Cmax로 판정하는 안은 권하지 않는다. M1 경계 1종 오류: 신뢰할 수 있는 AUCinf만(규칙 A 세트 (iii)) 최대 {gi}, Wilson 하한까지 {nom} 초과 {gil}칸; 규칙 B 최대 {gb}, {gbl}칸. 신뢰 기준을 쓰면 AUCinf 분석에서 빠지는 대상자가 많고(세트 (iii) 미달 {fail3}, arm당 남는 인원 중앙값 {ret3}명(시험 {ntr}회); 세트 (i) {r2i} 기준 미달 {fail1}) 빠지는 대상자는 참 AUCinf가 낮아(표의 비) 노출이 낮은 쪽이 체계적으로 빠진다. 규칙 B는 λz 산출 불가({lz})만 빠져 인원 손실은 작지만 {n}칸 중 {kb}칸이 {nom}를 넘는다.
     관련 보고서: 5.9절, 6.2절, 6.3절, 7절; SAP 제안 1절~7절; 예상 질의 Q9, Q11.
