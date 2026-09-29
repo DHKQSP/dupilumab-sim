@@ -1,6 +1,6 @@
 # v1.0.1
 
-Regulatory package version 1.0.1, generated 2026-09-25 15:57 UTC from commit `8d0ebc6b88e7f378b65f3fdc6c74c8ea98708e21`. Status: draft for sponsor review; not approved. Previous package: document version 0.9 (commit ed9e8ba, not tagged).
+Regulatory package version 1.0.1, generated 2026-09-29 05:11 UTC from commit `461042c5b97e261a3ef1399d4a26123bfa21afa0`. Status: draft for sponsor review; not approved. Previous package: document version 0.9 (commit ed9e8ba, not tagged).
 
 ## Pre-registration
 
@@ -8,6 +8,7 @@ Regulatory package version 1.0.1, generated 2026-09-25 15:57 UTC from commit `8d
 
 ## Results added
 
+- Results-review deck (Korean, internal): `reports/deck/dupilumab_endpoint_results_v1.0.1.pptx` and PDF, 32 slides (26 main, 6 appendix), built by `reports/deck/build_deck.R` from the committed results; 1,683 printed values traced (`traceability.csv`, document `deck_ko`); automatic checks (numbers traced, no empty values, no dashes, no atopic results outside appendix A5, abbreviations, font sizes and limits, sources unchanged, agreement with the report and key numbers, rendered layout of the PDF without overflow or overlap): 237 passed, 0 failed.
 - Analysis model (report Section 5.9). Boundary type I error of AUC0-last + Cmax in 16 cells: pooled t-test (M0) 15 conservative, 1 nominal, 0 exceeding (0.00% to 5.18%); ANOVA with the randomization weight stratum (M1) 15 conservative, 0 nominal, 1 exceeding (0.00% to 5.63%). Cells above 5% (point estimate): 2020 model V2_up_080 under M0: 5.18% [4.88, 5.50], nominal, 20,000 trials; 2020 model V2_up_080 under M1: 5.63% [5.31, 5.95], exceeding, 20,000 trials; 2020 model V2_up_080 under M2: 5.75% [5.43, 6.08], exceeding, 20,000 trials.
 - Expectations recorded before the results: M1: unbiased reference (AUCinf_true only) close to 5% (consistent); M1: between-trial SD / within-trial SE close to 1 (consistent); P2 rises slightly under M1 (consistent); Model 1 V2 x2.28 cell about 5.6% under M1 (exceeding) (consistent).
 - LLOQ (report Section 5.10). The study LLOQ is set in `config/assay.yaml` (single source). Between 0.02 and 0.5 mg/L: window coverage of AUC0-last below 80% in 0.00% to 0.01% of subjects; AUC0-inf reliability, criteria (i), 84.2% (0.02 mg/L) to 88.0% (0.5 mg/L); boundary type I error of AUC0-last + Cmax 2.22% to 4.22% (M0) and 2.60% to 4.62% (M1) in three boundary scenarios.

@@ -2,7 +2,7 @@
 
 Modeling and simulation supporting AUC0-last and Cmax as co-primary endpoints, and the sampling schedule, of a single-dose PK similarity study of a proposed dupilumab biosimilar.
 
-Version 1.0.1. Generated 2026-09-25 15:57 UTC from commit `8d0ebc6b88e7f378b65f3fdc6c74c8ea98708e21` (tracked files outside regulatory/ unchanged: yes). Status: draft for sponsor review; not approved.
+Version 1.0.1. Generated 2026-09-29 05:11 UTC from commit `461042c5b97e261a3ef1399d4a26123bfa21afa0` (tracked files outside regulatory/ unchanged: yes). Status: draft for sponsor review; not approved.
 
 ## Read in this order
 
@@ -10,6 +10,7 @@ Version 1.0.1. Generated 2026-09-25 15:57 UTC from commit `8d0ebc6b88e7f378b65f3
 |---|---|
 | `MS_report.docx` / `MS_report.html` | Modeling and Simulation Report (ICH M15 structure): question of interest, context of use, model risk, methods, credibility evidence, results, discussion, appendices A to H. |
 | `FDA_questions.docx` / `FDA_questions.html` | Anticipated FDA questions with evidence-based responses and pointers to the report. |
+| `../reports/deck/dupilumab_endpoint_results_v1.0.1.pptx` (and `.pdf`) | Internal results-review deck in Korean for clinical pharmacology and clinical development (not a submission document). Its 1,683 printed values are in `traceability.csv` as document `deck_ko`, one section per slide. |
 | `sap_text_proposals_en.md` | Proposed statistical analysis plan text for the PK analyses (primary endpoints and analysis model options, AUC0-inf as secondary endpoint, fallback, ADA, BLQ and AUC rules, sample size), with the supporting numbers. |
 | `release_notes.md` | Changes in this version. |
 | `tables/assumptions_register.csv` | Assumptions, their impact and the actions required before submission. |
@@ -17,7 +18,7 @@ Version 1.0.1. Generated 2026-09-25 15:57 UTC from commit `8d0ebc6b88e7f378b65f3
 | `tables/verification_qc.csv` | Verification and QC activities, criteria, results and evidence. |
 | `tables/parameter_provenance.csv` | Every model parameter with its published source. |
 | `tables/software_environment.csv` | Software versions (renv.lock) and roles. |
-| `traceability.csv` | 656 printed values (plus tables and figures), each with its source file, row filter, column, raw value and SHA-256. |
+| `traceability.csv` | 2,339 printed values (plus tables and figures), each with its source file, row filter, column, raw value and SHA-256. |
 | `manifest_sha256.csv` | SHA-256 of every program, configuration, cited result and document in this package. |
 | `tables/label_translation.csv` | Mapping of Korean category labels found in some analysis outputs to the English codes used in the documents. |
 

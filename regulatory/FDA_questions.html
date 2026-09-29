@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-09-25" />
+<meta name="date" content="2026-09-29" />
 
 <title>Anticipated FDA Questions and Evidence-Based Responses</title>
 
@@ -394,7 +394,7 @@ Evidence-Based Responses</h1>
 <h3 class="subtitle">PK similarity study of a proposed dupilumab
 biosimilar: AUC0-last and Cmax as co-primary endpoints and the sampling
 schedule</h3>
-<h4 class="date">2026-09-25</h4>
+<h4 class="date">2026-09-29</h4>
 
 </div>
 
@@ -467,7 +467,7 @@ of the Modeling and Simulation Report (the “report”) that contains the
 evidence.</p>
 <ul>
 <li><strong>Source commit:</strong>
-8d0ebc6b88e7f378b65f3fdc6c74c8ea98708e21.</li>
+461042c5b97e261a3ef1399d4a26123bfa21afa0.</li>
 <li><strong>Status:</strong> 1.0.1 (draft for sponsor review).</li>
 <li><strong>Numbers:</strong> read from the result files at generation
 time and traced in regulatory/traceability.csv.</li>
@@ -569,11 +569,11 @@ in 0.0% of subjects (nominal days).</li>
 <p><strong>Added samples reduce reliability.</strong> They make Best Fit
 choose a shorter, later window, and a span ratio of at least 2 then
 fails more often.</p>
-<p><strong>The pre-specified decision rule was not met.</strong> None of
-the four criteria for adding samples between Day 36 and Day 50 was met
-in either model. In one sensitivity variant (Vmax x0.8 in both arms),
-one criterion was met at 20,000 subjects but not on re-evaluation in
-200,000 subjects.</p>
+<p><strong>The decision rule, set before any result was reported, was
+not met.</strong> None of the four criteria for adding samples between
+Day 36 and Day 50 was met in either model. In one sensitivity variant
+(Vmax x0.8 in both arms), one criterion was met at 20,000 subjects but
+not on re-evaluation in 200,000 subjects.</p>
 </div>
 <div id="q5.-the-terminal-phase-lies-below-the-lloq.-how-credible-are-published-models-for-it" class="section level2">
 <h2>Q5. The terminal phase lies below the LLOQ. How credible are
@@ -702,8 +702,10 @@ target-binding differences in this product, so binding is addressed
 analytically rather than through the choice of AUC endpoint.</p>
 <p><strong>Evidence.</strong></p>
 <ul>
-<li>Varying Km from 0.01-fold to 100-fold in the test arm moves the true
-AUC0-inf ratio only within 0.999 to 1.059 (report Section 5.6).</li>
+<li>Varying Km (the Michaelis-Menten constant of target-mediated
+elimination, through which a binding difference acts in this model) from
+0.01-fold to 100-fold in the test arm moves the true AUC0-inf ratio only
+within 0.999 to 1.059 (report Section 5.6).</li>
 <li>AUC0-inf offers no more sensitivity to binding than AUC0-last.</li>
 </ul>
 <p><strong>Where binding similarity is shown.</strong> In the

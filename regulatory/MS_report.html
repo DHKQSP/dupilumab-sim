@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-09-25" />
+<meta name="date" content="2026-09-29" />
 
 <title>Modeling and Simulation Report</title>
 
@@ -393,7 +393,7 @@ display: none;
 <h3 class="subtitle">AUC0-last and Cmax as co-primary endpoints, and the
 sampling schedule, for a single-dose pharmacokinetic similarity study of
 a proposed dupilumab biosimilar</h3>
-<h4 class="date">2026-09-25</h4>
+<h4 class="date">2026-09-29</h4>
 
 </div>
 
@@ -432,8 +432,9 @@ True values (estimands)</a></li>
 characteristics (pre-specified)</a></li>
 <li><a href="#random-product-space-secondary-metric" id="toc-random-product-space-secondary-metric">3.8 Random product space
 (secondary metric)</a></li>
-<li><a href="#sampling-schedule-evaluation-pre-specified-decision-rule" id="toc-sampling-schedule-evaluation-pre-specified-decision-rule">3.9
-Sampling schedule evaluation (pre-specified decision rule)</a></li>
+<li><a href="#sampling-schedule-evaluation-decision-rule-set-before-any-result-was-reported" id="toc-sampling-schedule-evaluation-decision-rule-set-before-any-result-was-reported">3.9
+Sampling schedule evaluation (decision rule set before any result was
+reported)</a></li>
 <li><a href="#terminal-cliff-analysis" id="toc-terminal-cliff-analysis">3.10 Terminal cliff analysis</a></li>
 <li><a href="#monte-carlo-precision-seeds-and-software" id="toc-monte-carlo-precision-seeds-and-software">3.11 Monte Carlo
 precision, seeds and software</a></li>
@@ -551,11 +552,11 @@ appendices A to H</td>
 </tr>
 <tr class="odd">
 <td align="left">Generated (UTC)</td>
-<td align="left">2026-09-25 15:57</td>
+<td align="left">2026-09-29 05:11</td>
 </tr>
 <tr class="even">
 <td align="left">Source commit</td>
-<td align="left">8d0ebc6b88e7f378b65f3fdc6c74c8ea98708e21</td>
+<td align="left">461042c5b97e261a3ef1399d4a26123bfa21afa0</td>
 </tr>
 <tr class="odd">
 <td align="left">Working tree clean at generation</td>
@@ -753,10 +754,12 @@ criteria selects a non-random subset.</li>
 <li>Power for identical products is 99.6% (95% CI 99.4 to 99.7) (primary
 model) and 99.0% (95% CI 98.8 to 99.2) (2020 model) for AUC0-last +
 Cmax.</li>
-<li>Changing the target-binding constant (Km) from 0.01-fold to 100-fold
-moves the true AUC0-inf ratio only within 0.999 to 1.059. A binding
-difference is therefore not detectable by any AUC endpoint and must be
-addressed by the comparative analytical assessment.</li>
+<li>Changing the Michaelis-Menten constant of target-mediated
+elimination (Km), through which a target-binding difference acts in this
+model, from 0.01-fold to 100-fold moves the true AUC0-inf ratio only
+within 0.999 to 1.059. A binding difference is therefore not detectable
+by any AUC endpoint and must be addressed by the comparative analytical
+assessment.</li>
 <li>Between assay LLOQs of 0.02 and 0.5 mg/L, the share of subjects with
 window coverage below 80% stays within 0.00% to 0.01% (primary model),
 and the boundary type I error of AUC0-last + Cmax within 2.22% to 4.22%
@@ -765,12 +768,13 @@ and the boundary type I error of AUC0-last + Cmax within 2.22% to 4.22%
 subjects per arm give P2 power of 94.0% (M0) and 94.5% (M1); 90% power
 needs 100 (M0) or 97 (M1) evaluable per arm, and at a CV of 50% 129 or
 126.</li>
-<li>The pre-specified criteria for adding samples were not met in either
-model. In one sensitivity variant (Vmax x0.8 in both arms), one
-criterion was met at 20,000 subjects but not on re-evaluation in 200,000
-subjects. The cliff is shorter than any feasible visit interval, and
-denser late sampling does not improve AUC0-inf reliability. The planned
-schedule is retained, including Day 50.</li>
+<li>The criteria for adding samples, set before any result was reported,
+were not met in either model. In one sensitivity variant (Vmax x0.8 in
+both arms), one criterion was met at 20,000 subjects but not on
+re-evaluation in 200,000 subjects. The cliff is shorter than any
+feasible visit interval, and denser late sampling does not improve
+AUC0-inf reliability. The planned schedule is retained, including Day
+50.</li>
 </ul>
 <p><strong>Conclusion.</strong> AUC0-last and Cmax quantify total
 exposure. Their boundary type I error is at or near the nominal 5%
@@ -906,8 +910,8 @@ an equivalence limit, at least as well as AUC0-inf?</td>
 <td align="left">Question of interest 2</td>
 <td align="left">Do additional samples between study Day 36 and Day 50
 improve AUC0-last precision, sensitivity to product differences or the
-reliability of AUC0-inf enough to justify them (pre-specified decision
-rule)?</td>
+reliability of AUC0-inf enough to justify them (decision rule set before
+any result was reported)?</td>
 </tr>
 <tr class="odd">
 <td align="left">Context of use</td>
@@ -1250,8 +1254,12 @@ trial was simulated per product, and consumer and producer risks were
 estimated. These risks depend on the assumed product distribution and
 are therefore a secondary metric.</p>
 </div>
-<div id="sampling-schedule-evaluation-pre-specified-decision-rule" class="section level2">
-<h2>3.9 Sampling schedule evaluation (pre-specified decision rule)</h2>
+<div id="sampling-schedule-evaluation-decision-rule-set-before-any-result-was-reported" class="section level2">
+<h2>3.9 Sampling schedule evaluation (decision rule set before any
+result was reported)</h2>
+<p>The rule was written after the first schedule simulations had run and
+before any result was reported (Appendix D); it is therefore not
+described as pre-specified.</p>
 <p>Candidate schedules add two to four samples between Day 32 and Day
 53, or remove Day 50:</p>
 <ul>
@@ -3826,7 +3834,8 @@ default as pre-specified)</td>
 </div>
 <div id="target-binding-km" class="section level2">
 <h2>5.6 Target binding (Km)</h2>
-<p>A 100-fold range of the target-binding constant in either direction
+<p>A 100-fold range of the Michaelis-Menten constant of target-mediated
+elimination (Km; not the binding affinity itself) in either direction
 (Km x0.01 to x100 in the test arm) moves the true AUC0-inf ratio only
 within 0.999 to 1.059, in both models. Of the 12 pre-specified target
 ratios (0.70 to 1.43), only 1.05 is reachable, at Km x84 (primary model)
@@ -3840,9 +3849,9 @@ and functional assays).</p>
 <div id="sampling-schedule" class="section level2">
 <h2>5.7 Sampling schedule</h2>
 <table style="width:100%;">
-<caption>Table 5-14. Pre-specified decision criteria for added samples
-versus the planned schedule (20,000 subjects and 500 trials per model;
-B-minus removes Day 50).</caption>
+<caption>Table 5-14. Decision criteria for added samples (set before any
+result was reported) versus the planned schedule (20,000 subjects and
+500 trials per model; B-minus removes Day 50).</caption>
 <colgroup>
 <col width="6%" />
 <col width="4%" />
@@ -5003,8 +5012,8 @@ under M1, in the same scenario).</p>
 <div id="sampling-schedule-1" class="section level2">
 <h2>6.4 Sampling schedule</h2>
 <p>The planned 13-sample schedule to Day 57 is retained. No
-added-sampling schedule met a pre-specified criterion in either model
-(in one sensitivity variant, a criterion met at 20,000 subjects was not
+added-sampling schedule met a decision criterion in either model (in one
+sensitivity variant, a criterion met at 20,000 subjects was not
 confirmed in 200,000), and the cliff cannot be sampled at feasible visit
 intervals. The last planned sample (Day 57) lies after the median time
 at which the true concentration reaches the LLOQ, and only 2.5% (primary
@@ -5110,8 +5119,8 @@ rule A exceeds 5% in 9 of 16 (M0), and the decision changes with the
 handling rule or criteria set in a median of 12.6% and up to 39.6% of
 trials per boundary scenario. They add little protection at the limits
 and cause additional failures of similar products.</li>
-<li>Target-binding differences do not change exposure enough to be
-detected by any PK endpoint.</li>
+<li>Differences in target binding, represented in this model by Km, do
+not change exposure enough to be detected by any PK endpoint.</li>
 <li>Additional samples between Day 36 and Day 50 are not justified. The
 planned schedule, including Day 50, is retained.</li>
 <li>At the protocol CV of 43%, 117 evaluable subjects per arm give P2

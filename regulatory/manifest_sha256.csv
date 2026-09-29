@@ -4,6 +4,7 @@ config/assay.yaml,1279,13bb4e6e5a604962f3e30a9f31dffb53fcfcaa71272e41d6a12413c1c
 config/crossval_reference.yaml,5601,4a8ee97a00c6c0ecc2c42373c8d21099adbfc833d3b6e4b1abfbf714653549de,TRUE,configuration
 config/design_clot2021.yaml,10850,4b3ddc374dfbf3f451d3fe3d6a865645b0b5d93b0ea7eea9a3f24cd8d2f05da5,TRUE,configuration
 config/gate_decision.yaml,868,fec8e5a4376e78560e2945be2c69db22e63e6b6731a2413101efa1ac58cb1838,TRUE,configuration
+config/literature_precedents.yaml,2545,44c48b27ac1afbe90f1e23f55480f148dfa34e03a4dca31a81d29096a0537e67,TRUE,configuration
 config/nca_rules.yaml,2185,0f53d9e003bf1df504df24201f06301cabe423babd1078def5c5a4b3b2c1db94,TRUE,configuration
 config/oc_design.yaml,6748,629011b264fbc4c3f03f8a3989bac1f2711d49959f3268f5e8f758c80f93ea0a,TRUE,configuration
 config/params_k2020_model1.yaml,2948,b6e3816238f158ab76cda1edfc4ce9ae49b53fdd4836de8be36bd64664dca96f,TRUE,configuration
@@ -16,7 +17,7 @@ config/repro_request.yaml,443,0e85501d9e970a1b51dfa4f347f196c7fbd38b3908c4e629ce
 config/scenarios.yaml,3470,7243c4f34f21614eccae4c143ba05b8a9eb9183a76770cfce7153ef30a5dc17c,TRUE,configuration
 config/schedule_decision.yaml,982,de62d815c54d33e4016ed7fdb535ede38ae9c0a6350ef8e7e0a26cb5dd9572b2,TRUE,configuration
 config/trial_design.yaml,4489,553eceab74155a3497fef1ab587f3b8d2be1319704e17ae1f0e177601726e84f,TRUE,configuration
-DECISIONS.md,86348,0a246b270cc05333aef34653317f4928a78fac01e05aca0c68d1192193134b67,TRUE,project record
+DECISIONS.md,93861,0eed9670257e5b435f859c8c1d17d60be1d31cb784815a7d61d5ff36d5396b0a,TRUE,project record
 R/00_setup.R,1660,e4f08e319d60db149e7d0f692a864016a4198a91c17f451ba62ec07c1116d918,TRUE,program
 R/be_stats.R,3399,e025fdb8021aa22072b8899ec809dd76dd4976eaf63c510455b5e699357d5353,TRUE,program
 R/cliff.R,5722,20ff292d293e3cfbadb3ed61821964f8da33941e5e0743b98730aa8082d4203c,TRUE,program
@@ -39,20 +40,20 @@ R/scenarios.R,1052,ebee76d8df4bb8d64d38477954e8bef96181b47cd72829e0df1a238af9862
 R/seeds.R,839,bdc7f30d596b87ac0b4d58c67f19bfa21d4ba7a2d6110db4b4e704cfc43f0ad1,TRUE,program
 R/simulate.R,2470,76e4196fdd69df9e3eaa865bc85a7b0b0fc8f0bb99b7fc28b4f165f103a5fd16,TRUE,program
 R/step1.R,5762,86ac2feac77097f6e4146fdba77ca69fd05fc4d46fbdd2f49468f3e846312579,TRUE,program
-R/summarize.R,48672,f915857960c085647cb02a87d13ef058812c3d094ce0667dcddf11eedcb66e3b,TRUE,program
+R/summarize.R,48712,54c4ead0a3ad2c6e1061c7443ac64a9b5cf0691f194640b81d03df416b8a01d6,TRUE,program
 R/trial.R,5105,8b4f54e0c2ade2c5f5d196d77cf9656e5a688e5b7c3da4608f8f2a6d5ac42620,TRUE,program
 R/truth.R,1130,4ceeb17e5a093638019f88573671c3aeff82c0ee4c07bd3415646a583b016efb,TRUE,program
 README.md,9080,dfd45a0f637073d4a50e622a4fe6a18152b3c7fdf6c4922013da47f44ebee7f6,TRUE,project record
-regulatory/FDA_questions.docx,20257,5dd7f76cf06531476d02ac5f9accbe1c71281a3009c63f7974497f0d4202de6a,TRUE,regulatory document
-regulatory/FDA_questions.html,1469878,7dc38063b53dc55888f24a194b02e1360af8625e3fa71329a458bc1e81c06f85,TRUE,regulatory document
+regulatory/FDA_questions.docx,20308,4316ee7d67343822051f16df5eef55a586b2115ac11dac87df49de171e7b6997,TRUE,regulatory document
+regulatory/FDA_questions.html,1470019,bd8e35100926368eb8d07669647d422df7541e9379e2c3a7a7de68fd301ee9dc,TRUE,regulatory document
 regulatory/figures/fig5_4_boundary_type1.png,116678,e3211adde8a0c5359fd3a66e9b51cd430fcde3b9739f9a2ea5bfae8a1ce7e9a8,TRUE,regulatory document
-regulatory/MS_report.docx,1374929,e55b1d1df15d26e2c042eabe66ebf8940605bb83fda811236b45d415796a03ea,TRUE,regulatory document
-regulatory/MS_report.html,3569968,6f7c7b705b015595b9f7bf97ce42a5c78920bb97482aec096bb1c1f285fae7e7,TRUE,regulatory document
-regulatory/sap_text_proposals_en.html,1455110,02616d3a11f4fcf1fc2d600f7f2986a91ef4fc3bd36245154349a51330d5ed20,FALSE,regulatory document
-regulatory/sap_text_proposals_en.md,16787,c4f371e33f1181d687acf86bd9c74cbab3093ccf2d7eca63f8a8c4dd87b2fafb,FALSE,regulatory document
+regulatory/MS_report.docx,1375082,e539dd808583138d1f577d84a8339d5eeb6709764bd881c3f4d6c1b7d8b94fee,TRUE,regulatory document
+regulatory/MS_report.html,3570509,509e273d6bb1c581683087ebdd67eec4d828d6ea618ee872c6b245c5f6ee2417,TRUE,regulatory document
+regulatory/sap_text_proposals_en.html,1455110,281da296a1023add2258e78469399cb891aaec65d59268ad5e64097bbf9c543d,TRUE,regulatory document
+regulatory/sap_text_proposals_en.md,16787,3c0e163648479b1f4df45e8b84bde34eac073257c55d09733c2f56fb3e09dfa7,TRUE,regulatory document
 regulatory/src/build_tables.R,36262,7020ae4159a67fc765b0bff817f84c6e7db0302fde4da61bc0a3d527397ea2fe,TRUE,regulatory document
-regulatory/src/FDA_questions.Rmd,36538,16c1d9d5eafbfda51377529b43ccd514ac70067edce38a53fe129fef8968b340,TRUE,regulatory document
-regulatory/src/MS_report.Rmd,177709,2e6a251d548c204a09b680f38f8aa95107d327eca4f6c1af5e2cc635a84e3203,TRUE,regulatory document
+regulatory/src/FDA_questions.Rmd,36699,0210cafee573a026b8f4a95c5d3477f7e8b434b3b4d37c6594da13a22b453f5e,TRUE,regulatory document
+regulatory/src/MS_report.Rmd,178180,eb356ff5732da50173e65491bc01a6202d0901ba1b0cc93ce61cf1c8d4f51e08,TRUE,regulatory document
 regulatory/src/reg_helpers.R,9652,e04855289aaeaddbc8bd54ac2267fda0e5e4a975a735de69ac9c43c675f07a8c,TRUE,regulatory document
 regulatory/src/SAP_text_proposals.Rmd,22278,0fcbbb4e76f1c5fb6d73c19c488f87703bed88d8fce7ac9b0901748a7db117a4,TRUE,regulatory document
 regulatory/tables/assumptions_register.csv,5641,5950ba71dd6607256805fbc543f51aee128dbe314df4660f473001aa58cca6d3,TRUE,regulatory document
@@ -60,11 +61,116 @@ regulatory/tables/label_translation.csv,641,6ada13213d90aab7d08aca481cc0e783a344
 regulatory/tables/parameter_provenance.csv,7299,3ae697f5b7f60d5f1d699060f64f09fc95cb02598bdd276be27d0b62c76e11e6,TRUE,regulatory document
 regulatory/tables/prespecification_register.csv,5880,d1565008785bcb8806d3752a5bf03081067652d919f80584ad9d5ea220c2983d,TRUE,regulatory document
 regulatory/tables/software_environment.csv,670,45f02f1aff9950536e0ecfc29da59123a3acd60303e20e73402f71a7350c85e2,TRUE,regulatory document
+regulatory/tables/trace_summary.csv,130,7e1b7ec647e3c1d75f98b2c97c916f8c3dd61b0acd8562ce960b94ded60273e9,TRUE,regulatory document
 regulatory/tables/verification_qc.csv,6499,83ad30bb2f5867a3c74a9628fda8d70a258d3e62ada155e3080ef2a3641e8d3a,TRUE,regulatory document
-regulatory/traceability.csv,223638,cef6e403f6a20d04f861eda24c2888399861df347714f470011143cd7a942639,TRUE,regulatory document
-renv.lock,226346,40a830260bcd21ca9eb076233018c84fc13f1c45bc0f2a794223d552ca81041e,TRUE,project record
+regulatory/traceability.csv,676333,9d85cbc8c1b594147392c414ec09b4612ed801c1cf1003d2f5954ba66097b660,TRUE,regulatory document
+renv.lock,283602,dbc04aeeb6e49a96e3694fce2eff394b620f611726b591ed21565db96d87aadf,TRUE,project record
 renv/activate.R,39946,bcfe1e7dac9c9e93228836b7459d8bd207c08c6f883a91ce757eba1a3521d6e5,TRUE,project record
 renv/settings.json,74,810cd684bea8971e9d9239b133bdd7418811b1aff80e497b80e0a98a5a165466,TRUE,project record
+reports/deck/AUTHORING.md,8454,37af51e34d779e67fb6ef05a072934f2f9c4e4f842ec0bf734bdb45cfc01c265,TRUE,"results deck (Korean, internal review)"
+reports/deck/build_deck.R,2963,2d38773665b1e40c355230e382cd4de1d6b4869a95727998bdb89eb025b6777c,TRUE,"results deck (Korean, internal review)"
+reports/deck/check_deck.R,16964,c5166a21b1c6e4a87dd462741618e278281aecd781d3030fe3082054ebcc438c,TRUE,"results deck (Korean, internal review)"
+reports/deck/check_render.py,8613,11bf56adf59a0fe439553d3eb947eea0296eda9c23d4d85fa035516fe05a4f62,TRUE,"results deck (Korean, internal review)"
+reports/deck/deck_meta_fit.csv,11006,a8dd993ee4589d0ca038f8a0e01346e1d8c6dcd75dbb2a496c45690f05e05064,TRUE,"results deck (Korean, internal review)"
+reports/deck/deck_meta_headline.csv,148,f8f1077fdfabf56fd6e432b31e04197d21d99869acff86e768f99042a712d06e,TRUE,"results deck (Korean, internal review)"
+reports/deck/deck_meta.csv,111544,243c29804a00147920d6c41b44fcf427fd278b3a391f0d04d40a0dd2cb5ac3f3,TRUE,"results deck (Korean, internal review)"
+reports/deck/deck_traceability.csv,433778,1b2a73d442d586d59168b08ffe9761452373d932be3bc510fa0fc5971f1b1447,TRUE,"results deck (Korean, internal review)"
+reports/deck/dump_deck.py,2693,a82e0946d28e664e3f5d9f54f977add96d392a1ae0ae2808fba53591496f4baa,TRUE,"results deck (Korean, internal review)"
+reports/deck/dupilumab_endpoint_results_v1.0.1_checks.csv,8981,0a0a24ada5d6fb753d858ce76ef2369b3d116508f8b022974ade14ee759e8999,TRUE,"results deck (Korean, internal review)"
+reports/deck/dupilumab_endpoint_results_v1.0.1_keynumbers_xref.csv,182502,cdb805d090ec2cff90dff0207e5b7e9e9d54292c10e299cd9d4a25b7fa4414f7,TRUE,"results deck (Korean, internal review)"
+reports/deck/dupilumab_endpoint_results_v1.0.1_render.csv,30,e9deaffb9d9a0d64e74cf34039e25751f51548098494a3204e889635fdb59f86,TRUE,"results deck (Korean, internal review)"
+reports/deck/dupilumab_endpoint_results_v1.0.1.pdf,1968859,ced9b6c2666490d25a3ce6342203fe8a6605f6eb8a53841b33da766a9b2e3fa3,TRUE,"results deck (Korean, internal review)"
+reports/deck/dupilumab_endpoint_results_v1.0.1.pptx,1857808,974b258bb80fb08a255c2c52033ed44a87b5284a85d6da49ca7e30d928abdbf9,TRUE,"results deck (Korean, internal review)"
+reports/deck/figures/ko_a5_reliability_by_weight_band.png,86136,78e9332523b0ef4308b023a834bfdbf5a1f7743badad74927a27ac830109126d,TRUE,"results deck (Korean, internal review)"
+reports/deck/figures/ko_a6_ci_runs.png,27167,e6461469d45813374376d98d72cbd03ec4ab85824129af9a2d9fa66872477d51,TRUE,"results deck (Korean, internal review)"
+reports/deck/figures/ko_s05_rep_profiles.png,136265,b739b7e89ff1cb354a17b6d3727836cb5997e196c12a6e4044438b87f2e8ee29,TRUE,"results deck (Korean, internal review)"
+reports/deck/figures/ko_s07_validation_ratios.png,165029,89b8e01bf9f4df518d869dd3642a5ee1d3503044d784a1674e1285e270d7341a,TRUE,"results deck (Korean, internal review)"
+reports/deck/figures/ko_s09_failure_by_set.png,60145,becb776cde2ca0ad45fcd4995eeedb196fdb436e27c4be82298f03d13c9617d3,TRUE,"results deck (Korean, internal review)"
+reports/deck/figures/ko_s10_lloq_day_hist.png,93348,65def763469e325cc2e9811927e96e725b11705024290f88104644670a39385f,TRUE,"results deck (Korean, internal review)"
+reports/deck/figures/ko_s10_points_in_cliff.png,64658,4daa8767655876778495ea78797dd4cd9e6a8f726779d41e3222231096c811b9,TRUE,"results deck (Korean, internal review)"
+reports/deck/figures/ko_s11_lloq_reliability.png,91889,3ba425147129458dd9e5c2893d30db9e9fe6e2f0d026fa510a42b1ef6f7036e6,TRUE,"results deck (Korean, internal review)"
+reports/deck/figures/ko_s11_residual_halved.png,57940,f78342d37fa66b71de375b29ad75a4259bcb97421d29135629b54581d8c6ae65,TRUE,"results deck (Korean, internal review)"
+reports/deck/figures/ko_s12_strata_armdiff.png,77181,72bf00345cd0643fe4e0f18922e1f981e83f05933e7e12db46bc5ab914f36ec1,TRUE,"results deck (Korean, internal review)"
+reports/deck/figures/ko_s13_arm_difference.png,126178,e33e8866fab934d59bad62071c9b62d28f0d02a4bac296bd2a38e95352781824,TRUE,"results deck (Korean, internal review)"
+reports/deck/figures/ko_s15_boundary_by_mechanism.png,133527,880ababdb69f3d0e25f117d16b4a2f370be36ab57fabe2a4a9fdc397695af31d,TRUE,"results deck (Korean, internal review)"
+reports/deck/figures/ko_s16_observed_to_true_hist.png,86008,e266180006cebdd9b6b56b46d3719c5191915851874974124522a0e4a601b139,TRUE,"results deck (Korean, internal review)"
+reports/deck/figures/ko_s16_window_coverage_hist.png,45023,f9a4bdb60a051977c1d8f46b837d7a701b1ae72d3a39ad1c0e1cce626d1b9f0e,TRUE,"results deck (Korean, internal review)"
+reports/deck/figures/ko_s17_bias_strip.png,94772,74d39de3bc0515a5bfe5de39094fe78afc25b8f1251c5ed9af244a80e09f2e7c,TRUE,"results deck (Korean, internal review)"
+reports/deck/figures/ko_s18_km_inversion.png,59657,e123aef682d6f47a5c43a59e4020d9d459327e740f48bb53dd9f83c91d0ff5a6,TRUE,"results deck (Korean, internal review)"
+reports/deck/figures/ko_s19_v2_cell.png,165302,7e9e669b488d7b74ab113f02e97d7d01cd614ede85d0e31d22b67bd342ffad59,TRUE,"results deck (Korean, internal review)"
+reports/deck/figures/ko_s20_lloq_tail.png,67693,b15a45b3a2348b26af25b4225781e96ab49e655c16465e241072292cec4b9f76,TRUE,"results deck (Korean, internal review)"
+reports/deck/figures/ko_s22_analytic_vs_pk.png,65159,b09f6a24a37db9508fd73eb6a6d834a4682377b4987908e3fa2855b1583725ea,TRUE,"results deck (Korean, internal review)"
+reports/deck/lib/deck_facts_common.R,3300,25ece895ddebd2777aaac3a1c0476203ff95fd8362191255cd729092253a43d4,TRUE,"results deck (Korean, internal review)"
+reports/deck/lib/deck_lib.R,35349,be3250ff88f2510c2327629cef8ed1f575507b3da5e9e0809ed851f4bc3a9281,TRUE,"results deck (Korean, internal review)"
+reports/deck/make_template.R,1879,8300601db499c94551f469db08f237162096f96ee19aefcc41a77291c47e7999,TRUE,"results deck (Korean, internal review)"
+reports/deck/README.md,2559,7cdc9d6dea4811c3605cc16509f89aa333d514ee441d2de42df9474f567834f7,TRUE,"results deck (Korean, internal review)"
+reports/deck/render_deck.py,6461,82e2d3be40be6ee3261e16226b7a7d2772944b0e26e5c2b4f74a67e6ec20e965,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/a1_literature.R,8959,3f4a15407473356056adbdd19471d2d77b1f3266edbd16fddbb02624ac49a729,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/a2_precedents.R,9436,b3be2ad5e1b3b80f2bc278d107aa71177bf6ce956dde6546a18f21f88bf13005,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/a3_parameters.R,11189,d63ff61cef8331abccc8dae4c226a7496f61b32bccc43209ad285c9e9b7aceb0,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/a4_nca_rules.R,12251,4f2f8bb3230a4d4f4f1ebbd2ab46382880533046455d9769a9d0a5d9d1ff9810,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/a5_robustness.R,15241,ad10b849c500b6fc1206d982903a77531f0a8d82029f5efda728202ab388af44,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/a6_reproducibility.R,21548,5f4e3f9b78c592c07afaa0d968d9a3a070acd31dfb140541be19d565e0f93f30,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s01_cover.R,951,adbfb487bc1ebb69520e6305dc0d84eb158fbb3c659c42d1a73f86d98a52e738,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s02_key_conclusion.R,11533,878d699cedc4e15ae80b3082ee3338cb915b2e28bba3fd997aadd09afeda92c4,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s03_background.R,3372,8d6cea2fd803d59771918b3c4c7f0844cda1f6023bc69e53866762ae593d2b46,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s04_question_cou.R,5158,1ac9a1dcb6b8a7afe936bc1cb4bf8f8f8653dcb918dbf310e757d7f7e4ea10b9,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s05_cliff.R,11449,72c945f1fefb1b8449a860197e66a4a7638cac00b386d97838c3e1ebfb86e811,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s06_methods.R,12643,fe17680be0bdf64b6d7184c5cad0c82674ef24cf2bdda81e2a6851668b63b48a,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s07_qualification.R,14282,02ceefe97e75577a03aab9d470b3b061bd4db0f17924afd019b7b25bc907d60a,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s08_logic.R,12510,c8c6eed6350052d3bd27617027224137ca44e28d8e147a889390a7f31106063f,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s09_scale.R,10121,a920f6a9443459b6e1aed0045f60568460aab58f6ab2bf37b3bea397b8854899,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s10_sampling.R,20182,5b4806f7b234aae4addb8191d60d260a84cf44f806027a759fe0e49ae53194a1,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s11_structural.R,21377,5d4024ca81f258d3d2195f023ef4fcf694d9ac2f21c6af25754ce60ede967b34,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s12_nonrandom.R,12668,9fbed10d0f64b8e77c646bdc22ca52ca6b5990dd096dd3a2209440e13201d051,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s13_arm_dependent.R,11442,ba6ab13a22746b305a758a71e77cf4e4d5ac510dfa864359ec592e327be52c78,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s14_rules.R,17034,130aa5e2cbc67f9c17715abdf10b2718d0e21ee21d64f8231eb1f1dc9a8034c5,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s15_mechanism.R,16538,769db4250567e1da774cbe53ca601a08eb94a5c1ee9fe52aa9844e3409464e42,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s16_coverage.R,16730,48a1961edb6370121070d4ca93d87f09e03118daf32ddd023aaef8997c4968ce,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s17_trial_gmr.R,16479,19cd0496375c8d71b3ac0f45fcb1364884bdc6f2be038fe8156dc749aaacc8a0,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s18_binding.R,11463,0f95be945b13981dc69115dfadf11d66f3ac3b7125b6aa85035b57f65502f814,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s19_transparency.R,20326,6bc96be52c0fb33de7227a6dec7e93efd1b7b32abebcf77edb838a4ab62bc5b9,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s20_schedule.R,20997,6f67a0c26e5b5e48955c271fb1a2bd93b67fe1c168624bd93f5e5d30a473e216,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s21_robustness.R,20755,131e7a223a4c31f06a5fdae36b04cc7759b01261fa0720cbde333f768cd6f37e,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s22_sample_size.R,11791,89f00c24e2e1c649617a9f3c652bc37adc24855d14a92208e3d27491e5f7dfc6,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s23_sap.R,12064,6d170e55adc1b134d6ef10a945be661157a4d304d26a342930c7e826094a5cef,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s24_questions.R,14181,fc25e8df73e6af8691808c9da1d90f7edf0c3be510c942dfc9246d7fa9dd6755,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s25_limitations.R,18682,e89198dd9c1c63118d1767f9b0b77c45ce2be44a4cafb9f5f0f67fdf09bb4c06,TRUE,"results deck (Korean, internal review)"
+reports/deck/slides/s26_next_steps.R,10808,52ac4d28276c121f66c936608406a2fccc6a09de9a18943256038a18dad2f5d6,TRUE,"results deck (Korean, internal review)"
+reports/deck/template_16x9.pptx,21987,28c7c34fad98b9c421c8a39ddcdc72a12d7dabd7f015d1c114229d7aff8bb87f,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/00_common.yaml,3525,0fc7959dc08fa3cf090e48cd6a9e427b905d9ed1056d8c002d638188381d6458,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/a1.yaml,3873,0cb668df8f268494b433ff7e6865bcce74ba8e2b79bd3eefc387fcd93f671aa3,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/a2.yaml,3935,e19a6c362ef9b67c21e4b932a161827b5cab2aa5700177d6dbcd9c8d5920c777,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/a3.yaml,4028,ab83ee252d17e780fe638dd3f5e1ae36d20e39a99c1b8d72c04d738aa5b9b58e,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/a4.yaml,5135,040b9e72052d3cc8f682085623e52637051551078cb3dbb75734f9bc27b6e97d,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/a5.yaml,4141,223e0f20671a13957331e35277c55280a6b70ee50896b6e6ce7e3a0318fd9c9e,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/a6.yaml,6570,2d244f643c9b2a622ad82e33adf39f1edd45f0e7d8dcb03ff862a4f1217e83b9,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s01.yaml,1146,e7eb2dbcfdb949face6bcd6498feff4261a289ca22cae88eb0f4d8e68b28c001,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s02.yaml,5216,8d882435b455a431c20e92fc418fead2e27d3113ab475d16e478caeafb49c076,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s03.yaml,3820,ddf40e3ade5f3b785331ca2175e7f4bcbea39fa16e9bdac9a25ee3b02fdcd2c5,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s04.yaml,4742,127a1836bd596d80e1ae8684196e7cfbd2cb7bb27c8815cb50901c76bb86db9d,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s05.yaml,4193,9d83f4251b3b4af67a789a6ec14de701b0ad3694f0d1b9e6289bd3e6bc970833,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s06.yaml,5578,b38e638f4c9ed0e550d0decd0a70d6fd13a6fc03cbea5daa2720b36faecd6301,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s07.yaml,4712,8cee52dc79909cd64ee11040a91231f9aff5490460c7c4af78dc03002c751238,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s08.yaml,4507,06c8877344797e62a70ebbba38109712c8001b5b54531afdbc58f7185c6a910d,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s09.yaml,3143,f90cca931ab5e9ad8c8ba6c80856a4a6a4d6fb472d09a63ddf345683a344109d,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s10.yaml,5234,8e213c36310ce6779057e01f776dd84fd796d557ae97ea5b026255f8ada38eef,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s11.yaml,5947,1c19b5afdf9de14854be082975dabb83353b0a94dbd7fc40ebda10356e862cef,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s12.yaml,3692,af4d4b539220dfe8d5f3964012c08d79a47df70bb34a7564cec1b3ab36198d0e,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s13.yaml,3993,9ae46c727836971dbfc27d56be6d47452bce2837e8b491f5eeff5eeed4cf4dd3,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s14.yaml,5703,861c3cd5f0e37582bc3eb626510d78136b1542be090a865b3539281cbb84066f,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s15.yaml,5178,735d9208087aa450b5b02c4d6425216571dad1dc3c9c8511fb659cd3b6541584,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s16.yaml,5784,a51063bcd2964369c24ed33c2034219c747569860f62cd70bf49ec1e1b8ec74b,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s17.yaml,5685,f56288232accb81b4b4e7a3ce636995d2ba74cf3c1c2757d810a91fa3539baf5,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s18.yaml,3816,112eb790fcf87a8ade62f4c1d2a225feb653c346b024fe333defe87842a1a3e5,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s19.yaml,7153,e1c45046effeb50f02eca0c227fbda688bf31fd3ee802364f56608fa1f237e08,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s20.yaml,6252,1c210e6dc4e9f6315e67015e062cff7030b654fd19c0506cfc3fdb92d65a86e4,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s21.yaml,7032,77ed9e50eb48c7cca757009051ea27d10fba2b01a026fb412cb1115a646f184d,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s22.yaml,4334,d4fff39ce87c8ae209b919bf601b2c5c144016633e4284c2b222f54fd3f4776a,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s23.yaml,6622,312413b7b57bc02ab8c62461100ebee3287c4d273571606e4cbd15cf2095b324,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s24.yaml,7057,b1650ed8a95e9b5b94766a69079511f4fcf3ad31b8f16bf9722194ee0791015f,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s25.yaml,6770,99e4cf57409fbe8d34ef35ed06ba6b2602e8e88596afbdfdc280621ab692668c,TRUE,"results deck (Korean, internal review)"
+reports/deck/text/ko/s26.yaml,6764,f537754c2e48b6633996bf6907294eb3c3eb34f18484ed1eaf8cf10eb19eafe0,TRUE,"results deck (Korean, internal review)"
 results/atopic/atopic_coverage_failing.csv,8407,ed1f24ec44214e5312e1791dcd5b265163d4fdcc8fb1e67f9c700a53eb88af3f,TRUE,result cited in the documents
 results/atopic/atopic_criteria_by_band.csv,28722,1f97c1e830a8c2b5d8297e82a87932f3b3c5428e952eb62d5fde47c905887eed,TRUE,result cited in the documents
 results/atopic/atopic_exploratory_height_corr.csv,597,36ab8f226ccfef2d1010b8b66ab453fe777a31d17749fd19f50d5c5db17a4b1d,TRUE,result cited in the documents
@@ -77,12 +183,18 @@ results/atopic/atopic_trials_pass.csv,47557,988cb1e37e5143e6fe8d39502d163837f766
 results/atopic/atopic_weight_table.csv,1490,ff627c4849221d773e495c9ce9abb806d2819b840558157e6c3bae2b748a1388,TRUE,result cited in the documents
 results/atopic/fig_atopic_failure_by_band.png,110418,34db05fd7ba2a1f2d1cbc4d17cc7eab10feeec9d6a2bb987f0e46c0a67cedc81,TRUE,result cited in the documents
 results/atopic/fig_atopic_weight.png,92154,914fbc83f6de0d4e1fb921cf9b85c5fcde4f6a35f246fa1674018bef3c092ec1,TRUE,result cited in the documents
+results/ci/ci_failure_summary.csv,821,499f951f7e52bbb9e119722e3c691a55d2611774b1caad53463c8c98dd70b86a,TRUE,result cited in the documents
+results/ci/ci_failures_before.csv,49325,bc090a48a34efbd015e36ff2882307cead2396c82559b36cd05a8aa0732590ad,TRUE,result cited in the documents
+results/ci/ci_runs_after_fix.csv,2118,6e6e81ae4e859a13d8d7124a8a4407add28de85052a5e3be95effdea6cdd4b97,TRUE,result cited in the documents
+results/ci/ci_runs_deck.csv,456,4b77438eb3d5446e3266ed24c82efe641c271da92b8cb76c303fd27ae3b1bdbd,TRUE,result cited in the documents
+results/ci/ci_runs_v101.csv,1692,37f2a629401e3dd39213142ec37b4d57e6ddc9c7a5fc43fc7c1bffb4d8f58635,TRUE,result cited in the documents
 results/cliff/cliff_points.csv,37620,0d0ea5c5b1e2ada1b9ff68be6415c912fec7ea8806f75a2d201b46932359fead,TRUE,result cited in the documents
 results/cliff/cliff_schedules.csv,348,a5b0c34e260d2e0c1af7e11259055e6ebbad7b191686eabec721ac60241d4ad4,TRUE,result cited in the documents
 results/cliff/cliff_summary.csv,1987,f853aba868c8cd024ca3a2c4a971159d7aece8f76fb8f2156c300c88e0dfd115,TRUE,result cited in the documents
 results/cliff/fig2_1_lloq_day_en.png,35864,98ea13f0c2ca55c0493cc6f036a41d958b5a26a10f4a389d2bf20ccb5f36d554,TRUE,result cited in the documents
 results/cliff/fig2_4_representative_en.png,63496,c6e924d9720860a8afe8884b9c87a050524b0c67d9c15ff7da0c881f90a28112,TRUE,result cited in the documents
 results/criteria/criteria_bias.csv,54656,bc5ff89ec184d87a6cf94f6b56fe05cf2769267911df0b6e6b64f6f5c9660481,TRUE,result cited in the documents
+results/criteria/criteria_g2_power.csv,4878,fe9d0c6c7c030f8a06a37c30f672b1aa49da1f1e50d60f7bfbe3142afa31cab5,TRUE,result cited in the documents
 results/criteria/criteria_g2_type1.csv,43715,b450c534a36e2e03b49bad2427de6317153e3b71210dce8caab616e43ef64981,TRUE,result cited in the documents
 results/criteria/criteria_individual.csv,11815,4575475ae251a85320700384ae83f84f7bc6111f9e9b9f927b9db836f1f084b4,TRUE,result cited in the documents
 results/criteria/criteria_instability.csv,2534,f4bab2830356f6a82612ac7ddb6eb4478ae350b60ab618ff2841b07078260fee,TRUE,result cited in the documents
@@ -91,14 +203,26 @@ results/criteria/restart_identity_check.csv,143,186f52cc8ce5f4341a36279419e777f8
 results/crossval/crossval_model1.csv,2025,ca18f70ae9847e32a34f2d2294d0059cd3e723ea5ccf567a17109c10ee5a1b98,TRUE,result cited in the documents
 results/crossval/reviewer_reference_round5.csv,6541,afb20254b55631d9c3996bc35b8208f28b261c6c153f6d2fd6bc3e8d9e12b51a,TRUE,result cited in the documents
 results/curve_shape/curve_shape_B0.csv,2593,4796d407dad3bba1496ae1268dae39063c5e3e2c8bec7b583e0625bc8c022c44,TRUE,result cited in the documents
+results/deck_inputs/checks.csv,3484,a354eb7d0420ecc9fa06fb2c323bd029f0c1a0c22048d840ba449c30af5b9989,TRUE,result cited in the documents
+results/deck_inputs/cliff_lloq_day_hist.csv,2393,60dd9a04c306463b93585d116a967745a9b7e504bc01e1833f016cbed69777fc,TRUE,result cited in the documents
+results/deck_inputs/coverage_hist.csv,8066,ce39a00391cff436f907f950472c7780d45e127f25ab5bb3b0f82026f8dd9974,TRUE,result cited in the documents
+results/deck_inputs/provenance.csv,1497,a824580d2efeb32937cebf423af0b0857dc39ddb0125de4f261ce4f73c1236cb,TRUE,result cited in the documents
+results/deck_inputs/rep_profiles.csv,62264,787f586a785dc0ee4da4fe4c1f17821f525e1625667861a65a176381fb8db4df,TRUE,result cited in the documents
+results/deck_inputs/rep_subjects.csv,272,abcacc697f81e179904bc2e6bcaafdefa7eb29a5d828da692b599642e96a80e9,TRUE,result cited in the documents
+results/deck_inputs/strata_armdiff_hist.csv,2151,f23ee88fbadc40251c8638dc724d20dac7f76aa12a1735b733544b9f7a1afa63,TRUE,result cited in the documents
 results/fallback/sample_size_logsd.csv,315,684e4f6414e7ece0d8f6da94c7542a1fc900e0de98cc6bf920f9ed22fe239189,TRUE,result cited in the documents
 results/individual/individual_ada10_by_subgroup.csv,6669,3dd5ce9b6a31bbb41910b9453f8392a1fd3af70dc157752f1ebffad77e9bbc76,TRUE,result cited in the documents
+results/individual/individual_base.csv,3075,5c179e48ba3a5c908bcd78bfb449b30935ade415d966b0df3980f0fce2f7e68f,TRUE,result cited in the documents
+results/individual/individual_struct2020.csv,3129,5aa94fc8d551f498d33376bc799bf15be13e8d604a6a30c56c28218b2f444033,TRUE,result cited in the documents
 results/individual200k/criterion_d_200k_base.csv,353,ae9015b82606edeab44b551b30b253bc060edd5d5fcd2a4f923548bcc9fe6e32,TRUE,result cited in the documents
 results/individual200k/criterion_d_200k_struct2020.csv,366,f601efcc96f1954c114480fc57501e4411e809d9381cbd5bf0969cff99b55827,TRUE,result cited in the documents
 results/individual200k/criterion_d_200k_vmax080_both.csv,366,fdedd0ac8373a2bebffc12896073e05d5c4926bce66c385376a5341f916f00fd,TRUE,result cited in the documents
 results/literature/literature_numeric.csv,2551,0d20c4fc00fc0f6b1caf7e5089f0728ba0b3674535a5cfff28f412c7269c4b14,TRUE,result cited in the documents
+results/literature/literature_qualitative.csv,1106,4fbd3d888edc887242439362d8a2742497061095f4ab5ddda1ba0146b04ac26e,TRUE,result cited in the documents
 results/lloq/fig_lloq_individual.png,148933,cef82494dccbf403eb896b5c88864678f1d8ee18069b13a208c2965d44037678,TRUE,result cited in the documents
 results/lloq/lloq_cliff_table.csv,11329,f17a8d207a1b59eab7a6dd9e5ee04dd1e836d670da0ee077c3252105d8a54436,TRUE,result cited in the documents
+results/lloq/lloq_individual_k2016.csv,5968,9f2644edcbe3fd5f62eaa86c467b048b80c1b6e3484cff6cb0d620eb19e824e8,TRUE,result cited in the documents
+results/lloq/lloq_individual_k2020.csv,6140,608617d88094e914934cc1a9017be7a75b2c40cafef749368083302a2de44045,TRUE,result cited in the documents
 results/lloq/lloq_individual_table.csv,9664,6d5fc6a570bb69ad49d2d235250f61e39c074ab5d023b5a9fdd0cfaa79b0e3b5,TRUE,result cited in the documents
 results/lloq/lloq_trial_type1.csv,67738,42dbaed7571732007275b9d983dcbf53fa368cec83e2ee83db6f9b3e0ce1c18b,TRUE,result cited in the documents
 results/nca_engine/engine_validation_summary.csv,921,6cc554b1b015013fc6b1156e970eed67ad56d2ab70843a853187390ed0ff41b4,TRUE,result cited in the documents
@@ -116,13 +240,17 @@ results/oc/config_comparison.csv,23753,3663628a0c885abcc30e0e372774576b32dd958fc
 results/oc/g2_decomposition.csv,30246,b186d66c6b4bed945c9b62af04fa1fb552aba6a8698826487870ba58e6118806,TRUE,result cited in the documents
 results/oc/g2_rules_flags.csv,38187,315f676f4f188231888ef499414b01c03e0a448a1f8886af5b24d1a50fbdfdd6,TRUE,result cited in the documents
 results/oc/inversion_all.csv,32607,7b0f06ec39b8c6d76e4b02d5301502fb01167a0cb730bc1e5fea08e64726541f,TRUE,result cited in the documents
+results/oc/inversion_scan_k2016_Km.csv,1186,f3ce02f80a4ba3b25b94ebafb6c762489ba99a8772cd505eff7bedcc59e6b6ff,TRUE,result cited in the documents
+results/oc/inversion_scan_k2020_Km.csv,1189,1d7a75967c1ead80f19157dfb09b9c56f80c74f82d62ef1c1f4666fe6d27200a,TRUE,result cited in the documents
 results/oc/p2_interpretation.csv,65686,4a44d10a6f7f1d3a908463551c829a2d9d7f6656ee1a5e0fd412a8e36a8414d1,TRUE,result cited in the documents
 results/oc/power.csv,21442,d764a878d136add693dba8b8849b09502c2d047349ff3d6c5b41f807ac5cb188,TRUE,result cited in the documents
 results/oc/prereg.csv,75,46f9df5b7464021107467510d826a837861468efe5f5639edd542d0863247f2a,TRUE,result cited in the documents
 results/oc/random_space_risks.csv,10930,9728778fb4558c941ac2258fd9deab7bba4c5c72a445e77bbee98f5f1cf0f7c4,TRUE,result cited in the documents
 results/rationale/pillar1_coverage_B0.csv,1565,f5bd530b5e2198d6fc9ae9dcf29e9fda50cb699af423210a732c31d1ccf6cbb6,TRUE,result cited in the documents
+results/rationale/pillar2_products_B0.csv,11812,32c4ad2678df31de43a22b160dca75371aa35eb966d73abccc1069d23bc14aec,TRUE,result cited in the documents
 results/reliability/dropout_reasons_by_schedule.csv,7711,417d6943848f5ae0e7e73f264509e5aae93d8b4757da91705641f4b1b47060fc,TRUE,result cited in the documents
 results/reliability/fig_reliability_mechanism_en.png,261715,9d33144fe3d921527eec8469c4b298a0ea2626de5600170612ad554f288e5225,TRUE,result cited in the documents
+results/reliability/reliability_lz_window_by_schedule.csv,14810,1536caedc7e14453f2b73d122df430f8820659dbbdaa657e19827b41eefde816,TRUE,result cited in the documents
 results/reliability/reliability_paired_vs_B0.csv,14871,25c664d815ff40194ca4fb53984e0c166bbf23a169e9c0533214cfb3d9385ecc,TRUE,result cited in the documents
 results/reliability/reliability_two_flag_sets_summary.csv,2166,7db4ea795f34f68f0d1a06469b5b810b25cc110a1bca6b68ae147af1d29cc920,TRUE,result cited in the documents
 results/repro/repro_check.csv,1795,09f90e12ab0208459c5a462b2a052ae96a481edc26a3200663ce644db4275711,TRUE,result cited in the documents
@@ -136,8 +264,18 @@ results/sample_size/ss_table_n_needed.csv,3684,cb1b4df9c06e5f3d0c09e40dc0152eddb
 results/sample_size/ss_table_power.csv,30230,a56eb54215c06bfa3275ff43ff1cdf7b8593f6c57143d3346fc7ed9047948e72,TRUE,result cited in the documents
 results/sap/sap_exclusion_support.csv,1462,3aae26534761bc25571238de3dcfc353e3ba013ffd442d1eb778b7bf6428bdea,TRUE,result cited in the documents
 results/step1_k2020/step1b_quant_gate.csv,2969,fe98e2255a97c7dc46ced95bd39619686078d95324349342d596324314490544,TRUE,result cited in the documents
+results/step1_k2020/step1f_300mg_arm_check_summary.csv,75,1c1db829b907dbe8a6dfea4fb7db6c2e56bd38a5251e965ffc0f4a36ef65d4e5,TRUE,result cited in the documents
+results/step1_k2020/step1f_300mg_arm_check.csv,721,dae14917c46f4a8a53b1beb0f89c4308305a5eaaf8e2e2a4886e783bfe617b00,TRUE,result cited in the documents
+results/step1_k2020/step1g_literature_coverage.csv,1067,f15cb809ddd96d5574619feca54a076df609210f1156925d0b546575fbe226a1,TRUE,result cited in the documents
 results/step1_k2020/step1h_external_only_gate.csv,560,35d4f1f5822da9e61d90566beefe6ddc9ac0cd253d5b5fa22e9cc98ebe0afc8a,TRUE,result cited in the documents
+results/step1/appendix_absorption_diagnostic.csv,2338,263fb84d3f9259485b327b1ddb49cdd1ae34f2b5b12274233493de126f0cd679,TRUE,result cited in the documents
+results/step1/appendix_dose_shape_model.csv,460,ebbb24f63d774b403df1737d2b94839015bfcf4b6d87db1b7b1b116d4b89b63b,TRUE,result cited in the documents
+results/step1/appendix_dose_shape_observed.csv,167,ea3236c20f78c43cf19bfa8fc3a8e0b71b2c12d7cdb3665a250c4aeae7c9cf91,TRUE,result cited in the documents
 results/step1/step1b_quant_gate.csv,2975,8f846e1fd1160532af6b26f020969bb945f0903e3ba7549c0bb5fd2a50117bb5,TRUE,result cited in the documents
+results/step1/step1d_cohen2022_logsd.csv,64,1ba8f64bf2c33f0563542e9a3d1441bdfd0de70f910bf60d4616e69aa5297c67,TRUE,result cited in the documents
+results/step1/step1f_300mg_arm_check_summary.csv,75,2bb225b7ddab7a20315f95667b177daded5146473be937a870c7178edb1bebf5,TRUE,result cited in the documents
+results/step1/step1f_300mg_arm_check.csv,720,94e7f8d23532f81f0f5a98c506071333d348ab476529d0371feb1e470079addf,TRUE,result cited in the documents
+results/step1/step1g_literature_coverage.csv,1068,44f3a30b333cd3927d98a158c1cfabd23d1aadca9065385dd3a2299752afaa76,TRUE,result cited in the documents
 results/step1/step1h_external_only_gate.csv,711,92088915393287a550844346e4d1714982847755835cb048bfd36d4bc80eba72,TRUE,result cited in the documents
 results/step1/step1i_arm_weight_sensitivity.csv,2534,f075ee5189e44ac72f8a5f6d186dec455f1799830b9768bf727bf70f210fecc0,TRUE,result cited in the documents
 results/trialpop/fig_tp_arm_difference.png,109810,4cb713fd715c125a586947373f45e7a608b6306a8614e860c381a011cf02ee6a,TRUE,result cited in the documents
@@ -155,6 +293,10 @@ results/trialpop/tp_residual_sensitivity.csv,1164,860c21b7b69a4dd5e1e0ae43bef40e
 results/trialpop/tp_retained_per_arm.csv,585,e1a344b97e641ca3ed72e33d48c23d516fede36ceb0f55a6a4d1df8ed658a64d,TRUE,result cited in the documents
 results/trialpop/tp_strata_composition.csv,26349,c888fc5d6871d4b71cb531fc782c07c0ccee83dc73c40b19a3c0215c6d1eb911,TRUE,result cited in the documents
 results/trialpop/tp_strata_individual.csv,1519,49152d19e245c1c341396c7d1462f349edf1a07b980ef7210d31729d3ccdeb1f,TRUE,result cited in the documents
+results/trialpop/trialpop_counts_k2016.csv.gz,440963,2e9343ab02d3598e6198fea38d0becf488127ec49401728a6edbd3cdeeed7a21,TRUE,result cited in the documents
+results/trialpop/trialpop_counts_k2020.csv.gz,433914,9d767a9a53ffda3cb94079e986d36c446cabb774e1719bcd174228b5e7794132,TRUE,result cited in the documents
+results/trials/products_concordance_struct2020.csv,1841,08211a4570a05eb3b1b81304ab51cd99d8b10e0b734e9e4d5dfc5669dbfd6f38,TRUE,result cited in the documents
+results/trials/products_concordance.csv,1829,309c7839b3c7f98672d61091222503859a72186d885834d29f2333403f302671,TRUE,result cited in the documents
 results/trials/schedule_decision_ada10.csv,812,49b65851cc067540f6edc1e6cab9d3af0bc314ecac7594363ab57150a680b31c,TRUE,result cited in the documents
 results/trials/schedule_decision_base.csv,2321,bb5709b29d60a28b0000e996758cf03adbad65869efe5c1b5a409f05aff0e0ea,TRUE,result cited in the documents
 results/trials/schedule_decision_iiv150.csv,851,6d91ebc8a51f4951e907ab51997b31e5af957897e74c480d401495713eea7278,TRUE,result cited in the documents
@@ -163,6 +305,8 @@ results/trials/schedule_decision_struct2020.csv,2252,70bc8a9b917c13c9bc847019895
 results/trials/schedule_decision_vmax080_both.csv,2211,1ea1561a2930c1fa299e83a9c2d9c7cf506a1db065e95060788c03353b9f122f,TRUE,result cited in the documents
 results/trials/schedule_decision_vmax125_both.csv,2334,ff11721af23123896deb73b20101dc59c768197864079dae7dcecc256e0e77c0,TRUE,result cited in the documents
 results/trials/schedule_decision_weight_alt.csv,862,d5facab06f5f4d048933d8a1610dbf399f97a65d483d09d73c0921605f6c8df6,TRUE,result cited in the documents
+results/trials/schedules_per_endpoint_base.csv,18486,068bf644e377cae5a32161354cd5fbbf79edc866f1fc8648b9d5c0b2f06019f1,TRUE,result cited in the documents
+results/trials/schedules_per_endpoint_resid12.csv,4680,4724fc731eabfd44d4c3a4deb8909c0de6eda1e413afc4f8ef296254f6019224,TRUE,result cited in the documents
 results/weight_generalization/obese_trials_dropout_a.csv,901,d9a833a70ea3594c09bdf5cf8561a993d650b066098c6cb3fc250c5059778b02,TRUE,result cited in the documents
 results/weight_generalization/obese_trials_dropout_b.csv,901,fe90a94c0715edb641b61800e3f0a2d0dbfcf2c8ff68aef7f497526307a6c8ef,TRUE,result cited in the documents
 results/weight_generalization/obese_trials_dropout_d.csv,909,8acc1b983886ba4683e4131501356f667e8000cc0e0b740fe4162012a88ff6e5,TRUE,result cited in the documents
@@ -184,7 +328,7 @@ scripts/14_postprocess.R,822,76f6789a610e3095adba24dd7948f9356cad42dea17ed9d9648
 scripts/15_rationale_summary.R,4634,c7e02bc7f1506367b27ed9db3650edcdf929fa626fcb2acef5dfe5e13fb4d978,TRUE,program
 scripts/16_criterion_d_200k.R,2496,d48fb09bf0a92e3af824f34cb8c4f6bf16f95c91de41a84cbffcc34a5a9a0556,TRUE,program
 scripts/17_literature_table.R,6455,87a4a4ffa90fc3cac81080ead8dbcc6a14a7d79879fe4a7aecd1b00633cdc28b,TRUE,program
-scripts/18_summary_en.R,68979,efb2ada2af19e904f60709a01368a22ccde2440c93a673699f800a0ddf8ed7ea,TRUE,program
+scripts/18_summary_en.R,69035,ccce961f0635e291416c5622e03ef1f69990c9edb69c0d451d0a9fcbd9ce04fa,TRUE,program
 scripts/19_mc_consistency.R,1894,944ce383bcdc10ed50bfdd1698d2e97b2707643d820ce07b3eafcbdb40f7ece9,TRUE,program
 scripts/20_products_5000.R,4149,3b27b86e4d32412752f04fd4df1b323edf49bef096066232afeb2562c260353f,TRUE,program
 scripts/21_curve_shape.R,3323,98ee411a328b7839d8ed41ca73950d589045fc86ed98b4739d5444dc1e41339c,TRUE,program
@@ -204,7 +348,7 @@ scripts/34_cliff_analysis.R,4725,443564738426e2d8ca0480970de62859241ceeb5c8b87af
 scripts/34b_cliff_figures.R,9923,7089dcd4e80b57b7bd1bdcc4a69fc55e58dfbe3cadd7522d3fa4ba4557ea5371,TRUE,program
 scripts/35_engine_difference_trials.R,4427,459cc8b5ea5d0f73f7f64898e8980dbabab09e88f4b7a47d6eaa47c1c1dd2a50,TRUE,program
 scripts/36_cliff_conclusion.R,8631,816077a969e7371f5c813cb7d9972eb03b25cf421241bb62b44153de8d72fea9,TRUE,program
-scripts/37_key_numbers_en.R,32160,a36374a62548e3f98d034db411ae44110e940deb96a81001f5d58032201cea06,TRUE,program
+scripts/37_key_numbers_en.R,32197,323bd7aef351d8c2f427b3990c17ce4153a67be03679c4d10e8e373ad96d8b79,TRUE,program
 scripts/38_repro_check.R,15158,79949e4f6d468112896a8e2d0d3d3ce18b8dfdbe3e11c06de07906b27488a639,TRUE,program
 scripts/38b_repro_github_record.R,6325,3fc29c8cfab18249f2df50480547f821f4dd8d06116692dd4b814a062e7965b3,TRUE,program
 scripts/39_reliability_flags.R,60843,48af0215363a1aa6b570d086bf64b8cc0246cb5cc8455c830c28ce79879c516b,TRUE,program
@@ -224,7 +368,8 @@ scripts/52_atopic_population.R,8962,71bd1f10a985db0dca0b0a27528fa95113e9899f457d
 scripts/53_atopic_summary.R,38372,f9bac82b3b144640cc237d8886b89db72e6d4c37da3b1b4cebce1a2890703512,TRUE,program
 scripts/54_trial_population_drop.R,10713,b1bcff73c4731da774fdd2f81e1a6813c6658edd9f30682b5ce6fd0197cc607d,TRUE,program
 scripts/55_trial_population_summary.R,30533,57c7b629e3defc066b29ed2bbb3c0c73e8c7fcdafab27242f08c4a88eb32f1f8,TRUE,program
-scripts/60_regulatory_package.R,20620,1e3ff2218794866a37c5d17b3a82201ba01415dad2a5e646f7e4d914168e56ad,TRUE,program
+scripts/60_regulatory_package.R,23706,c760d13554c3f86daf0541d776cc46c5221a47e02be859e6d13bf9b1986a41f6,TRUE,program
+scripts/62_deck_inputs.R,9052,a63af20b1b6e117799270b87ca2e9a469d5eba5f6b06529d74ffdad398126d12,TRUE,program
 scripts/run_all.sh,5071,f8afba928e7e07b12cff3bbf90c484a08b0eb3feffa4cd6ae9e511843c8cd772,TRUE,program
 scripts/run_oc_followup.sh,995,06e1f9ae36be5d4e17272e11945ec56ec54ae0cf521811bca5352fb812511f23,TRUE,program
 scripts/run_oc_inversion.sh,445,2e9008aa94e125d4756b554e74a7ddad287698444565f90352cd1f450112068a,TRUE,program
@@ -234,7 +379,7 @@ scripts/run_round6_rerun.sh,2693,1f65b18e3137df0edbb102527042f4ea3cd0fd8a54084fb
 scripts/run_step2_all.sh,1391,bd7c8fb10b743da9086b7235a436c38af1807802d5042a84db6162adff49497e,TRUE,program
 scripts/run_step2_round3.sh,784,958303690a7ba61af8f6aa93b8e47e7dae451c54e37d0b45a40f6938e8615caf,TRUE,program
 scripts/run_tests.R,6383,2b2602928f28fba9058e488cac0b03c357cd47001ba9b9a4164ce61e5b15327f,TRUE,program
-SPEC.md,84352,311bb6528e480ad4be6e8a9fd2fea913922ffe8d36d71bae4a19c04b8a1c8411,TRUE,project record
+SPEC.md,88247,f842f4df6d51ac7e73c101da17bd09474a54dbe18e025c26e4f0d995376d18ac,TRUE,project record
 tests/testthat/helper-setup.R,2659,67933caf61bc69155f53e342565db79a02b3dd7febc479fa17101c994f79dc4a,TRUE,test
 tests/testthat/test-be-stats.R,2124,a9f67f404ec3d9d362a61cb92e3d317f543623dc88689a27a4a69a11a5de0f48,TRUE,test
 tests/testthat/test-config-schema.R,3730,ee5ea1f3fa6a37c24cba6a949cfb2947956604ec7b32471e7e20cf85ac7e513b,TRUE,test
