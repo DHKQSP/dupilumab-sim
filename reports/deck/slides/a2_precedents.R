@@ -64,7 +64,7 @@ slide_A2 <- function() {
 
   # ---- 카드 세 개(제목 순서: MSB11456, Cohen 2022, PKM14161): 상태 표지 + 기록 내용 ------------------------------------------------------
   # 폭은 글 양에 맞춰 나누고(세 카드의 추정 높이가 비슷하게), 카드 높이는 가장 긴 카드의 추정 높이에 맞춘다(빈 카드 공간을 줄임). 결론 문장은 카드 바로 아래에 둔다.
-  cards <- list(toci = list(bg = PAL$tint_orange, chip = PAL$orange, w = 1.17), cohen = list(bg = PAL$tint_blue, chip = PAL$blue, w = 0.80), pkm = list(bg = PAL$tint_grey, chip = PAL$ink2, w = 1.03))
+  cards <- list(toci = list(bg = PAL$tint_orange, chip = PAL$orange, w = 1.2), cohen = list(bg = PAL$tint_blue, chip = PAL$blue, w = 0.78), pkm = list(bg = PAL$tint_grey, chip = PAL$ink2, w = 1.02))
   gap <- 0.25; ws <- vapply(cards, function(z) z$w, 1); ws <- ws / sum(ws) * (GEO$CW - 2 * gap); yc <- GEO$BODY_TOP + 0.02; chip_h <- 0.42
   body <- lapply(names(cards), function(nm) tx(sprintf("A2.%s.body", nm), f)); names(body) <- names(cards)
   ch <- max(mapply(function(b, w) est_height(b, w, 16, gap_pt = 7, card = TRUE), body, ws)) + 0.3   # 가장 긴 카드도 마지막 줄 아래 여백이 위 여백 이상

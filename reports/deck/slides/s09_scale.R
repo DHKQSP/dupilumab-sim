@@ -61,9 +61,9 @@ slide_S09 <- function() {
   d[, set := factor(set, levels = sets, labels = unlist(DK$txt$common$sets[sets]))]; d[, model := factor(model_lab()[pk_model], levels = model_lab())]
   p <- ggplot(d, aes(x = set, y = fail_pct, fill = model)) + geom_col(position = position_dodge(width = 0.78), width = 0.72, colour = "white", linewidth = 0.6) +
     geom_errorbar(aes(ymin = fail_lo, ymax = fail_hi), position = position_dodge(width = 0.78), width = 0.2, linewidth = 0.5, colour = PAL$ink2) +
-    # 막대 값: 흰 바탕(테두리 없음)으로 가로 격자선이 글자 뒤에서 끊기게 한다
-    geom_label(aes(y = fail_hi, label = fnum(fail_pct, 1)), position = position_dodge(width = 0.78), vjust = -0.3, size = 4.3, family = FONT, colour = PAL$ink,
-               fill = "white", label.size = 0, label.padding = unit(0.08, "lines"), label.r = unit(0, "lines")) +
+    # 막대 값: 흰 바탕(테두리 없음)으로 가로 격자선이 글자 뒤에서 끊기게 한다(fill을 고정하므로 group = model로 막대와 같이 나란히 놓는다)
+    geom_label(aes(y = fail_hi, label = fnum(fail_pct, 1), group = model), position = position_dodge(width = 0.78), vjust = -0.3, size = 4.3, family = FONT, colour = PAL$ink,
+               fill = "white", label.size = 0, label.padding = unit(0.05, "lines"), label.r = unit(0, "lines")) +
     scale_fill_manual(values = unname(MODEL_COL)) + scale_y_continuous(limits = c(0, 80), breaks = seq(0, 75, by = 25), expand = expansion(mult = c(0, 0.01))) +
     labs(x = NULL, y = NULL, subtitle = L$ylab) + theme_deck(14) +
     theme(panel.grid.major.x = element_blank(), legend.justification = "left", legend.margin = margin(0, 0, 0, 0),

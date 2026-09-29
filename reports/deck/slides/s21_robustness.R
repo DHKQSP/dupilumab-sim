@@ -102,7 +102,7 @@ slide_S21 <- function() {
   df <- data.frame(a = vapply(1:5, function(i) fill(L$table$cond[[i]], R[[i]]), ""), b = vapply(1:5, function(i) fill(L$table$scope[[i]], R[[i]]), ""),
                    c = vapply(1:5, function(i) fill(L$table$result[[i]], R[[i]]), ""), d = unlist(L$table$verdict), stringsAsFactors = FALSE, check.names = FALSE)
   names(df) <- tx("S21.table.head")
-  TH <- 3.66
+  TH <- 3.5   # 렌더링 높이 약 3.43 in(추정 3.47 in)
   deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, TH), widths = c(2.1, 3.2, 5.48, 1.45), size = 12, align_num = FALSE, label = "table_robust")
 
   # ---- 아래: 요점 ----

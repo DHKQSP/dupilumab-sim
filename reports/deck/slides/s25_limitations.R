@@ -121,13 +121,13 @@ slide_S25 <- function() {
   if (nzchar(Sys.getenv("S25_DEBUG"))) { data.table::fwrite(df, Sys.getenv("S25_DEBUG")); writeLines(c(tx("S25.card_nca", f), "", tx("S25.card_qc", f)), paste0(Sys.getenv("S25_DEBUG"), ".cards")) }
   tw <- 8.4
   deck_text(tx("S25.left_label"), c(GEO$ML, GEO$BODY_TOP - 0.04, tw, 0.45), size = 16, bold = TRUE, color = PAL$ink2, label = "label_model")
-  tsz <- 13; tws <- c(2.0, 3.4, 3.0); ty <- GEO$BODY_TOP + 0.43
+  tsz <- 14; tws <- c(1.95, 3.35, 3.1); ty <- GEO$BODY_TOP + 0.43
   deck_table(df, box = c(GEO$ML, ty, tw, GEO$BODY_BOTTOM - ty), widths = tws, size = tsz, align_num = FALSE)
-  # 표의 렌더링 높이 추정(deck_table과 같은 줄 수 x LibreOffice 실측 줄 높이 1.264 x 글자 크기 + 행마다 셀 여백 8 pt): 오른쪽 카드의 아래 끝을 표의 아래 선에 맞춘다
+  # 표의 렌더링 높이 추정(deck_table과 같은 줄 수 x 표 줄 높이 1.19 x 글자 크기 + 행마다 셀 여백 8 pt): 오른쪽 카드의 아래 끝을 표의 아래 선에 맞춘다
   twi <- tws / sum(tws) * tw
   nl <- function(v, w, b) vapply(as.character(v), function(s) est_lines(s, w - 0.14, tsz, b), 1L)
   tl <- max(mapply(function(v, w) nl(v, w, TRUE), names(df), twi)) + sum(apply(sapply(seq_along(twi), function(j) nl(df[[j]], twi[j], j == 1)), 1, max))
-  tab_bot <- min(GEO$BODY_BOTTOM, ty + tl * tsz * 1.264 / 72 + (nrow(df) + 1) * 8 / 72)
+  tab_bot <- min(GEO$BODY_BOTTOM, ty + tl * tsz * 1.19 / 72 + (nrow(df) + 1) * 8 / 72)
 
   # ---- 오른쪽: 검증 절차 한계 카드 두 개 ------------------------------------------------------------------------------------------
   xr <- GEO$ML + tw + 0.25; wr <- GEO$W - GEO$MR - xr

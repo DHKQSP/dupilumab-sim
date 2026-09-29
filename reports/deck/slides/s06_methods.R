@@ -57,9 +57,9 @@ slide_S06 <- function() {
     c(DK$txt$S06$table$rows[[k]], np, lz, mx, fill(DK$txt$S06$table$pass, list(k = dcount(EV, sprintf("%s & pass==TRUE", w_), sprintf("comparisons passed, %s", k)))))
   }
   m <- do.call(rbind, lapply(names(ds), one)); df <- as.data.frame(m, stringsAsFactors = FALSE); names(df) <- unlist(DK$txt$S06$table$head)
-  yb <- y0 + hc + 0.2; hb <- GEO$BODY_BOTTOM - yb; tw <- 7.35
+  yb <- y0 + hc + 0.2; hb <- GEO$BODY_BOTTOM - yb; tw <- 7.3
   th <- 1.34   # 머리글 한 줄 + 3행(LibreOffice는 행 높이를 가장 높은 행에 맞추므로 머리글을 한 줄로 둔다)
-  deck_table(df, box = c(GEO$ML, yb, tw, th), widths = c(2.6, 1.05, 1.3, 1.2, 1.2), size = 13)
+  deck_table(df, box = c(GEO$ML, yb, tw, th), widths = c(2.6, 1.0, 1.3, 1.2, 1.2), size = 13)
   deck_text(unlist(DK$txt$S06$table$caption), c(GEO$ML, yb + th + 0.04, tw, 0.72), size = 16, color = PAL$ink2, label = "table_note", gap_pt = 2)
 
   # ---- 사전 등록 상자 ----
@@ -70,7 +70,8 @@ slide_S06 <- function() {
   premise(grepl("^post hoc", pr[grepl("^Extension to 20,000 trials", Item), Status]) && grepl("^pre-registered", pr[grepl("^Analysis-model re-judgement", Item), Status]),
           "register: extension rule post hoc in v1.0, analysis models and per-model extension rule pre-registered in v1.0.1 (prereg box)")
   premise(startsWith(rows("oc/prereg.csv")$prereg_commit, c779) && !isTRUE(as.logical(rows("oc/prereg.csv")$changed_since)), "oc/prereg.csv: same commit, design unchanged since")
-  xr <- GEO$ML + tw + 0.3
+  # 사전 등록 상자: 커밋은 따로 한 줄(문장 안에서 "커밋"과 해시가 줄 끝에서 갈라지지 않게)
+  xr <- GEO$ML + tw + 0.25
   deck_text(tx("S06.prereg", list(c1 = c779, c2 = c521)), c(xr, yb, GEO$W - GEO$MR - xr, hb), size = 16, label = "prereg", bg = PAL$tint_grey, geom = "roundRect")
 
   # ---- 노트 ----

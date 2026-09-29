@@ -62,12 +62,13 @@ slide_S12 <- function() {
   pl <- dderived("true AUC0-inf of failing subjects lower than retained, set i, two models (percent)", TCH, "range over 2 rows [set=='i'] :: 100 x (1 - true_aucinf_gmr)", range(lo_pct), pl)
   g3 <- drange(TCH, "set=='iii'", "true_aucinf_gmr", 3, "", "failing versus retained, set iii, true_aucinf_gmr")
   C1H <- 1.77; GAP <- 0.08
-  deck_stat(gmr_i, tx("S12.card_gmr", list(pl = pl, g3 = g3)), c(XL, GEO$BODY_TOP, WL, C1H))
+  VS <- 36                                                                                  # 큰 수치 36pt: 세 줄 설명 아래 여백 확보(검토: 카드 아래 가장자리에 붙음)
+  deck_stat(gmr_i, tx("S12.card_gmr", list(pl = pl, g3 = g3)), c(XL, GEO$BODY_TOP, WL, C1H), value_size = VS)
   sd_i <- drange(TSI, "set=='i'", "diff_pp", 1, "", "stratum difference, set i, diff_pp")
   sd_iii <- drange(TSI, "set=='iii'", "diff_pp", 1, "", "stratum difference, set iii, diff_pp")
   wd <- drange(TCH, "set=='i'", "wt_diff_kg", 2, "", "failing versus retained, set i, wt_diff_kg")
   C2Y <- GEO$BODY_TOP + C1H + GAP; C2H <- 1.77
-  deck_stat(paste0(sd_i, "%p"), tx("S12.card_strata", list(split = f_split(), sd3 = sd_iii, wd = wd)), c(XL, C2Y, WL, C2H), color = PAL$ink, bg = PAL$tint_grey)
+  deck_stat(paste0(sd_i, "%p"), tx("S12.card_strata", list(split = f_split(), sd3 = sd_iii, wd = wd)), c(XL, C2Y, WL, C2H), color = PAL$ink, bg = PAL$tint_grey, value_size = VS)
 
   # ---- 왼쪽 아래: 분석군별 arm 간 차이 요약(두 모델) ----
   thr <- dderived(sprintf("threshold in column name %s (points)", gtc), TSC, sprintf("column name %s", gtc), thr_v, fnum(thr_v, 0))

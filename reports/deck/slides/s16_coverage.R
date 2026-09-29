@@ -51,16 +51,18 @@ slide_S16 <- function() {
   YF <- 0.004
   lab2 <- dcast(hw, bin_lo ~ pk_model, value.var = "pct")[order(-bin_lo)][1:2]      # 위 두 구간만 값 표시(2016 / 2020 모델, %)
   lab2[, lab := vapply(seq_len(.N), function(i) fill(L$fig$cov_lab, list(a = fnum(k2016[i], 1), b = fnum(k2020[i], 1))), "")]
-  # 두 값 모두 자기 막대 바로 위에 두고(가로로 겹치지 않게 가장 높은 구간은 패널 오른쪽 끝, 그다음 구간은 막대 가운데 조금 오른쪽에서 끝나게),
-  # 흰 바탕 글상자로 눈금선이 글자를 지나가지 않게 한다
-  lab2[, `:=`(x = 100 * bin_lo + c(2.25, 1.3), y = pmax(k2016, k2020) * 1.35)]
+  # 가장 높은 구간 값은 막대 바로 위(패널 오른쪽 끝에 맞춤). 그다음 구간 값은 막대 왼쪽 위 빈 곳에 두고 짧은 지시선으로 그 막대를 가리킨다
+  # (두 값이 가로로 겹치지 않게). 흰 바탕 글상자로 눈금선이 글자를 지나가지 않게 한다
+  lab2[, `:=`(x = 100 * bin_lo + c(2.25, -0.75), y = pmax(k2016, k2020) * c(1.8, 3), vj = c(0, 0.5))]
+  lead2 <- lab2[2][, .(x = x + 0.1, y = y * 0.85, xend = 100 * bin_lo + 0.35, yend = pmax(k2016, k2020) * 1.25)]
   mn <- vapply(M, function(m) row1(TCV, wm(MW, m))$min, 1)
   premise(all(mn >= min(hw$bin_lo)) && all(mn < min(hw$bin_lo) + bw), "the smallest subject of each model lies in the lowest histogram bin")
   low <- dcast(hw[bin_lo == min(bin_lo)], bin_lo ~ pk_model, value.var = "n")                     # 가장 낮은 구간의 대상자 수(아래 꼬리)
   mlab <- data.table(x = 100 * low$bin_lo + 0.1, y = max(hw[bin_lo == min(bin_lo), pct]) * 2.2, lab = fill(L$fig$cov_min, list(a = fint(low$k2016), b = fint(low$k2020))))
   pw <- ggplot(hw) +
     geom_rect(aes(xmin = x0, xmax = x1, ymin = YF, ymax = pct, fill = model), colour = NA) +
-    geom_label(data = lab2, aes(x = x, y = y, label = lab), hjust = 1, vjust = 0, size = 3.8, family = FONT, colour = PAL$ink, fill = "white",
+    geom_segment(data = lead2, aes(x = x, y = y, xend = xend, yend = yend), colour = PAL$ink2, linewidth = 0.35) +
+    geom_label(data = lab2, aes(x = x, y = y, label = lab, vjust = vj), hjust = 1, size = 3.8, family = FONT, colour = PAL$ink, fill = "white",
                label.size = 0, label.padding = grid::unit(0.06, "lines"), label.r = grid::unit(0, "lines")) +
     geom_text(data = mlab, aes(x = x, y = y, label = lab), vjust = 0, hjust = 0, size = 3.8, family = FONT, colour = PAL$ink) +
     scale_fill_manual(values = GREY, name = L$fig$cov_leg) +
