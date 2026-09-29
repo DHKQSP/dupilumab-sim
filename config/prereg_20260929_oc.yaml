@@ -1,0 +1,72 @@
+# S9 재설계 지시(2026-09-29, "S9 재설계: 1종·2종 오류로 본 판정 성능")의 사전 등록 (section8, D-064).
+# 동결 규칙: 이 파일을 커밋한 뒤에 새 시험을 만들고 요약한다. 결과를 본 뒤 규칙을 바꾸면 D-064에 이유와 함께 적는다.
+# 새 시험 모의는 경계·동일 제품이 아닌 칸에만 한다. 경계(0.80, 1.25)와 동일 제품(1.00)은 저장된 시험을 다시 판정한다.
+version: 1
+registered_on: "2026-09-29"
+directive: "S9 redesign: decision performance by type I and type II error (2026-09-29; replaces the earlier 'S9 redesign: two vs three endpoints' directive)"
+
+section8:
+  scripts:
+    trials: scripts/64_oc_curves.R            # regenerate the non-boundary cells at subject level
+    summary: scripts/65_oc_curves_summary.R   # all summaries, identity checks and wording rules below
+  output_dir: results/oc_curves
+  pk_models: [k2020, k2016]                   # display order: the directive names the 2020 model first ("주 모델 2020 먼저")
+  analysis_model: M1                          # treatment + weight stratum (config/prereg_20260926.yaml section1); M0 is kept only for the identity checks
+
+  # 1. decision configurations (per trial; pass = every endpoint's 90% CI within 80.00-125.00%; an endpoint that cannot be analysed counts as a failure)
+  configurations:
+    P2:      {label: "proposal: AUClast + Cmax",                                   endpoints: [AUClast, Cmax]}
+    F3A_iii: {label: "three endpoints: AUClast + Cmax + AUCinf (set iii, rule A)",  endpoints: [AUClast, Cmax, AUCinf_Aiii]}
+    G2A_iii: {label: "guideline default: AUCinf (set iii, rule A) + Cmax",          endpoints: [AUCinf_Aiii, Cmax]}
+    F3B:     {label: "sensitivity: AUClast + Cmax + AUCinf (rule B, all lambda-z estimable)", endpoints: [AUClast, Cmax, AUCinf_B]}
+    G2B:     {label: "sensitivity: AUCinf (rule B) + Cmax",                         endpoints: [AUCinf_B, Cmax]}
+    G2_true: {label: "reference only: true AUCinf (all subjects) + Cmax",           endpoints: [AUCinf_true, Cmax]}
+  endpoint_sources:
+    AUClast: "results/oc_models (boundary, identity) or results/oc_curves (other cells): endpoint AUClast, model M1"
+    Cmax: "endpoint Cmax, model M1"
+    AUCinf_B: "endpoint AUCinf_B (lambda-z estimable subjects), model M1"
+    AUCinf_true: "endpoint AUCinf_true (model integral, all subjects), model M1"
+    AUCinf_Aiii: "crit files, endpoint AUCinf_Aiii (adjusted R-squared >= 0.90 and extrapolation <= 20%), model M1"
+
+  # 2. cells: mechanism x true AUCinf ratio target
+  cells:
+    mechanisms: [F, ke, Vmax, V2, ka]          # Km is not in the directive's list
+    targets: [0.80, 0.85, 0.90, 0.95, 1.00, 1.05, 1.11, 1.18, 1.25]
+    multipliers: "reachable rows of results/oc/inversion_all.csv (one direction per mechanism and target); unreachable cells are listed as such and have no trials"
+    identity: "S00 (no multiplier; the same product), shared by all mechanisms"
+  reps:
+    boundary: "stored trials: results/oc_models/oc_models_be_<model> and oc_models_crit_be_<model> (10,000 per cell), plus the extension files for the one cell extended to 20,000 under the 2026-09-26 rule (k2020 V2_up_080), exactly as in results/oc_models/type1_models.csv"
+    identity: "stored S00 trials, 10,000 per model (the directive asks for 5,000; the stored 10,000 are reused and nothing is simulated)"
+    near_one: {targets: [0.95, 1.05], trials: 5000}      # trials 1-5,000
+    other: {targets: [0.85, 0.90, 1.11, 1.18], trials: 2000}  # trials 1-2,000
+  regeneration:
+    rule: "scripts/44 seed rule: oc_design.yaml trials master_seed 20260923, derive_seed(master, j, 'subj'/'alloc'/arm 'jitter'/arm 'eps'), the inverted multipliers of results/oc/oc_scenarios_<model>.csv, R/oc_models.R run_trial_oc_models with endpoints OC_ENDPOINTS_EXT + OC_ENDPOINTS_CRIT, analysis models M0, M1, M2 (crit endpoints M0, M1)"
+    identity_check: "for trials 1-2,000 the regenerated M0 rows must equal results/oc/oc_trials_be_<model>.csv.gz (endpoints Cmax, AUClast, AUCinf_A, AUCinf_B, AUCinf_C, AUCinf_true: GMR and CI limits within a relative difference of 1e-6, pass, n_R and n_T identical); any difference stops the run before writing. Trials 2,001-5,000 of the 0.95 and 1.05 cells have no stored counterpart"
+    boundary_identity_check: "the per-trial re-judgement of the stored boundary trials must reproduce results/oc_models/type1_models.csv (P2, F3B, G2_B, M1: n_trials and n_pass) and results/criteria/criteria_g2_type1.csv (G2_A_iii, M1) exactly"
+
+  # 3. statistics (percent, point estimate with Wilson 95% interval; paired differences use the normal approximation of R/summarize.R paired_prop_diff_ci on the same trials)
+  statistics:
+    pass_curve: "pass percentage per model x cell x configuration"
+    type1: "pass percentage at the 16 boundary cells (8 per model); per configuration the maximum over 16 and the number of cells whose point estimate exceeds 5%; the Wilson class (interval above 5%) for the appendix"
+    type2: "100 - pass percentage at (a) the identity cell, (b) the 0.95 and 1.05 cells, (c) the 0.90 and 1.11 cells; (b) and (c) are reported as ranges over mechanisms and both targets"
+    type2_cells_rule: "only cells whose true Cmax ratio (inversion_all.csv cmax_ratio) is also within 0.80-1.25 enter (b) and (c); other cells stay in the curves and are marked 'Cmax outside the limits'"
+    paired: "per cell and trial d = pass_X - pass_P2 for X in F3A_iii, G2A_iii (main) and F3B, G2B (appendix); type I reduction of F3 = -(mean d) at boundary cells, type II increase = -(mean d) at the type II cells, G2 differences likewise"
+    decomposition: "for X in (G2, F3): total = typeII(X_A_iii) - typeII(P2) = [typeII(X_B) - typeII(P2)] (AUCinf estimation noise and bias with the lambda-z estimable analysis set) + [typeII(X_A_iii) - typeII(X_B)] (analysis-set reduction by set iii); the two parts add up exactly and each gets a paired 95% interval; the median AUCinf analysis count per arm (n_R, n_T) of both rules is reported with it"
+    reference_true: "G2_true is reported in the appendix only (what AUCinf would give without NCA error)"
+    analytic_check:
+      formula: "same product, single endpoint, pooled t: pass = Phi((log 1.25 - t se)/se) - Phi((log 0.80 + t se)/se), se = s sqrt(2/n), s = sqrt(log(1 + CV^2)), t = qt(0.95, 2n - 2); type II = 1 - pass"
+      cases:
+        directive: "CV 40%, n 117 and 75 per arm (the directive's rough calculation: P2 about 1%, G2-A(iii) about 8-9%)"
+        study: "CV from the identity trials (per trial within-arm SD = se / sqrt(1/n_R + 1/n_T), median over trials; AUClast and AUCinf_Aiii, model M0 rows so that se is the pooled-t SE) and n = median analysis count per arm"
+      compare_with: "simulated type II of the single endpoints (AUClast alone, AUCinf_Aiii alone) and of the configurations (P2, G2A_iii) at the identity cell, M1 and M0"
+
+  # 4. wording rules (both models must satisfy a condition for the corresponding claim; otherwise the fallback wording is used)
+  wording:
+    title_default: "AUClast + Cmax만 두 오류를 모두 통제한다: AUCinf를 더하면 동등한 제품의 입증 실패가 늘고, AUCinf로 바꾸면 비동등 제품 통과까지 늘어난다"
+    rule_T: "prefix 'AUClast + Cmax만 두 오류를 모두 통제한다' requires P2 type I maximum <= 6.0% (point estimate, 16 cells) and P2 identity type II <= that of every other main configuration (F3A_iii, G2A_iii); otherwise the prefix is dropped"
+    rule_4a: "if G2A_iii identity type II - P2 identity type II < 2.0 percentage points, the title keeps only the type I part for G2 ('AUCinf로 바꾸면 비동등 제품 통과가 늘어난다'), body line 2 drops 'both errors', and S2 card 3 shows type I maxima as the large numbers"
+    rule_4b: "if the F3A_iii type II increase over P2 is below 2.0 percentage points in every type II cell (identity, 0.95/1.05 and 0.90/1.11 cells entering the ranges), body line 1 becomes 'AUCinf를 더해도 얻는 보호는 없고 비용은 작다', the title's F3 clause becomes 'AUCinf를 더해도 얻는 보호가 없고', and S2 card 3 and S10 follow"
+    rule_protect: "body line 1 says '1종 오류는 거의 줄지 않고(최대 X%p)' only if the largest F3A_iii type I reduction over P2 (16 cells) is below 1.0 percentage point; otherwise '1종 오류는 최대 X%p 줄지만'"
+    rule_G2_type1: "the G2 clause about non-equivalent products passing requires G2A_iii type I maximum - P2 type I maximum >= 2.0 percentage points and more G2A_iii cells than P2 cells above 5%; body line 2's 'even without the criterion' part requires the same for G2B"
+    rule_4c: "cells at true ratio 0.90-0.95 where G2A_iii passes more often than P2 (paired 95% interval above 0) are listed; the notes and the appendix state that this comes from the bias toward 1 and show the same mechanism's type I error"
+    report_first_line: "the final report starts with the result of rules T, 4a, 4b, protect, G2_type1 and 4c"
