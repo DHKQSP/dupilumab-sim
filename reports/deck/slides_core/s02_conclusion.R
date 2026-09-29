@@ -24,8 +24,7 @@ slide_S2 <- function() {
   nsub <- dint(TPF, "pk_model=='k2016' & set=='iii'", "n", "virtual subjects per model (trial population)")
   core_card(C$c2$head, list(list(fill(C$c2$value, list(v = cmin)), PAL$blue)), fill(C$c2$label, list(med = cmed, nsub = nsub)), c(GEO$ML + cw + gap, cy, cw, ch), bg = PAL$tint_blue)
   core_card(fill(C$c3$head, list(nom = nom)), list(list(list(t_inf, PAL$orange, 40), list(C$c3$inf, PAL$ink2, 18)), list(list(t_last, PAL$blue, 40), list(C$c3$last, PAL$ink2, 18))),
-            fill(C$c3$label, list(nom = nom, n = dcount(T1, "analysis_model=='M1' & config=='P2'", "boundary cells"),
-                                  z = dcount(T1, "analysis_model=='M1' & config=='P2' & pass_pct <= 5", "AUClast + Cmax cells at or below 5%, M1"))), c(GEO$ML + 2 * (cw + gap), cy, cw, ch), bg = PAL$tint_grey)
+            fill(C$c3$label, list(nom = nom, n = dcount(T1, "analysis_model=='M1' & config=='P2'", "boundary cells"))), c(GEO$ML + 2 * (cw + gap), cy, cw, ch), bg = PAL$tint_grey)
   deck_visual(c(GEO$ML, cy, GEO$CW, ch))
 
   # ---- 결론 한 줄 ----

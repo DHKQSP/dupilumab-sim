@@ -24,26 +24,26 @@ slide_S8 <- function() {
     k2016_base = L$rows$k2016_base, k2020_base = L$rows$k2020_base,
     vmax080 = , vmax125 = fill(L$rows$vmax, list(v = num1(label, "x([0-9.]+)"))), km05 = , km10 = fill(L$rows$km, list(v = num1(label, "x([0-9.]+)"))),
     lloq002 = , lloq05 = fill(L$rows$lloq, list(v = num1(label, "LLOQ ([0-9.]+)"))), resid12 = fill(L$rows$resid, list(v = num1(label, "residual ([0-9.]+)%"))),
-    wt60_75 = fill(L$rows$wt_lo, list(v = num1(label, "60-([0-9.]+) kg"))), wt75_90 = fill(L$rows$wt_hi, list(v = num1(label, ">([0-9.]+)-90"))))
-  grp_of <- c(k2016_base = "base", k2020_base = "base", vmax080 = "curve", vmax125 = "curve", km05 = "curve", km10 = "curve", lloq002 = "lloq", lloq05 = "lloq",
+    wt60_75 = , wt75_90 = fill(L$rows$wt, list(a = num1(label, "([0-9.]+)-[0-9.]+ kg"), b = num1(label, "[0-9.]+-([0-9.]+) kg"))))
+  grp_of <- c(k2016_base = "base", k2020_base = "base", vmax080 = "vmax", vmax125 = "vmax", km05 = "km", km10 = "km", lloq002 = "lloq", lloq05 = "lloq",
               resid12 = "resid", wt60_75 = "wt", wt75_90 = "wt")
   d <- copy(rw)[, .(case, label, median, p05, p95, min)][, lab := mapply(lab_of, case, label)][, grp := grp_of[case]]
   premise(!anyNA(d$grp), "every case has a group")
   lit <- rbind(data.table(case = "lit_clot", v = row1(LN, "grepl('^Clot 2021', source) & dose_mg==300")$lit_mean_ratio, lab = L$rows$lit_clot),
                data.table(case = "lit_pkm", v = row1(LN, "grepl('PKM12350', source)")$lit_mean_ratio, lab = L$rows$lit_pkm))[, grp := "lit"]
-  G <- c("base", "curve", "lloq", "resid", "wt", "lit")
+  G <- c("base", "vmax", "km", "lloq", "resid", "wt", "lit")
   d[, grp := factor(grp, levels = G, labels = unlist(L$groups[G]))]; lit[, grp := factor(grp, levels = G, labels = unlist(L$groups[G]))]
   ord <- c(rev(lit$lab), rev(d$lab)); d[, lab := factor(lab, levels = ord)]; lit[, lab := factor(lab, levels = ord)]
   e80 <- .read(LC)$ema_be_guideline_80pct$coverage_min_pct / 100
-  xlo <- floor(min(c(d$min, e80)) * 100 - 5) / 100                     # 기준선 왼쪽에 'EMA 기준' 표지 자리
+  xlo <- floor(min(c(d$min, e80)) * 100 - 7) / 100                     # 기준선 왼쪽에 'EMA 기준' 표지와 왼쪽 최솟값 표지 자리
   bl <- d[case %in% c("k2016_base", "k2020_base")]
   p <- ggplot() +
     geom_vline(xintercept = e80, colour = PAL$ink2, linewidth = 0.8, linetype = "22") +
     geom_segment(data = d, aes(x = p05, xend = p95, y = lab, yend = lab), colour = PAL$blue, linewidth = 4.2, alpha = 0.45) +
     geom_point(data = d, aes(median, lab), shape = 21, fill = PAL$blue, colour = "white", size = 4.2, stroke = 0.7) +
     geom_point(data = d, aes(min, lab), shape = 124, colour = PAL$ink, size = 6) +
-    geom_label(data = d, aes(min, lab, label = paste0(fnum(100 * min, 1), "%")), hjust = -0.18, size = PT(14), family = FONT, colour = PAL$ink2,
-               fill = "white", label.size = 0, label.padding = grid::unit(0.06, "lines")) +
+    geom_label(data = d, aes(min, lab, label = paste0(fnum(100 * min, 1), "%"), hjust = ifelse(min < e80 + 0.01, 1.18, -0.18)), size = PT(14), family = FONT, colour = PAL$ink2,
+               fill = "white", label.size = 0, label.padding = grid::unit(0.06, "lines")) +   # 기준선 가까운 최솟값은 표지를 왼쪽에(선과 겹치지 않게)
     geom_point(data = lit, aes(v, lab), shape = 22, fill = PAL$ink, colour = "white", size = 4.0) +
     geom_text(data = lit, aes(v, lab, label = paste0(fnum(100 * v, 1), "%")), hjust = 1.35, size = PT(14), family = FONT, colour = PAL$ink2) +
     geom_text(data = data.table(grp = factor(levels(d$grp)[1], levels = levels(d$grp)), x = e80), aes(x = x, y = Inf, label = fill(L$ema, list(v = fnum(100 * e80, 0)))),
@@ -51,7 +51,7 @@ slide_S8 <- function() {
     facet_grid(rows = vars(grp), scales = "free_y", space = "free_y", switch = "y") +
     scale_x_continuous(limits = c(xlo, 1), breaks = seq(0.8, 1, 0.05), labels = function(v) paste0(round(100 * v), "%"), expand = expansion(add = c(0, 0.004))) +
     labs(x = L$xlab, y = NULL) + theme_core(16) +
-    theme(strip.placement = "outside", strip.text.y.left = element_text(angle = 0, hjust = 1, size = 14, colour = PAL$ink2, face = "plain"), panel.spacing.y = grid::unit(3, "pt"),
+    theme(strip.placement = "outside", strip.text.y.left = element_text(angle = 0, hjust = 1, size = 14, colour = PAL$ink2, face = "plain", lineheight = 0.95), panel.spacing.y = grid::unit(5, "pt"),
           panel.grid.major.y = element_blank(), axis.text.y = element_text(size = 14, colour = PAL$ink), panel.grid.minor = element_blank())
   e20 <- dcfg("literature_core_deck.yaml", c("ema_be_guideline_80pct", "observations_share_pct"), "EMA BE guideline: share of observations below 80% that triggers discussion (%)", num_fmt(0))
   body <- tx("S8.body", list(e80 = f$e80, e20 = e20, nca80 = drange("rationale/pillar1_coverage_B0.csv", "group=='all'", "extrap_gt20_pct", 1, "%", "NCA extrapolated share above 20% (lambda-z estimable), two models")))

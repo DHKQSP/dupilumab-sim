@@ -13,6 +13,7 @@ slide_S10 <- function() {
   B <- DK$txt$S10$boxes
   gap <- 0.25; bw <- (GEO$CW - gap) / 2; body <- tx("S10.body", list(
     fail = drange(TPF, "set=='iii'", "fail_pct", 0, "%", "share without a reliable AUCinf, set (iii), two models"),
+    cmed = drange(TCV, MW, "median", 0, "%", "window coverage (true), median, two models", scale = 100),
     cmin = { r <- rows(TCV, MW); x <- 100 * min(r$min); dderived("window coverage (true), base case, smallest subject over both models, rounded down", TCV, sprintf("%s :: floor(min(min) x 100)", MW), x, paste0(fnum(fl(x, 0), 0), "%")) },
     t_inf = dext(CG, "analysis_model=='M1' & config=='G2_A_iii'", "pass_pct", max, 1, "%", "largest boundary type I error, AUCinf (set iii) + Cmax, M1"),
     t_last = dext(T1, "analysis_model=='M1' & config=='P2'", "pass_pct", max, 1, "%", "largest boundary type I error, AUClast + Cmax, M1")))

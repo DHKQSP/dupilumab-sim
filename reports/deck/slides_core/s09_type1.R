@@ -2,7 +2,7 @@
 #   AUClast + Cmax = P2(results/oc_models/type1_models.csv), AUCinf + Cmax = 규칙 A 세트 (iii)(신뢰할 수 있는 AUCinf 미달 제외; criteria_g2_type1.csv G2_A_iii).
 # 사전 등록 7e: G2_A_iii(M1)가 있으므로 세트 (i) 대체는 쓰지 않는다(전제로 확인). 기전 이름은 짧은 한국어(문구 파일), 목표 비는 자료에서.
 slide_S9 <- function() {
-  T1 <- "oc_models/type1_models.csv"; CG <- "criteria/criteria_g2_type1.csv"
+  T1 <- "oc_models/type1_models.csv"; CG <- "criteria/criteria_g2_type1.csv"; PD <- "oc_models/p2_decomposition_models.csv"
   deck_slide("S9", tag = "sim")
   a <- copy(rows(T1, "analysis_model=='M1' & config=='P2'")); b <- copy(rows(CG, "analysis_model=='M1' & config=='G2_A_iii'"))
   premise(nrow(a) == 16 && nrow(b) == 16 && setequal(paste(a$pk_model, a$scenario), paste(b$pk_model, b$scenario)), "16 boundary cells in both configurations (no fallback to set (i))")
@@ -64,6 +64,11 @@ slide_S9 <- function() {
     bb16 = dv("criteria/criteria_bias.csv", "analysis_model=='M1' & pk_model=='k2016' & scenario=='Vmax_up_080' & endpoint=='AUCinf_B'", "bias_pct", 1, "%", "AUCinf GMR bias toward 1, all estimable, 2016 Vmax up"),
     bb20 = dv("criteria/criteria_bias.csv", "analysis_model=='M1' & pk_model=='k2020' & scenario=='Vmax_up_080' & endpoint=='AUCinf_B'", "bias_pct", 1, "%", "AUCinf GMR bias toward 1, all estimable, 2020 Vmax up"),
     ke = dci(CG, "analysis_model=='M1' & config=='G2_A_iii' & pk_model=='k2016' & scenario=='ke_up_080'", "pass_pct", "lo", "hi", 2, "%", "AUCinf (set iii) + Cmax, 2016 ke up cell, M1"),
-    ext = dint(T1, "analysis_model=='M1' & config=='P2' & pk_model=='k2020' & scenario=='V2_up_080'", "n_trials", "trials in the extended cell")))))
+    ext = dint(T1, "analysis_model=='M1' & config=='P2' & pk_model=='k2020' & scenario=='V2_up_080'", "n_trials", "trials in the extended cell"),
+    naw = dcount(PD, "analysis_model=='M1' & auclast_bias_dir=='away_from_1'", "boundary cells where the NCA AUClast GMR lies beyond the true AUCinf ratio, M1"),
+    aw = { r <- rows(PD, "analysis_model=='M1' & auclast_bias_dir=='away_from_1'"); x <- range(abs(r$auclast_bias_pct))
+      dderived("NCA AUClast GMR offset away from 1 relative to the true AUCinf ratio, range of absolute values, M1", PD, "analysis_model=='M1' & auclast_bias_dir=='away_from_1' :: range(abs(auclast_bias_pct))", x, sprintf("%s~%s%%", fnum(x[1], 1), fnum(x[2], 1))) },
+    tw = { r <- row1(PD, "analysis_model=='M1' & auclast_bias_dir=='toward_1'"); premise(r$pk_model == "k2020" && r$scenario == "V2_up_080", "the only AUClast offset toward 1 is the 2020 V2 up cell (notes)")
+      dderived("NCA AUClast GMR offset toward 1, 2020 V2 up cell, absolute value, M1", PD, "analysis_model=='M1' & auclast_bias_dir=='toward_1' :: abs(auclast_bias_pct)", abs(r$auclast_bias_pct), paste0(fnum(abs(r$auclast_bias_pct), 1), "%")) }))))
   deck_end()
 }

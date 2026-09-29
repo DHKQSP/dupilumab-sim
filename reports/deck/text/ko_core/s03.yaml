@@ -1,23 +1,23 @@
 S3:
   kicker: "질문과 방법"
-  title: "계획 시험을 모의하고 비구획 분석 값을 모델 참값과 비교했다"
+  title: "모델 참값이 있어 비구획 분석의 오차와 판정 오류를 직접 잴 수 있다"
   question: "질문: 계획 시험에서 AUCinf를 1차 평가변수로 쓸 수 있는가, AUClast + Cmax로 충분한가"
   boxes:
     - head: "공개 모집단 PK 모델"
       text: "2016 모델(주 모델)과 2020 모델(민감도 모델), 논문 파라미터 그대로"
     - head: "계획 시험 모의"
-      text: "건강인 {wt} kg, {dose} mg 단회 피하, Syneos 채혈 {nB0}회, arm당 {n_arm}명"
+      text: "건강인 {wt} kg, {dose} mg 단회 피하, Syneos 채혈 {nB0}회, arm당 평가 가능 {n_arm}명"
     - head: "비구획 분석(NCA)"
-      text: "Phoenix 방식: 말단 소실 속도상수(λz)는 adjusted R² 최대 구간"
+      text: "Phoenix 방식: 말단 소실 속도상수(λz)는 adjusted R² 최대 구간에서 추정"
     - head: "모델 참값과 비교"
       text: "참 AUCinf = 모델 적분. AUClast/AUCinf(참값)와 판정의 1종 오류"
   body:
-    - "유럽 의약품청(EMA) 단클론항체 바이오시밀러 지침({yr})의 기본값은 AUCinf 1차다. 이 덱은 그 예외의 근거다."
-    - "모델은 적격성 검증 코호트에서 연구 제형 {dose} mg의 관측 평균 AUClast를 ±{tol}% 안에서 재현한다(별첨 A1)."
+    - "유럽 의약품청(EMA) 단클론항체 바이오시밀러 지침({yr}): 기본은 AUCinf 1차. 이 덱은 그 예외를 요청할 근거다."
+    - "모델은 관측 평균 AUClast를 ±{tol}% 안에서 재현한다(별첨 A1). 정량한계 근처 말단 모양은 민감도 분석으로 확인(S8)."
   notes: |
     모델: 2016 모델은 Kovalenko 2016(주 모델, 두 구획 + 선형·Michaelis-Menten 병렬 소실), 2020 모델은 Kovalenko 2020 Model 1(민감도 모델, 흡수 통과 구획 포함)이다. 파라미터는 논문 표의 값을 그대로 썼고 재추정하거나 보정하지 않았다(별첨 A1).
-    계획 시험: 건강인 {wt} kg(체중 층화 배정), {dose} mg 단회 피하 투여, Syneos 채혈 일정 {nB0}회(Day {last}까지), arm당 평가 가능 {n_arm}명. 모델 출처: 2016 모델 Kovalenko 2016, 2020 모델 Kovalenko 2020 Model 1. 채혈 시각 허용 범위와 측정 잔차, 정량한계 {lloq} mg/L 미만 처리를 넣었다.
+    계획 시험: 건강인 {wt} kg(체중 층화 배정), {dose} mg 단회 피하 투여, Syneos(임상시험 수탁기관) 채혈 일정 {nB0}회(Day {last}까지), arm당 평가 가능 {n_arm}명. 모델 출처: 2016 모델 Kovalenko 2016, 2020 모델 Kovalenko 2020 Model 1. 채혈 시각 허용 범위와 측정 잔차, 정량한계 {lloq} mg/L 미만 처리를 넣었다.
     비구획 분석: Phoenix WinNonlin 규칙(선형 증가·로그 감소 사다리꼴, λz는 tmax 이후 마지막 {minpts}점 이상 구간 중 adjusted R² 최대)을 따르는 자체 엔진이다(별첨 A2). NonCompart·PKNCA와는 대조했고 실제 Phoenix 출력과는 아직 대조하지 않았다(별첨 A12). AUCinf = AUClast + Clast / λz.
     규제 기본값: EMA 단클론항체 바이오시밀러 지침은 단회 투여 시험의 1차 평가변수를 AUCinf로, 피하 투여면 Cmax를 공동 1차로 둔다(config/literature_precedents.yaml, 검색 발췌·원문 미대조). 이 덱은 계획 시험에서 이 기본값이 왜 맞지 않는지를 정량으로 보이고, AUCinf는 2차로 보고하며 공동 1차 요구 시 AUClast를 유지한 채 추가하는 대응안을 둔다(별첨 A10).
     참값: 같은 대상자의 모델 곡선을 적분한 값이다. AUClast/AUCinf(참값)는 관측 마지막 정량 시점까지의 참 AUC를 참 AUCinf로 나눈 값이다.
-    모델 적격성(별첨 A1): 연구 제형 {dose} mg 검증 자료에서 모의 AUClast 평균 / 관측 평균은 2016 모델 {rng}, 2020 모델 {rng20}로 허용 범위 ±{tol}% 안이다.
+    모델 적격성(별첨 A1): 적격성 검증 코호트의 연구 제형 {dose} mg 자료에서 모의 AUClast 평균 / 관측 평균은 2016 모델 {rng}, 2020 모델 {rng20}로 허용 범위 ±{tol}% 안이다. 이 검증은 평균 AUClast에 대한 것이고, 정량한계 근처 말단 모양과 그 부근의 측정 잔차는 관측으로 검증할 수 없어 곡선 모양·정량한계·잔차 민감도 분석(S8, 별첨 A3b)으로 결론이 유지되는지 확인했다(별첨 A12).
