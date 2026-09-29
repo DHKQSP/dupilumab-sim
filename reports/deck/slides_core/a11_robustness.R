@@ -34,7 +34,7 @@ a11_fig <- function(WB, ABN, AIP, L, ML, k130) {
   d[, grp := paste(pk, metric)]
   # 패널마다 x 범위: (a)는 150 kg 구간까지, (b)는 자료(가장 무거운 구간 평균)까지만(끝값 글자 자리 포함)
   xr_ <- d[, .(xmax = max(x)), by = panel]; premise(xr_[panel == PN[["at"]], xmax] < 130 && xr_[panel == PN[["wt"]], xmax] > 130, "panel (b) data stop below 130 kg, panel (a) data reach the heaviest band")
-  blank <- data.table(panel = factor(PN[c("wt", "wt", "at", "at")], levels = PN), x = c(40, 168, 40, xr_[panel == PN[["at"]], xmax] + 20), y = 50)
+  blank <- data.table(panel = factor(PN[c("wt", "wt", "at", "at")], levels = PN), x = c(40, 168, 40, xr_[panel == PN[["at"]], xmax] + 34), y = 50)   # 끝값 글자가 패널 끝에 닿지 않게
   # 끝값 표시: 가장 무거운 구간의 미달 비율(두 모델)
   endv <- d[metric == "fail", .SD[which.max(x)], by = .(panel, pk)]
   # 지표 이름(직접 표시, 두 줄): 선과 겹치지 않는 높이. 파랑 이름은 파랑 선 아래; 주황 이름은 (a) 주황 선 위, (b) 주황 선 아래
@@ -141,7 +141,12 @@ slide_A11 <- function() {
   zmin <- 100 * min(acf$window_fail_min)
   z <- dderived("smallest AUClast/AUCinf (true) among patients without a reliable AUCinf (set iii), three model variants, rounded down to 0.1 (%)", ACF,
                 "distribution=='primary' & set=='iii' :: floor(1000 * min(window_fail_min)) / 10", zmin, paste0(fnum(fl(zmin, 1), 1), "%"))
-  y0 <- core_title(tx("A11.title", list(hi = hi, lt = lt80, th = th80)), tx("A11.kicker"))
+  hib <- fpl[which.max(fail_pct)]; premise(hib$band == "above 100" && hib$variant == "base", "the largest plotted set (iii) failing share is the above-100 kg band of the assumed atopic distribution, 2016 model (title)")
+  bk <- unlist(pa$bands_kg); premise(length(bk) == 3 && hib$band == sprintf("above %s", format(bk[3])), "the heaviest atopic band starts at the last configured band limit (title)")
+  premise(any(grepl("접근할 수 없었다", readLines(proj_path("config", "population_atopic.yaml"), warn = FALSE, encoding = "UTF-8"), fixed = TRUE)) && grepl("^placeholder", pa$distributions$primary$source),
+          "atopic weight distribution: placeholder from literature summaries; phase 3 raw data not accessible (caption)")
+  k100t <- dcfg("population_atopic.yaml", "bands_kg", "lower weight bound of the heaviest atopic band (kg)", function(x) fnum(as.numeric(x[[3]]), 0))
+  y0 <- core_title(tx("A11.title", list(hi = hi, lt = lt80, th = th80, k100 = k100t)), tx("A11.kicker"))
 
   # ---- 근거 아님 띠 -----------------------------------------------------------------------------------------------------------------------
   wt <- f_wt_range()
@@ -152,11 +157,13 @@ slide_A11 <- function() {
   yc <- y0 + nh + 0.1
 
   # ---- 캡션(아래) -------------------------------------------------------------------------------------------------------------------------
-  cap <- tx("A11.caption", list(k = k130, nom = nom, r2i = f_set("i", "r2"), r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap"), lt = lt80, th = th80))
+  cap <- tx("A11.caption", list(k = k130, nom = nom, r2i = f_set("i", "r2"), r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap"), lt = lt80, th = th80,
+                                m = dcfg("population_atopic.yaml", c("distributions", "primary", "mean"), "atopic placeholder distribution, mean (kg)", num_fmt(0)),
+                                s = dcfg("population_atopic.yaml", c("distributions", "primary", "sd"), "atopic placeholder distribution, SD (kg)", num_fmt(0))))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
 
   # ---- 오른쪽 표: 가정 변경 요약 ---------------------------------------------------------------------------------------------------------------
-  pmax_ <- function(m) dext(T1, sprintf("analysis_model=='M1' & config=='P2' & pk_model=='%s'", m), "pass_pct", max, 1, "%", sprintf("largest boundary type I error, AUClast + Cmax, M1, %s", m))
+  pmax_ <- function(m) dext(T1, sprintf("analysis_model=='M1' & config=='P2' & pk_model=='%s'", m), "pass_pct", max, 2, "%", sprintf("largest boundary type I error, AUClast + Cmax, M1, %s", m))
   p05c <- 100 * min(cur$p05)
   R <- list(
     list(p16 = pmax_("k2016"), p20 = pmax_("k2020"), n = dcount(CG, "analysis_model=='M1' & config=='G2_A_iii'", "boundary cells, AUCinf (set iii) + Cmax, M1"),
@@ -168,6 +175,7 @@ slide_A11 <- function() {
          p05 = dderived("smallest 5th percentile of AUClast/AUCinf over the curve-shape cases, rounded down", CV, "case %in% c('vmax080','vmax125','km05','km10') :: floor(min(p05) x 1000) / 10", p05c, paste0(fnum(fl(p05c, 1), 1), "%"))),
     list(lg = f_lloq_grid(), nc = dderived("boundary cells in the LLOQ trials", LT, "length(unique(scenario))", length(unique(lt$scenario)), as.character(length(unique(lt$scenario)))),
          p1 = drange(LT, "model=='M1' & resid=='fixed' & config=='P2'", "pass_pct", 2, "%", "LLOQ grid, AUClast + Cmax, M1"),
+         nt = dint(LT, "model=='M1' & resid=='fixed' & config=='P2' & scenario=='F_down_080' & abs(lloq - 0.078) < 1e-9", "n_trials", "LLOQ trials per cell"),
          g1 = drange(LT, "model=='M1' & resid=='fixed' & config=='G2_Aii'", "pass_pct", 1, "%", "LLOQ grid, AUCinf (set ii, rule A) + Cmax, M1")),
     list(s24 = dv(TRS, "variant=='k2016' & set=='iii'", "sigma_prop_pct", 1, "%", "proportional residual, 2016 model"), s12 = dv(TRS, "variant=='resid12' & set=='iii'", "sigma_prop_pct", 0, "%", "proportional residual, variant"),
          f24 = dv(TRS, "variant=='k2016' & set=='iii'", "fail_pct", 1, "%", "without a reliable AUCinf (set iii), residual 24.2%"), f12 = dv(TRS, "variant=='resid12' & set=='iii'", "fail_pct", 1, "%", "without a reliable AUCinf (set iii), residual 12%")),
@@ -207,7 +215,7 @@ slide_A11 <- function() {
           abs(row1(ABN, "variant=='struct2020' & distribution=='primary' & band=='all' & set=='iii'")$fail_pct - pf[pk_model == "k2020", fail_pct]) < 1,
           "atopic failing share (set iii) within 1 point of the study population in both models (notes: similar)")
   deck_notes(tx("A11.notes", list(
-    wt = wt, nb = nb, k130 = k130, nom = nom, z = z, hi = hi, lt = lt80, th = th80,
+    wt = wt, nb = nb, k130 = k130, nom = nom, z = z, hi = hi, lt = lt80, th = th80, k100t = k100t, p1n = R[[3]]$p1,
     a1 = fi("a", "40-60"), a6 = fi("a", "130-150"), b1 = fi("b", "40-60"), b6 = fi("b", "130-150"),
     ca1 = c5("a", "40-60"), ca6 = c5("a", "130-150"), cb1 = c5("b", "40-60"), cb6 = c5("b", "130-150"),
     wlt = dext(WB, "model %in% c('a','b')", "coverage_lt80_pct", max, 2, "%", "largest share below 80% AUClast/AUCinf over weight bands, two models"),

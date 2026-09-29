@@ -125,7 +125,9 @@ slide_A7 <- function() {
              d = thr$d, ab = dv(VM, "schedule == 'D3'", "d_abs_change_per_arm", 2, "", "(d) D3 absolute change in subjects above 20% extrapolation per arm, Vmax x0.8", scale = -1),
              vis = dint(VM, "schedule == 'D3'", "added_visits_total", "added visits, D3"))
   bl <- tx("A7.bullets", c(b, vs))
-  cap <- tx("A7.caption", vs)
+  cs_ <- .read("config/prereg_20260926.yaml")$section4$criteria_sets
+  premise(all(c(cs_$ii$extrap_max_pct, cs_$iii$extrap_max_pct) == .read("config/nca_rules.yaml")$standard$reliability$extrap_max_pct), "sets (ii) and (iii) use the same extrapolation limit as the NCA flag (caption)")
+  cap <- tx("A7.caption", c(vs, list(x = thr$x, r2i = f_set("ii", "r2"), sp2 = f_set("ii", "span"), r2 = f_set("iii", "r2"))))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
   BY <- y0 + TH + 0.1
   deck_bullets(bl, box = c(GEO$ML, BY, GEO$CW, capy - 0.04 - BY), size = 18, gap_pt = 6)

@@ -29,6 +29,19 @@ slide_A10 <- function() {
           "EMA 2012 mAb guideline (search excerpt): AUC0-inf primary in single-dose studies, Cmax co-primary for subcutaneous use")
   premise(LPr$msb11456_iv$primary_endpoint == "AUC0-last" && grepl("intravenous", LPr$msb11456_iv$route) && LPr$msb11456_iv$status == "search excerpt", "MSB11456 (search excerpt): single intravenous dose, AUC0-last primary")
 
+  # 대응안을 기본으로 두지 않는 이유(설명 상자·캡션·노트, 검토 2차): (1) 세 지표 판정은 AUClast + Cmax 판정의 부분집합이라 칸마다 통과율이 같거나 낮다(교집합);
+  # AUCinf(규칙 B) + Cmax만으로는 여러 칸이 5%를 넘으므로 낮은 1종 오류는 AUCinf 정보가 아니라 지표 하나를 더 통과해야 하는 데서 온다. (2) 규칙 B는 λz가 산출되면
+  # 세트 (iii) 미달이어도 AUCinf를 쓴다. (3) AUClast + Cmax의 5% 초과 한 칸은 AUClast 기하평균비가 참 비보다 1 쪽으로 치우친 2020 모델 V2 칸(별첨 A5b)
+  pf3 <- merge(rows(T1, w1("P2"))[, .(pk_model, scenario, p2 = pass_pct)], rows(T1, w1("F3B"))[, .(pk_model, scenario, f3 = pass_pct)], by = c("pk_model", "scenario"))
+  premise(nrow(pf3) == 16 && all(pf3$f3 <= pf3$p2 + 1e-9), "three-endpoint fallback passes no more often than AUClast + Cmax in every cell (intersection rule)")
+  premise(nrow(rows(T1, w1("G2_B", " & pass_pct > 5"))) >= 8, "AUCinf (rule B) + Cmax alone exceeds 5% in many cells: the fallback's low error is not AUCinf information")
+  p2x <- rows(T1, w1("P2", " & pass_pct > 5")); DEf <- "oc_models/p2_decomposition_models.csv"
+  premise(nrow(p2x) == 1 && p2x$pk_model == "k2020" && p2x$scenario == "V2_up_080", "the one AUClast + Cmax cell above 5% is the 2020 V2 cell (M1)")
+  de1 <- row1(DEf, "pk_model=='k2020' & mechanism=='V2' & analysis_model=='M1'")
+  premise(de1$auclast_bias_dir == "toward_1" && de1$auclast_bias_lo_pct > 0 && abs(de1$p2_pct - p2x$pass_pct) < 1e-9, "2020 V2 cell: AUClast GMR biased toward 1 (interval above 0), same cell and value as type1_models")
+  premise(!grepl("Rsq|span|Extrap", .read("config/oc_design.yaml")$aucinf_rules$B) && grepl("span ratio", .read("config/oc_design.yaml")$aucinf_rules$A, fixed = TRUE),
+          "rule B applies no reliability flag: every subject with an estimable lambda-z is kept, including those failing set (iii)")
+
   # ---- 제목 ----
   f <- list(fb = dext(T1, w1("F3B"), "pass_pct", max, 2, "%", "largest boundary type I error, fallback AUClast + AUCinf (rule B) + Cmax, M1"), nom = f_nominal(),
             n = dcount(T1, w1("P2"), "boundary cells"))
@@ -39,8 +52,11 @@ slide_A10 <- function() {
   pdiff <- local({ r <- rows(PW, "scenario %in% c('S00','F097') & analysis_model=='M1' & config %in% c('P2','F3B')")
     w <- dcast(r, pk_model + scenario ~ config, value.var = "pass_pct"); x <- w$P2 - w$F3B; premise(nrow(w) == 4 && all(x >= 0), "M1 power: F3B at most P2 in the four cells")
     dderived("P2 minus F3B power, S00 and F097, both models, M1 (points)", PW, "scenario in (S00, F097) & analysis_model=='M1' & config in (P2, F3B) :: range of P2 - F3B", x, rng_fmt(min(x), max(x), 2)) })
-  cap <- tx("A10.caption", list(nom = f$nom, n = f$n, n_arm = f_n_arm(), r2i = f_set("i", "r2"), exi = f_set("i", "extrap"), fcr = fcr, pd = pdiff,
-                                ey = dcfg("literature_precedents.yaml", c("ema_2012_mab", "year"), "EMA mAb biosimilar guideline year", num_fmt(0))))
+  wy <- list(p2m = dv(T1, w1("P2", " & pk_model=='k2020' & scenario=='V2_up_080'"), "pass_pct", 2, "%", "AUClast + Cmax, 2020 V2 cell, M1"),
+             bias = dv(DEf, "pk_model=='k2020' & mechanism=='V2' & analysis_model=='M1'", "auclast_bias_pct", 2, "%", "AUClast GMR bias toward 1 against the true AUCinf ratio, 2020 V2 cell, M1"),
+             efl = drange(TPF, "set=='iii'", "est_fail_pct", 0, "%", "subjects with an estimable lambda-z but failing set (iii), two models"))
+  cap <- tx("A10.caption", c(wy, list(nom = f$nom, n = f$n, n_arm = f_n_arm(), r2i = f_set("i", "r2"), exi = f_set("i", "extrap"), sp2 = f_set("ii", "span"), fcr = fcr, pd = pdiff,
+                                ey = dcfg("literature_precedents.yaml", c("ema_2012_mab", "year"), "EMA mAb biosimilar guideline year", num_fmt(0)))))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
 
   # ---- 표 ----
@@ -62,25 +78,18 @@ slide_A10 <- function() {
                    f = vapply(RW, `[[`, "", 5), d = vapply(RW, `[[`, "", 3), e = vapply(RW, `[[`, "", 4), stringsAsFactors = FALSE)
   names(df) <- tx("A10.table.head", f)
   # 높이: 표 추정 높이를 먼저 구해 카드에 나머지를 준다
-  TWD <- c(4.1, 1.3, 0.9, 1.4, 2.3, 2.23)
+  TWD <- c(3.9, 1.35, 0.95, 1.45, 2.2, 2.38)
   th <- deck_table_h(df, GEO$CW, TWD, 14, pad = 2) + 0.04
   ty <- capy - 0.10 - th
   deck_table(df, box = c(GEO$ML, ty, GEO$CW, th), widths = TWD, size = 14, highlight = 4:6, label = "table_configs", pad = 2)   # 셀 위아래 여백 2pt: 카드 세 개 + 표 + 캡션을 한 장에
   dsrc("configuration table", c(T1, CG, TR, TC, FC), "(table)")
 
-  # ---- 카드 세 개 ----
-  gap <- 0.2; CWS <- c(2.72, 5.71, 3.4); CWS <- CWS / sum(CWS) * (GEO$CW - 2 * gap); ch <- ty - 0.18 - y0
-  cost <- dext(FC, "TRUE", "cost_iii_pp", max, 2, "", "largest loss in joint pass rate when AUCinf (rule B) is added, near-equivalent products, 2016 model")
-  C <- L$cards; fills <- c(PAL$tint_blue, PAL$tint_grey, PAL$tint_orange); hc <- c(PAL$blue, PAL$ink, PAL$orange)
+  # ---- 설명 상자: 대응안을 기본으로 두지 않는 이유, AUCinf + Cmax만은 권하지 않음(표의 주황 행) ----
   cf_k <- local({ k <- c(nrow(rows(CG, w1("G2_A_iii", " & pass_pct > 5"))), nrow(rows(T1, w1("G2_B", " & pass_pct > 5"))), nrow(rows(T1, w1("G2_Ai", " & pass_pct > 5"))))
     dderived("AUCinf + Cmax cells above 5% (point), M1, rule A set (iii), rule B, rule A set (i): range", CG, "analysis_model=='M1' & config in (G2_A_iii [criteria file], G2_B, G2_Ai [type1_models]) & pass_pct > 5 :: range of row counts", k, rng_fmt(min(k), max(k), 0)) })
-  vals <- list(list(), list(cost = cost, fb = f$fb), list(k = cf_k, n = f$n, nom = f$nom))
-  for (i in 1:3) {
-    x <- GEO$ML + sum(CWS[seq_len(i - 1)]) + (i - 1) * gap; cw <- CWS[i]; cd <- C[[i]]
-    ps <- c(list(para(cd$head, SZ$body, hc[i], TRUE, "left", gap_pt = 6)), lapply(cd$lines, function(z) para(fill(z, vals[[i]]), SZ$body, PAL$ink, FALSE, "left", gap_pt = 4)))
-    fit_check(sprintf("card_%d", i), c(cd$head, vapply(cd$lines, function(z) fill(z, vals[[i]]), "")), c(x, y0, cw, ch), SZ$body, gap_pt = 5, card = TRUE)
-    DK$x <- ph_with(DK$x, do.call(block_list, ps), location = loc(c(x, y0, cw, ch), sprintf("card_%d", i), bg = fills[i], geom = "roundRect", ln = no_line()))
-  }
+  why <- tx("A10.why", c(wy, list(k = cf_k, n = f$n, nom = f$nom))); wyy <- y0 + 0.02; wh <- ty - 0.14 - wyy
+  deck_text(why, c(GEO$ML, wyy, GEO$CW, wh), size = 16, bg = PAL$tint_grey, geom = "roundRect", label = "caption_why", gap_pt = 4)
+  deck_visual(c(GEO$ML, wyy, GEO$CW, wh))
 
   # ---- 노트 ----
   fcv <- function(s_, col, d, item) dv(FC, sprintf("scenario=='%s'", s_), col, d, "", item)
@@ -106,6 +115,9 @@ slide_A10 <- function() {
     fail1 = drange(TPF, "set=='i'", "fail_pct", 1, "%", "share failing set (i), two models"),
     lz = drange(TPF, "set=='iii'", "lz_pct", 2, "%", "share without an estimable lambda-z, two models"),
     ret3 = drange(TR, "set=='iii'", "retained_median", 0, "", "median subjects per arm with a reliable AUCinf, two models"),
-    ntr = dint(TR, "pk_model=='k2016' & set=='iii'", "n_trials", "simulated trials (retained per arm)"), n_arm = f_n_arm()))))
+    ntr = dint(TR, "pk_model=='k2016' & set=='iii'", "n_trials", "simulated trials (retained per arm)"), n_arm = f_n_arm(),
+    p2m = wy$p2m, bias = wy$bias, efl = wy$efl, nom = f$nom, fb = f$fb, sp2 = f_set("ii", "span"),
+    bci = dci(DEf, "pk_model=='k2020' & mechanism=='V2' & analysis_model=='M1'", "auclast_bias_pct", "auclast_bias_lo_pct", "auclast_bias_hi_pct", 2, "%", "AUClast GMR bias with 95% interval, 2020 V2 cell, M1"),
+    p2x = dcount(T1, w1("P2", " & pass_pct > 5"), "AUClast + Cmax cells above 5% (point), M1")))))
   deck_end()
 }

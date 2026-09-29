@@ -58,6 +58,22 @@ slide_A12 <- function() {
   premise(identical(.read("config/nca_rules.yaml")$standard$lambda_z$selection, "max_adj_r2"), "the NCA engine selects the lambda-z window automatically (largest adjusted R-squared, Best Fit)")
   st5 <- rows("curve_shape/curve_shape_B0.csv", "variant=='vmax050_both'"); premise(nrow(st5) == 1 && isTRUE(st5$stress_test) && st5$coverage_lt80_pct > 0 && !"vmax050" %in% cur$case,
                                                                                      "Vmax x0.5 is a stress test outside the four pre-registered curve-shape cases, with some subjects below 80% (notes)")
+  # 측정 오차 가정(표 1행): 두 모델의 비례 잔차를 그대로 쓰고, 잔차를 줄인 변형(2016 모델 구조)에서도 세트 (iii) 미달이 남는다(별첨 A3b)
+  TRS <- "trialpop/tp_residual_sensitivity.csv"; trs <- rows(TRS, "set=='iii'")
+  premise(trs[variant == "resid12", fail_pct] < trs[variant == "k2016", fail_pct] && trs[variant == "resid12", sigma_prop_pct] < trs[variant == "k2016", sigma_prop_pct], "smaller proportional residual: fewer set (iii) failures (row 1)")
+  premise(as.numeric(.read("config/params_k2020_model1.yaml")$residual$sigma_prop$value) * 100 == trs[variant == "k2020", sigma_prop_pct], "2020 model proportional residual in the result file equals the model parameter")
+  # 완전 외부 재판정(표 3행; 별첨 A1과 같은 파일·조건): 두 모델 모두 불통과, 불통과는 Li 2020 단일 arm, PKM12350 arm은 체중 가정에 민감
+  H16 <- "step1/step1h_external_only_gate.csv"; H20 <- "step1_k2020/step1h_external_only_gate.csv"; F16 <- "step1/step1f_300mg_arm_check.csv"; F20 <- "step1_k2020/step1f_300mg_arm_check.csv"
+  for (s_ in c("step1/step1_status.csv", "step1_k2020/step1_status.csv")) premise(startsWith(rows(s_)[role == "gate(외부만)", status], "FAIL"), sprintf("%s: fully external re-judgement FAIL (row 3)", s_))
+  premise(all(rbind(rows(H16, "pass_mean==FALSE"), rows(H20, "pass_mean==FALSE"))$type == "Li 2020 arm"), "every fully external failure is a Li 2020 single arm (row 3)")
+  premise(all(rbind(rows(F16, "study=='PKM12350'"), rows(F20, "study=='PKM12350'"))$dev == "external") && isTRUE(.read("config/design_clot2021.yaml")$arm_checks_300mg$weight$status == "assumption"),
+          "PKM12350 is external to both models and its arm weight is an assumption (row 3)")
+  a12_wmin <- function(rel, m) { r <- rows(rel, "study=='PKM12350'"); g <- r[, .(pass = all(within_15)), by = weight_mean][order(weight_mean)]
+    x <- min(g$weight_mean[g$pass]); premise(any(g$pass) && all(g$pass[g$weight_mean >= x]), sprintf("%s: PKM12350 arms within 15%% from one assumed weight upward", m))
+    dderived(sprintf("lowest assumed mean weight with both PKM12350 arms within 15%%, %s (kg)", m), rel, "study=='PKM12350' :: min(weight_mean) with all(within_15)", x, fnum(x, 0)) }
+  premise(as.numeric(.read("config/design_clot2021.yaml")$gate$auclast_mean_tol_pct) == 15, "the arm weight file uses the 15% gate tolerance (column within_15)")
+  premise(!any(grepl("TYENNE|761275", c(list.files(proj_path("results"), recursive = TRUE), list.files(proj_path("config"))))) && !any(grepl("4\\.2\\.b", rows("literature/literature_numeric.csv")$source)),
+          "no TYENNE (BLA 761275) or FDA review Table 4.2.b data in the repository (caption)")
   # ---- 전제: 검증 상태 ---------------------------------------------------------------------------------------------------------------------
   ev <- rows(EV); premise(all(ev$pass) && setequal(unique(ev$comparison), c("this engine vs NonCompart", "PKNCA vs NonCompart", "this engine vs PKNCA")), "the NCA engine was compared with NonCompart and PKNCA only")
   premise(!any(grepl("phoenix|winnonlin", list.files(proj_path("results", "nca_engine"), recursive = TRUE), ignore.case = TRUE)), "no Phoenix output in results/nca_engine")
@@ -114,6 +130,16 @@ slide_A12 <- function() {
     lloq = f_lloq(), n_arm = f_n_arm(),
     tg90 = dint(NNf, wn("M1", 90), "target_pct", "target power (%)"), n90 = dint(NNf, wn("M1", 90), "n_evaluable_per_arm", "n per arm for the higher target, M1"),
     tg85 = dint(NNf, wn("M1", 85), "target_pct", "target power (%)"), n85 = dint(NNf, wn("M1", 85), "n_evaluable_per_arm", "n per arm for the lower target, M1"),
+    s16 = dv(TRS, "variant=='k2016' & set=='iii'", "sigma_prop_pct", 1, "%", "proportional residual, 2016 model"),
+    s20 = dv(TRS, "variant=='k2020' & set=='iii'", "sigma_prop_pct", 0, "%", "proportional residual, 2020 model"),
+    s12 = dv(TRS, "variant=='resid12' & set=='iii'", "sigma_prop_pct", 0, "%", "proportional residual, variant"),
+    r3a = dv(TRS, "variant=='k2016' & set=='iii'", "fail_pct", 1, "%", "set (iii) failing, 2016 model (residual as estimated)"),
+    r3b = dv(TRS, "variant=='resid12' & set=='iii'", "fail_pct", 1, "%", "set (iii) failing, 2016 model with residual 12%"),
+    pk = local({ x <- c(rows(F16, "study=='PKM12350'")$ratio, rows(F20, "study=='PKM12350'")$ratio)
+      dderived("PKM12350 arm AUClast sim/obs at the assumed weight, two models", F16, "study=='PKM12350' :: range(ratio) over step1f_300mg_arm_check.csv (k2016, k2020)", x, rng_fmt(min(x), max(x), 2)) }),
+    w0 = dcfg("design_clot2021.yaml", c("arm_checks_300mg", "weight", "mean"), "assumed mean weight of the single arms (kg)", num_fmt(0)),
+    w16 = a12_wmin("step1/step1i_arm_weight_sensitivity.csv", "k2016"), w20 = a12_wmin("step1_k2020/step1i_arm_weight_sensitivity.csv", "k2020"),
+    gate = dcfg("design_clot2021.yaml", c("gate", "auclast_mean_tol_pct"), "exposure gate: AUClast mean within +/- tolerance (%)", num_fmt(0)),
     ncs = dderived("pre-registered curve-shape cases (both arms)", CV, "case %in% c('vmax080','vmax125','km05','km10') :: row count", nrow(cur), as.character(nrow(cur))),
     gc16 = drange(Q16, "gate_role=='gate'", "Cmax_ratio", 2, "", "Cmax sim/obs range, study presentation, 2016"),
     gc20 = drange(Q20, "gate_role=='gate'", "Cmax_ratio", 2, "", "Cmax sim/obs range, study presentation, 2020"))
@@ -123,8 +149,8 @@ slide_A12 <- function() {
   names(df) <- unlist(H$head)
   cap <- tx("A12.caption")
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
-  deck_table(df, box = c(GEO$ML, y0, GEO$CW, capy - 0.12 - y0), widths = c(1.95, 3.1, 7.18), size = 14, label = "table_limits", align_cols = rep("left", 3),
-             highlight = 4:6, highlight_fill = PAL$tint_grey, pad = 2)   # 셀 위아래 여백 2pt: 8행 표와 캡션을 한 장에   # 아직 하지 않은 검증(제목)
+  deck_table(df, box = c(GEO$ML, y0, GEO$CW, capy - 0.12 - y0), widths = c(1.65, 2.8, 7.78), size = 14, label = "table_limits", align_cols = rep("left", 3),
+             highlight = 5:7, highlight_fill = PAL$tint_grey, pad = 2)   # 셀 위아래 여백 2pt: 8행 표와 캡션을 한 장에   # 아직 하지 않은 검증(제목)
   deck_src_first(c(PV, QC, LC))
 
   # ---- 노트 ------------------------------------------------------------------------------------------------------------------------------
@@ -140,7 +166,8 @@ slide_A12 <- function() {
     c150 = a12_parse(Q16, "gate_role=='gate' & dose_mg==300", "presentation", "([0-9.]+) mg/mL", "concentration of the study presentation (mg/mL)"),
     g300a = drange(Q16, sprintf("gate_role=='gate' & dose_mg==%s", dose), "AUClast_ratio", 2, "", "AUClast sim/obs, study-dose data sets, 2016"),
     g300b = drange(Q20, sprintf("gate_role=='gate' & dose_mg==%s", dose), "AUClast_ratio", 2, "", "AUClast sim/obs, study-dose data sets, 2020"),
-    gate = dcfg("design_clot2021.yaml", c("gate", "auclast_mean_tol_pct"), "exposure gate: AUClast mean within +/- tolerance (%)", num_fmt(0)),
+    xn16 = dcount(H16, "TRUE", "fully external items, 2016 model"), xf16 = dcount(H16, "pass_mean==FALSE", "fully external items failing, 2016 model"),
+    xn20 = dcount(H20, "TRUE", "fully external items, 2020 model"), xf20 = dcount(H20, "pass_mean==FALSE", "fully external items failing, 2020 model"),
     s5 = dcfg("scenarios.yaml", c("sensitivity_variants", "vmax050_both", "theta_multipliers", "Vmax"), "Vmax multiplier of the stress test (both arms)", num_fmt(1)),
     s5lt = dv("curve_shape/curve_shape_B0.csv", "variant=='vmax050_both'", "coverage_lt80_pct", 3, "%", "stress test Vmax x0.5: share below 80% AUClast/AUCinf"),
     s5p = dv("curve_shape/curve_shape_B0.csv", "variant=='vmax050_both'", "extrap_true_p95", 2, "%", "stress test Vmax x0.5: 95th percentile of the true extrapolated share"),
