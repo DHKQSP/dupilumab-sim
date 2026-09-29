@@ -9,7 +9,7 @@ S5:
     ret: "{m}명 ({lo}~{hi})"
     total: "{n}명"
   body:
-    - "λz는 대상자의 {lz}에서 산출된다. 미달은 대부분 산출 불가가 아니라 적합도 기준 미달이다."
+    - "λz는 대상자의 {lz}에서 산출된다. 미달은 대부분 λz 산출 불가가 아니라 신뢰 기준 미달이다."
     - "Phoenix는 신뢰 기준을 정하지 않는다(사용자 선택 항목). 공개 통계분석계획(SAP)은 {sap}을 쓴다."
     - "arm당 평가 가능 {n}명 중 신뢰할 수 있는 AUCinf는 중앙값 {ret}명이다."
   caption: "신뢰할 수 있는 AUCinf = adjusted R² ≥ {r2}, 외삽 ≤ {ex}%. 공개 SAP(ClinicalTrials.gov): NCT04117607, NCT04441905, NCT04700163"

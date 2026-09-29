@@ -10,7 +10,7 @@ S10:
       sub: "λz 산출 전원과 신뢰할 수 있는 AUCinf 보유자, 두 분석군으로"
     - head: "채혈 일정"
       main: "현행 유지"
-      sub: "Syneos {nB0}회, Day {last}까지. 추가·제거 후보 모두 사전 기준 미충족(별첨 A7)"
+      sub: "Syneos {nB0}회, Day {last}까지. 추가·제거 후보 모두 결과 보고 전에 정한 기준 미충족(별첨 A7)"
     - head: "AUCinf를 공동 1차로 요구받으면"
       main: "AUClast를 유지한 채 추가"
       sub: "AUCinf만 남기지 않는다(근거 별첨 A10)"
