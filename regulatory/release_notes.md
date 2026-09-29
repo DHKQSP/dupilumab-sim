@@ -1,6 +1,6 @@
 # v1.0.1
 
-Regulatory package version 1.0.1, generated 2026-09-29 05:11 UTC from commit `461042c5b97e261a3ef1399d4a26123bfa21afa0`. Status: draft for sponsor review; not approved. Previous package: document version 0.9 (commit ed9e8ba, not tagged).
+Regulatory package version 1.0.1, generated 2026-09-29 05:12 UTC from commit `aa92eff2e8ac96e4d93eb68295602aeaa4c5e2ba`. Status: draft for sponsor review; not approved. Previous package: document version 0.9 (commit ed9e8ba, not tagged).
 
 ## Pre-registration
 

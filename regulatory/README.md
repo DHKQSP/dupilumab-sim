@@ -2,7 +2,7 @@
 
 Modeling and simulation supporting AUC0-last and Cmax as co-primary endpoints, and the sampling schedule, of a single-dose PK similarity study of a proposed dupilumab biosimilar.
 
-Version 1.0.1. Generated 2026-09-29 05:11 UTC from commit `461042c5b97e261a3ef1399d4a26123bfa21afa0` (tracked files outside regulatory/ unchanged: yes). Status: draft for sponsor review; not approved.
+Version 1.0.1. Generated 2026-09-29 05:12 UTC from commit `aa92eff2e8ac96e4d93eb68295602aeaa4c5e2ba` (tracked files outside regulatory/ unchanged: yes). Status: draft for sponsor review; not approved.
 
 ## Read in this order
 

@@ -14,7 +14,7 @@
 - **Status:** 1.0.1 (draft for sponsor review). Proposed text for review
   by the sponsor’s clinical pharmacology and biostatistics functions;
   not approved.
-- **Source commit:** 461042c5b97e261a3ef1399d4a26123bfa21afa0. Every
+- **Source commit:** aa92eff2e8ac96e4d93eb68295602aeaa4c5e2ba. Every
   number below is read from a committed result or configuration file
   when this document is generated, and is listed with its source in
   regulatory/traceability.csv.
