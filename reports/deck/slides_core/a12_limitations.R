@@ -46,7 +46,9 @@ slide_A12 <- function() {
   dose <- as.numeric(.read("config/trial_design.yaml")$dose_mg); tol <- as.numeric(.read("config/design_clot2021.yaml")$gate$auclast_mean_tol_pct)
   premise(all(abs(g16[dose_mg == dose, AUClast_ratio] - 1) <= tol / 100) && all(abs(g20[dose_mg == dose, AUClast_ratio] - 1) <= tol / 100), "study-dose AUClast within the exposure gate in both models (row 2: exposure reproduced)")
   premise(all(e16$dose_mg == 200) && all(!is.na(e16$tmax_obs_median)) && all(e16$tmax_sim_median > e16$tmax_obs_median), "200 mg data sets: simulated tmax later than observed (row 2: fast absorption not reproduced)")
-  premise(all(rows(Q20, "gate_role=='external'")$tmax_sim_median > rows(Q20, "gate_role=='external'")$tmax_obs_median), "same in the 2020 model")
+  e20 <- rows(Q20, "gate_role=='external'")
+  premise(all(e20$tmax_sim_median > e20$tmax_obs_median) && identical(sort(unique(e20$tmax_sim_median)), sort(unique(e16$tmax_sim_median))),
+          "same in the 2020 model, with the same simulated tmax (row 2 gives one simulated value for both models)")
 
   # ---- 전제: 검증 상태 ---------------------------------------------------------------------------------------------------------------------
   ev <- rows(EV); premise(all(ev$pass) && setequal(unique(ev$comparison), c("this engine vs NonCompart", "PKNCA vs NonCompart", "this engine vs PKNCA")), "the NCA engine was compared with NonCompart and PKNCA only")

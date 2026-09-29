@@ -4,7 +4,7 @@ A6:
   fig:
     coh:
       pkm: "PKM12350 대조군 (FDA 리뷰 Table 4.2.c)"
-      clot: "Clot 2021 Table 3, 300 mg 코호트"
+      clot: "Clot 2021 Table 3, {dose} mg 코호트"
     type:
       lit: "문헌 비구획"
       nca: "모의 비구획"

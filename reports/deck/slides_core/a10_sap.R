@@ -30,8 +30,7 @@ slide_A10 <- function() {
   y0 <- core_title(tx("A10.title", f), tx("A10.kicker"))
 
   # ---- 캡션 ----
-  cap <- tx("A10.caption", list(nom = f$nom, n_arm = f_n_arm(), ntr = dint(TR, "pk_model=='k2016' & set=='iii'", "n_trials", "simulated trials (retained per arm)"),
-                               r2i = f_set("i", "r2"), exi = f_set("i", "extrap")))
+  cap <- tx("A10.caption", list(nom = f$nom, n = f$n, n_arm = f_n_arm(), r2i = f_set("i", "r2"), exi = f_set("i", "extrap")))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
 
   # ---- 표 ----
@@ -49,7 +48,7 @@ slide_A10 <- function() {
                    d = vapply(RW, `[[`, "", 3), e = vapply(RW, `[[`, "", 4), stringsAsFactors = FALSE)
   names(df) <- tx("A10.table.head", f)
   # 높이: 표 추정 높이를 먼저 구해 카드에 나머지를 준다
-  TWD <- c(4.55, 1.35, 1.2, 2.2, 2.93)
+  TWD <- c(4.1, 1.6, 1.3, 2.3, 2.93)
   th <- local({ w <- TWD / sum(TWD) * GEO$CW; nl <- function(v, w_, b = FALSE) vapply(as.character(v), function(s) est_lines(nobreak(s), w_ - 0.14, 14, b), 1L)
     hdr <- max(mapply(function(v, w_) max(nl(v, w_, TRUE)), names(df), w)); bod <- apply(matrix(sapply(seq_along(w), function(j) nl(df[[j]], w[j], j == 1)), nrow = nrow(df)), 1, max)
     (hdr + sum(bod)) * 14 * 1.2 / 72 + (nrow(df) + 1) * 8 / 72 + 0.04 })
@@ -99,6 +98,6 @@ slide_A10 <- function() {
     lz = drange(TPF, "set=='iii'", "lz_pct", 2, "%", "share without an estimable lambda-z, two models"),
     wd = drange(TC, "set=='iii'", "wt_diff_kg", 1, "", "body weight difference failing minus retained, set (iii), two models (kg)"),
     ret3 = drange(TR, "set=='iii'", "retained_median", 0, "", "median subjects per arm with a reliable AUCinf, two models"),
-    n_arm = f_n_arm()))))
+    ntr = dint(TR, "pk_model=='k2016' & set=='iii'", "n_trials", "simulated trials (retained per arm)"), n_arm = f_n_arm()))))
   deck_end()
 }

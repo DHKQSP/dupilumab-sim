@@ -45,16 +45,16 @@ slide_A6 <- function() {
   # ---- 왼쪽 그림: 평균 AUClast/AUCinf ----
   FL <- L$fig; ML <- DK$txt$common$models_short
   d <- rbindlist(lapply(names(W), function(k) { r <- row1(LN, W[[k]])
-    data.table(coh = FL$coh[[k]], type = c("lit", "nca", "nca", "tv", "tv"), model = c(NA, "k2016", "k2020", "k2016", "k2020"),
+    data.table(coh = fill(FL$coh[[k]], list(dose = dose)), type = c("lit", "nca", "nca", "tv", "tv"), model = c(NA, "k2016", "k2020", "k2016", "k2020"),
                v = 100 * c(r$lit_mean_ratio, r$nca_mean_ratio_k2016, r$nca_mean_ratio_k2020, r$true_mean_ratio_k2016, r$true_mean_ratio_k2020)) }))
   dsrc("figure a6: published and simulated mean ratios", LN)
   # 세로 위치: 자료마다 머리글 한 줄 + 문헌·모의 비구획·모의 참값 세 줄(두 모델은 위아래로 조금 어긋나게)
-  TY <- c(lit = 1, nca = 2, tv = 3); blk <- c(pkm = 0, clot = 4.4); ck <- setNames(names(W), unlist(FL$coh[names(W)]))
+  TY <- c(lit = 1, nca = 2, tv = 3); blk <- c(pkm = 0, clot = 4.4); ck <- setNames(names(W), vapply(names(W), function(k) fill(FL$coh[[k]], list(dose = dose)), ""))
   d[, k := ck[coh]][, y := -(blk[k] + TY[type]) + ifelse(is.na(model), 0, ifelse(model == "k2016", 0.13, -0.13))]
   d[, shp := ifelse(is.na(model), "lit", model)][, col := c(lit = PAL$ink, nca = PAL$orange, tv = PAL$blue)[type]]
   lab <- d[, .(v = if (type[1] == "tv") min(v) else max(v), y = -(blk[k[1]] + TY[type[1]]), lab = paste0(paste(fnum(v, 1), collapse = " / "), "%")), by = .(k, type)]
   lab[, hj := ifelse(type == "tv", 1.12, -0.18)]                       # 참값은 점 왼쪽(오른쪽 끝 100% 근처라 잘리지 않게)
-  hd <- data.table(k = names(W), y = -blk[names(W)], lab = unlist(FL$coh[names(W)]))
+  hd <- data.table(k = names(W), y = -blk[names(W)], lab = names(ck))
   band <- d[type == "lit", .(k, lo = v - tol$x, hi = v + tol$x, y0 = -(blk[k] + 3.45), y1 = -(blk[k] + 0.55))]
   yt <- data.table(y = -c(blk[["pkm"]] + TY, blk[["clot"]] + TY), lab = rep(unlist(FL$type[names(TY)]), 2))
   XL <- c(floor(min(band$lo)) - 0.2, 100.4)

@@ -85,7 +85,7 @@ slide_A4b <- function() {
     scale_x_continuous(limits = c(0.56, ox + bw * 2), breaks = c(0.6, 0.8, 1, 1.2, 1.4, ox),
                        labels = c(fnum(c(0.6, 0.8, 1, 1.2, 1.4), 1), fill(F$ovf_tick, list(v = fnum(top, 1)))), expand = expansion(0)) +
     guides(fill = guide_legend(order = 1), colour = guide_legend(order = 2), linetype = guide_legend(order = 2)) +
-    labs(x = F$xlab, y = NULL) + theme_core(16) +
+    labs(x = fill(F$xlab, list(bw = fnum(bw, 2))), y = NULL) + theme_core(16) +
     theme(legend.position = "top", legend.justification = "left", legend.key.width = grid::unit(1.8, "lines"), legend.margin = margin(0, 0, 0, 0),
           legend.box = "horizontal", legend.box.spacing = grid::unit(2, "pt"), legend.spacing.x = grid::unit(3, "pt"), panel.grid.minor = element_blank(),
           panel.spacing.x = grid::unit(28, "pt"),
@@ -104,6 +104,7 @@ slide_A4b <- function() {
     fx16 = dv(TCV, "metric=='extrapolation factor AUCinf / AUClast (lambda-z estimable)' & pk_model=='k2016'", "max", 2, "", "extrapolation factor AUCinf/AUClast, max, k2016"),
     fx20 = dv(TCV, "metric=='extrapolation factor AUCinf / AUClast (lambda-z estimable)' & pk_model=='k2020'", "max", 2, "", "extrapolation factor AUCinf/AUClast, max, k2020"),
     top = dderived("lower edge of the open histogram bin", CH, "max(bin_lo) of metric aucinf_B", top, fnum(top, 1)),
+    bw = dderived("histogram bin width", CH, "unique(diff(sort(unique(bin_lo))))", bw, fnum(bw, 2)),
     o16 = dint(CH, "pk_model=='k2016' & metric=='aucinf_B' & bin_lo >= 1.5", "n", "subjects in the open bin, rule B, k2016"),
     o20 = dint(CH, "pk_model=='k2020' & metric=='aucinf_B' & bin_lo >= 1.5", "n", "subjects in the open bin, rule B, k2020"),
     r2i = f_set("i", "r2"), exi = f_set("i", "extrap"), r2 = f_set("iii", "r2"),

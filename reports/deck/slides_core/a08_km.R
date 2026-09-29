@@ -4,6 +4,10 @@
 #  오른쪽 표: 기전별로 참 AUCinf 비가 동등 경계(0.80, 1.25)에 닿는 배율(두 모델; inversion_all.csv).
 #  제목의 범위(0.999~1.059)는 두 모델을 합친 범위 끝 값과 도달 행(보고서 km_rng와 같은 계산). 결과보고 덱 S18(slides/s18_binding.R)의 자료 처리를 따른다.
 a8_mult <- function(x) if (x < 1) fnum(x, 2) else fnum(x, 0)
+# 동등 한계(비): 보고서 추적 행(be.limits, 백분율 인쇄)과 locator가 겹치지 않게 원소별 locator로 기록한다
+a8_lim <- function(i = 1:2) { x <- unlist(.read("config/trial_design.yaml")$be$limits)[i]
+  dderived(sprintf("equivalence limit(s) as a ratio, element %s", paste(i, collapse = " and ")), "config/trial_design.yaml", sprintf("be.limits :: element %s as a ratio", paste(i, collapse = ", ")),
+           x, if (length(i) == 1) fnum(x, 2) else sprintf("%s~%s", fnum(x[1], 2), fnum(x[2], 2))) }
 a8_rng <- function(IA, where, item, cols = c("end_auc_ratio", "auc_ratio")) {
   r <- rows(IA, sprintf("%s & is.finite(%s)", where, cols[1])); r2 <- rows(IA, sprintf("%s & reachable==TRUE", where)); x <- range(c(r[[cols[1]]], r2[[cols[2]]]))
   dderived(item, IA, sprintf("%s :: %s, %s", where, cols[1], cols[2]), x, rng_fmt(x[1], x[2], 3))
@@ -29,7 +33,7 @@ slide_A8 <- function() {
   premise(nrow(rows(IA, sprintf("mechanism=='Km' & reachable==TRUE & (abs(target-%s)<1e-9 | abs(target-%s)<1e-9)", lim[1], lim[2]))) == 0, "Km reaches neither equivalence limit")
   vk <- c(.read("config/params_variability.yaml")$iiv_omega2$Km$omega2, .read("config/params_k2020_model1.yaml")$iiv$sd$Km$omega2)
   ntruth <- dcfg("oc_design.yaml", c("estimand", "population", "n_subjects"), "common virtual subjects for the true ratio", function(x) fnum(as.numeric(x), 0, big = TRUE))
-  capy <- core_caption(tx("A8.caption", list(n = ntruth, lo = dcfg("trial_design.yaml", c("be", "limits"), "equivalence limits", function(x) sprintf("%s~%s", fnum(x[1], 2), fnum(x[2], 2))))),
+  capy <- core_caption(tx("A8.caption", list(n = ntruth, lo = a8_lim(1:2))),
                        GEO$BODY_BOTTOM, size = 14)
   body <- tx("A8.body", list(cm = cm, t = dv(IA, "mechanism=='Km' & reachable==TRUE & model=='k2016'", "target", 2, "", "reachable Km target"),
                              m16 = dv(IA, "mechanism=='Km' & reachable==TRUE & model=='k2016'", "multiplier", 0, "", "Km multiplier reaching 1.05, k2016"),
@@ -37,8 +41,7 @@ slide_A8 <- function() {
 
   # ---- 오른쪽 표: 기전별 동등 경계 도달 배율 ----
   WT <- c(2.5, 1.55, 1.55); WR <- sum(WT); XR <- GEO$ML + GEO$CW - WR; FW <- XR - 0.3 - GEO$ML
-  lo <- dcfg("trial_design.yaml", c("be", "limits"), "lower equivalence limit", function(x) fnum(x[1], 2))
-  hi <- dcfg("trial_design.yaml", c("be", "limits"), "upper equivalence limit", function(x) fnum(x[2], 2))
+  lo <- a8_lim(1); hi <- a8_lim(2)
   cell <- function(k, tg) {
     w <- sprintf("mechanism=='%s' & abs(target-%s)<1e-9 & reachable==TRUE", k, tg); r <- rows(IA, w)
     if (!nrow(r)) { dcount(IA, w, sprintf("%s: rows reaching target %s (none)", k, tg)); return(L$table$none) }

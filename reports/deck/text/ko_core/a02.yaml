@@ -1,6 +1,6 @@
 A2:
   kicker: "별첨 A2 · 방법 세부"
-  title: "λz 신뢰 기준은 Phoenix의 선택 항목이라 adjusted R² {r2i}~{r2iii}의 세트 (i)~(iv)로 정했다"
+  title: "λz 신뢰 기준은 Phoenix의 선택 항목이라 adjusted R² {r2i} 또는 {r2iii}의 세트 (i)~(iv)로 정했다"
   rules_label: "비구획 분석 규칙 (Phoenix WinNonlin 호환 엔진)"
   rules:
     - "**AUClast**: 실제 채혈 시각, 선형 증가·로그 감소 사다리꼴"

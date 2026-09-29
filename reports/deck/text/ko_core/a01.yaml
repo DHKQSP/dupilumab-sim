@@ -3,7 +3,6 @@ A1:
   title: "두 모델은 연구 제형의 관측 AUClast 평균을 ±{tol}% 안에서 재현한다"
   fig:
     xlab: "AUClast 모의/관측 (모의 평균 / 관측 평균)"
-    band: "gate 허용 범위 ±{tol}%"
     vals: "2016 / 2020"
     g_gate: "연구 제형: gate 판정"
     g_ext: "{dose} mg 제형: 외부 점검 (gate 제외)"
