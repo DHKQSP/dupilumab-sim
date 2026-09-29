@@ -42,3 +42,5 @@ k2020 representative subjects: re-solved true concentration at the observed time
 input results/trialpop/tp_failure_by_set.csv,245552b2db5039299ce2f100ed592fc537ebac8bb1693371509535992aa6ca09,,
 k2016 set (iii) B0 failing share vs tp_failure_by_set.csv,38.76,38.76,TRUE
 k2020 set (iii) B0 failing share vs tp_failure_by_set.csv,33.215,33.215,TRUE
+k2016 lambda-z estimable count vs tp_failure_by_set.csv,19708,19708,TRUE
+k2020 lambda-z estimable count vs tp_failure_by_set.csv,19877,19877,TRUE

@@ -9,6 +9,7 @@
 #   rep_profiles.csv          7c 대표 대상자 참 농도 곡선(0.05일 간격, 연구일 1~70)
 #   rep_obs.csv               7c 대표 대상자 B0 관측값(연구일, 농도, BLQ 여부, 참 농도)
 #   reliable_iii_by_schedule.csv 7d 세트 (iii) 충족 비율, 일정별, B0 대비 차(%p, 같은 대상자)
+#   extrap_ratio_by_group.csv 7f 비구획 외삽 면적 / 참 외삽 면적(λz 산출 전원, 세트 (iii) 충족, 미달), 두 모델
 #   provenance.csv            입력 SHA-256과 대조 결과
 source("R/00_setup.R"); source_project()
 pr <- read_cfg("prereg_20260929.yaml")$section7
@@ -129,6 +130,18 @@ RL <- rbindlist(lapply(names(IND), function(m) {
     data.table(model = m, schedule = sh, n = nrow(y), pct_reliable_iii = 100 * mean(crit_ok(y, "iii")), diff_vs_B0_pp = 100 * (mean(crit_ok(y, "iii")) - mean(crit_ok(b0, "iii")))) }))
 }))
 fwrite(RL, file.path(out_dir, "reliable_iii_by_schedule.csv"))
+
+# ---- 7f 비구획 외삽 면적 / 참 외삽 면적, 신뢰 여부별(추가 등록, 계산 전 커밋 864f3a3) --------------------------------------------------------
+ER <- rbindlist(lapply(names(IND), function(m) {
+  b0 <- ind[[m]][schedule == "B0"]; est <- b0$lambda_ok %in% TRUE; rel <- crit_ok(b0, "iii")
+  chk(sprintf("%s lambda-z estimable count vs tp_failure_by_set.csv", m), sum(est), round(TF[pk_model == m & set == "iii", n * (1 - lz_pct / 100)]), tol = 0.5)
+  r <- (b0$AUCINF_obs - b0$AUClast) / (b0$AUCinf_true - b0$AUClast_true)
+  G <- list(estimable = est, reliable_iii = rel, failing_iii_estimable = est & !rel)
+  rbindlist(lapply(names(G), function(g) { v <- r[G[[g]]]; premise(all(is.finite(v)), sprintf("%s %s: finite ratios", m, g))
+    data.table(model = m, group = g, n = length(v), median = median(v), p05 = quantile(v, 0.05, names = FALSE), p95 = quantile(v, 0.95, names = FALSE), pct_below_1 = 100 * mean(v < 1)) }))
+}))
+fwrite(ER, file.path(out_dir, "extrap_ratio_by_group.csv"))
+print(ER)
 
 fwrite(rbindlist(PROV), file.path(out_dir, "provenance.csv"))
 print(CV[, .(case, model, n, median = round(100 * median, 2), p05 = round(100 * p05, 2), min = round(100 * min, 2), pct_lt80, role)]); print(TR); print(rbindlist(RS)[, .(model, role, id, coverage_true, extrap_ratio_nca_to_true)]); print(RL)
