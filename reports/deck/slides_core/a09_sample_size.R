@@ -38,8 +38,8 @@ slide_A9 <- function() {
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
 
   # ---- 왼쪽: 검정력 표와 본문 ----
-  TW <- 7.35; hh <- 0.40
-  body <- tx("A9.body", list(n_arm = f$n_arm, cv_ok = dint(TP, a9_w(cv_ok, n_arm), "cv", "largest grid CV with power at the target, protocol n (%)"),
+  TW <- 7.6; hh <- 0.40
+  body <- tx("A9.body", list(n_arm = f$n_arm, n_rand = f$n_rand, cv_ok = dint(TP, a9_w(cv_ok, n_arm), "cv", "largest grid CV with power at the target, protocol n (%)"),
                              tgt = dint(NN, a9_wn(cv_b, "M1", tg), "target_pct", "target power (%)")))
   by <- core_body(body, capy - 0.10, width = TW)
   deck_text(tx("A9.head", list(n_rand = f$n_rand, n_arm = f$n_arm)), c(GEO$ML, y0, TW, hh), size = 16, bold = TRUE, label = "label_table", gap_pt = 0)
@@ -51,7 +51,7 @@ slide_A9 <- function() {
   nlab <- function(n) dint(TP, a9_w(cv_b, n), "n", "evaluable subjects per arm (grid column)")
   names(df) <- c(L$table$h_cv, vapply(ns, function(n) fill(if (n == n_arm) L$table$h_now else L$table$h_n, list(n = nlab(n))), ""))
   ty <- y0 + hh; th <- by - 0.10 - ty
-  deck_table(df, box = c(GEO$ML, ty, TW, th), widths = c(2.2, 1.2, 1.55, 1.2, 1.2), size = 14, highlight = which(cvs %in% c(cv_b, cv_s)), highlight_fill = PAL$tint_blue, label = "table_power")
+  deck_table(df, box = c(GEO$ML, ty, TW, th), widths = c(2.3, 1.25, 1.55, 1.25, 1.25), size = 14, highlight = which(cvs %in% c(cv_b, cv_s)), highlight_fill = PAL$tint_blue, label = "table_power")
   dsrc("power table", TP, "(table)")
 
   # ---- 오른쪽: 카드 두 개(프로토콜, 민감도), 캡션 위까지 ----
@@ -71,7 +71,12 @@ slide_A9 <- function() {
     x <- range(-r$diff_pp); dderived(sprintf("analytic minus PK-model power, true GMR %s to %s (points)", lo_, hi_), PK, sprintf("%s :: range(-diff_pp)", w), x, rng_fmt(x[1], x[2], 2)) }
   pk_abs <- function(lo_, hi_) { w <- sprintf("analysis_model != 'M2' & auc_ratio > %s & auc_ratio < %s", lo_, hi_); r <- rows(PK, w); x <- max(abs(r$diff_pp))
     dderived(sprintf("largest absolute analytic minus PK-model power, true GMR %s to %s (points)", lo_, hi_), PK, sprintf("%s :: max(abs(diff_pp))", w), x, fnum(x, 2)) }
+  w90 <- sprintf("input_model=='k2016' & cv==%s & abs(gmr - 0.9) < 1e-9 & n==%s & analysis_model=='M1'", cv_b, n_arm)
+  premise(nrow(rows(TP, w90)) == 1 && row1(TP, w90)$analytic_pct < tg, "power at a true GMR of 0.90 (protocol CV and n, M1) is below the target (notes)")
   deck_notes(tx("A9.notes", c(f, list(
+    g90r = dv(TP, w90, "gmr", 2, "", "true GMR of the lower power row"), p90 = dv(TP, w90, "analytic_pct", 1, "%", "P2 power n 117 CV 43 GMR 0.90 M1 (analytic)"),
+    p90mc = dv(TP, w90, "mc_pct", 1, "%", "P2 power n 117 CV 43 GMR 0.90 M1 (statistical simulation)"),
+    g = dv(TP, a9_w(cv_b, n_arm), "gmr", 2, "", "true GMR of the power table (notes)"),
     cv_b = dint(TP, a9_w(cv_b, n_arm), "cv", "protocol CV (%)"), cv_s = dint(TP, a9_w(cv_s, n_arm), "cv", "sensitivity CV (%)"),
     p_b0 = dv(TP, a9_w(cv_b, n_arm, "M0"), "analytic_pct", 1, "%", sprintf("P2 power n 117 CV %s GMR 0.95 M0", cv_b)),
     p_s = dv(TP, a9_w(cv_s, n_arm), "analytic_pct", 1, "%", sprintf("P2 power n 117 CV %s GMR 0.95 M1", cv_s)),

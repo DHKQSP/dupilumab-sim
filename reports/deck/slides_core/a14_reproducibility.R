@@ -11,11 +11,10 @@ a14_field <- function(k, item = paste("GitHub reproducibility run:", k)) {
   x <- as.character(row1("repro/repro_github_run.csv", sprintf("field=='%s'", k))$value)
   dderived(item, "repro/repro_github_run.csv", sprintf("field=='%s'", k), x, x)
 }
-# nobreak_hyphen: 날짜·이미지 이름이 줄 끝에서 갈라지지 않게 붙임표를 줄바꿈 없는 붙임표(U+2011)로 표시한다(숫자 뒤라 음수 부호 검사 대상 아님)
-a14_rx <- function(k, rx, item, nobreak_hyphen = FALSE) {
+a14_rx <- function(k, rx, item) {
   x <- as.character(row1("repro/repro_github_run.csv", sprintf("field=='%s'", k))$value); m <- regmatches(x, regexec(rx, x))[[1]]
   premise(length(m) >= 2, sprintf("repro_github_run.csv field %s matches %s", k, rx))
-  dderived(item, "repro/repro_github_run.csv", sprintf("field=='%s' :: regex %s", k, rx), m[2], if (nobreak_hyphen) gsub("-", "\u2011", m[2]) else m[2])
+  dderived(item, "repro/repro_github_run.csv", sprintf("field=='%s' :: regex %s", k, rx), m[2], m[2])
 }
 a14_ver <- function(sw, item) { SE <- "regulatory/tables/software_environment.csv"; x <- as.character(row1(SE, sprintf("Software=='%s'", sw))$Version)
   dderived(item, SE, sprintf("Software=='%s' :: Version", sw), x, x) }
@@ -39,14 +38,18 @@ slide_A14 <- function() {
   seed_of <- function(s_) { m <- regmatches(s_, regexec("master seed ([0-9]+)", s_))[[1]]; premise(length(m) == 2, "master seed in the prereg text"); as.numeric(m[2]) }
   sd_rep <- seed_of(pr$representative_subjects$regeneration); sd_cs <- seed_of(pr$case_coverage$cases[[3]]$source)
   premise(sd_rep == sd_cs && sd_rep == .read("config/oc_design.yaml")$trials$master_seed, "same master seed for the curve-shape and representative-subject regeneration (the original seed rule)")
-  # 사전 등록이 계산 전에 커밋됐다: 실행 로그의 커밋, 코드 변경 없음, 로그의 사전 등록 SHA-256 = 현재 파일
-  lg <- list.files(proj_path("logs"), pattern = "^core_deck_inputs_[0-9T]+\\.log$", full.names = TRUE); premise(length(lg) == 1, "one run log of scripts/63")
-  ll <- readLines(lg, warn = FALSE, encoding = "UTF-8")
-  premise(any(ll == "git_code_clean: TRUE") && any(ll == sprintf("master_seed: %s", format(sd_rep, scientific = FALSE))) && any(grepl("^\\[[0-9:]+\\] done$", ll)),
-          "scripts/63 ran on a clean committed tree with the registered master seed and finished")
+  # 사전 등록이 계산 전에 커밋됐다: 마지막 실행 로그(이름의 UTC 시각 순)가 읽은 사전 등록 SHA-256 = 현재 파일, 그 파일은 커밋된 상태(커밋 전 변경 목록에 없음)
+  lg <- sort(list.files(proj_path("logs"), pattern = "^core_deck_inputs_[0-9]{8}T[0-9]{6}\\.log$", full.names = TRUE)); premise(length(lg) >= 1, "a run log of scripts/63")
+  ll <- readLines(lg[length(lg)], warn = FALSE, encoding = "UTF-8")
+  premise(any(ll == sprintf("master_seed: %s", format(sd_rep, scientific = FALSE))) && any(grepl("^\\[[0-9:]+\\] done$", ll)), "the latest scripts/63 run used the registered master seed and finished")
   sh <- sub("^  prereg_20260929.yaml: ", "", grep("^  prereg_20260929.yaml: ", ll, value = TRUE))
-  premise(length(sh) == 1 && identical(sh, digest::digest(file = proj_path(P29), algo = "sha256")), "the registration read by scripts/63 is the committed config/prereg_20260929.yaml")
+  premise(length(sh) == 1 && identical(sh, digest::digest(file = proj_path(P29), algo = "sha256")), "the registration read by the latest scripts/63 run is the current config/prereg_20260929.yaml")
+  unc <- sub("^  uncommitted: [A-Z?]+ ", "", grep("^  uncommitted: ", ll, value = TRUE)); clean63 <- any(ll == "git_code_clean: TRUE")
+  premise(clean63 == (length(unc) == 0) && !any(grepl("prereg_20260929", unc, fixed = TRUE)), "the registration was committed when scripts/63 ran; the clean flag matches the list of uncommitted files")
   cm63 <- substr(sub("^git_sha: ", "", grep("^git_sha: [0-9a-f]{40}$", ll, value = TRUE)), 1, 7); premise(length(cm63) == 1 && nchar(cm63) == 7, "commit of the scripts/63 run")
+  d63 <- readLines(proj_path("DECISIONS.md"), warn = FALSE, encoding = "UTF-8")
+  premise(any(grepl("앞선 세 번의 실행은 결과 전에 멈추거나 대체됐다", d63, fixed = TRUE) & grepl("사전 등록에 없는 조건이라 뺌", d63, fixed = TRUE) & grepl("세 로그는 지웠고", d63, fixed = TRUE)),
+          "DECISIONS D-063: three earlier runs stopped or were superseded (one on a premise not in the registration, dropped); their logs were deleted")
   seed <- dderived("master seed of the regeneration (original seed rule of scripts/10 and scripts/21)", P29,
                    "section7.representative_subjects.regeneration :: regex master seed ([0-9]+)", sd_rep, format(sd_rep, scientific = FALSE))
   f1 <- list(neq = dcount(PV, "equal == TRUE", "scripts/63 identity checks equal to the committed results"),
@@ -71,7 +74,7 @@ slide_A14 <- function() {
   premise(!is.na(t_run) && !is.na(t_reg) && t_run < t_reg, "the reproducibility run precedes the v1.0.1 pre-registrations (caption: v1.0 results only)")
   f2 <- list(pg = sprintf("%s/%s", a14_field("n_pass_github"), a14_field("n_items")),
              ni = a14_field("n_items", "GitHub reproducibility run: items (all pass)"),
-             when = a14_rx("job_started_utc", "^([0-9]{4}-[0-9]{2}-[0-9]{2})T", "GitHub reproducibility run: job start date (UTC)", nobreak_hyphen = TRUE),
+             when = a14_rx("job_started_utc", "^([0-9]{4}-[0-9]{2}-[0-9]{2})T", "GitHub reproducibility run: job start date (UTC)"),
              cm = a14_rx("commit", "^([0-9a-f]{7})", "GitHub reproducibility run: commit (short hash)"),
              sig = dderived("significant digits in column name identical_to_local_8sig", RI, "column name identical_to_local_8sig", 8, "8"))
 
@@ -117,8 +120,9 @@ slide_A14 <- function() {
   premise(cy + ch + 0.2 <= capy - 0.08 - bh, "body fits between the cards and the caption")
   core_body(body, capy - 0.08, gap_pt = 6)
 
+  run63 <- if (clean63) tx("A14.run_clean", list(cm63 = cm63)) else tx("A14.run_dirty", list(cm63 = cm63, unc = paste(unc, collapse = ", ")))
   deck_notes(tx("A14.notes", c(f1, f2, f3, fb, list(
-    cm63 = cm63, ncsv = dcount(PV, "grepl('^curve-shape (vmax|km)', check)", "curve-shape variants regenerated (without the base draw)"),
+    cm63 = cm63, run63 = run63, ncsv = dcount(PV, "grepl('^curve-shape (vmax|km)', check)", "curve-shape variants regenerated (without the base draw)"),
     nnca = dcount(PV, RX$nca, "regenerated representative-population NCA column checks (two models)"),
     ncol = { x <- nrow(rows(PV, RX$nca)) / 2; dderived("NCA columns compared per model", PV, sprintf("count of rows [%s] / 2 models", RX$nca), x, fnum(x, 0)) },
     nsub = dcount(PV, RX$sub, "representative-subject checks (true AUC at tlast, re-solved concentration)"),

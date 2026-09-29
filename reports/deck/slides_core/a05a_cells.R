@@ -54,13 +54,15 @@ slide_A5a <- function() {
                                 zero = dext(T1, paste(WP, "& grepl('^ka_', scenario)"), "pass_pct", max, 0, "%", "AUClast + Cmax in the ka-down cells, M1")))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
   mech_top <- LS$mech[[paste(top$mechanism[1], top$direction[1], sep = "_")]]
-  mxr <- function(pk) dv(CG, sprintf("%s & pk_model=='%s' & scenario=='%s'", WG, pk, top[pk_model == pk, scenario]), "pass_pct", 2, "%", sprintf("largest cell, AUCinf (set iii) + Cmax, %s, M1", pk))
-  body <- tx("A5a.body", list(mech = mech_top, i16 = mxr("k2016"), i20 = mxr("k2020")))
-  by <- core_body(body, capy - 0.08)
-  hh <- 0.42; th <- by - 0.14 - y0 - hh
+  pn_ <- b[pass_pct > nomv & class != "exceeding"]
+  premise(nrow(pn_) == 1 && pn_$pk_model == "k2016" && pn_$scenario == "ke_up_080" && pn_$class == "nominal", "AUCinf configuration: the only cell above 5% (point) that is not exceeding is the 2016 linear-elimination-up cell, nominal (body)")
+  bf <- list(nom = f$nom, mke = LS$mech[["ke_up"]], k = dcount(CG, paste(WG, "& pass_pct > 5"), "AUCinf (set iii) + Cmax cells above 5% (point), M1 (S9 count)"),
+             ke = dv(CG, sprintf("%s & pk_model=='k2016' & scenario=='ke_up_080'", WG), "pass_pct", 2, "%", "AUCinf (set iii) + Cmax, 2016 linear elimination up cell, M1"))
+  by <- core_body(tx("A5a.body", bf), capy - 0.06)
+  hh <- 0.39; th <- by - 0.10 - y0 - hh
   for (k in 1:2) {
     pk <- c("k2016", "k2020")[k]; x <- GEO$ML + (k - 1) * (tw + gap)
-    deck_text(ML[[pk]], c(x, y0, tw, hh), size = 18, bold = TRUE, label = sprintf("label_%s", pk), gap_pt = 0)
+    deck_text(ML[[pk]], c(x, y0, tw, hh), size = 16, bold = TRUE, label = sprintf("label_%s", pk), gap_pt = 0)
     hl <- if (pk == pe_$pk_model) match(pe_$scenario, A5A_SC) else NULL             # AUClast 구성의 초과 칸(별첨 A5b에서 분해)
     deck_table(mk(pk), box = c(x, y0 + hh, tw, th), widths = c(2.3, 1.2, 2.45), size = 14, label = sprintf("table_%s", pk), highlight = hl, highlight_fill = PAL$tint_blue)
   }
@@ -68,7 +70,7 @@ slide_A5a <- function() {
 
   # ---- 노트 ----
   cnt <- function(rel, w, cls, item) dcount(rel, sprintf("%s & class=='%s'", w, cls), item)
-  deck_notes(tx("A5a.notes", c(f, list(
+  deck_notes(tx("A5a.notes", c(f, bf[c("mke", "ke")], list(mech = mech_top, 
     pn = cnt(T1, WP, "nominal", "AUClast + Cmax cells nominal, M1"), pe = cnt(T1, WP, "exceeding", "AUClast + Cmax cells exceeding, M1"),
     gc = cnt(CG, WG, "conservative", "AUCinf (set iii) + Cmax cells conservative, M1"), gn = cnt(CG, WG, "nominal", "AUCinf (set iii) + Cmax cells nominal, M1"),
     gk = dcount(CG, paste(WG, "& pass_pct > 5"), "AUCinf (set iii) + Cmax cells above 5% (point), M1"),

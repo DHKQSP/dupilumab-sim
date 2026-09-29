@@ -35,12 +35,17 @@ slide_A8 <- function() {
   ntruth <- dcfg("oc_design.yaml", c("estimand", "population", "n_subjects"), "common virtual subjects for the true ratio", function(x) fnum(as.numeric(x), 0, big = TRUE))
   capy <- core_caption(tx("A8.caption", list(n = ntruth, lo = a8_lim(1:2))),
                        GEO$BODY_BOTTOM, size = 14)
+  kmv <- c(as.numeric(.read("config/params_typical.yaml")$theta$Km$value), as.numeric(.read("config/params_k2020_model1.yaml")$theta$Km$value))
+  premise(length(vk) == 2 && all(vk == 0) && kmv[1] == kmv[2] && kmv[1] < as.numeric(.read("config/assay.yaml")$lloq_mg_L$value) &&
+            isTRUE(.read("config/params_typical.yaml")$theta$Km$fixed) && isTRUE(.read("config/params_k2020_model1.yaml")$theta$Km$fixed),
+          "Km fixed at the same value below the LLOQ in both models, without between-subject variability (body)")
   body <- tx("A8.body", list(cm = cm, t = dv(IA, "mechanism=='Km' & reachable==TRUE & model=='k2016'", "target", 2, "", "reachable Km target"),
+                             kv = dcfg("params_typical.yaml", c("theta", "Km", "value"), "Km typical value, fixed in both models (mg/L)", function(x) fnum(as.numeric(x), 2)), lq = f_lloq(),
                              m16 = dv(IA, "mechanism=='Km' & reachable==TRUE & model=='k2016'", "multiplier", 0, "", "Km multiplier reaching 1.05, k2016"),
                              m20 = dv(IA, "mechanism=='Km' & reachable==TRUE & model=='k2020'", "multiplier", 0, "", "Km multiplier reaching 1.05, k2020")))
 
   # ---- 오른쪽 표: 기전별 동등 경계 도달 배율 ----
-  WT <- c(2.5, 1.55, 1.55); WR <- sum(WT); XR <- GEO$ML + GEO$CW - WR; FW <- XR - 0.3 - GEO$ML
+  WT <- c(2.95, 1.5, 1.5); WR <- sum(WT); XR <- GEO$ML + GEO$CW - WR; FW <- XR - 0.3 - GEO$ML
   lo <- a8_lim(1); hi <- a8_lim(2)
   cell <- function(k, tg) {
     w <- sprintf("mechanism=='%s' & abs(target-%s)<1e-9 & reachable==TRUE", k, tg); r <- rows(IA, w)
@@ -51,7 +56,8 @@ slide_A8 <- function() {
   }
   df <- data.frame(a = unlist(L$table$mech[MECH]), b = vapply(MECH, cell, "", tg = fnum(lim[1], 2)), c = vapply(MECH, cell, "", tg = fnum(lim[2], 2)), stringsAsFactors = FALSE, check.names = FALSE)
   names(df) <- tx("A8.table.head", list(lo = lo, hi = hi))
-  TH <- 2.75
+  TH <- local({ w <- WT; nl <- function(v, w_, b = FALSE) vapply(nobreak(as.character(v)), function(z) est_lines(z, w_ - 0.14, 14, b), 1L)
+    (max(mapply(function(v, w_) max(nl(v, w_, TRUE)), names(df), w)) + sum(apply(matrix(sapply(seq_along(w), function(j) nl(df[[j]], w[j], j == 1)), nrow = nrow(df)), 1, max))) * 14 * 1.2 / 72 + (nrow(df) + 1) * 8 / 72 + 0.04 })
   deck_table(df, box = c(XR, y0 + 0.05, WR, TH), widths = WT, size = 14, highlight = length(MECH), label = "table_mech")
   bh <- core_body_h(body, WR); by <- y0 + 0.05 + TH + 0.12; premise(by + bh < capy - 0.04, "A8: body text fits between the table and the caption")
   deck_text(body, c(XR, by, WR, bh), size = SZ$body, label = "body", gap_pt = 4)
@@ -69,7 +75,8 @@ slide_A8 <- function() {
     geom_hline(yintercept = lim, linetype = "22", colour = PAL$ink2, linewidth = 0.5) +
     geom_hline(yintercept = 1, colour = PAL$muted, linewidth = 0.4) +
     geom_line(data = km, aes(multiplier, auc_ratio_screen, linetype = mod, group = interaction(model, direction)), colour = PAL$orange, linewidth = 1.2) +
-    geom_point(data = rp, aes(x, y, shape = mod), colour = PAL$ink, size = 3.6, stroke = 1.1) +
+    geom_point(data = rp, aes(x, y, shape = mod, size = mod), colour = PAL$ink, stroke = 1.1) +   # 두 표식이 거의 겹쳐 원을 크게 그려 삼각형이 안에 보이게 한다
+    scale_size_manual(values = setNames(c(5.2, 2.9), unlist(ML[M])), guide = "none") +
     annotate("segment", x = 12, y = 1.135, xend = min(rp$x) * 0.9, yend = max(rp$y) + 0.012, colour = PAL$ink2, linewidth = 0.4) +
     annotate("text", x = 11, y = 1.135, label = rlab, hjust = 1, vjust = 0.5, size = PT(14), family = FONT, colour = PAL$ink) +
     annotate("text", x = 0.009, y = lim[2] - 0.015, label = F$band, hjust = 0, vjust = 1, size = PT(14), family = FONT, colour = PAL$ink2) +

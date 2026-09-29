@@ -103,8 +103,8 @@ slide_A3a <- function() {
   cap <- tx("A3a.caption", list(n = dint(TPF, "pk_model=='k2016' & set=='i'", "n", "subjects per model"), na = f_n_arm(),
                                 ntr = dint(TRA, "pk_model=='k2016' & set=='i'", "n_trials", "identical-product trials per model")))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
-  BY <- y0 + TH + 0.08
-  deck_bullets(bl, box = c(GEO$ML, BY, GEO$CW, capy - 0.04 - BY), size = 18, gap_pt = 6)
+  BY <- y0 + TH + 0.04
+  deck_bullets(bl, box = c(GEO$ML, BY, GEO$CW, capy - 0.02 - BY), size = 18, gap_pt = 3)
 
   # ---- 노트 ----
   deck_notes(tx("A3a.notes", list(

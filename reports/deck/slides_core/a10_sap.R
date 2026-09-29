@@ -3,6 +3,33 @@
 # 표 = 구성별 경계 1종 오류(M1: 점추정 > 5% 칸 수, 최대; type1_models.csv P2·F3B·G2_B·G2_Ai, criteria_g2_type1.csv G2_A_iii),
 # AUCinf 분석에서 arm당 빠지는 인원(평가 가능 인원 - trialpop/tp_retained_per_arm.csv 중앙값), 빠지는 대상자의 참 AUCinf(남는 대상자 대비, tp_characteristics.csv true_aucinf_gmr).
 # 규칙: A = 기준 미달자 제외(세트 (i) adjusted R² ≥ 0.80, (iii) 신뢰할 수 있는 AUCinf), B = λz 산출 전원, C = 미달자에 AUClast 대입. 자료 논리: 결과보고 덱 s23_sap.R, s24_questions.R.
+# deck_table과 같은 표를 셀 위아래 여백만 줄여(4pt -> 2pt) 그린다: 카드 세 개 + 표 6행 + 캡션(규제 기본값 포함)을 한 장에 둔다
+a10_table_h <- function(df, width, widths, size, pad) {
+  w <- widths / sum(widths) * width; nl <- function(v, w_, b = FALSE) vapply(as.character(v), function(s) est_lines(nobreak(s), w_ - 0.14, size, b), 1L)
+  hdr <- max(mapply(function(v, w_) max(nl(v, w_, TRUE)), names(df), w)); bod <- apply(matrix(sapply(seq_along(w), function(j) nl(df[[j]], w[j], j == 1)), nrow = nrow(df)), 1, max)
+  (hdr + sum(bod)) * size * 1.2 / 72 + (nrow(df) + 1) * 2 * pad / 72
+}
+a10_table <- function(df, box, widths, size, highlight, label, pad = 2) {
+  stopifnot(size >= SZ$table_min)
+  if (nrow(df) > LIMITS$table_rows) stop(sprintf("%s: table with %d body rows (limit %d)", REG$sec, nrow(df), LIMITS$table_rows), call. = FALSE)
+  DK$cur$table_rows <- max(DK$cur$table_rows, nrow(df))
+  df <- as.data.frame(df); for (j in seq_along(df)) df[[j]] <- nobreak(as.character(df[[j]])); names(df) <- nobreak(names(df))
+  ft <- flextable(df)
+  ft <- font(ft, fontname = FONT, part = "all", eastasia.family = FONT, hansi.family = FONT, cs.family = FONT)
+  ft <- fontsize(ft, size = size, part = "all"); ft <- color(ft, color = PAL$ink, part = "all")
+  ft <- bold(ft, part = "header"); ft <- bg(ft, bg = PAL$tint_blue, part = "header"); ft <- bold(ft, j = 1, part = "body")
+  ft <- bg(ft, i = highlight, bg = PAL$tint_orange, part = "body")
+  ft <- border_remove(ft); ft <- hline(ft, border = fp_border_default(color = PAL$grid, width = 0.75), part = "body")
+  ft <- hline_bottom(ft, border = fp_border_default(color = PAL$ink2, width = 1), part = "header"); ft <- hline_top(ft, border = fp_border_default(color = PAL$ink2, width = 1), part = "header")
+  ft <- padding(ft, padding.top = pad, padding.bottom = pad, padding.left = 5, padding.right = 5, part = "all")
+  ft <- align(ft, j = 2:ncol(df), align = "center", part = "all"); ft <- align(ft, j = 1, align = "left", part = "all"); ft <- valign(ft, valign = "center", part = "all")
+  ft <- width(ft, width = widths / sum(widths) * box[3])
+  h_est <- a10_table_h(df, box[3], widths, size, pad)
+  DK$fit[[length(DK$fit) + 1L]] <- data.table(slide = REG$sec, shape = label, est_h = h_est, box_h = box[4], ratio = h_est / box[4])
+  if (h_est > box[4] * 1.03 && isTRUE(DK$strict)) stop(sprintf("%s %s: estimated table height %.2f in exceeds box %.2f in", REG$sec, label, h_est, box[4]), call. = FALSE)
+  DK$x <- ph_with(DK$x, ft, location = loc(box, label)); invisible(NULL)
+}
+
 slide_A10 <- function() {
   T1 <- "oc_models/type1_models.csv"; CG <- "criteria/criteria_g2_type1.csv"; FC <- "fallback/fallback_cost.csv"; EP <- "fallback/empirical_power.csv"
   TC <- "trialpop/tp_characteristics.csv"; TR <- "trialpop/tp_retained_per_arm.csv"; TPF <- "trialpop/tp_failure_by_set.csv"; PW <- "oc_models/power_models.csv"
@@ -22,6 +49,16 @@ slide_A10 <- function() {
   fc <- rows(FC, "TRUE"); premise(all(fc$cost_iii_pp >= 0) && setequal(fc$scenario, c("S00", "KE110", "F097")) && all(fc$true_ratio > 0.94), "fallback cost: three near-equivalent products, non-negative loss (card: 'at most')")
   ep <- rows(EP, "model=='k2016'"); premise(all(abs(ep$power_last_cmax - fc[match(ep$scenario, fc$scenario), i_last_cmax]) < 1e-9), "empirical power and fallback cost come from the same trials (AUClast + Cmax column identical)")
   for (cf in c("G2_A_iii", "G2_B", "G2_Ai")) { r <- rows(if (cf == "G2_A_iii") CG else T1, w1(cf)); premise(sum(r$pass_pct > 5) >= 8, sprintf("%s: many cells above 5%% (card)", cf)) }
+  # 대응안이 규칙 A가 아니라 규칙 B인 이유(카드 2, 표): 규칙 A(세트 (ii) 미달자 제외)는 1종 오류는 낮지만 통과율 손실이 크고 노출이 낮은 대상자를 뺀다
+  premise(identical(unlist(OC$F3A$endpoints), c("AUClast", "Cmax", "AUCinf_A")) && grepl("span ratio < 2", .read("config/oc_design.yaml")$aucinf_rules$A, fixed = TRUE), "F3A = AUClast + Cmax + AUCinf rule A with the set (ii) flags")
+  premise(nrow(rows(T1, w1("F3A", " & pass_pct > 5"))) == 0, "F3A has no cell above 5% under M1")
+  premise(all(fc$cost_ii_pp > fc$cost_iii_pp) && all(rows(TC, "set=='ii'")$true_aucinf_gmr_hi < 1), "rule A loses more joint passes than rule B and drops lower-exposure subjects (set ii, both models)")
+  premise(!any(grepl("^F3", unique(rows(CG)$config))) && setequal(grep("^F3", unique(rows(T1)$config), value = TRUE), c("F3A", "F3B", "F3C")), "no three-endpoint configuration with rule A set (iii) was computed (caption: not computed)")
+  premise(.read("config/trial_design.yaml")$be$method == "pooled_t", "fallback cost trials analysed with the pooled t-test (M0)")
+  LPr <- .read("config/literature_precedents.yaml")
+  premise(LPr$ema_2012_mab$primary_endpoint_single_dose == "AUC0-inf" && LPr$ema_2012_mab$subcutaneous_co_primary == "Cmax" && LPr$ema_2012_mab$status == "search excerpt",
+          "EMA 2012 mAb guideline (search excerpt): AUC0-inf primary in single-dose studies, Cmax co-primary for subcutaneous use")
+  premise(LPr$msb11456_iv$primary_endpoint == "AUC0-last" && grepl("intravenous", LPr$msb11456_iv$route) && LPr$msb11456_iv$status == "search excerpt", "MSB11456 (search excerpt): single intravenous dose, AUC0-last primary")
 
   # ---- 제목 ----
   f <- list(fb = dext(T1, w1("F3B"), "pass_pct", max, 2, "%", "largest boundary type I error, fallback AUClast + AUCinf (rule B) + Cmax, M1"), nom = f_nominal(),
@@ -29,7 +66,12 @@ slide_A10 <- function() {
   y0 <- core_title(tx("A10.title", f), tx("A10.kicker"))
 
   # ---- 캡션 ----
-  cap <- tx("A10.caption", list(nom = f$nom, n = f$n, n_arm = f_n_arm(), r2i = f_set("i", "r2"), exi = f_set("i", "extrap")))
+  fcr <- drange(FC, "TRUE", "true_ratio", 2, "", "true AUCinf ratio of the three fallback-cost products")
+  pdiff <- local({ r <- rows(PW, "scenario %in% c('S00','F097') & analysis_model=='M1' & config %in% c('P2','F3B')")
+    w <- dcast(r, pk_model + scenario ~ config, value.var = "pass_pct"); x <- w$P2 - w$F3B; premise(nrow(w) == 4 && all(x >= 0), "M1 power: F3B at most P2 in the four cells")
+    dderived("P2 minus F3B power, S00 and F097, both models, M1 (points)", PW, "scenario in (S00, F097) & analysis_model=='M1' & config in (P2, F3B) :: range of P2 - F3B", x, rng_fmt(min(x), max(x), 2)) })
+  cap <- tx("A10.caption", list(nom = f$nom, n = f$n, n_arm = f_n_arm(), r2i = f_set("i", "r2"), exi = f_set("i", "extrap"), fcr = fcr, pd = pdiff,
+                                ey = dcfg("literature_precedents.yaml", c("ema_2012_mab", "year"), "EMA mAb biosimilar guideline year", num_fmt(0))))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
 
   # ---- 표 ----
@@ -39,31 +81,33 @@ slide_A10 <- function() {
   cnt <- function(rel, cf) dcount(rel, w1(cf, " & pass_pct > 5"), sprintf("%s cells above 5%% (point), M1", cf))
   mx <- function(rel, cf) dext(rel, w1(cf), "pass_pct", max, 2, "%", sprintf("%s largest boundary type I error, M1", cf))
   U <- L$table$units
-  RW <- list(P2 = list(T1, "P2", U$na, U$na), F3B = list(T1, "F3B", fill(U$lost_inf, list(k = ret("lambda", "subjects per arm without an estimable lambda-z (AUCinf only)"))), U$nc),
-             Aiii = list(CG, "G2_A_iii", fill(U$lost, list(k = ret("iii", "subjects per arm without a reliable AUCinf, set (iii)"))), fill(U$gmr, list(g = gm("iii", "true AUCinf ratio failing to retained, set (iii)")))),
-             B = list(T1, "G2_B", fill(U$lost, list(k = ret("lambda", "subjects per arm without an estimable lambda-z"))), U$nc),
-             Ai = list(T1, "G2_Ai", fill(U$lost, list(k = ret("i", "subjects per arm failing set (i)"))), fill(U$gmr, list(g = gm("i", "true AUCinf ratio failing to retained, set (i)")))))
+  cst <- function(col, item) drange(FC, "TRUE", col, 2, "%p", item)
+  RW <- list(P2 = list(T1, "P2", U$na, U$na, U$ref), F3B = list(T1, "F3B", fill(U$lost_inf, list(k = ret("lambda", "subjects per arm without an estimable lambda-z (AUCinf only)"))), U$nc,
+                                                        cst("cost_iii_pp", "loss in joint pass rate adding AUCinf rule B, three near-equivalent products, 2016 model, M0")),
+             F3A = list(T1, "F3A", fill(U$lost_inf, list(k = ret("ii", "subjects per arm failing set (ii) (AUCinf only)"))), fill(U$gmr, list(g = gm("ii", "true AUCinf ratio failing to retained, set (ii)"))),
+                        cst("cost_ii_pp", "loss in joint pass rate adding AUCinf rule A (set ii), three near-equivalent products, 2016 model, M0")),
+             Aiii = list(CG, "G2_A_iii", fill(U$lost, list(k = ret("iii", "subjects per arm without a reliable AUCinf, set (iii)"))), fill(U$gmr, list(g = gm("iii", "true AUCinf ratio failing to retained, set (iii)"))), U$nc),
+             B = list(T1, "G2_B", fill(U$lost, list(k = ret("lambda", "subjects per arm without an estimable lambda-z"))), U$nc, U$nc),
+             Ai = list(T1, "G2_Ai", fill(U$lost, list(k = ret("i", "subjects per arm failing set (i)"))), fill(U$gmr, list(g = gm("i", "true AUCinf ratio failing to retained, set (i)"))), U$nc))
   df <- data.frame(a = unlist(L$table$rows[names(RW)]), b = vapply(RW, function(z) cnt(z[[1]], z[[2]]), ""), c = vapply(RW, function(z) mx(z[[1]], z[[2]]), ""),
-                   d = vapply(RW, `[[`, "", 3), e = vapply(RW, `[[`, "", 4), stringsAsFactors = FALSE)
+                   f = vapply(RW, `[[`, "", 5), d = vapply(RW, `[[`, "", 3), e = vapply(RW, `[[`, "", 4), stringsAsFactors = FALSE)
   names(df) <- tx("A10.table.head", f)
   # 높이: 표 추정 높이를 먼저 구해 카드에 나머지를 준다
-  TWD <- c(4.1, 1.6, 1.3, 2.3, 2.93)
-  th <- local({ w <- TWD / sum(TWD) * GEO$CW; nl <- function(v, w_, b = FALSE) vapply(as.character(v), function(s) est_lines(nobreak(s), w_ - 0.14, 14, b), 1L)
-    hdr <- max(mapply(function(v, w_) max(nl(v, w_, TRUE)), names(df), w)); bod <- apply(matrix(sapply(seq_along(w), function(j) nl(df[[j]], w[j], j == 1)), nrow = nrow(df)), 1, max)
-    (hdr + sum(bod)) * 14 * 1.2 / 72 + (nrow(df) + 1) * 8 / 72 + 0.04 })
+  TWD <- c(3.8, 1.65, 0.85, 1.4, 1.95, 2.58)
+  th <- a10_table_h(df, GEO$CW, TWD, 14, 2) + 0.04
   ty <- capy - 0.10 - th
-  deck_table(df, box = c(GEO$ML, ty, GEO$CW, th), widths = TWD, size = 14, highlight = 3:5, highlight_fill = PAL$tint_orange, label = "table_configs")
-  dsrc("configuration table", c(T1, CG, TR, TC), "(table)")
+  a10_table(df, box = c(GEO$ML, ty, GEO$CW, th), widths = TWD, size = 14, highlight = 4:6, label = "table_configs")
+  dsrc("configuration table", c(T1, CG, TR, TC, FC), "(table)")
 
   # ---- 카드 세 개 ----
-  gap <- 0.2; cw <- (GEO$CW - 2 * gap) / 3; ch <- ty - 0.18 - y0
+  gap <- 0.2; CWS <- c(2.72, 5.71, 3.4); CWS <- CWS / sum(CWS) * (GEO$CW - 2 * gap); ch <- ty - 0.18 - y0
   cost <- dext(FC, "TRUE", "cost_iii_pp", max, 2, "", "largest loss in joint pass rate when AUCinf (rule B) is added, near-equivalent products, 2016 model")
   C <- L$cards; fills <- c(PAL$tint_blue, PAL$tint_grey, PAL$tint_orange); hc <- c(PAL$blue, PAL$ink, PAL$orange)
   cf_k <- local({ k <- c(nrow(rows(CG, w1("G2_A_iii", " & pass_pct > 5"))), nrow(rows(T1, w1("G2_B", " & pass_pct > 5"))), nrow(rows(T1, w1("G2_Ai", " & pass_pct > 5"))))
     dderived("AUCinf + Cmax cells above 5% (point), M1, rule A set (iii), rule B, rule A set (i): range", CG, "analysis_model=='M1' & config in (G2_A_iii [criteria file], G2_B, G2_Ai [type1_models]) & pass_pct > 5 :: range of row counts", k, rng_fmt(min(k), max(k), 0)) })
   vals <- list(list(), list(cost = cost, fb = f$fb), list(k = cf_k, n = f$n, nom = f$nom))
   for (i in 1:3) {
-    x <- GEO$ML + (i - 1) * (cw + gap); cd <- C[[i]]
+    x <- GEO$ML + sum(CWS[seq_len(i - 1)]) + (i - 1) * gap; cw <- CWS[i]; cd <- C[[i]]
     ps <- c(list(para(cd$head, SZ$body, hc[i], TRUE, "left", gap_pt = 6)), lapply(cd$lines, function(z) para(fill(z, vals[[i]]), SZ$body, PAL$ink, FALSE, "left", gap_pt = 4)))
     fit_check(sprintf("card_%d", i), c(cd$head, vapply(cd$lines, function(z) fill(z, vals[[i]]), "")), c(x, y0, cw, ch), SZ$body, gap_pt = 5, card = TRUE)
     DK$x <- ph_with(DK$x, do.call(block_list, ps), location = loc(c(x, y0, cw, ch), sprintf("card_%d", i), bg = fills[i], geom = "roundRect", ln = no_line()))
@@ -71,9 +115,6 @@ slide_A10 <- function() {
 
   # ---- 노트 ----
   fcv <- function(s_, col, d, item) dv(FC, sprintf("scenario=='%s'", s_), col, d, "", item)
-  pdiff <- local({ r <- rows(PW, "scenario %in% c('S00','F097') & analysis_model=='M1' & config %in% c('P2','F3B')")
-    w <- dcast(r, pk_model + scenario ~ config, value.var = "pass_pct"); x <- w$P2 - w$F3B; premise(nrow(w) == 4 && all(x >= 0), "M1 power: F3B at most P2 in the four cells")
-    dderived("P2 minus F3B power, S00 and F097, both models, M1 (points)", PW, "scenario in (S00, F097) & analysis_model=='M1' & config in (P2, F3B) :: range of P2 - F3B", x, rng_fmt(min(x), max(x), 2)) })
   deck_notes(tx("A10.notes", c(f, list(
     r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap"), r2i = f_set("i", "r2"),
     fb0 = dext(T1, "analysis_model=='M0' & config=='F3B'", "pass_pct", max, 2, "%", "largest boundary type I error, F3B, M0"),

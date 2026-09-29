@@ -32,6 +32,9 @@ a11_fig <- function(WB, ABN, AIP, L, ML, k130) {
   PN <- c(wt = L$panel_wt, at = L$panel_at)
   d[, panel := factor(PN[panel], levels = PN)]
   d[, grp := paste(pk, metric)]
+  # 패널마다 x 범위: (a)는 150 kg 구간까지, (b)는 자료(가장 무거운 구간 평균)까지만(끝값 글자 자리 포함)
+  xr_ <- d[, .(xmax = max(x)), by = panel]; premise(xr_[panel == PN[["at"]], xmax] < 130 && xr_[panel == PN[["wt"]], xmax] > 130, "panel (b) data stop below 130 kg, panel (a) data reach the heaviest band")
+  blank <- data.table(panel = factor(PN[c("wt", "wt", "at", "at")], levels = PN), x = c(40, 168, 40, xr_[panel == PN[["at"]], xmax] + 20), y = 50)
   # 끝값 표시: 가장 무거운 구간의 미달 비율(두 모델)
   endv <- d[metric == "fail", .SD[which.max(x)], by = .(panel, pk)]
   # 지표 이름(직접 표시, 두 줄): 선과 겹치지 않는 높이. 파랑 이름은 파랑 선 아래; 주황 이름은 (a) 주황 선 위, (b) 주황 선 아래
@@ -40,6 +43,7 @@ a11_fig <- function(WB, ABN, AIP, L, ML, k130) {
           "direct labels sit clear of the lines")
   shade <- data.table(panel = factor(PN, levels = PN))
   p <- ggplot(d, aes(x, y)) +
+    geom_blank(data = blank, aes(x, y), inherit.aes = FALSE) +
     geom_rect(data = shade, aes(xmin = 60, xmax = 90, ymin = -Inf, ymax = Inf), inherit.aes = FALSE, fill = PAL$tint_grey) +
     geom_vline(data = shade[1], aes(xintercept = k130), linetype = "dotted", colour = PAL$ink2, linewidth = 0.7) +
     geom_line(aes(group = grp, colour = metric, linetype = pk), linewidth = 0.9) +
@@ -47,16 +51,16 @@ a11_fig <- function(WB, ABN, AIP, L, ML, k130) {
     geom_text(data = endv, aes(x, y, label = paste0(fnum(y, 1), "%"), colour = metric), hjust = -0.2, size = PT(14), family = FONT, show.legend = FALSE) +
     geom_text(data = lab, aes(x = 42, y = ycov, label = cov), inherit.aes = FALSE, hjust = 0, vjust = 1, size = PT(14), family = FONT, colour = PAL$blue, fontface = "bold", lineheight = 0.95) +
     geom_text(data = lab, aes(x = 42, y = yfail, label = fail), inherit.aes = FALSE, hjust = 0, vjust = 1, size = PT(14), family = FONT, colour = PAL$orange, fontface = "bold", lineheight = 0.95) +
-    facet_wrap(~ panel, nrow = 1) +
+    facet_wrap(~ panel, nrow = 1, scales = "free_x") +
     scale_colour_manual(values = c(cov = PAL$blue, fail = PAL$orange), guide = "none") +
     scale_shape_manual(values = CORE_MODEL_SHAPE, labels = unlist(ML[names(CORE_MODEL_SHAPE)]), name = NULL) +
     scale_linetype_manual(values = CORE_MODEL_LT, labels = unlist(ML[names(CORE_MODEL_LT)]), name = NULL) +
-    scale_x_continuous(limits = c(40, 168), breaks = c(60, 90, 120, 150), expand = expansion(add = c(1, 0))) +
+    scale_x_continuous(breaks = c(60, 90, 120, 150), expand = expansion(add = c(1, 0))) +
     scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 25), labels = function(v) paste0(v, "%"), expand = expansion(mult = c(0, 0.03))) +
     coord_cartesian(clip = "off") + labs(x = L$xlab, y = NULL) + theme_core(16) +
     theme(legend.position = "top", legend.justification = "left", legend.key.width = grid::unit(2.2, "lines"), legend.margin = margin(0, 0, 0, 0),
           legend.box.spacing = grid::unit(2, "pt"), panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(), panel.spacing.x = grid::unit(14, "pt"),
-          strip.text = element_text(size = 16, face = "bold", colour = PAL$ink, hjust = 0, margin = margin(2, 0, 4, 0)), plot.margin = margin(4, 8, 4, 2))
+          strip.text = element_text(size = 16, face = "bold", colour = PAL$ink, hjust = 0, lineheight = 0.95, margin = margin(2, 0, 4, 0)), plot.margin = margin(4, 8, 4, 2))
   p
 }
 
@@ -123,20 +127,32 @@ slide_A11 <- function() {
   for (m in c("k2016", "k2020")) premise(nrow(rows(CG, sprintf("analysis_model=='M1' & config=='G2_A_iii' & pk_model=='%s' & pass_pct > 5", m))) >= 1, paste("AUCinf (set iii) + Cmax above 5% in both models (notes: exceedance remains),", m))
 
   # ---- 제목 ----------------------------------------------------------------------------------------------------------------------------
+  # 제목: 그린 자료(두 모델)의 신뢰 기준 미달 최대와 AUClast/AUCinf 80% 미만 비율 최대(체중 구간과 아토피 구간)
+  fpl <- rows(ABN, "distribution=='primary' & set=='iii' & variant %in% c('base','struct2020') & band %in% c('below 60','60-90','above 90-100','above 100')")
+  wmax_a <- max(100 - wb$reliable_rsq_extrap_pct); hi_v <- max(fpl$fail_pct); premise(hi_v > wmax_a, "the largest plotted failing share is in panel (b) (title)")
+  cpl <- rows(AIP, "distribution=='primary' & variant %in% c('base','struct2020') & band %in% c('below 60','60-90','above 90-100','above 100')")
+  lt_v <- max(c(wb$coverage_lt80_pct, cpl$coverage_lt80_pct))
+  hi <- dderived("largest plotted share without a reliable AUCinf (set iii, atopic weight bands, two models)", ABN,
+                 "distribution=='primary' & set=='iii' & variant in (base, struct2020) & band in 4 bands :: max(fail_pct)", hi_v, paste0(fnum(hi_v, 1), "%"))
+  dsrc("largest share below 80% AUClast/AUCinf, plotted weight and atopic bands", AIP, "(table)")
+  lt80 <- dderived("largest share below 80% AUClast/AUCinf over the plotted weight bands (models a, b) and atopic bands (two models), rounded up", WB,
+                 "max(coverage_lt80_pct) over weight_bands_B0_abcd.csv [model in a, b] and atopic_individual_pillar1.csv [primary, base and struct2020, 4 bands]", lt_v, paste0(fnum(cl(lt_v, 2), 2), "%"))
+  th80 <- dderived("AUClast/AUCinf threshold in column name coverage_lt80_pct (percent)", WB, "column name coverage_lt80_pct", 80, "80")
   zmin <- 100 * min(acf$window_fail_min)
   z <- dderived("smallest AUClast/AUCinf (true) among patients without a reliable AUCinf (set iii), three model variants, rounded down to 0.1 (%)", ACF,
                 "distribution=='primary' & set=='iii' :: floor(1000 * min(window_fail_min)) / 10", zmin, paste0(fnum(fl(zmin, 1), 1), "%"))
-  y0 <- core_title(tx("A11.title", list(z = z)), tx("A11.kicker"))
+  y0 <- core_title(tx("A11.title", list(hi = hi, lt = lt80, th = th80)), tx("A11.kicker"))
 
   # ---- 근거 아님 띠 -----------------------------------------------------------------------------------------------------------------------
   wt <- f_wt_range()
+  FW <- 6.1; XT <- GEO$ML + FW + 0.25; TW <- GEO$W - GEO$MR - XT
   ne <- tx("A11.not_evidence", list(wt = wt))
-  nh <- est_height(ne, GEO$CW, SZ$body, 0) + 0.04
-  deck_text(ne, c(GEO$ML, y0, GEO$CW, nh), size = SZ$body, bg = PAL$tint_grey, geom = "roundRect", label = "text_not_evidence", gap_pt = 0)
-  yc <- y0 + nh + 0.14
+  nh <- est_height(ne, FW - 0.2, SZ$body, 0) + 0.1
+  deck_text(ne, c(GEO$ML, y0, FW, nh), size = SZ$body, bg = PAL$tint_grey, geom = "roundRect", label = "text_not_evidence", gap_pt = 0)
+  yc <- y0 + nh + 0.1
 
   # ---- 캡션(아래) -------------------------------------------------------------------------------------------------------------------------
-  cap <- tx("A11.caption", list(k = k130, nom = nom, r2i = f_set("i", "r2"), r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap")))
+  cap <- tx("A11.caption", list(k = k130, nom = nom, r2i = f_set("i", "r2"), r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap"), lt = lt80, th = th80))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
 
   # ---- 오른쪽 표: 가정 변경 요약 ---------------------------------------------------------------------------------------------------------------
@@ -160,8 +176,7 @@ slide_A11 <- function() {
   H <- L$table
   df <- data.frame(a = vapply(1:5, function(i) fill(H$cond[[i]], R[[i]]), ""), b = vapply(1:5, function(i) fill(H$result[[i]], R[[i]]), ""), stringsAsFactors = FALSE, check.names = FALSE)
   names(df) <- unlist(H$head)
-  FW <- 5.6; XT <- GEO$ML + FW + 0.25; TW <- GEO$W - GEO$MR - XT
-  deck_table(df, box = c(XT, yc, TW, capy - 0.1 - yc), widths = c(1.85, TW - 1.85), size = 14, align_num = FALSE, label = "table_robust")
+  deck_table(df, box = c(XT, y0, TW, capy - 0.1 - y0), widths = c(1.7, TW - 1.7), size = 14, align_num = FALSE, label = "table_robust")
 
   # ---- 왼쪽 그림 -------------------------------------------------------------------------------------------------------------------------
   nb <- dint(WB, "model=='a' & band=='40-60'", "n", "subjects per weight band"); premise(all(wb$n == wb$n[1]), "same number of subjects in every weight band")
@@ -192,7 +207,7 @@ slide_A11 <- function() {
           abs(row1(ABN, "variant=='struct2020' & distribution=='primary' & band=='all' & set=='iii'")$fail_pct - pf[pk_model == "k2020", fail_pct]) < 1,
           "atopic failing share (set iii) within 1 point of the study population in both models (notes: similar)")
   deck_notes(tx("A11.notes", list(
-    wt = wt, nb = nb, k130 = k130, nom = nom, z = z,
+    wt = wt, nb = nb, k130 = k130, nom = nom, z = z, hi = hi, lt = lt80, th = th80,
     a1 = fi("a", "40-60"), a6 = fi("a", "130-150"), b1 = fi("b", "40-60"), b6 = fi("b", "130-150"),
     ca1 = c5("a", "40-60"), ca6 = c5("a", "130-150"), cb1 = c5("b", "40-60"), cb6 = c5("b", "130-150"),
     wlt = dext(WB, "model %in% c('a','b')", "coverage_lt80_pct", max, 2, "%", "largest share below 80% AUClast/AUCinf over weight bands, two models"),

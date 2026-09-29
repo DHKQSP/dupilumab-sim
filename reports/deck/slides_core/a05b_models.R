@@ -40,16 +40,26 @@ slide_A5b <- function() {
   f <- list(nom = f_nominal(), n = dcount(T1, "analysis_model=='M1' & config=='P2'", "boundary cells"),
             k = dderived("AUCinf (set iii) + Cmax cells above 5% (point), range over M0 and M1", CG, "analysis_model in (M0, M1) & config=='G2_A_iii' & pass_pct > 5 :: range over models of row counts",
                          k_iii, rng_fmt(min(k_iii), max(k_iii), 0)))
-  y0 <- core_title(tx("A5b.title", f), tx("A5b.kicker"))
+  premise(all(k_iii > 0) && all(vapply(c("M0", "M1"), function(am) nrow(rows(CG, sprintf("analysis_model=='%s' & config=='G2_A_iii'", am))), 1L) == 16), "set (iii) rule A computed for all 16 cells under M0 and M1 (title)")
+  y0 <- core_title(tx("A5b.title", f), tx("A5b.kicker", f))
 
   # ---- 아래: 캡션, 본문 ----
-  cap <- tx("A5b.caption", list(r2i = f_set("i", "r2"), ex = f_set("i", "extrap"), span = f_set("ii", "span")))
+  CB <- "criteria/criteria_bias.csv"; WB <- function(pk, ep) sprintf("analysis_model=='M1' & pk_model=='%s' & scenario=='Vmax_up_080' & endpoint=='%s'", pk, ep)
+  premise(all(rows(CB, "analysis_model=='M1' & scenario=='Vmax_up_080' & endpoint %in% c('AUCinf_Aiii','AUCinf_B')")$bias_dir == "toward_1") &&
+          all(rows(CB, "analysis_model=='M1' & scenario=='Vmax_up_080' & endpoint %in% c('AUCinf_Aiii','AUCinf_B')")$bias_pct > 0), "Vmax up: NCA AUCinf GMR biased toward 1 (caption)")
+  tv <- unique(rows(CB, "analysis_model=='M1' & scenario=='Vmax_up_080'")$target); premise(length(tv) == 1, "one target true ratio in the Vmax up cells")
+  mech <- list(tvx = dv(CB, WB("k2016", "AUCinf_Aiii"), "target", 2, "", "target true AUCinf ratio, Vmax up cells"),
+               bi16 = dv(CB, WB("k2016", "AUCinf_Aiii"), "bias_pct", 1, "%", "AUCinf GMR bias toward 1, set (iii) rule A, 2016 Vmax up, M1"),
+               bi20 = dv(CB, WB("k2020", "AUCinf_Aiii"), "bias_pct", 1, "%", "AUCinf GMR bias toward 1, set (iii) rule A, 2020 Vmax up, M1"),
+               bb16 = dv(CB, WB("k2016", "AUCinf_B"), "bias_pct", 1, "%", "AUCinf GMR bias toward 1, all estimable (rule B), 2016 Vmax up, M1"),
+               bb20 = dv(CB, WB("k2020", "AUCinf_B"), "bias_pct", 1, "%", "AUCinf GMR bias toward 1, all estimable (rule B), 2020 Vmax up, M1"))
+  cap <- c(tx("A5b.mech", mech), tx("A5b.caption", list(r2i = f_set("i", "r2"), ex = f_set("i", "extrap"), span = f_set("ii", "span"))))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
   b <- list(p2 = dv(DE, WD("M1"), "p2_pct", 2, "%", "AUClast + Cmax, 2020 V2 up cell, M1"),
             bias = a5b_signed(dv(DE, WD("M1"), "auclast_bias_pct", 2, "%", "AUClast GMR bias against the true AUCinf ratio, 2020 V2 cell, M1")),
             d = a5b_signed(dv(DE, WD("M1"), "auclast_minus_ref_pp", 2, "", "AUClast term: AUClast alone minus the true-AUCinf reference (points), M1")),
             n = dcount(DE, "analysis_model=='M1'", "boundary cells in the decomposition"))
-  by <- core_body(tx("A5b.body", b), capy - 0.08)
+  by <- core_body(tx("A5b.body", c(b, list(nom = f$nom))), capy - 0.08)
 
   # ---- 왼쪽 (a) 표 ----
   RW <- list(P2 = c(T1, "P2"), A_iii = c(CG, "G2_A_iii"), A_i = c(T1, "G2_Ai"), A_ii = c(T1, "G2_Aii"), B = c(T1, "G2_B"), C_i = c(T1, "G2_Ci"))
@@ -60,9 +70,9 @@ slide_A5b <- function() {
   df <- data.frame(a = unlist(L$table$rows[names(RW)]), stringsAsFactors = FALSE)
   for (am in AM) df[[am]] <- vapply(RW, function(z) cell(z[1], z[2], am), "")
   names(df) <- tx("A5b.table.head")
-  hh <- 0.40; TW <- 7.25; ty <- y0 + hh; th <- by - 0.12 - ty
+  hh <- 0.40; TW <- 7.35; ty <- y0 + hh; th <- by - 0.12 - ty
   deck_text(tx("A5b.head_a", f), c(GEO$ML, y0, TW, hh), size = 16, bold = TRUE, label = "label_a", gap_pt = 0)
-  deck_table(df, box = c(GEO$ML, ty, TW, th), widths = c(3.2, 1.35, 1.35, 1.35), size = 14, highlight = 1:2, highlight_fill = PAL$tint_grey, label = "table_models")
+  deck_table(df, box = c(GEO$ML, ty, TW, th), widths = c(3.3, 1.35, 1.35, 1.35), size = 14, highlight = 1:2, highlight_fill = PAL$tint_grey, label = "table_models")
   dsrc("analysis model table", c(T1, CG), "(table)")
 
   # ---- 오른쪽 (b) 그림: 같은 칸의 세 판정(M1) ----
@@ -75,12 +85,13 @@ slide_A5b <- function() {
   xl <- c(floor(min(fd$lo) * 5) / 5 - 0.2, ceiling(max(fd$hi) * 5) / 5 + 0.7)
   p <- ggplot(fd) +
     geom_vline(xintercept = nomv, linetype = "22", colour = PAL$ink2, linewidth = 0.7) +
+    annotate("rect", xmin = -Inf, xmax = Inf, ymin = ann$y - 0.19, ymax = ann$y + 0.19, fill = "white", colour = NA) +   # 효과 글자 줄: 5% 점선·눈금선이 글자를 가르지 않게 흰 바탕
     annotate("text", x = nomv, y = 3.62, label = fill(G$nom, list(v = f$nom)), hjust = -0.08, size = PT(14), family = FONT, colour = PAL$ink2) +
     geom_segment(aes(x = lo, xend = hi, y = y, yend = y, colour = col), linewidth = 1.1) +
     geom_point(aes(est, y, colour = col), size = 4) +
     geom_text(aes(hi, y, label = paste0(fnum(est, 2), "%"), colour = col), hjust = -0.25, size = PT(16), family = FONT, fontface = "bold") +
     geom_text(data = fd[k == "p2"], aes(lo, y - 0.24, label = fill(G$ci, list(lo = fnum(lo, 2), hi = fnum(hi, 2))), colour = col), hjust = 0, vjust = 1, size = PT(14), family = FONT) +
-    geom_label(data = ann, aes(xl[1] + 0.02, y, label = lab, colour = col), hjust = 0, size = PT(14), family = FONT, fill = "white", label.size = 0, label.padding = grid::unit(1, "pt")) +
+    geom_text(data = ann, aes(xl[1] + 0.02, y, label = lab, colour = col), hjust = 0, size = PT(14), family = FONT) +
     scale_colour_identity() +
     scale_y_continuous(breaks = 3:1, labels = unlist(G$rows[c("ref", "last", "p2")]), limits = c(0.42, 3.75), expand = expansion(mult = 0)) +
     scale_x_continuous(limits = xl, breaks = seq(ceiling(xl[1] * 2) / 2, ceiling(max(fd$hi) * 2) / 2, 0.5), expand = expansion(mult = 0)) +
@@ -115,6 +126,6 @@ slide_A5b <- function() {
     civ = dext(CG, "analysis_model=='M1' & config=='G2_C_iv'", "pass_pct", max, 2, "%", "rule C set (iv) largest, M1"),
     aiv = dcount(CG, "analysis_model=='M1' & config=='G2_A_iv' & pass_pct > 5", "rule A set (iv) cells above 5% (point), M1"),
     aivx = dext(CG, "analysis_model=='M1' & config=='G2_A_iv'", "pass_pct", max, 2, "%", "rule A set (iv) largest, M1"),
-    r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap"), split = f_split()))))
+    r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap"), split = f_split()), mech)))
   deck_end()
 }

@@ -22,6 +22,30 @@ a12_mult <- function(variants, par, item) {
 # config 문자열 값(상태 등)을 그대로 적는다(추적 행에 남김)
 a12_txt <- function(file, path, item) dcfg(file, path, item, function(x) as.character(x))
 
+# deck_table과 같은 표(첫 열 굵게, 강조 행)를 셀 위아래 여백만 줄여(4pt -> 2pt) 그린다: 8행 표와 캡션을 한 장에 둔다
+a12_table <- function(df, box, widths, size, highlight, highlight_fill, label, pad = 2) {
+  stopifnot(size >= SZ$table_min)
+  if (nrow(df) > LIMITS$table_rows) stop(sprintf("%s: table with %d body rows (limit %d)", REG$sec, nrow(df), LIMITS$table_rows), call. = FALSE)
+  DK$cur$table_rows <- max(DK$cur$table_rows, nrow(df))
+  df <- as.data.frame(df); for (j in seq_along(df)) df[[j]] <- nobreak(as.character(df[[j]])); names(df) <- nobreak(names(df))
+  ft <- flextable(df)
+  ft <- font(ft, fontname = FONT, part = "all", eastasia.family = FONT, hansi.family = FONT, cs.family = FONT)
+  ft <- fontsize(ft, size = size, part = "all"); ft <- color(ft, color = PAL$ink, part = "all")
+  ft <- bold(ft, part = "header"); ft <- bg(ft, bg = PAL$tint_blue, part = "header"); ft <- bold(ft, j = 1, part = "body")
+  ft <- bg(ft, i = highlight, bg = highlight_fill, part = "body")
+  ft <- border_remove(ft); ft <- hline(ft, border = fp_border_default(color = PAL$grid, width = 0.75), part = "body")
+  ft <- hline_bottom(ft, border = fp_border_default(color = PAL$ink2, width = 1), part = "header"); ft <- hline_top(ft, border = fp_border_default(color = PAL$ink2, width = 1), part = "header")
+  ft <- padding(ft, padding.top = pad, padding.bottom = pad, padding.left = 5, padding.right = 5, part = "all")
+  ft <- align(ft, align = "left", part = "all"); ft <- valign(ft, valign = "center", part = "all")
+  w <- widths / sum(widths) * box[3]; ft <- width(ft, width = w)
+  nl <- function(v, w_, b = FALSE) vapply(as.character(v), function(s_) est_lines(s_, w_ - 0.14, size, b), 1L)
+  hdr <- max(mapply(function(v, w_) max(nl(v, w_, TRUE)), names(df), w)); bod <- apply(matrix(sapply(seq_along(w), function(j) nl(df[[j]], w[j], j == 1)), nrow = nrow(df)), 1, max)
+  h_est <- (hdr + sum(bod)) * size * 1.2 / 72 + (nrow(df) + 1) * 2 * pad / 72
+  DK$fit[[length(DK$fit) + 1L]] <- data.table(slide = REG$sec, shape = label, est_h = h_est, box_h = box[4], ratio = h_est / box[4])
+  if (h_est > box[4] * 1.03 && isTRUE(DK$strict)) stop(sprintf("%s %s: estimated table height %.2f in exceeds box %.2f in", REG$sec, label, h_est, box[4]), call. = FALSE)
+  DK$x <- ph_with(DK$x, ft, location = loc(box, label)); invisible(NULL)
+}
+
 slide_A12 <- function() {
   CV <- "core_deck/coverage_by_case.csv"; PV <- "core_deck/provenance.csv"; INV <- "oc/inversion_all.csv"
   Q16 <- "step1/step1b_quant_gate.csv"; Q20 <- "results/step1_k2020/step1b_quant_gate.csv"
@@ -50,6 +74,13 @@ slide_A12 <- function() {
   premise(all(e20$tmax_sim_median > e20$tmax_obs_median) && identical(sort(unique(e20$tmax_sim_median)), sort(unique(e16$tmax_sim_median))),
           "same in the 2020 model, with the same simulated tmax (row 2 gives one simulated value for both models)")
 
+  premise(all(g16$Cmax_ratio > 1) && median(g20$Cmax_ratio) > 1, "study presentation: simulated Cmax above observed in every 2016 data set and in most 2020 data sets (row: Cmax over-prediction)")
+  msr <- paste(readLines(proj_path("regulatory", "src", "MS_report.Rmd"), warn = FALSE, encoding = "UTF-8"), collapse = "\n")
+  premise(grepl("Manual lambda-z review.** The automated Best Fit is simulated", msr, fixed = TRUE) && grepl("this is not simulated", msr, fixed = TRUE) && grepl("Cmax over-predicted", msr, fixed = TRUE),
+          "report limitations: manual lambda-z review not simulated (automated Best Fit only); Cmax over-predicted")
+  premise(identical(.read("config/nca_rules.yaml")$standard$lambda_z$selection, "max_adj_r2"), "the NCA engine selects the lambda-z window automatically (largest adjusted R-squared, Best Fit)")
+  st5 <- rows("curve_shape/curve_shape_B0.csv", "variant=='vmax050_both'"); premise(nrow(st5) == 1 && isTRUE(st5$stress_test) && st5$coverage_lt80_pct > 0 && !"vmax050" %in% cur$case,
+                                                                                     "Vmax x0.5 is a stress test outside the four pre-registered curve-shape cases, with some subjects below 80% (notes)")
   # ---- 전제: 검증 상태 ---------------------------------------------------------------------------------------------------------------------
   ev <- rows(EV); premise(all(ev$pass) && setequal(unique(ev$comparison), c("this engine vs NonCompart", "PKNCA vs NonCompart", "this engine vs PKNCA")), "the NCA engine was compared with NonCompart and PKNCA only")
   premise(!any(grepl("phoenix|winnonlin", list.files(proj_path("results", "nca_engine"), recursive = TRUE), ignore.case = TRUE)), "no Phoenix output in results/nca_engine")
@@ -58,6 +89,11 @@ slide_A12 <- function() {
   st <- c(vapply(lc, function(e) e$status, ""), vapply(lp, function(e) e$status, ""))
   premise(length(lc) == 2 && length(lp) == 2 && all(st == "search excerpt"), "all four cited sources are search excerpts (status 'search excerpt')")
   premise(isFALSE(lc$fda_bla761055_clinpharm$page_verified), "FDA review page not verified")
+  p26 <- .read("config/prereg_20260926.yaml")
+  premise(grepl("NCT04700163 (adjusted R-squared above 0.90", p26$section6$s2_1_failure_by_set$public_saps, fixed = TRUE) && grepl("verified from a web-search excerpt", p26$section6$s2_1_failure_by_set$public_saps, fixed = TRUE),
+          "NCT04700163 SAP threshold known from a web-search excerpt only")
+  premise(any(grepl("Certara Phoenix 8.2 NCA documentation", unlist(p26$section4$facts_for_documents), fixed = TRUE)) &&
+            any(grepl("Certara 문서, 검색으로 확인", readLines(proj_path("DECISIONS.md"), warn = FALSE, encoding = "UTF-8"), fixed = TRUE)), "Phoenix 8.2 documentation checked through search only (site blocked)")
   pv <- rows(PV)
   premise(nrow(rows(PV, "equal == FALSE")) == 0 && all(startsWith(pv[is.na(equal), check], "input ")) && nrow(rows(PV, "equal == TRUE")) > 0,
           "every identity check in provenance.csv is equal; the other rows are input hashes")
@@ -100,15 +136,18 @@ slide_A12 <- function() {
     n34 = dcount(PV, "equal == TRUE", "identity checks of the regenerated core-deck summaries (all equal)"),
     lloq = f_lloq(), n_arm = f_n_arm(),
     tg90 = dint(NNf, wn("M1", 90), "target_pct", "target power (%)"), n90 = dint(NNf, wn("M1", 90), "n_evaluable_per_arm", "n per arm for the higher target, M1"),
-    tg85 = dint(NNf, wn("M1", 85), "target_pct", "target power (%)"), n85 = dint(NNf, wn("M1", 85), "n_evaluable_per_arm", "n per arm for the lower target, M1"))
+    tg85 = dint(NNf, wn("M1", 85), "target_pct", "target power (%)"), n85 = dint(NNf, wn("M1", 85), "n_evaluable_per_arm", "n per arm for the lower target, M1"),
+    ncs = dderived("pre-registered curve-shape cases (both arms)", CV, "case %in% c('vmax080','vmax125','km05','km10') :: row count", nrow(cur), as.character(nrow(cur))),
+    gc16 = drange(Q16, "gate_role=='gate'", "Cmax_ratio", 2, "", "Cmax sim/obs range, study presentation, 2016"),
+    gc20 = drange(Q20, "gate_role=='gate'", "Cmax_ratio", 2, "", "Cmax sim/obs range, study presentation, 2020"))
   dsrc("literature status (results deck citations)", LP, "(table)")
   H <- L$table
   df <- data.frame(a = tx("A12.table.status", f), b = tx("A12.table.item", f), c = tx("A12.table.detail", f), stringsAsFactors = FALSE, check.names = FALSE)
   names(df) <- unlist(H$head)
   cap <- tx("A12.caption")
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
-  deck_table(df, box = c(GEO$ML, y0, GEO$CW, capy - 0.16 - y0), widths = c(1.95, 3.1, 7.18), size = 14, align_num = FALSE, label = "table_limits",
-             highlight = 3:5, highlight_fill = PAL$tint_grey)   # 아직 하지 않은 검증(제목)
+  a12_table(df, box = c(GEO$ML, y0, GEO$CW, capy - 0.12 - y0), widths = c(1.85, 3.0, 7.38), size = 14, label = "table_limits",
+            highlight = 4:6, highlight_fill = PAL$tint_grey)   # 아직 하지 않은 검증(제목)
   deck_src_first(c(PV, QC, LC))
 
   # ---- 노트 ------------------------------------------------------------------------------------------------------------------------------
@@ -125,8 +164,9 @@ slide_A12 <- function() {
     g300a = drange(Q16, sprintf("gate_role=='gate' & dose_mg==%s", dose), "AUClast_ratio", 2, "", "AUClast sim/obs, study-dose data sets, 2016"),
     g300b = drange(Q20, sprintf("gate_role=='gate' & dose_mg==%s", dose), "AUClast_ratio", 2, "", "AUClast sim/obs, study-dose data sets, 2020"),
     gate = dcfg("design_clot2021.yaml", c("gate", "auclast_mean_tol_pct"), "exposure gate: AUClast mean within +/- tolerance (%)", num_fmt(0)),
-    gc16 = drange(Q16, "gate_role=='gate'", "Cmax_ratio", 2, "", "Cmax sim/obs range, study presentation, 2016"),
-    gc20 = drange(Q20, "gate_role=='gate'", "Cmax_ratio", 2, "", "Cmax sim/obs range, study presentation, 2020"),
+    s5 = dcfg("scenarios.yaml", c("sensitivity_variants", "vmax050_both", "theta_multipliers", "Vmax"), "Vmax multiplier of the stress test (both arms)", num_fmt(1)),
+    s5lt = dv("curve_shape/curve_shape_B0.csv", "variant=='vmax050_both'", "coverage_lt80_pct", 3, "%", "stress test Vmax x0.5: share below 80% AUClast/AUCinf"),
+    s5p = dv("curve_shape/curve_shape_B0.csv", "variant=='vmax050_both'", "extrap_true_p95", 2, "%", "stress test Vmax x0.5: 95th percentile of the true extrapolated share"),
     mx = local({ x <- max(ev$max_rel_diff); e <- floor(log10(x)); m <- signif(x, 2) / 10^e
       sup <- chartr("-0123456789", "⁻⁰¹²³⁴⁵⁶⁷⁸⁹", as.character(e))
       dderived("largest relative parameter difference", EV, "max(max_rel_diff), printed as mantissa x 10^exponent", x, sprintf("%s×10%s", format(m), sup)) }),

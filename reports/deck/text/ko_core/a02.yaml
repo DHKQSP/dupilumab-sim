@@ -1,15 +1,15 @@
 A2:
   kicker: "별첨 A2 · 방법 세부"
-  title: "λz 신뢰 기준은 Phoenix의 선택 항목이라 adjusted R² {r2i} 또는 {r2iii}의 세트 (i)~(iv)로 정했다"
+  title: "Phoenix는 λz 기준을 강제하지 않아 adjusted R² {r2i}·{r2iii}으로 정했다"
   rules_label: "비구획 분석 규칙 (Phoenix WinNonlin 호환 엔진)"
   rules:
     - "**AUClast**: 실제 채혈 시각, 선형 증가·로그 감소 사다리꼴"
     - "- AUCinf = AUClast + 마지막 정량 농도(Clast) / λz"
     - "**정량한계 미만(BLQ)**: 첫 정량값 전 {z}, 정량값 사이 결측, 마지막 정량값 뒤 제외, 두 번 연속 BLQ 뒤 정량값 결측"
     - "**λz**: Cmax 뒤 {mp}점 이상 구간 중 adjusted R² 최대(차이 {tol} 미만이면 점이 많은 구간, 기울기 양수 제외)"
-  sets_label: "λz 신뢰 기준 세트 (사전 등록 4절)"
+  sets_label: "λz 신뢰 기준 세트 (사전 등록 4절; 네 세트 모두 외삽 ≤ {ex}%)"
   table:
-    head: ["세트", "adjusted R²", "외삽", "span", "쓰임"]
+    head: ["세트", "adjusted\nR²", "span", "등록 상태", "쓰임"]
   set_names:
     i: "(i)"
     ii: "(ii)"
@@ -18,20 +18,30 @@ A2:
   none: "없음"
   span: "≥ 반감기 {x}배"
   ge: "≥ {x}"
-  le: "≤ {x}%"
+  status:
+    i: "사후 정의→등록"
+    ii: "원래 사전 명시"
+    iii: "사전 등록"
+    iv: "사전 등록"
   use:
     i: "관행 하한 (S5)"
     ii: "엔진 기본 표시"
-    iii: "신뢰할 수 있는 AUCinf"
-    iv: "NCT04117607 조건"
-  phoenix: "**Phoenix**의 Lambda Z Acceptance Criteria는 사용자 선택 항목이다: 넣지 않으면 기준이 없고, 넣어도 미충족 프로필은 표시만 되며 제외되지 않는다. 공개 통계분석계획(NCT04117607, NCT04441905)은 adjusted R² ≥ {sap}."
+    iii: "신뢰할 수 있는\nAUCinf"
+    iv: "NCT04117607 조건\n+ 외삽 ≤ {ex}%"
+  sap:
+    ge: "≥ {x}"
+    gt: "> {x}"
+  phoenix: "**Phoenix**의 Lambda Z Acceptance Criteria는 사용자 선택 항목이다: 넣지 않으면 기준이 없고, 넣어도 미충족 프로필은 표시만 되며 제외되지 않는다. **공개 통계분석계획의 λz 기준**: NCT04117607 adjusted R² {s1}·span ≥ 반감기 {sp}배, NCT04441905 {s2}(두 건 원문 확인), NCT04700163 {s3}(검색 발췌)."
   caption:
     - "엔진 검증: NonCompart·PKNCA와 프로필 {ntot}개 쌍별 비교, λz 구간 {lz} 일치, 최대 상대 차이 {mx}(Phoenix 출력과는 미대조)."
+  method:
+    - "시험 모의: 참값 = 공통 난수 {nt}명의 모델 적분 기하평균비(GMR), 경계 조건 = 기전 배율의 이분법 역산, 칸마다 시험 {reps}회(별첨 A5a·A5b)."
   notes: |
-    규칙(config/nca_rules.yaml): AUClast는 실제 채혈 시각으로 선형 증가·로그 감소 사다리꼴로 계산하고 투여 전 기저치를 포함한다. 정량한계 미만 처리는 Phoenix가 자동으로 하지 않으므로 비구획 분석 전에 적용한다: 첫 정량값 전 {z}, 정량값 사이 결측(인접점 연결), 마지막 정량값 뒤 제외, 첫 정량 뒤 두 번 연속 정량한계 미만이면 그 뒤 정량값은 결측(통계분석계획 관행).
+    규칙(config/nca_rules.yaml): AUClast는 실제 채혈 시각으로 선형 증가·로그 감소 사다리꼴로 계산하고 투여 전 기저치를 포함한다. Phoenix의 정량한계 미만 처리 규칙은 사용자가 지정하지 않으면 적용되지 않으므로, 아래 규칙을 비구획 분석 전에 명시적으로 적용한다: 첫 정량값 전 {z}, 정량값 사이 결측(인접점 연결), 마지막 정량값 뒤 제외, 첫 정량 뒤 두 번 연속 정량한계 미만이면 그 뒤 정량값은 결측(통계분석계획 관행).
     λz(Best Fit): 후보 구간은 Cmax 뒤(Cmax 제외) 양의 농도 마지막 k점(k는 {mp} 이상), 가중치 없는 로그 선형 회귀, 기울기 양수 구간 제외, adjusted R² 최대 구간이며 최댓값과 차이가 {tol} 미만이면 점이 많은 구간을 고른다. Cmax 뒤 양의 농도가 {mp}점 미만이면 λz를 산출하지 않는다. AUCinf = AUClast + Clast/λz(Phoenix AUCINF_obs).
-    기준 세트(사전 등록 2026-09-26 4절; 모두 λz 산출을 전제; 외삽 = (AUCinf - AUClast) / AUCinf, span = λz 구간 길이 / 반감기): (i) adjusted R² ≥ {r2i}, 외삽 ≤ {ex}%; (ii) 여기에 span ≥ 반감기 {sp2}배; (iii) adjusted R² ≥ {r2iii}, 외삽 ≤ {ex}%; (iv) 여기에 span ≥ 반감기 {sp4}배. 세트 (ii)가 원래 사전 명시한 정의이고 엔진의 기본 표시도 이것이다. 세트 (i)은 첫 결과 뒤 더한 사후 정의이며 관행 범위의 하한으로 보고한다(S5). 세트 (iii)과 (iv)는 v1.0.1 사전 등록 4절에서 더했고, 이 덱의 "신뢰할 수 있는 AUCinf"는 세트 (iii)이다.
+    기준 세트(사전 등록 2026-09-26 4절; 모두 λz 산출을 전제; 외삽 = (AUCinf - AUClast) / AUCinf, span = λz 구간 길이 / 반감기): (i) adjusted R² ≥ {r2i}, 외삽 ≤ {ex}%; (ii) 여기에 span ≥ 반감기 {sp2}배; (iii) adjusted R² ≥ {r2iii}, 외삽 ≤ {ex}%; (iv) 여기에 span ≥ 반감기 {sp4}배. 세트 (ii)가 원래 사전 명시한 정의이고 엔진의 기본 표시도 이것이다. 세트 (i)은 첫 결과 뒤 더한 사후 정의이며(사전 명시 등록부에 사후로 기록) 뒤에 사전 등록 4절의 세트 목록에 들어갔고, 관행 범위의 하한으로 보고한다(S5). 세트 (iii)과 (iv)는 v1.0.1 사전 등록 4절에서 더했고, 이 덱의 "신뢰할 수 있는 AUCinf"는 세트 (iii)이다. 세트 (iv)는 NCT04117607의 adjusted R²·span 조건에 이 프로젝트의 외삽 ≤ {ex}% 조건을 더한 것이다(그 통계분석계획에는 외삽 기준이 없다).
     Phoenix: Lambda Z Acceptance Criteria(최소 adjusted R², 최대 외삽 %, 최소 span)는 Rules 탭에서 사용자가 넣는 항목이다. 넣지 않으면 적용되지 않고, 넣으면 프로필마다 Accepted/Not_Accepted로 표시할 뿐 제외하지 않는다(Certara Phoenix 8.2 NCA 문서; 사전 등록 4절).
-    공개 통계분석계획(사전 등록 6절 목록): NCT04117607은 adjusted R² {s1} 이상과 span 요건(세트 (iv)와 같은 조건), NCT04441905는 adjusted R² {s2} 이상, NCT04700163은 adjusted R² {s3} 초과(웹 검색 발췌로 확인)를 요구한다.
+    공개 통계분석계획(사전 등록 6절 목록): NCT04117607은 adjusted R² {s1} 이상과 span 요건(세트 (iv)의 R²·span 조건), NCT04441905는 adjusted R² {s2} 이상을 요구하고, NCT04700163은 adjusted R² {s3} 초과이며 미충족 시 AUCinf와 말단 파라미터를 요약·통계 분석에서 뺀다(사이트 차단으로 웹 검색 발췌로만 확인).
+    시험 모의(config/oc_design.yaml, 결과 전에 고정): 참값은 같은 가상 대상자 {nt}명(공통 난수)에 대조약과 시험약 파라미터를 각각 적용해 구한 모델 적분 AUCinf·Cmax의 기하평균비다. 경계 조건은 기전 하나의 시험군 배율을 로그 배율 이분법으로 찾아 참 AUCinf 비를 동등 한계에 맞춘 제품이며, 칸마다 시험 {reps}회를 돌려 동등 판정 비율(경계 1종 오류)과 Wilson 95% 구간을 구한다(분류는 별첨 A5a, 분석 모형 M0/M1/M2는 별첨 A5b).
     엔진 검증: NonCompart {nc}, PKNCA {pk}과 Theoph {nth}개, Indometh {nin}개, 모의 두필루맙 {nsim}개 프로필(모두 {ntot}개)에서 엔진 쌍별로 비교했다. λz 선택 구간 {lz} 일치, 파라미터 최대 상대 차이 {mx}, 모든 비교 통과. 실제 Phoenix 출력과는 대조하지 않았다.
     관련 보고서: 3.4절, 4.1절, 부록 D, 부록 H.
