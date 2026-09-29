@@ -162,6 +162,8 @@ nobreak <- function(s) {
   s <- gsub("AUC0-(inf|last|tlast)", "AUC0\u2011\\1", s, perl = TRUE)
   s <- gsub("([0-9%)]) (?=(kg|mg|mL|L/|mg/|mg·|day|h\\b|모델|명|칸|일|회|배|개|시간|점|mg/kg)(?![A-Za-z]))", "\\1\u00a0\u2060", s, perl = TRUE)   # LibreOffice는 NBSP 뒤 한글에서 줄을 바꾸므로 U+2060을 덧붙인다
   s <- gsub("(Day|≥|≤|>|<|×) (?=[0-9])", "\\1\u00a0\u2060", s, perl = TRUE)
+  s <- gsub("(?<![A-Za-z])(SD|CI|GMR|CV|Wilson|span|R²) (?=[0-9(])", "\\1\u00a0", s, perl = TRUE)   # 통계량 이름과 값
+  s <- gsub("([0-9]%) (?=CI)", "\\1\u00a0", s, perl = TRUE)                                       # '90% CI'
   s <- gsub("(?<=[0-9%A-Za-z)\u00b2])(?=[\uac00-\ud7a3])", "\u2060", s, perl = TRUE)   # 숫자·영문·닫는 괄호와 바로 붙은 한글(단위, 조사)
   s <- gsub("(?<=^|[\\s(~,;:/])-(?=[0-9])", "-\u2060", s, perl = TRUE)                   # 음수 부호와 숫자
   # 한글과 여는 괄호는 붙이지 않는다: LibreOffice는 괄호 뒤 결합자를 무시하고, 붙인 덩어리가 길면 한글 단어 가운데서 줄을 바꾼다(시험 렌더링 확인)
@@ -184,7 +186,7 @@ deck_slide <- function(id, tag = c("sim", "lit", "litsim", "none"), dark = FALSE
   if (dark) DK$x <- ph_with(DK$x, fpar(ftext(" ", ftp(8))), location = loc(c(0, 0, GEO$W, GEO$H), "background", bg = PAL$dark, geom = "rect", ln = no_line()))
   if (tag != "none") {
     lab <- DK$txt$common$tags[[tag]]
-    b <- c(GEO$W - GEO$MR - GEO$TAG_W, GEO$KICK_TOP - 0.02, GEO$TAG_W, GEO$TAG_H)
+    b <- c(GEO$W - GEO$MR - GEO$TAG_W, GEO$KICK_TOP - 0.08, GEO$TAG_W, GEO$TAG_H - 0.04)   # 제목 첫 줄과 겹치지 않게 위로
     DK$x <- ph_with(DK$x, fpar(ftext(lab, ftp(SZ$tag, if (dark) PAL$dark_ink else PAL$ink2, TRUE)), fp_p = fp_par(text.align = "center")),
                     location = loc(b, "tag", bg = if (dark) "#2a3644" else PAL$tint_grey, geom = "roundRect", ln = no_line()))
   }
@@ -226,7 +228,7 @@ deck_box <- function(box, fill = PAL$tint_grey, geom = "roundRect", label = "sha
   invisible(NULL)
 }
 # 표: df는 문자열 data.frame(수치는 d* 결과). 본문 6행 이하.
-deck_table <- function(df, box, widths = NULL, size = SZ$table, header_fill = PAL$tint_blue, bold_col1 = TRUE, align_num = TRUE, highlight = NULL, highlight_fill = PAL$tint_orange, label = "table") {
+deck_table <- function(df, box, widths = NULL, size = SZ$table, header_fill = PAL$tint_blue, bold_col1 = TRUE, align_num = TRUE, highlight = NULL, highlight_fill = PAL$tint_orange, label = "table", align_cols = NULL) {
   stopifnot(size >= SZ$table_min)
   if (nrow(df) > LIMITS$table_rows) stop(sprintf("%s: table with %d body rows (limit %d)", REG$sec, nrow(df), LIMITS$table_rows), call. = FALSE)
   DK$cur$table_rows <- max(DK$cur$table_rows, nrow(df))
@@ -242,10 +244,11 @@ deck_table <- function(df, box, widths = NULL, size = SZ$table, header_fill = PA
   ft <- padding(ft, padding.top = 4, padding.bottom = 4, padding.left = 5, padding.right = 5, part = "all")
   if (align_num && ncol(df) > 1) ft <- align(ft, j = 2:ncol(df), align = "center", part = "all")
   ft <- align(ft, j = 1, align = "left", part = "all"); ft <- valign(ft, valign = "center", part = "all")
+  if (!is.null(align_cols)) { stopifnot(length(align_cols) == ncol(df)); for (j in seq_along(align_cols)) ft <- align(ft, j = j, align = align_cols[j], part = "all") }   # 열별 정렬
   if (is.null(widths)) widths <- rep(box[3] / ncol(df), ncol(df)) else widths <- widths / sum(widths) * box[3]
   ft <- width(ft, width = widths)
   # 행 높이 추정: 셀마다 줄 수(Pretendard 폭) x 줄 높이
-  nl <- function(v, w, b = FALSE) vapply(as.character(v), function(s) est_lines(s, w - 0.14, size, b), 1L)
+  nl <- function(v, w, b = FALSE) vapply(as.character(v), function(s) est_lines(s, w - 0.14, size, b), 1L)   # 셀 여백 0.14 in(실제 넘침은 검사 9가 PDF로 확인)
   hdr <- max(mapply(function(v, w) max(nl(v, w, TRUE)), names(df), widths))
   bod <- apply(matrix(sapply(seq_along(widths), function(j) nl(df[[j]], widths[j], bold_col1 && j == 1)), nrow = nrow(df)), 1, max)
   h_est <- (hdr + sum(bod)) * size * 1.2 / 72 + (nrow(df) + 1) * 8 / 72

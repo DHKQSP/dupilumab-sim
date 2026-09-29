@@ -5,7 +5,7 @@ A4:
   rules:
     - "**정량한계 미만(BLQ) 처리**(Phoenix가 자동으로 하지 않아 NCA 전에 적용): 첫 정량값 전 {z}, 정량값 사이 결측, 마지막 정량값 뒤 제외, 두 번 연속 BLQ 뒤의 정량값 결측"
     - "**AUC0-last**: 실제 채혈 시각, linear-up log-down 사다리꼴"
-    - "**λz (Best Fit)**: Cmax 뒤 마지막 {mp}점 이상 창(기울기 양수 제외) 중 adjusted R² 최대 창. 차이 {tol} 미만이면 점이 많은 창"
+    - "**λz (Best Fit)**: Cmax 뒤 마지막 {mp}점 이상 창 중 adjusted R² 최대(기울기 양수 제외, 차이 {tol} 미만이면 점이 많은 창)"
     - "**AUC0-inf** = AUCINF_obs = AUC0-last + Clast/λz"
     - "**미달자 처리**(AUC0-inf를 검정할 때): 규칙 A는 제외, 규칙 B는 λz를 구할 수 있으면 모두 포함, 규칙 C는 AUC0-last 대입"
   engine: "λz 선택 창 일치: 프로파일 {ntot}개(Theoph {nth}, Indometh {nin}, 모의 {nsim}) × 엔진 {npair}쌍(이 엔진, NonCompart, PKNCA). 파라미터 최대 상대 차이 {mx}"

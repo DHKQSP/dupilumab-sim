@@ -2,7 +2,8 @@
 # 사실대로 공개한다: 기전(V2 배율, 2016 모델의 같은 참 비 배율), 크기와 구간(M0·M1, 처음 10,000회와 20,000회), 같은 시험 안의 분해(AUC0-last 편향),
 # 같은 칸의 AUC0-inf 구성과의 대비. 시험 모집단(건강인 60~90 kg, 체중 층화 배정, B0)만.
 # 자료: results/oc_models/type1_models.csv(분석 모형별 경계 1종 오류; *_10k = 처음 10,000회), extension_decision_models.csv(확대 판정),
-#       p2_decomposition_models.csv(분해, AUC0-last 편향), sd_se_models.csv(NCA AUC0-inf 편향), criteria/criteria_g2_type1.csv(세트 (iii)·(iv) 구성).
+#       p2_decomposition_models.csv(분해, AUC0-last 편향), sd_se_models.csv(NCA AUC0-inf 편향), criteria/criteria_g2_type1.csv(세트 (i)~(iv) 구성),
+#       criteria/criteria_bias.csv(세트별 NCA AUC0-inf 편향 방향).
 # 주의: 확대는 M0의 Wilson 구간이 5%를 포함해 정해졌다. M1은 처음 10,000회에서 이미 하한 > 5%라 스스로 확대 조건을 만들지 않았고,
 #       등록 규칙(prereg section1, D-048 규칙을 분석 모형마다 적용)대로 세 분석 모형(M0·M1·M2)을 모두 20,000회로 보고한다.
 #       D-048 확대는 사전 고정 설계 뒤에 추가한 사후 규칙이라(보고서 3.7절, 부록 D) 10,000회 값을 함께 적는다.
@@ -124,7 +125,7 @@ slide_S19 <- function() {
   mech <- list(m20 = m20, m16 = dv(DE, WD("M0", "k2016"), "multiplier", 2, "", "V2 multiplier k2016"),
                tr = dv(DE, WD("M1"), "target", 2, "", "true AUC0-inf ratio targeted in the V2 cells"),
                p16 = dv(T1, WT("M1", "P2", "pk_model=='k2016' & scenario=='V2_up_080'"), "pass_pct", 2, "%", "P2, 2016 model V2 cell, M1"))
-  MY <- GEO$BODY_TOP + EH + 0.12; MH <- 1.35
+  MY <- GEO$BODY_TOP + EH + 0.16; MH <- 1.12
   deck_text(tx("S19.mech", mech), c(XR, MY, WR, MH), size = 16, label = "text_mech", bg = PAL$tint_grey, geom = "roundRect", gap_pt = 4)
   dec <- function(col, am, item) s19_signed(dv(DE, WD(am), col, 3, "", sprintf("%s, 2020 V2 cell, %s", item, am)))
   cols <- c(ref = "ref_minus_5_pp", last = "auclast_minus_ref_pp", cmax = "p2_minus_auclast_pp", p2 = "p2_minus_5_pp")
@@ -133,7 +134,7 @@ slide_S19 <- function() {
                    b = vapply(names(cols), function(k) dec(cols[[k]], "M1", itm[[k]]), ""),
                    c = vapply(names(cols), function(k) dec(cols[[k]], "M0", itm[[k]]), ""), stringsAsFactors = FALSE, check.names = FALSE)
   names(df) <- tx("S19.table.head")
-  TY <- MY + MH + 0.12
+  TY <- MY + MH + 0.16
   deck_table(df, box = c(XR, TY, WR, GEO$BODY_BOTTOM - TY), widths = c(3.3, 0.95, 0.95), size = 12, highlight = 2, label = "table_decomp")
 
   # ---- 노트 ----
@@ -159,7 +160,7 @@ slide_S19 <- function() {
     ci1 = g2("G2_C_i", "M1"), cii1 = g2("G2_C_ii", "M1"), ciii1 = g2("G2_C_iii", "M1"), civ1 = g2("G2_C_iv", "M1"),
     ai0 = g2("G2_A_i", "M0"), aii0 = g2("G2_A_ii", "M0"), aiii0 = g2("G2_A_iii", "M0"), aiv0 = g2("G2_A_iv", "M0"), bb0 = g2("G2_B", "M0"),
     ci0 = g2("G2_C_i", "M0"), cii0 = g2("G2_C_ii", "M0"), ciii0 = g2("G2_C_iii", "M0"), civ0 = g2("G2_C_iv", "M0"),
-    nba = nb("AUCinf_A"), nbai = nb("AUCinf_Ai"), nbb = nb("AUCinf_B"), nbc = nb("AUCinf_C"),
+    nba = nb("AUCinf_A"), nbai = nb("AUCinf_Ai"), nbb = nb("AUCinf_B"), nbc = nb("AUCinf_C"), nbci = nb("AUCinf_Ci"),
     nai = nab[["G2_Ai"]], naii = nab[["G2_Aii"]], nbB = nab[["G2_B"]], wai = nabw[["G2_Ai"]], waii = nabw[["G2_Aii"]], wbB = nabw[["G2_B"]],
     nci = cnt("G2_Ci"), wci = cnt("G2_Ci", col = "lo"), ncii = dcount(CG, "analysis_model=='M1' & config=='G2_C_ii' & pass_pct > 5", "M1 rule C (ii) cells above 5% (point)"),
     ka16 = dv(T1, "pk_model=='k2016' & scenario=='ka_down_080' & analysis_model=='M1' & config=='AUCinf_true_only'", "pass_pct", 2, "%", "unbiased reference, 2016 ka down, M1"),

@@ -18,13 +18,13 @@ S19:
       G2_Ci: "AUC0-inf + Cmax, 규칙 C (i)"
       G2_Cii: "AUC0-inf + Cmax, 규칙 C (ii)"
   bullets:
-    - "**같은 칸의 AUC0-inf + Cmax**(M1): 규칙 A (i)~(iv)·B는 NCA 편향이 1에서 먼 쪽이고 {ab}로 모두 보수적이다. 규칙 C는 동등 쪽으로 치우쳐 (i) {ci}만 명목이고 (ii)~(iv)는 초과다(최대 (iv) {civ})."
-    - "**경계 {n}칸 전체**(M1): AUC0-last + Cmax는 이 칸만 {nom}를 넘지만, 규칙 A (i)·(ii)·B는 점추정 {nom} 초과가 {nab}칸, Wilson 하한 > {nom}가 {nabw}칸이다."
+    - "**같은 칸의 AUC0-inf + Cmax**(M1): 규칙 A (i)~(iv)·B는 NCA 편향이 1에서 먼 쪽이고 {ab}로 모두 보수적이다. 규칙 C는 동등 쪽으로 치우쳐 (i) {ci}만 명목이고 (ii)~(iv)는 초과이며, (iv)가 {civ}로 가장 높다."
+    - "**경계 {n}칸 전체**(M1): AUC0-last + Cmax는 이 칸만 {nom}를 넘지만, 규칙 A (i)·(ii)·B는 {nab}칸에서 점추정이 {nom}를 넘고 {nabw}칸이 초과(Wilson 하한 > {nom})다."
   ext:
     - "**확대 경위**"
     - "사전 고정 {n10}회에서 M1은 이미 {m1k}로 초과였고, M0는 Wilson 95% 구간({m0ci})이 {nom}를 포함해 확대가 정해졌다. 등록 규칙(D-048)대로 세 분석 모형을 모두 {n20}회로 늘렸고, 설계 고정 뒤 추가한 규칙이라 {n10}회 값도 싣는다."
   mech:
-    - "**기전** 시험약의 말초 분포용적 V2만 ×{m20}(2020 모델). 같은 참 AUC0-inf 비 {tr}에 2016 모델은 ×{m16}이 필요하며, 그 칸의 AUC0-last + Cmax는 M1에서 {p16}로 보수적이다."
+    - "**기전** 시험약의 말초 분포용적 V2만 ×{m20}(2020 모델). 같은 참 AUC0-inf 비 {tr}을 만드는 2016 모델 칸(V2 ×{m16})의 AUC0-last + Cmax는 M1에서 {p16}로 보수적이다."
   table:
     head: ["같은 시험 안의 분해 (%p)", "M1", "M0"]
     rows:
@@ -37,7 +37,7 @@ S19:
     AUC0-last + Cmax, 시험 {n20}회: M0 {p0}({c0}), M1 {p1}({c1}), M2 {p2m}({c2}). 사전 고정 {n10}회: M0 {k0}({ck0}), M1 {k1}({ck1}), M2 {k2}({ck2}). 분류는 Wilson 95% 구간 기준이다: 보수적(Wilson 상한 < {nom}), 명목(Wilson 구간이 {nom} 포함), 초과(Wilson 하한 > {nom}). M1에서 이 칸을 뺀 나머지 칸은 모두 보수적이다.
     확대 규칙(사전 등록 prereg section1, D-048 규칙을 분석 모형마다 적용): 사전 고정 {n10}회의 Wilson 구간이 {nom}를 포함하면 M0 또는 M1 어느 쪽이든 그 칸을 {n20}회로 늘리고 세 분석 모형을 모두 {n20}회로 보고하며 {n10}회 값을 함께 적는다. 이 칸은 M0 구간이 {nom}를 포함해 확대되었고, M1은 하한이 이미 {nom} 위여서 스스로 확대 조건을 만들지 않았다. 적응적 확대(D-048)는 사전 고정 설계 뒤, 결과를 본 뒤에 정한 사후 항목이어서(보고서 3.7절, 부록 D) 두 값을 모두 보고한다.
     원인(같은 시험 안의 정확한 분해): M1에서 AUC0-last GMR 편향 {b1}(동등 쪽, 곧 1 방향)이 불편 참조 {r1}를 AUC0-last 단독 {l1}로 올리고, Cmax 불통과가 조금 낮춘다. M0 편향은 {b0}로 거의 같다. AUC0-last GMR이 동등 쪽으로 치우친 칸은 경계 {n}칸 중 이 칸뿐이며 세 분석 모형 모두 같다. M1이 M0보다 높은 것은 새 편향이 아니라 표준오차 보정 때문이다: 불편 참조가 M0 {r0}에서 M1 {r1}로 오르고, 불편 참조의 시험 간 SD / 시험 내 SE가 M0 {s0}, M1 {s1}이다. 분해 표는 {n20}회 통과율의 차이(%p)이며, 셋째 자리까지 적어야 M0에서도 행의 합이 맞는다.
-    같은 칸의 AUC0-inf + Cmax(M1 / M0): 규칙 A (i) {ai1} / {ai0}, A (ii) {aii1} / {aii0}, A (iii) {aiii1} / {aiii0}, A (iv) {aiv1} / {aiv0}, 규칙 B {bb1} / {bb0}, 규칙 C (i) {ci1} / {ci0}, C (ii) {cii1} / {cii0}, C (iii) {ciii1} / {ciii0}, C (iv) {civ1} / {civ0}. M1에서 규칙 A (i)~(iv)와 B는 모두 보수적, 규칙 C (i)은 명목, C (ii)~(iv)는 초과다. 이 칸의 NCA AUC0-inf GMR 편향(M1)은 규칙 A (ii) {nba}, A (i) {nbai}, B {nbb}로 1에서 먼 쪽이고, 규칙 C (ii)는 {nbc}로 동등 쪽이다.
+    같은 칸의 AUC0-inf + Cmax(M1 / M0): 규칙 A (i) {ai1} / {ai0}, A (ii) {aii1} / {aii0}, A (iii) {aiii1} / {aiii0}, A (iv) {aiv1} / {aiv0}, 규칙 B {bb1} / {bb0}, 규칙 C (i) {ci1} / {ci0}, C (ii) {cii1} / {cii0}, C (iii) {ciii1} / {ciii0}, C (iv) {civ1} / {civ0}. M1에서 규칙 A (i)~(iv)와 B는 모두 보수적, 규칙 C (i)은 명목, C (ii)~(iv)는 초과다. 이 칸의 NCA AUC0-inf GMR 편향(M1)은 규칙 A (ii) {nba}, A (i) {nbai}, B {nbb}로 1에서 먼 쪽이고, 규칙 C는 (i) {nbci}, (ii) {nbc}로 동등 쪽이다.
     경계 {n}칸 전체(M1), 점추정 {nom} 초과 칸(괄호: Wilson 하한 > {nom}인 초과 칸): 규칙 A (i) {nai}칸({wai}칸), A (ii) {naii}칸({waii}칸), B {nbB}칸({wbB}칸), 통계분석계획 제안의 규칙 C (i) {nci}칸({wci}칸; 이 칸, {ci1}, 명목). 보고서 요약은 규칙 C를 세트 (ii)로 인용한다: C (ii) {ncii}칸(이 칸, {cii1}). {n}칸 전체로는 AUC0-inf 구성이 더 많은 칸에서 {nom}를 넘는다.
     주의: M1의 불편 참조도 흡수 속도 감소 칸에서는 {nom}를 넘는다(2016 모델 {ka16}, 2020 모델 {ka20}). 그 칸에서는 Cmax가 모든 시험에서 불통과해 AUC0-last + Cmax가 {kap2}다.
     결과 전 등록한 기대(보고서 Table 5-16): '{exp_c}', 결과와 일치 여부 {exp_ok}.

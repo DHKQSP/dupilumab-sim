@@ -77,8 +77,8 @@ slide_S14 <- function() {
   RW <- c(AB, C_i = CC[["C_i"]])
   m <- do.call(rbind, lapply(names(RW), function(k) one(k, RW[[k]])))
   df <- as.data.frame(m, stringsAsFactors = FALSE); names(df) <- tx("S14.table.head", f)
-  LW <- 7.95; th <- 2.55
-  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, LW, th), widths = c(1.86, 1.23, 1.5, 0.88, 1.35, 1.13), size = 12, highlight = 6)
+  LW <- 7.85; th <- 2.52
+  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, LW, th), widths = c(1.84, 1.21, 1.48, 0.87, 1.33, 1.12), size = 12, highlight = 6)
 
   # ---- 요점(표 아래) ----
   abmax <- dext(CG, sprintf("analysis_model=='M1' & config %%in%% %s", s14_in(AB)), "pass_pct", max, 2, "%", "M1 rules A and B: largest boundary pass rate")
@@ -97,8 +97,8 @@ slide_S14 <- function() {
   nvar <- local({ k <- sort(unique(rows(CG, "analysis_model=='M1'")$config)); premise(setequal(k, c(AB, CC)), "nine variants in the criteria file")
     dderived("number of AUC0-inf + Cmax variants (rule x criteria set)", CG, "analysis_model=='M1' :: count of distinct config", length(k), as.character(length(k))) })
   inf$nvar <- nvar
-  dh <- 1.4
-  deck_text(tx("S14.inst.def", inf), c(xr, GEO$BODY_TOP, wr, dh), size = 16, label = "inst_def", bg = PAL$tint_grey, geom = "roundRect", gap_pt = 4)
+  dh <- 1.42
+  deck_text(tx("S14.inst.def", inf), c(xr, GEO$BODY_TOP, wr, dh), size = 16, label = "inst_def", bg = PAL$tint_grey, geom = "roundRect", gap_pt = 2)
   ch <- (GEO$BODY_BOTTOM - GEO$BODY_TOP - dh - 0.24) / 2; y1 <- GEO$BODY_TOP + dh + 0.12
   i_all <- s14_inst("M1", "inst_all", "median"); i14 <- s14_inst("M1", "inst_all", "median", drop_ka = TRUE)
   deck_stat(i_all, tx("S14.inst.card1", list(nvar = nvar, ncell = f$ncell, ninf = inf$ninf, i14 = i14, max = s14_inst("M1", "inst_all", "max"),

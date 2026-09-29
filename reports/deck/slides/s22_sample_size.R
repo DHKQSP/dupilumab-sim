@@ -43,12 +43,15 @@ slide_S22 <- function() {
             cv_ok = dint(TP, s22_w(cv_ok, n_arm), "cv", "largest grid CV with power at the target, protocol n (%)"),
             p_ok = dv(TP, s22_w(cv_ok, n_arm), "analytic_pct", 1, "%", sprintf("P2 power n 117 CV %s GMR 0.95 M1", cv_ok)),
             cv_s = dint(TP, s22_w(cv_s, n_arm), "cv", "sensitivity CV (%)"),
-            p_s = dv(TP, s22_w(cv_s, n_arm), "analytic_pct", 1, "%", sprintf("P2 power n 117 CV %s GMR 0.95 M1", cv_s)))
+            p_s = dv(TP, s22_w(cv_s, n_arm), "analytic_pct", 1, "%", sprintf("P2 power n 117 CV %s GMR 0.95 M1", cv_s)),
+            cv_b = dint(TP, s22_w(cv_b, n_arm), "cv", "protocol CV (%)"),
+            p_b = dv(TP, s22_w(cv_b, n_arm), "analytic_pct", 1, "%", sprintf("P2 power n 117 CV %s GMR 0.95 M1", cv_b)))
+  premise(as.numeric(sub("%", "", f$p_b)) >= tg && as.numeric(sub("%", "", f$p_s)) < tg, "protocol CV power at or above the target, sensitivity CV power below it (bullet 1, notes)")
   deck_kicker(tx("S22.kicker")); deck_title(tx("S22.title", f))
 
   # ---- 왼쪽: 검정력 표 ----
-  tw <- 7.35; y0 <- GEO$BODY_TOP
-  deck_text(tx("S22.caption", list(g = f$g)), c(GEO$ML, y0, tw, 0.4), size = 16, color = PAL$ink2, label = "caption")
+  tw <- 7.6; y0 <- GEO$BODY_TOP
+  deck_text(tx("S22.caption", list(g = f$g)), c(GEO$ML, y0, tw, 0.4), size = 16, color = PAL$ink2, label = "caption", gap_pt = 0)
   tag <- function(cv) if (cv == cv_b) L$table$base else if (cv == cv_s) L$table$sens else ""
   row_lab <- function(cv) { s <- fill(L$table$row, list(cv = dint(TP, s22_w(cv, n_arm), "cv", sprintf("grid CV %s (%%)", cv)))); t_ <- tag(cv); if (nzchar(t_)) paste(s, t_) else s }
   cell <- function(cv, n, am = "M1") dv(TP, s22_w(cv, n, am), "analytic_pct", 1, "", sprintf("P2 power n %s CV %s GMR 0.95 %s", n, cv, am))
@@ -58,18 +61,18 @@ slide_S22 <- function() {
   nlab <- function(n) dint(TP, s22_w(cv_b, n), "n", "evaluable subjects per arm (grid column)")
   names(df) <- c(L$table$h_cv, vapply(ns, function(n) fill(if (n == n_arm) L$table$h_now else L$table$h_n, list(n = nlab(n))), ""),
                  fill(L$table$h_m0, list(n = nlab(n_arm))))
-  yt <- y0 + 0.45
-  deck_table(df, box = c(GEO$ML, yt, tw, 2.55), widths = c(2.15, 0.95, 1.3, 0.95, 0.95, 1.05), size = 14, highlight = which(cvs %in% c(cv_b, cv_s)))
+  yt <- y0 + 0.42; TH <- 2.5
+  deck_table(df, box = c(GEO$ML, yt, tw, TH), widths = c(1.95, 1.08, 1.3, 1.08, 1.08, 1.11), size = 13, highlight = which(cvs %in% c(cv_b, cv_s)))
 
   # ---- 왼쪽 아래: 요점 ----
   nn_ <- function(cv, am, col = "n_evaluable_per_arm", it = "n") dint(NN, s22_wn(cv, am, tg), col, sprintf("%s %s CV %s GMR 0.95 target %s", it, am, cv, tg))
-  b <- list(tgt = f$tgt, cv_b = dint(TP, s22_w(cv_b, n_arm), "cv", "protocol CV (%)"), cv_s = f$cv_s,
-            n_b = nn_(cv_b, "M1"), n_s = nn_(cv_s, "M1"), nr_s = nn_(cv_s, "M1", "n_randomized_per_arm", "n randomized"),
+  b <- list(tgt = f$tgt, cv_b = f$cv_b, cv_s = f$cv_s, cv_ok = f$cv_ok,
+            n_b = nn_(cv_b, "M1"), n_s = nn_(cv_s, "M1"), nr_s = nn_(cv_s, "M1", "n_randomized_per_arm", "n randomized"), nr_b = nn_(cv_b, "M1", "n_randomized_per_arm", "n randomized"),
             cv16 = dv(SI, "input_model=='k2016'", "cv_auc_pct", 1, "%", "AUC0-last CV, 2016 model (%)"),
             cv20 = dv(SI, "input_model=='k2020'", "cv_auc_pct", 1, "%", "AUC0-last CV, 2020 model (%)"),
             li = dcfg("design_clot2021.yaml", c("variability_checks", "li2020", "cv_pct_range"), "Li 2020 Table 3, 300 mg arms, SD/mean range (%)", function(x) rng_fmt(x[1], x[2], 0)),
             coh = dv(LS, "startsWith(variant, 'Cohen')", "AUClast_logcv", 0, "%", "Cohen 2022 implied AUC0-last CV (%)"))
-  yb <- yt + 2.55 + 0.12
+  yb <- yt + TH + 0.1
   deck_bullets(tx("S22.bullets", b), c(GEO$ML, yb, tw, GEO$BODY_BOTTOM - yb), size = 16, gap_pt = 5)
 
   # ---- 오른쪽: 분석식 - PK 모델 시험 그림(참 GMR별, 두 모델, M1과 M0) ----
@@ -84,10 +87,10 @@ slide_S22 <- function() {
   p <- ggplot(d, aes(x = x, y = dd, colour = model, shape = model)) + geom_hline(yintercept = 0, colour = PAL$ink2, linewidth = 0.5) +
     geom_errorbar(aes(ymin = dlo, ymax = dhi), position = pd, width = 0.25, linewidth = 0.55) + geom_point(position = pd, size = 3) +
     facet_wrap(~am, nrow = 1) + scale_colour_manual(values = unname(MODEL_COL)) + scale_shape_manual(values = unname(MODEL_SHAPE)) +
-    labs(x = L$fig$xlab, y = NULL, subtitle = L$fig$ylab) + theme_deck(13) +
-    theme(panel.grid.major.x = element_blank(), legend.position = "top", plot.subtitle = element_text(colour = PAL$ink2, size = 13, margin = margin(0, 0, 4, 0)))
+    labs(x = L$fig$xlab, y = NULL, subtitle = fill(L$fig$ylab, list(n = f$n_arm))) + theme_deck(12) +
+    theme(panel.grid.major.x = element_blank(), legend.position = "top", legend.margin = margin(0, 0, 0, 0), plot.subtitle = element_text(colour = PAL$ink2, size = 12, lineheight = 1.1, margin = margin(0, 0, 3, 0)))
   xr <- GEO$ML + tw + 0.3; wr <- GEO$W - GEO$MR - xr
-  hf <- 3.95
+  hf <- 3.6
   deck_figure(p, "s22_analytic_vs_pk", c(xr, GEO$BODY_TOP, wr, hf), src = PK)
   f2 <- list(g90 = drange(PK, w90, "auc_ratio", 2, "", "true GMR of the PK-model check band 0.85 to 0.92"), rng = s22_pk(0.85, 0.92, "range"),
              g95 = drange(PK, "analysis_model != 'M2' & auc_ratio > 0.93 & auc_ratio < 1.01", "auc_ratio", 2, "", "true GMRs of the PK-model check band 0.93 to 1.01"),
@@ -111,6 +114,7 @@ slide_S22 <- function() {
     p_s0 = dv(TP, s22_w(cv_s, n_arm, "M0"), "analytic_pct", 1, "%", sprintf("P2 power n 117 CV %s GMR 0.95 M0", cv_s)),
     p130 = dv(TP, s22_w(cv_s, ns[ns > n_arm][1]), "analytic_pct", 1, "%", "P2 power, next grid n above the protocol n, sensitivity CV, M1"),
     n130 = dint(TP, s22_w(cv_s, ns[ns > n_arm][1]), "n", "next grid n above the protocol n"),
-    ntr = s22_unique(PK, w90, "n_trials", "PK-model trials per check cell, true GMR 0.90")))))
+    ntr = s22_unique(PK, "analysis_model != 'M2' & scenario %in% c('F_down_090','F_down_095')", "n_trials", "PK-model trials per check cell, F-decrease cells (true GMR 0.90 and 0.95)"),
+    ntr2 = s22_unique(PK, "analysis_model != 'M2' & scenario %in% c('S00','F097')", "n_trials", "PK-model trials per check cell, S00 and F097")))))
   deck_end()
 }

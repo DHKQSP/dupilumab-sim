@@ -50,7 +50,12 @@ slide_S21 <- function() {
   pmax <- function(m, am = "M1") dext(T1, sprintf("analysis_model=='%s' & config=='P2' & pk_model=='%s'", am, m), "pass_pct", max, 2, "%", sprintf("largest P2 boundary type I error, %s, %s", m, am))
   gcnt <- function(m) dcount(T1, sprintf("analysis_model=='M1' & config=='G2_Ai' & pk_model=='%s' & pass_pct > 5", m), sprintf("M1 G2_Ai cells above 5%%, %s", m))
   npm <- dcount(T1, "analysis_model=='M1' & config=='P2' & pk_model=='k2016'", "boundary cells per model")
-  r1 <- list(npm = npm, n10 = f_reps("boundary"), n20 = f_reps("ext"), p16 = pmax("k2016"), p20 = pmax("k2020"), g16 = gcnt("k2016"), g20 = gcnt("k2020"), nom = nom)
+  wcnt <- function(m) dcount(T1, sprintf("analysis_model=='M1' & config=='G2_Ai' & pk_model=='%s' & lo > 5", m), sprintf("M1 G2_Ai cells with Wilson lower bound above 5%%, %s", m))
+  r1 <- list(npm = npm, n10 = f_reps("boundary"), n20 = f_reps("ext"), p16 = pmax("k2016"), p20 = pmax("k2020"), g16 = gcnt("k2016"), g20 = gcnt("k2020"),
+             w16 = wcnt("k2016"), w20 = wcnt("k2020"), nom = nom)
+  premise(identical(unique(rows(T1, "n_trials != 10000")[, paste(pk_model, scenario)]), "k2020 V2_up_080") && all(rows(T1, V2C)$n_trials == 20000) && all(rows(T1, sprintf("!(%s)", V2C))$n_trials == 10000),
+          "only the 2020 V2 cell was extended (20,000 trials); all other cells 10,000 (rows 1 and 5)")
+  premise(row1(T1, sprintf("analysis_model=='M1' & config=='P2' & %s", V2C))$pass_pct == max(rows(T1, "analysis_model=='M1' & config=='P2' & pk_model=='k2020'")$pass_pct), "the 2020 maximum is the V2 cell (row 1)")
   mfmt <- function(x) sub("\\.?0+$", "", fnum(as.numeric(x), 2))
   kmr <- dcfg("oc_design.yaml", c("mechanisms", "Km", "range"), "Km multiplier search range, test arm", function(x) sprintf("%s~×%s", mfmt(x[1]), mfmt(x[2])))
   km_rng <- local({ r <- rows(IA, "mechanism=='Km' & is.finite(end_auc_ratio)"); r2 <- rows(IA, "mechanism=='Km' & reachable==TRUE"); x <- range(c(r$end_auc_ratio, r2$auc_ratio))
@@ -73,24 +78,32 @@ slide_S21 <- function() {
   dderived("number of LLOQ values in the sensitivity grid", "config/assay.yaml", "length(lloq_sensitivity_mg_L)", as.integer(r3$nl), r3$nl)
   dderived("boundary cells in the LLOQ trials", LT, "length(unique(scenario))", as.integer(r3$nc), r3$nc)
   r4 <- list(s12 = s12, s24 = dv(TRS, "variant=='k2016' & set=='iii'", "sigma_prop_pct", 1, "%", "proportional residual, 2016 model"),
+             i24 = dv(TRS, "variant=='k2016' & set=='i'", "fail_pct", 1, "%", "set (i) failing, residual 24.2%"), i12 = dv(TRS, "variant=='resid12' & set=='i'", "fail_pct", 1, "%", "set (i) failing, residual 12%"),
              f24 = dv(TRS, "variant=='k2016' & set=='iii'", "fail_pct", 1, "%", "set (iii) failing, residual 24.2%"), f12 = dv(TRS, "variant=='resid12' & set=='iii'", "fail_pct", 1, "%", "set (iii) failing, residual 12%"),
              g24 = dv(TRS, "variant=='k2016' & set=='iv'", "fail_pct", 1, "%", "set (iv) failing, residual 24.2%"), g12 = dv(TRS, "variant=='resid12' & set=='iv'", "fail_pct", 1, "%", "set (iv) failing, residual 12%"),
              ntr = dint(PR, "scenario=='S00' & schedule=='B0' & endpoint=='AUClast'", "n_trials", "trials per scenario, residual 12%"))
   am_rng <- function(am) drange(T1, sprintf("analysis_model=='%s' & config=='P2'", am), "pass_pct", 2, "%", sprintf("%s P2 boundary range", am))
   am_c <- function(am) dcount(T1, sprintf("analysis_model=='%s' & config=='P2' & class=='conservative'", am), sprintf("%s P2 cells conservative", am))
   nall <- dcount(T1, "analysis_model=='M1' & config=='P2'", "boundary cells")
-  r5 <- list(n = nall, r0 = am_rng("M0"), r1 = am_rng("M1"), r2 = am_rng("M2"), c0 = am_c("M0"), c1 = am_c("M1"), c2 = am_c("M2"), n10 = r1$n10, n20 = r1$n20)
+  v2 <- function(am) dv(T1, sprintf("%s & analysis_model=='%s' & config=='P2'", V2C, am), "pass_pct", 2, "%", sprintf("P2, 2020 V2 cell, %s", am))
+  r5 <- list(n = nall, r0 = am_rng("M0"), r1 = am_rng("M1"), r2 = am_rng("M2"), c0 = am_c("M0"), c1 = am_c("M1"), c2 = am_c("M2"), n10 = r1$n10, n20 = r1$n20,
+             m0 = v2("M0"), m1 = v2("M1"), m2 = v2("M2"))
+  r5$c <- r5$c1
+  premise(r5$c0 == r5$c1 && r5$c1 == r5$c2 && as.integer(r5$c1) == as.integer(nall) - 1L, "all boundary cells but the V2 cell are conservative under M0, M1 and M2 (row 5)")
+  cls <- vapply(c("M0", "M1", "M2"), function(am) row1(T1, sprintf("%s & analysis_model=='%s' & config=='P2'", V2C, am))$class, "")
+  premise(identical(unname(cls), c("nominal", "exceeding", "exceeding")), "V2 cell class: nominal under M0, exceeding under M1 and M2 (row 5)")
+  for (am in c("M0", "M1", "M2")) premise(nrow(rows(T1, sprintf("analysis_model=='%s' & config=='G2_Ai' & lo > 5", am))) > 0, paste("AUC0-inf rule A (i) + Cmax above 5% (Wilson lower bound) in some cells under", am, "(legend)"))
+  premise(nrow(rows(LT, "config=='G2_Aii' & lo > 5")) > 0 && nrow(rows(TRS, "variant=='resid12' & fail_pct > 0")) > 0, "AUC0-inf exceedance (LLOQ) and reliability failures (residual 12%) remain (legend)")
   R <- list(r1, r2, r3, r4, r5)
   df <- data.frame(a = vapply(1:5, function(i) fill(L$table$cond[[i]], R[[i]]), ""), b = vapply(1:5, function(i) fill(L$table$scope[[i]], R[[i]]), ""),
                    c = vapply(1:5, function(i) fill(L$table$result[[i]], R[[i]]), ""), d = unlist(L$table$verdict), stringsAsFactors = FALSE, check.names = FALSE)
   names(df) <- tx("S21.table.head")
-  TH <- 4.3
-  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, TH), widths = c(1.95, 3.35, 5.15, 1.78), size = 13, highlight = 4, align_num = FALSE, label = "table_robust")
+  TH <- 3.66
+  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, TH), widths = c(1.95, 3.45, 5.05, 1.78), size = 12, align_num = FALSE, label = "table_robust")
 
   # ---- 아래: 요점 ----
-  v2 <- function(am) dv(T1, sprintf("%s & analysis_model=='%s' & config=='P2'", V2C, am), "pass_pct", 2, "%", sprintf("P2, 2020 V2 cell, %s", am))
-  BY <- GEO$BODY_TOP + TH + 0.12
-  deck_bullets(tx("S21.bullets", list(nom = nom, s12 = s12, m0 = v2("M0"), m1 = v2("M1"), m2 = v2("M2"), nc = r3$nc)), box = c(GEO$ML, BY, GEO$CW, GEO$BODY_BOTTOM - BY), size = 16)
+  BY <- GEO$BODY_TOP + TH + 0.3
+  deck_bullets(tx("S21.bullets", list(nom = nom, s12 = s12, nc = r3$nc)), box = c(GEO$ML, BY, GEO$CW, GEO$BODY_BOTTOM - BY), size = 16, gap_pt = 6)
 
   # ---- 노트 ----
   nts <- list(
@@ -120,7 +133,9 @@ slide_S21 <- function() {
     lr = drange(LI, "model=='k2016' & resid=='fixed'", "reliable_no_span_pct", 1, "%", "LLOQ grid, reliability set (i), 2016 model"),
     lloq = f_lloq(),
     s12 = r4$s12, s24 = r4$s24, f24 = r4$f24, f12 = r4$f12, g24 = r4$g24, g12 = r4$g12,
-    i24 = dv(TRS, "variant=='k2016' & set=='i'", "fail_pct", 1, "%", "set (i) failing, residual 24.2%"), i12 = dv(TRS, "variant=='resid12' & set=='i'", "fail_pct", 1, "%", "set (i) failing, residual 12%"),
+    i24 = r4$i24, i12 = r4$i12, g16 = r1$g16, g20 = r1$g20, w16 = r1$w16, w20 = r1$w20, m0 = r5$m0, m1 = r5$m1, m2 = r5$m2,
+    gt = dderived("M1 G2_Ai cells above 5% (point estimate), both models", T1, "analysis_model=='M1' & config=='G2_Ai' & pass_pct > 5 :: count over k2016 and k2020", as.integer(r1$g16) + as.integer(r1$g20), as.character(as.integer(r1$g16) + as.integer(r1$g20))),
+    wt = dderived("M1 G2_Ai cells with Wilson lower bound above 5%, both models", T1, "analysis_model=='M1' & config=='G2_Ai' & lo > 5 :: count over k2016 and k2020", as.integer(r1$w16) + as.integer(r1$w20), as.character(as.integer(r1$w16) + as.integer(r1$w20))),
     ra = dv(SR, "schedule=='D2'", "a_mean_width_rel_decrease", 2, "%", "residual 12%, D2, criterion (a) (%)", 100), rc = dv(SR, "schedule=='D2'", "c_reliable_gain_pp", 2, "", "residual 12%, D2, criterion (c) (points)"),
     rd = dv(SR, "schedule=='D2'", "d_extrap20_ratio", 2, "", "residual 12%, D2, criterion (d) ratio"),
     ntr = r4$ntr, s00 = dv(PR, "scenario=='S00' & schedule=='B0' & endpoint=='AUClast'", "pass_rate", 1, "%", "AUC0-last pass rate S00, residual 12%"),

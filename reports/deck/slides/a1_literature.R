@@ -34,8 +34,8 @@ slide_A1 <- function() {
       premise(r$nca_mean_ratio_k2016 < r$lit_mean_ratio && r$nca_mean_ratio_k2020 < r$lit_mean_ratio && r$true_mean_ratio_k2016 < r$lit_mean_ratio && r$true_mean_ratio_k2020 < r$lit_mean_ratio,
               sprintf("simulated NCA and true mean ratios below the published NCA ratio in both models (%s)", k))
       tx("A1.interp.lower", list(d = dd)) }
-    if (k == "c200") interp <- paste(interp, tx("A1.interp.ext"))
-    if (k == "pkm") interp <- paste(interp, tx("A1.interp.wt"))
+    if (k == "c200") interp <- paste0(interp, "\n", tx("A1.interp.ext"))   # 판정·차이 한 줄, 덧붙임 한 줄(가운데 정렬 두 줄이 고르게)
+    if (k == "pkm") interp <- paste0(interp, "\n", tx("A1.interp.wt"))
     c(tx("A1.table.src", list(lab = lab, dose = dint(LN, w, "dose_mg", sprintf("%s, dose (mg)", k)), wt = wt)),
       v("lit_mean_ratio", "published mean AUC0-last/AUC0-inf ratio"),
       sprintf("%s / %s", v("nca_mean_ratio_k2016", "simulated NCA mean ratio, 2016"), v("nca_mean_ratio_k2020", "simulated NCA mean ratio, 2020")),
@@ -48,9 +48,9 @@ slide_A1 <- function() {
   premise(agree_of("c300") && agree_of("pkm") && !agree_of("c600") && row1(LN, W$pkm)$dose_mg == 300, "title: both 300 mg rows agree, the 600 mg row does not")
   deck_kicker(tx("A1.kicker")); premise(as.numeric(.read("config/trial_design.yaml")$dose_mg) == 300, "study dose equals the 300 mg literature rows")
   deck_title(tx("A1.title", list(tol = tol$p, dose = f_dose(), d600 = dint(LN, W$c600, "dose_mg", "dose of the lower-coverage literature row (mg)"))))
-  # 해석 열은 한 줄(일치 기준은 머리글에), 차이 계산 방식과 보수적 방향의 이유는 표 아래 설명에 둔다. 강조 행 없음(색만으로 뜻을 나타내지 않는다)
+  # 해석 열: 판정과 차이 한 줄 + 덧붙임 한 줄(명시적 줄바꿈). 일치 기준과 반올림 전 계산은 머리글에, 하한의 뜻은 표 아래 설명에. 강조 행 없음(색만으로 뜻을 나타내지 않는다)
   th <- 2.8
-  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, th), widths = c(2.95, 1.12, 1.78, 1.78, 4.6), size = 13, align_num = TRUE)
+  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, th), widths = c(2.95, 1.1, 2.2, 2.2, 3.78), size = 13, align_num = TRUE)
   yc <- GEO$BODY_TOP + th + 0.08; hc <- 0.42
   deck_text(tx("A1.caption"), c(GEO$ML, yc, GEO$CW, hc), size = 16, color = PAL$ink2, label = "caption_lowerbound", gap_pt = 0)
   # 정성 서술(프로젝트 문헌 발췌표 literature_qualitative.csv; 보고서 1.1절)

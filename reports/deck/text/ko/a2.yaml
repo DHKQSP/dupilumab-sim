@@ -4,7 +4,7 @@ A2:
   toci:
     chip: "MSB11456 · 문헌(검색 발췌)"
     body:
-      - "**기록된 것**: 토실리주맙 바이오시밀러. 건강인 {tn}명(시험 {tt}, 대조 {trf}), {tdose} mg/kg {tinf}시간 정맥 단회 투여, Day {tday}까지 채혈."
+      - "**기록된 것**: 토실리주맙 바이오시밀러. 건강인 {tn}명(시험 {tt}, 대조 {trf})에게 {tdose} mg/kg를 {tinf}시간 동안 정맥 단회 투여하고 Day {tday}까지 채혈했다."
       - "**1차 평가변수 AUC0-last**, 이차 Cmax·AUC0-inf."
       - "기하 최소제곱 평균비(90% CI):"
       - "· AUC0-last {tal}"

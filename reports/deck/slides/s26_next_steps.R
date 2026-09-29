@@ -1,5 +1,5 @@
-# S26 남은 결정과 다음 단계(어두운 마무리): 스폰서 결정 4개(분석법 LLOQ, 설계 자리표시자, 주분석 모형 M1과 SAP 문안, 목표 검정력과 n)
-# + 후속 작업 2개(v1.0.1 태그, BPD 미팅·과학자문 질의 문안) + 제안 요약. [모의]
+# S26 남은 결정과 다음 단계(어두운 마무리): 의뢰자 결정 4개(분석법 LLOQ, 잠정 설계값, 주분석 모형(이 덱의 제안 M1)과 SAP 문안, 목표 검정력과 n)
+# + 후속 작업 2개(결과 버전 고정 = v1.0.1 태그, BPD 미팅·과학자문 질의 문안) + 제안 요약. [모의]
 # 자리표시자 여부는 config의 status 'assumption'으로 검사한다. 태그 상태는 빌드 시점의 로컬 git 태그로 판단한다(D-061: 분석 환경에서 태그 push 거부).
 # BPD·과학자문 질의 문안은 프로젝트에 초안이 없다(다음 단계로 표시).
 
@@ -24,8 +24,13 @@ slide_S26 <- function() {
   # ---- 전제: 자리표시자 상태, 창 규칙 순서 -----------------------------------------------------------------------------------------
   TD <- .read("config/trial_design.yaml"); AS <- .read("config/assay.yaml")
   premise(AS$lloq_mg_L$status == "assumption", "assay LLOQ is a placeholder (status assumption)")
-  premise(TD$day1_postdose_time$status == "assumption" && TD$sampling_window_days$status == "assumption" && TD$stratification$split_kg$status == "assumption",
-          "Day 1 post-dose time, visit windows and stratum split are placeholders (status assumption)")
+  premise(TD$day1_postdose_time$status == "assumption" && TD$sampling_window_days$status == "assumption" && TD$stratification$split_kg$status == "assumption" &&
+          TD$weight$base$status == "assumption", "Day 1 post-dose time, visit windows, weight distribution and stratum split are placeholders (status assumption)")
+  b0 <- unlist(TD$schedules$B0$days); premise(min(b0[b0 > 0]) == TD$day1_postdose_time$value, "the Day 1 post-dose time is the first post-dose sample of B0 (card: first sample)")
+  # LLOQ 시험(경계 1종 오류)은 2016 모델의 경계 3칸, 칸당 5,000회뿐이다(파일에 PK 모델 열이 없고, 배율이 2016 모델 경계 칸과 같다)
+  lt <- rows(LTf); t1k <- rows("oc_models/type1_models.csv", "pk_model=='k2016' & analysis_model=='M1' & config=='P2'")
+  premise(!"pk_model" %in% names(lt) && all(lt$scenario %in% t1k$scenario) &&
+          all(abs(lt$multiplier - t1k$multiplier[match(lt$scenario, t1k$scenario)]) < 1e-9), "LLOQ trials are 2016-model boundary cells (same multipliers as the 2016 model cells)")
   wr <- TD$sampling_window_days$rule; premise(length(wr) == 4 && wr[[1]]$window == 0 && wr[[4]]$max_day > 100, "visit-window rule: pre-dose, two early windows, then one window thereafter")
   cv_v <- as.numeric(.read("config/prereg_20260926.yaml")$section3$base_cv_pct); n_v <- as.numeric(TD$n_per_arm)
   wp <- function(am) sprintf("input_model=='k2016' & cv==%s & gmr==0.95 & n==%s & analysis_model=='%s'", cv_v, n_v, am)
@@ -42,6 +47,11 @@ slide_S26 <- function() {
     cov = drange(LIf, "model=='k2016' & resid=='fixed'", "coverage_lt80_pct", 2, "%", "LLOQ grid, window coverage below 80%, 2016 model"),
     p2 = drange(LTf, "model=='M1' & resid=='fixed' & config=='P2'", "pass_pct", 2, "%", "LLOQ grid M1 P2 range"),
     t1 = dcfg("trial_design.yaml", c("day1_postdose_time", "value"), "Day 1 post-dose sampling time (day after dose)", function(x) format(x)),
+    h0 = dcfg("trial_design.yaml", c("day1_postdose_time", "value"), "Day 1 post-dose sampling time (hours after dose = value x 24)", function(x) fnum(24 * x, 0)),
+    wm = dcfg("trial_design.yaml", c("weight", "base", "mean"), "body weight mean (kg)", num_fmt(0)), wsd = dcfg("trial_design.yaml", c("weight", "base", "sd"), "body weight SD (kg)", num_fmt(0)),
+    nc = dderived("boundary cells in the LLOQ trials", LTf, "length(unique(scenario))", length(unique(lt$scenario)), as.character(length(unique(lt$scenario)))),
+    nt = dint(LTf, "model=='M1' & resid=='fixed' & config=='P2' & scenario=='F_down_080' & abs(lloq - 0.078) < 1e-9", "n_trials", "LLOQ trials per cell"),
+    n_rand = f_n_rand(),
     h1 = s26_window(2, "window_h", "visit window, first post-dose interval (hours)"), d3 = s26_window(4, "window_d", "visit window thereafter (days)"),
     split = f_split(),
     n_arm = f_n_arm(), cv = dcfg("prereg_20260926.yaml", c("section3", "base_cv_pct"), "protocol CV (%)", num_fmt(0)),
@@ -51,19 +61,24 @@ slide_S26 <- function() {
     tg85 = dint(NNf, wn("M1", 85), "target_pct", "target power (%)"), n85 = dint(NNf, wn("M1", 85), "n_evaluable_per_arm", "n per arm for the lower target, M1"),
     tag = tag)
 
-  # ---- 1행: 스폰서 결정 4개 ------------------------------------------------------------------------------------------------------
+  # ---- 1행: 의뢰자 결정 4개 ------------------------------------------------------------------------------------------------------
   CARD <- "#223246"; INK <- PAL$dark_ink; LAB <- "#8fb8ea"
-  y1 <- GEO$BODY_TOP; gap <- 0.2; w4 <- (GEO$CW - 3 * gap) / 4; lh <- 0.45; h2 <- 1.5; h1 <- GEO$BODY_BOTTOM - y1 - lh - gap - h2
+  # 2행 높이 = 2행 카드의 추정 높이 중 최댓값, 1행이 나머지(1행 LLOQ 카드가 가장 길다)
+  # 1행 카드 폭은 글 양에 맞춰 나눈다(LLOQ 카드가 가장 길다)
+  y1 <- GEO$BODY_TOP; gap <- 0.2; g4 <- 0.16; w4 <- c(3.22, 2.85, 2.95, 2.73); w4 <- w4 / sum(w4) * (GEO$CW - 3 * g4); x4 <- GEO$ML + c(0, cumsum(w4 + g4))[1:4]
+  lh <- 0.45; w3 <- (GEO$CW - 2 * gap) / 3
+  row2 <- list(tx(if (has_tag) "S26.cards.tag_done" else "S26.cards.tag_none", f), tx("S26.cards.bpd"), tx("S26.cards.proposal"))
+  h2 <- max(vapply(row2, function(p) est_height(p, w3, 16, 5, card = TRUE), 0)) + 0.04; h1 <- GEO$BODY_BOTTOM - y1 - lh - gap - h2
   deck_text(tx("S26.row1"), c(GEO$ML, y1 - 0.06, GEO$CW, lh), size = 16, bold = TRUE, color = LAB, label = "label_row1")
   keys <- c("lloq", "design", "model", "power")
   for (k in seq_along(keys))
-    deck_text(tx(sprintf("S26.cards.%s", keys[k]), f), c(GEO$ML + (k - 1) * (w4 + gap), y1 + lh, w4, h1), size = 16, color = INK, bg = CARD, geom = "roundRect",
+    deck_text(tx(sprintf("S26.cards.%s", keys[k]), f), c(x4[k], y1 + lh, w4[k], h1), size = 16, color = INK, bg = CARD, geom = "roundRect",
               label = sprintf("card_%s", keys[k]), gap_pt = 5)
   # ---- 2행: 후속 작업 2개 + 제안 요약 ------------------------------------------------------------------------------------------------
-  y2 <- y1 + lh + h1 + gap; w3 <- (GEO$CW - 2 * gap) / 3
-  deck_text(tx(if (has_tag) "S26.cards.tag_done" else "S26.cards.tag_none", f), c(GEO$ML, y2, w3, h2), size = 16, color = INK, bg = CARD, geom = "roundRect", label = "card_tag", gap_pt = 5)
-  deck_text(tx("S26.cards.bpd"), c(GEO$ML + w3 + gap, y2, w3, h2), size = 16, color = INK, bg = CARD, geom = "roundRect", label = "card_bpd", gap_pt = 5)
-  deck_text(tx("S26.cards.proposal"), c(GEO$ML + 2 * (w3 + gap), y2, w3, h2), size = 16, color = "#ffffff", bg = PAL$blue, geom = "roundRect", label = "card_proposal", gap_pt = 5)
+  y2 <- y1 + lh + h1 + gap
+  deck_text(row2[[1]], c(GEO$ML, y2, w3, h2), size = 16, color = INK, bg = CARD, geom = "roundRect", label = "card_tag", gap_pt = 5)
+  deck_text(row2[[2]], c(GEO$ML + w3 + gap, y2, w3, h2), size = 16, color = INK, bg = CARD, geom = "roundRect", label = "card_bpd", gap_pt = 5)
+  deck_text(row2[[3]], c(GEO$ML + 2 * (w3 + gap), y2, w3, h2), size = 16, color = "#ffffff", bg = PAL$blue, geom = "roundRect", label = "card_proposal", gap_pt = 5)
 
   deck_notes(tx(if (has_tag) "S26.notes_tag_done" else "S26.notes", c(f, list(
     lloq_st = dcfg("assay.yaml", c("lloq_mg_L", "status"), "assay LLOQ status", function(x) as.character(x)),
@@ -73,9 +88,7 @@ slide_S26 <- function() {
     p2m0 = drange(LTf, "model=='M0' & resid=='fixed' & config=='P2'", "pass_pct", 2, "%", "LLOQ grid M0 P2 range"),
     a1 = s26_window(2, "max_day", "visit window, end of first interval (day after dose)"), a2 = s26_window(3, "max_day", "visit window, end of second interval (day after dose)"),
     h2 = s26_window(3, "window_h", "visit window, second interval (hours)"),
-    wm = dcfg("trial_design.yaml", c("weight", "base", "mean"), "body weight mean (kg)", num_fmt(0)), wsd = dcfg("trial_design.yaml", c("weight", "base", "sd"), "body weight SD (kg)", num_fmt(0)),
     wt = f_wt_range(), sex = dcfg("trial_design.yaml", c("weight", "sex_ratio_male", "value"), "share male", num_fmt(1)),
-    n_rand = f_n_rand(),
     pw0 = dv(TPf, wp("M0"), "analytic_pct", 1, "%", "P2 power at the protocol n, M0"),
     n90_0 = dint(NNf, wn("M0", 90), "n_evaluable_per_arm", "n per arm for the higher target, M0"), n85_0 = dint(NNf, wn("M0", 85), "n_evaluable_per_arm", "n per arm for the lower target, M0"),
     cv50 = dcfg("prereg_20260926.yaml", c("section3", "sensitivity_cv_pct"), "sensitivity CV (%)", num_fmt(0)),

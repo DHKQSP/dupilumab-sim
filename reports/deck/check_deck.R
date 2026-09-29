@@ -85,7 +85,7 @@ for (sid in setdiff(meta$id, ok_sl)) {
 # ---- 5 약어 첫 등장 ---------------------------------------------------------------------------------------------------------------------
 ab <- CK$abbreviations
 for (a in names(ab)) {
-  rx <- sprintf("(?<![A-Za-z])%s(?![a-z]|M[0-9])", gsub("([&.])", "\\\\\\1", a))   # PKM12350 같은 시험 번호는 약어가 아니다
+  rx <- sprintf("(?<![A-Za-z])%s(?![A-Za-z])", gsub("([&.])", "\\\\\\1", a))   # PKM12350, PKNCA 같은 이름 안의 글자는 약어가 아니다
   first <- NA_character_; for (sid in meta$id) { t_ <- paste(vis[id == sid, text], collapse = "\n"); if (grepl(rx, gsub("‑", "-", t_), perl = TRUE)) { first <- sid; break } }
   if (is.na(first)) next
   t_ <- gsub("‑", "-", paste(vis[id == first, text], collapse = "\n"))

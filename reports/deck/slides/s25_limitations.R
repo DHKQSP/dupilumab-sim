@@ -107,7 +107,7 @@ slide_S25 <- function() {
   names(df) <- tx("S25.table.head")
   tw <- 8.4
   deck_text(tx("S25.left_label"), c(GEO$ML, GEO$BODY_TOP - 0.04, tw, 0.45), size = 16, bold = TRUE, color = PAL$ink2, label = "label_model")
-  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP + 0.43, tw, GEO$BODY_BOTTOM - GEO$BODY_TOP - 0.43), widths = c(2.1, 3.5, 2.8), size = 14, align_num = FALSE)
+  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP + 0.43, tw, GEO$BODY_BOTTOM - GEO$BODY_TOP - 0.43), widths = c(2.05, 3.65, 2.7), size = 14, align_num = FALSE)
 
   # ---- 오른쪽: 검증 절차 한계 카드 두 개 ------------------------------------------------------------------------------------------
   xr <- GEO$ML + tw + 0.25; wr <- GEO$W - GEO$MR - xr
