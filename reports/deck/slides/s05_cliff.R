@@ -32,7 +32,7 @@ slide_S05 <- function() {
   COL <- setNames(c("#8fb8ea", PAL$blue, "#15406f"), levels(subj$lab)); SHP <- setNames(c(16, 15, 17), levels(subj$lab)); LT <- setNames(c("solid", "42", "13"), levels(subj$lab))
   sd_ <- b0 + 1; brk <- sd_[abs(sd_ - round(sd_)) < 1e-9 & (round(sd_) - 1) %% 7 == 0]; brk <- c(1, brk)
   ymax <- max(prof$C) * 1.6
-  FH <- 3.2
+  FH <- 3.05
   p <- ggplot() +
     geom_rect(data = shade, aes(xmin = x0, xmax = x1, ymin = 0.01, ymax = ymax), fill = PAL$orange, alpha = 0.28) +
     geom_hline(yintercept = lloq_v, linetype = "22", colour = PAL$ink2, linewidth = 0.6) +

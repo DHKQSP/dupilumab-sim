@@ -1,0 +1,223 @@
+check,slide,status,detail
+1 numbers traced,S01,pass,2 traced values
+1 numbers traced,S02,pass,31 traced values
+1 numbers traced,S03,pass,2 traced values
+1 numbers traced,S04,pass,12 traced values
+1 numbers traced,S05,pass,29 traced values
+1 numbers traced,S06,pass,46 traced values
+1 numbers traced,S07,pass,41 traced values
+1 numbers traced,S08,pass,25 traced values
+1 numbers traced,S09,pass,42 traced values
+1 numbers traced,S10,pass,65 traced values
+1 numbers traced,S11,pass,62 traced values
+1 numbers traced,S12,pass,30 traced values
+1 numbers traced,S13,pass,27 traced values
+1 numbers traced,S14,pass,95 traced values
+1 numbers traced,S15,pass,66 traced values
+1 numbers traced,S16,pass,57 traced values
+1 numbers traced,S17,pass,52 traced values
+1 numbers traced,S18,pass,45 traced values
+1 numbers traced,S19,pass,74 traced values
+1 numbers traced,S20,pass,97 traced values
+1 numbers traced,S21,pass,90 traced values
+1 numbers traced,S22,pass,79 traced values
+1 numbers traced,S23,pass,52 traced values
+1 numbers traced,S24,pass,59 traced values
+1 numbers traced,S25,pass,49 traced values
+1 numbers traced,S26,pass,35 traced values
+1 numbers traced,A1,pass,45 traced values
+1 numbers traced,A2,pass,19 traced values
+1 numbers traced,A3,pass,47 traced values
+1 numbers traced,A4,pass,25 traced values
+1 numbers traced,A5,pass,36 traced values
+1 numbers traced,A6,pass,48 traced values
+2 empty values,S01,pass,""
+3 dashes,S01,pass,""
+2 empty values,S02,pass,""
+3 dashes,S02,pass,""
+2 empty values,S03,pass,""
+3 dashes,S03,pass,""
+2 empty values,S04,pass,""
+3 dashes,S04,pass,""
+2 empty values,S05,pass,""
+3 dashes,S05,pass,""
+2 empty values,S06,pass,""
+3 dashes,S06,pass,""
+2 empty values,S07,pass,""
+3 dashes,S07,pass,""
+2 empty values,S08,pass,""
+3 dashes,S08,pass,""
+2 empty values,S09,pass,""
+3 dashes,S09,pass,""
+2 empty values,S10,pass,""
+3 dashes,S10,pass,""
+2 empty values,S11,pass,""
+3 dashes,S11,pass,""
+2 empty values,S12,pass,""
+3 dashes,S12,pass,""
+2 empty values,S13,pass,""
+3 dashes,S13,pass,""
+2 empty values,S14,pass,""
+3 dashes,S14,pass,""
+2 empty values,S15,pass,""
+3 dashes,S15,pass,""
+2 empty values,S16,pass,""
+3 dashes,S16,pass,""
+2 empty values,S17,pass,""
+3 dashes,S17,pass,""
+2 empty values,S18,pass,""
+3 dashes,S18,pass,""
+2 empty values,S19,pass,""
+3 dashes,S19,pass,""
+2 empty values,S20,pass,""
+3 dashes,S20,pass,""
+2 empty values,S21,pass,""
+3 dashes,S21,pass,""
+2 empty values,S22,pass,""
+3 dashes,S22,pass,""
+2 empty values,S23,pass,""
+3 dashes,S23,pass,""
+2 empty values,S24,pass,""
+3 dashes,S24,pass,""
+2 empty values,S25,pass,""
+3 dashes,S25,pass,""
+2 empty values,S26,pass,""
+3 dashes,S26,pass,""
+2 empty values,A1,pass,""
+3 dashes,A1,pass,""
+2 empty values,A2,pass,""
+3 dashes,A2,pass,""
+2 empty values,A3,pass,""
+3 dashes,A3,pass,""
+2 empty values,A4,pass,""
+3 dashes,A4,pass,""
+2 empty values,A5,pass,""
+3 dashes,A5,pass,""
+2 empty values,A6,pass,""
+3 dashes,A6,pass,""
+4 atopic outside A5,S01,pass,""
+4 atopic outside A5,S02,pass,""
+4 atopic outside A5,S03,pass,""
+4 atopic outside A5,S04,pass,""
+4 atopic outside A5,S05,pass,""
+4 atopic outside A5,S06,pass,""
+4 atopic outside A5,S07,pass,""
+4 atopic outside A5,S08,pass,""
+4 atopic outside A5,S09,pass,""
+4 atopic outside A5,S10,pass,""
+4 atopic outside A5,S11,pass,""
+4 atopic outside A5,S12,pass,""
+4 atopic outside A5,S13,pass,""
+4 atopic outside A5,S14,pass,""
+4 atopic outside A5,S15,pass,""
+4 atopic outside A5,S16,pass,""
+4 atopic outside A5,S17,pass,""
+4 atopic outside A5,S18,pass,""
+4 atopic outside A5,S19,pass,""
+4 atopic outside A5,S20,pass,""
+4 atopic outside A5,S21,pass,""
+4 atopic outside A5,S22,pass,""
+4 atopic outside A5,S23,pass,""
+4 atopic outside A5,S24,pass,""
+4 atopic outside A5,S25,pass,""
+4 atopic outside A5,S26,pass,""
+4 atopic outside A5,A1,pass,""
+4 atopic outside A5,A2,pass,""
+4 atopic outside A5,A3,pass,""
+4 atopic outside A5,A4,pass,""
+4 atopic outside A5,A6,pass,""
+5 abbreviation first use,S01,pass,PK
+5 abbreviation first use,S01,pass,AUC
+5 abbreviation first use,S01,pass,Cmax
+5 abbreviation first use,S06,pass,NCA
+5 abbreviation first use,S05,pass,LLOQ
+5 abbreviation first use,S03,pass,GMR
+5 abbreviation first use,S03,pass,CI
+5 abbreviation first use,S22,pass,CV
+5 abbreviation first use,S05,pass,TMDD
+5 abbreviation first use,S02,pass,SAP
+5 abbreviation first use,S04,pass,ADA
+5 abbreviation first use,S04,pass,ICH
+5 abbreviation first use,S03,pass,FDA
+5 abbreviation first use,S03,pass,EMA
+5 abbreviation first use,S26,pass,BPD
+5 abbreviation first use,S25,pass,QC
+5 abbreviation first use,S01,pass,M&S
+5 abbreviation first use,A1,pass,BLQ
+5 abbreviation first use,S01,pass,SC
+6 limits,S01,pass,"bullets 0, table rows 0"
+6 limits,S02,pass,"bullets 0, table rows 0"
+6 limits,S03,pass,"bullets 3, table rows 0"
+6 limits,S04,pass,"bullets 4, table rows 5"
+6 limits,S05,pass,"bullets 0, table rows 4"
+6 limits,S06,pass,"bullets 0, table rows 3"
+6 limits,S07,pass,"bullets 5, table rows 0"
+6 limits,S08,pass,"bullets 0, table rows 0"
+6 limits,S09,pass,"bullets 3, table rows 4"
+6 limits,S10,pass,"bullets 3, table rows 5"
+6 limits,S11,pass,"bullets 4, table rows 0"
+6 limits,S12,pass,"bullets 0, table rows 3"
+6 limits,S13,pass,"bullets 5, table rows 0"
+6 limits,S14,pass,"bullets 3, table rows 6"
+6 limits,S15,pass,"bullets 1, table rows 5"
+6 limits,S16,pass,"bullets 0, table rows 4"
+6 limits,S17,pass,"bullets 2, table rows 6"
+6 limits,S18,pass,"bullets 2, table rows 6"
+6 limits,S19,pass,"bullets 2, table rows 4"
+6 limits,S20,pass,"bullets 3, table rows 5"
+6 limits,S21,pass,"bullets 1, table rows 5"
+6 limits,S22,pass,"bullets 3, table rows 6"
+6 limits,S23,pass,"bullets 0, table rows 0"
+6 limits,S24,pass,"bullets 0, table rows 0"
+6 limits,S25,pass,"bullets 0, table rows 4"
+6 limits,S26,pass,"bullets 0, table rows 0"
+6 limits,A1,pass,"bullets 5, table rows 4"
+6 limits,A2,pass,"bullets 0, table rows 0"
+6 limits,A3,pass,"bullets 3, table rows 6"
+6 limits,A4,pass,"bullets 5, table rows 4"
+6 limits,A5,pass,"bullets 2, table rows 0"
+6 limits,A6,pass,"bullets 1, table rows 6"
+7 trace sources,all,pass,"121 source files, 1535 trace rows"
+8 report cross-check,all,pass,"842 deck values share file, filter and column with a report value; 842 identical raw values; 842 printed values consistent"
+8 key numbers cross-check,all,pass,consistent after rounding: 19; file not cited: 639; matched: 331; not in key numbers: 495
+8 headline,S02,pass,33.2~38.8% (report: TRUE; key numbers: matched)
+8 headline,S02,pass,10 (report: TRUE; key numbers: not in key numbers)
+8 headline,S02,pass,99.3~99.4% (report: FALSE; key numbers: matched)
+8 headline,S08,pass,1.38 (report: TRUE; key numbers: not in key numbers)
+8 headline,S08,pass,33.2~38.8% (report: TRUE; key numbers: matched)
+8 headline,S08,pass,10 (report: TRUE; key numbers: not in key numbers)
+8 headline,S08,pass,99.3~99.4% (report: FALSE; key numbers: matched)
+8 headline,S08,pass,15 (report: TRUE; key numbers: matched)
+8 headline,S15,pass,15 (report: TRUE; key numbers: matched)
+9 rendered layout,S01,pass,0 unmatched lines
+9 rendered layout,S02,pass,0 unmatched lines
+9 rendered layout,S03,pass,0 unmatched lines
+9 rendered layout,S04,pass,0 unmatched lines
+9 rendered layout,S05,pass,0 unmatched lines
+9 rendered layout,S06,pass,0 unmatched lines
+9 rendered layout,S07,pass,0 unmatched lines
+9 rendered layout,S08,pass,0 unmatched lines
+9 rendered layout,S09,pass,0 unmatched lines
+9 rendered layout,S10,pass,0 unmatched lines
+9 rendered layout,S11,pass,0 unmatched lines
+9 rendered layout,S12,pass,0 unmatched lines
+9 rendered layout,S13,pass,0 unmatched lines
+9 rendered layout,S14,pass,0 unmatched lines
+9 rendered layout,S15,pass,0 unmatched lines
+9 rendered layout,S16,pass,0 unmatched lines
+9 rendered layout,S17,pass,0 unmatched lines
+9 rendered layout,S18,pass,0 unmatched lines
+9 rendered layout,S19,pass,0 unmatched lines
+9 rendered layout,S20,pass,0 unmatched lines
+9 rendered layout,S21,pass,0 unmatched lines
+9 rendered layout,S22,pass,0 unmatched lines
+9 rendered layout,S23,pass,0 unmatched lines
+9 rendered layout,S24,pass,0 unmatched lines
+9 rendered layout,S25,pass,0 unmatched lines
+9 rendered layout,S26,pass,0 unmatched lines
+9 rendered layout,A1,pass,0 unmatched lines
+9 rendered layout,A2,pass,0 unmatched lines
+9 rendered layout,A3,pass,0 unmatched lines
+9 rendered layout,A4,pass,0 unmatched lines
+9 rendered layout,A5,pass,0 unmatched lines
+9 rendered layout,A6,pass,0 unmatched lines

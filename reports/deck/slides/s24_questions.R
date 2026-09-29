@@ -76,7 +76,7 @@ slide_S24 <- function() {
 
   # ---- 2열: 질문 상자 | 답 ----
   qs <- DK$txt$S24$qa; nq <- length(qs); premise(nq == 5, "five questions")
-  gap <- 0.1; y0 <- GEO$BODY_TOP; rh <- (GEO$BODY_BOTTOM - y0 - (nq - 1) * gap) / nq; qw <- 3.1; ag <- 0.2
+  gap <- 0.06; y0 <- GEO$BODY_TOP; rh <- (GEO$BODY_BOTTOM - y0 - (nq - 1) * gap) / nq; qw <- 3.1; ag <- 0.2
   for (i in seq_len(nq)) {
     y <- y0 + (i - 1) * (rh + gap); q <- qs[[i]]
     deck_text(sprintf("__%s__  %s", q$id, fill(q$q, f, sprintf("S24.qa.%d.q", i))), c(GEO$ML, y, qw, rh), size = 16, bold = FALSE, bg = PAL$tint_blue, geom = "roundRect",
