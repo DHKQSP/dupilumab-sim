@@ -30,7 +30,7 @@ rid <- xml_attr(xml_find_all(pres, ".//p:sldIdLst/p:sldId", ns), "r:id", ns)
 relmap <- setNames(xml_attr(xml_children(prel), "Target"), xml_attr(xml_children(prel), "Id"))
 slide_files <- file.path(tmp, "ppt", relmap[rid])
 stopifnot(length(slide_files) == nrow(meta))
-para_text <- function(node) paste(vapply(xml_find_all(node, ".//a:p", ns), function(p) paste(xml_text(xml_find_all(p, ".//a:t", ns)), collapse = ""), ""), collapse = "\n")
+para_text <- function(node) gsub("\u00a0", " ", gsub("\u2060", "", paste(vapply(xml_find_all(node, ".//a:p", ns), function(p) paste(xml_text(xml_find_all(p, ".//a:t", ns)), collapse = ""), ""), collapse = "\n")))   # 표시용 결합 문자 제거
 S <- rbindlist(lapply(seq_along(slide_files), function(i) {
   d <- read_xml(slide_files[i]); sh <- xml_find_all(d, "//p:spTree/p:sp | //p:spTree/p:graphicFrame", ns)
   rows_ <- lapply(sh, function(s) {

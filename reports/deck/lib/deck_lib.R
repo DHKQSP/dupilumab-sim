@@ -119,13 +119,15 @@ est_lines <- function(s, width, size, bold = FALSE) {
 }
 # 문단 목록의 높이(인치): 줄 높이 = 1.2 x 줄 간격 배수 x 글자 크기(Pretendard 렌더링 실측: 줄 간격 1.1에서 1.32배, 1.05에서 1.26배,
 # 표 1.0에서 1.19배), 문단 간격 gap_pt, 상하 여백 0.10 in(글상자 기본 여백 0.05 in x 2). 3% 넘게 넘치면 실패(실제 넘침은 check_deck 9가 PDF로 확인)
-est_height <- function(paras, width, size, gap_pt = 6, indent = 0, bold = FALSE, line = 1.1) {
-  inner <- width - 0.2 - indent
+# 채운 카드(배경색이 있고 높이 CARD_MIN_H 이상인 글상자)는 안쪽 여백이 좌우 0.12 in, 상하 0.08 in(pp_bullets가 bodyPr에 적는다)
+CARD_MIN_H <- 0.6; CARD_INS <- c(lr = 0.12, tb = 0.08)
+est_height <- function(paras, width, size, gap_pt = 6, indent = 0, bold = FALSE, line = 1.1, card = FALSE) {
+  inner <- width - (if (card) 2 * CARD_INS[["lr"]] else 0.2) - indent
   n <- vapply(paras, function(p) est_lines(p, inner, size, bold), 1L)
-  sum(n) * size * 1.2 * line / 72 + max(0, length(paras) - 1) * gap_pt / 72 + 0.10
+  sum(n) * size * 1.2 * line / 72 + max(0, length(paras) - 1) * gap_pt / 72 + (if (card) 2 * CARD_INS[["tb"]] else 0.10)
 }
-fit_check <- function(label, paras, box, size, gap_pt = 6, indent = 0, bold = FALSE, line = 1.1) {
-  h <- est_height(paras, box[3], size, gap_pt, indent, bold, line)
+fit_check <- function(label, paras, box, size, gap_pt = 6, indent = 0, bold = FALSE, line = 1.1, card = FALSE) {
+  h <- est_height(paras, box[3], size, gap_pt, indent, bold, line, card)
   DK$fit[[length(DK$fit) + 1L]] <- data.table(slide = REG$sec, shape = label, est_h = h, box_h = box[4], ratio = h / box[4])
   if (h > box[4] * 1.03 && isTRUE(DK$strict)) stop(sprintf("%s %s: estimated text height %.2f in exceeds box %.2f in", REG$sec, label, h, box[4]), call. = FALSE)
   invisible(h)
@@ -144,7 +146,15 @@ runs <- function(s, size, color = PAL$ink, accent = PAL$blue, bold = FALSE) {
 }
 BUL <- function(level) sprintf("⁣B%d⁣", level)   # 글머리표 표지(pp_bullets가 내어쓰기 글머리표로 바꾼다)
 # 표시층: AUC0-inf 같은 용어가 붙임표에서 줄바꿈되지 않도록 줄바꿈 없는 붙임표(U+2011)로 바꾼다(문구 파일은 그대로)
-nobreak <- function(s) gsub("AUC0-(inf|last|tlast)", "AUC0\u2011\\1", s, perl = TRUE)
+# 한 덩어리로 읽는 말이 줄 끝에서 갈라지지 않게 한다(LibreOffice는 숫자와 한글, 숫자와 단위 사이에서도 줄을 바꾼다):
+#  숫자 뒤 공백 + 단위/모델, 'Day'·부등호 뒤 공백 → 줄바꿈 없는 공백(U+00A0); 숫자·%와 붙은 한글 사이 → 단어 결합자(U+2060)
+nobreak <- function(s) {
+  s <- gsub("AUC0-(inf|last|tlast)", "AUC0\u2011\\1", s, perl = TRUE)
+  s <- gsub("([0-9%)]) (?=(kg|mg|mL|L/|mg/|mg·|day|h\\b|모델|명|칸|일|회|배|개|시간|점|mg/kg)(?![A-Za-z]))", "\\1\u00a0\u2060", s, perl = TRUE)   # LibreOffice는 NBSP 뒤 한글에서 줄을 바꾸므로 U+2060을 덧붙인다
+  s <- gsub("(Day|≥|≤|>|<|×) (?=[0-9])", "\\1\u00a0\u2060", s, perl = TRUE)
+  s <- gsub("(?<=[0-9%A-Za-z)\u00b2])(?=[\uac00-\ud7a3])", "\u2060", s, perl = TRUE)   # 숫자·영문·닫는 괄호와 바로 붙은 한글(단위, 조사)
+  s
+}
 para <- function(s, size = SZ$body, color = PAL$ink, bold = FALSE, align = "left", bullet = NA, gap_pt = 6, line = 1.1, accent = PAL$blue) {
   r <- runs(nobreak(s), size, color, accent, bold)
   if (!is.na(bullet)) r <- c(list(ftext(BUL(bullet), ftp(size, color))), r)
@@ -158,7 +168,7 @@ deck_slide <- function(id, tag = c("sim", "lit", "litsim", "none"), dark = FALSE
   tag <- match.arg(tag); sec(id); DK$n <- DK$n + 1L
   DK$x <- add_slide(DK$x, layout = "Blank", master = "Office Theme")
   DK$cur <- list(id = id, n = DK$n, dark = dark, bullets = 0L, shapes = 0L, title = NA_character_, table_rows = 0L)
-  if (dark) DK$x <- ph_with(DK$x, fpar(ftext(" ", ftp(8))), location = loc(c(0, 0, GEO$W, GEO$H), "background", bg = PAL$dark, ln = no_line()))
+  if (dark) DK$x <- ph_with(DK$x, fpar(ftext(" ", ftp(8))), location = loc(c(0, 0, GEO$W, GEO$H), "background", bg = PAL$dark, geom = "rect", ln = no_line()))
   if (tag != "none") {
     lab <- DK$txt$common$tags[[tag]]
     b <- c(GEO$W - GEO$MR - GEO$TAG_W, GEO$KICK_TOP - 0.02, GEO$TAG_W, GEO$TAG_H)
@@ -187,14 +197,14 @@ deck_bullets <- function(items, box, size = SZ$body, gap_pt = 8, label = "body",
 }
 deck_text <- function(s, box, size = SZ$body, bold = FALSE, color = NULL, align = "left", label = "text", bg = NULL, gap_pt = 6, geom = NULL) {
   stopifnot(size >= SZ$body_min || grepl("^(caption|label|axis|kicker)", label))
-  fit_check(label, s, box, size, gap_pt, bold = bold)
+  fit_check(label, s, box, size, gap_pt, bold = bold, card = !is.null(bg) && box[4] >= CARD_MIN_H)
   col <- color %||% (if (DK$cur$dark) PAL$dark_ink else PAL$ink)
   ps <- lapply(s, function(z) para(z, size, col, bold, align, gap_pt = gap_pt))
   DK$x <- ph_with(DK$x, do.call(block_list, ps), location = loc(box, label, bg = bg, geom = geom, ln = if (!is.null(bg)) no_line() else NULL)); invisible(NULL)
 }
 # 큰 수치 한 개와 설명(수치는 반드시 d* 함수 결과)
 deck_stat <- function(value, label, box, color = PAL$blue, bg = PAL$tint_blue, label_size = SZ$stat_label, value_size = SZ$stat) {
-  fit_check("stat_label", label, c(box[1], box[2], box[3], box[4] - value_size * 1.25 / 72), label_size, gap_pt = 0)
+  fit_check("stat_label", label, c(box[1], box[2], box[3], box[4] - value_size * 1.25 / 72), label_size, gap_pt = 0, card = box[4] >= CARD_MIN_H)
   ps <- list(para(value, value_size, color, TRUE, "left", gap_pt = 2, line = 1.0), para(label, label_size, PAL$ink, FALSE, "left", gap_pt = 0))
   DK$x <- ph_with(DK$x, do.call(block_list, ps), location = loc(box, "stat", bg = bg, geom = "roundRect", ln = no_line())); invisible(NULL)
 }
@@ -216,7 +226,7 @@ deck_table <- function(df, box, widths = NULL, size = SZ$table, header_fill = PA
   if (!is.null(highlight)) ft <- bg(ft, i = highlight, bg = highlight_fill, part = "body")
   ft <- border_remove(ft); ft <- hline(ft, border = fp_border_default(color = PAL$grid, width = 0.75), part = "body")
   ft <- hline_bottom(ft, border = fp_border_default(color = PAL$ink2, width = 1), part = "header"); ft <- hline_top(ft, border = fp_border_default(color = PAL$ink2, width = 1), part = "header")
-  ft <- padding(ft, padding.top = 3, padding.bottom = 3, padding.left = 5, padding.right = 5, part = "all")
+  ft <- padding(ft, padding.top = 4, padding.bottom = 4, padding.left = 5, padding.right = 5, part = "all")
   if (align_num && ncol(df) > 1) ft <- align(ft, j = 2:ncol(df), align = "center", part = "all")
   ft <- align(ft, j = 1, align = "left", part = "all"); ft <- valign(ft, valign = "center", part = "all")
   if (is.null(widths)) widths <- rep(box[3] / ncol(df), ncol(df)) else widths <- widths / sum(widths) * box[3]
@@ -225,7 +235,7 @@ deck_table <- function(df, box, widths = NULL, size = SZ$table, header_fill = PA
   nl <- function(v, w, b = FALSE) vapply(as.character(v), function(s) est_lines(s, w - 0.14, size, b), 1L)
   hdr <- max(mapply(function(v, w) max(nl(v, w, TRUE)), names(df), widths))
   bod <- apply(matrix(sapply(seq_along(widths), function(j) nl(df[[j]], widths[j], bold_col1 && j == 1)), nrow = nrow(df)), 1, max)
-  h_est <- (hdr + sum(bod)) * size * 1.2 / 72 + (nrow(df) + 1) * 6 / 72
+  h_est <- (hdr + sum(bod)) * size * 1.2 / 72 + (nrow(df) + 1) * 8 / 72
   DK$fit[[length(DK$fit) + 1L]] <- data.table(slide = REG$sec, shape = label, est_h = h_est, box_h = box[4], ratio = h_est / box[4])
   if (h_est > box[4] * 1.03 && isTRUE(DK$strict)) stop(sprintf("%s %s: estimated table height %.2f in exceeds box %.2f in", REG$sec, label, h_est, box[4]), call. = FALSE)
   DK$x <- ph_with(DK$x, ft, location = loc(box, label)); invisible(NULL)
@@ -241,7 +251,7 @@ deck_notes <- function(s) { DK$x <- set_notes(DK$x, value = paste(s, collapse = 
 # 슬라이드 끝: 바닥글(결과 파일 ID, 버전, 커밋, 쪽 번호)과 메타 기록
 deck_end <- function() {
   tr <- rbindlist(REG$trace, fill = TRUE); src <- if (nrow(tr)) unique(tr[section == REG$sec, source_file]) else character(0)
-  ids <- unique(basename(src[!grepl("^config/", src)]))
+  ids <- unique(c(basename(src[!grepl("^config/", src)]), basename(src[grepl("^config/", src)])))   # 결과 파일 먼저, 설정 파일은 뒤
   lab <- DK$txt$common$footer
   # 출처 목록은 한 줄에 들어가는 만큼만 적고 나머지는 "외 N개"로 줄인다(전체 목록은 추적표에 있음)
   wmax <- GEO$CW - 3.1 - 0.25
@@ -297,8 +307,22 @@ pp_bullets <- function(path) {
     # 자리표시자 표지(p:ph)를 지워 보통 도형으로 만든다: LibreOffice(PDF)는 자리표시자의 도형 모양(roundRect, rightArrow)을 무시한다.
     # 위치·채우기·글자 서식은 도형에 모두 명시되어 있어 모양만 바뀐다.
     for (ph in xml2::xml_find_all(doc, ".//p:nvPr/p:ph", ns)) xml2::xml_remove(ph)
+    # 모양이 없는 도형(자리표시자에서 사각형을 물려받던 것)에는 사각형을 명시한다(없으면 채우기가 그려지지 않는다)
+    for (sppr in xml2::xml_find_all(doc, ".//p:sp/p:spPr[not(a:prstGeom) and not(a:custGeom)]", ns)) {
+      xf <- xml2::xml_find_first(sppr, "./a:xfrm", ns); if (inherits(xf, "xml_missing")) next
+      g <- xml2::xml_add_sibling(xf, "a:prstGeom", prst = "rect", .where = "after"); xml2::xml_add_child(g, "a:avLst")
+    }
     # 한국어는 어절 단위로 줄을 바꾼다(PowerPoint의 '한글 단어 잘림 허용' 끔)
     for (ppr in xml2::xml_find_all(doc, ".//a:pPr", ns)) xml2::xml_set_attr(ppr, "eaLnBrk", "0")
+    # 채운 카드의 안쪽 여백(좌우 0.12 in, 상하 0.08 in): 글이 카드 가장자리에 붙지 않게(높이 CARD_MIN_H 이상, 글자가 있는 도형)
+    for (sp in xml2::xml_find_all(doc, ".//p:sp[p:spPr/a:solidFill and p:txBody]", ns)) {
+      nm <- xml2::xml_attr(xml2::xml_find_first(sp, ".//p:cNvPr", ns), "name"); if (nm %in% c("background", "tag")) next
+      ext <- xml2::xml_find_first(sp, "./p:spPr/a:xfrm/a:ext", ns); if (inherits(ext, "xml_missing") || as.numeric(xml2::xml_attr(ext, "cy")) < CARD_MIN_H * 914400) next
+      if (!nzchar(trimws(xml2::xml_text(xml2::xml_find_first(sp, "./p:txBody", ns))))) next
+      bp <- xml2::xml_find_first(sp, "./p:txBody/a:bodyPr", ns)
+      xml2::xml_set_attrs(bp, c(xml2::xml_attrs(bp), lIns = as.character(round(CARD_INS[["lr"]] * 914400)), rIns = as.character(round(CARD_INS[["lr"]] * 914400)),
+                                tIns = as.character(round(CARD_INS[["tb"]] * 914400)), bIns = as.character(round(CARD_INS[["tb"]] * 914400))))
+    }
     # 둥근 사각형의 모서리 반지름을 0.1 in로 통일(기본값은 짧은 변의 16.7%라 큰 카드가 지나치게 둥글다)
     for (sp in xml2::xml_find_all(doc, ".//p:sp[p:spPr/a:prstGeom[@prst='roundRect']]", ns)) {
       ext <- xml2::xml_find_first(sp, "./p:spPr/a:xfrm/a:ext", ns); if (inherits(ext, "xml_missing")) next

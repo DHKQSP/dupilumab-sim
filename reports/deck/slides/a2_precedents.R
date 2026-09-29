@@ -1,6 +1,6 @@
 # A2 부록: 선례. 요청된 세 건(PKM14161, Cohen 2022, 토실리주맙 MSB11456 정맥 시험) 중 프로젝트에 기록된 내용만 적는다. [문헌+모의]
 # PKM14161: 300 mg 검증 arm(Li 2020 Table 3)으로만 기록(평가변수·AUC0-inf 처리 기록 없음, 부분). Cohen 2022: 문헌(AUC0-inf 미산출).
-# 토실리주맙 MSB11456 정맥 시험: 저장소 어디에도 기록이 없다(보고서, config, 문헌 발췌표, SPEC, DECISIONS 검색 결과 없음) → "프로젝트 기록 없음(확인 필요)".
+# 토실리주맙 MSB11456 정맥 시험: config/literature_precedents.yaml(검색 발췌 두 건으로 확인, 원문은 분석 환경에서 접근 불가; D-062).
 
 a2_cfg <- function(section, match, key, item, fmt = function(x) format(x)) {
   y <- .read("config/design_clot2021.yaml"); lst <- if (section == "arms") y$arm_checks_300mg$arms else y$datasets
@@ -23,13 +23,13 @@ slide_A2 <- function() {
   y <- .read("config/design_clot2021.yaml")
   premise("PKM14161" %in% unlist(y$model_development_data$k2020) && !("PKM14161" %in% unlist(y$model_development_data$k2016)), "PKM14161 is in the 2020 model development data only")
   premise(all(rows(F16, "study=='PKM14161'")$pass_mean) && all(rows(F16, "study=='PKM14161'")$dev == "external"), "PKM14161 arms pass the 2016 model check as external data")
-  # 토실리주맙 MSB11456: 근거 문서(보고서, SPEC, config, 문헌 결과)에 없고, 결정 기록에는 '기록이 없는 항목'으로만 나온다
-  rx <- "MSB11456|tocilizumab|\ud1a0\uc2e4\ub9ac\uc8fc\ub9d9"; rd <- function(f) readLines(f, warn = FALSE, encoding = "UTF-8")
-  ev_files <- c(proj_path("regulatory", "src", "MS_report.Rmd"), proj_path("regulatory", "src", "FDA_questions.Rmd"), proj_path("SPEC.md"),
-                list.files(proj_path("config"), pattern = "\\.ya?ml$", full.names = TRUE), list.files(proj_path("results", "literature"), full.names = TRUE))
-  premise(!any(grepl(rx, unlist(lapply(ev_files, rd)), ignore.case = TRUE)), "no record of the tocilizumab MSB11456 IV study in the report, SPEC, config or literature results")
-  dl <- grep(rx, rd(proj_path("DECISIONS.md")), value = TRUE, ignore.case = TRUE)
-  premise(all(grepl("\uae30\ub85d\uc774 \uc5c6", dl)), "DECISIONS mentions the tocilizumab study only as an item without a project record")
+  # 토실리주맙 MSB11456: 문헌 기록(config)의 상태가 '검색 발췌'인 동안은 카드와 노트에 원문 대조 필요를 적는다
+  LP <- "literature_precedents.yaml"; mp <- .read(file.path("config", LP))$msb11456_iv
+  premise(identical(mp$status, "search excerpt"), "MSB11456 record status is 'search excerpt' (card text says the full text was not compared)")
+  premise(identical(mp$primary_endpoint, "AUC0-last") && grepl("AUC0-inf", mp$secondary_endpoints), "MSB11456: AUC0-last primary, AUC0-inf secondary (text)")
+  premise(mp$n_test + mp$n_reference == mp$n_randomized, "MSB11456 arm sizes add up to the randomized number")
+  rp <- function(k, lab) dcfg(LP, c("msb11456_iv", "ratio_pct", k), sprintf("MSB11456 IV study, geometric LS mean ratio (%%) and 90%% CI, %s", lab),
+                              function(x) sprintf("%s%% (%s)", fnum(x[1], 2), rng_fmt(x[2], x[3], 2)))
 
   lsd_lab <- rows("fallback/sample_size_logsd.csv", "startsWith(variant, 'Cohen')")$variant
   premise(length(lsd_lab) == 1 && grepl("90% CI", lsd_lab, fixed = TRUE), "the Cohen 2022 GMR interval is recorded as a 90% CI")
@@ -48,21 +48,30 @@ slide_A2 <- function() {
     n2 = a2_cfg("datasets", list(id = "Cohen2022_200mg_PFSS"), "n_subj", "Cohen 2022 prefilled syringe n"),
     gmr = a2_cfg("datasets", list(id = "Cohen2022_200mg_PFSS"), "gmr_auclast", "Cohen 2022 AUC0-last GMR", function(x) fnum(x, 2)),
     ci = a2_cfg("datasets", list(id = "Cohen2022_200mg_PFSS"), "gmr_ci", "Cohen 2022 AUC0-last GMR 90% CI", function(x) rng_fmt(x[1], x[2], 2)),
-    lsd = dv(LSD, "gate_role=='external'", "obs_log_sd", 2, "", "Cohen 2022 implied log SD of AUC0-last"))
+    lsd = dv(LSD, "gate_role=='external'", "obs_log_sd", 2, "", "Cohen 2022 implied log SD of AUC0-last"),
+    tn = dcfg(LP, c("msb11456_iv", "n_randomized"), "MSB11456 IV study, randomized healthy adults"),
+    tt = dcfg(LP, c("msb11456_iv", "n_test"), "MSB11456 IV study, test arm n"),
+    trf = dcfg(LP, c("msb11456_iv", "n_reference"), "MSB11456 IV study, reference arm n"),
+    tdose = dcfg(LP, c("msb11456_iv", "dose_mg_per_kg"), "MSB11456 IV study, dose (mg/kg)"),
+    tday = dcfg(LP, c("msb11456_iv", "sampling_last_day"), "MSB11456 IV study, last sampling day"),
+    tinf = dcfg(LP, c("msb11456_iv", "infusion_h"), "MSB11456 IV study, infusion duration (h)"),
+    tal = rp("auc0_last", "AUC0-last"), tai = rp("auc0_inf", "AUC0-inf"), tcm = rp("cmax", "Cmax"))
 
   # ---- 카드 세 개: 상태 표지 + 기록 내용 ---------------------------------------------------------------------------------------------
-  gap <- 0.25; cw <- (GEO$CW - 2 * gap) / 3; yc <- GEO$BODY_TOP + 0.05; chip_h <- 0.42; ch <- 3.6
+  gap <- 0.25; cw <- (GEO$CW - 2 * gap) / 3; yc <- GEO$BODY_TOP + 0.02; chip_h <- 0.42; ch <- 3.88
   cards <- list(pkm = list(bg = PAL$tint_grey, chip = PAL$ink2), cohen = list(bg = PAL$tint_blue, chip = PAL$blue), toci = list(bg = PAL$tint_orange, chip = PAL$orange))
   for (k in seq_along(cards)) {
     nm <- names(cards)[k]; x <- GEO$ML + (k - 1) * (cw + gap)
     deck_text(tx(sprintf("A2.%s.chip", nm)), c(x, yc, cw, chip_h), size = 16, bold = TRUE, color = "#ffffff", bg = cards[[nm]]$chip, geom = "roundRect", label = sprintf("chip_%s", nm), gap_pt = 0)
     deck_text(tx(sprintf("A2.%s.body", nm), f), c(x, yc + chip_h + 0.08, cw, ch), size = 16, bg = cards[[nm]]$bg, geom = "roundRect", label = sprintf("card_%s", nm), gap_pt = 6)
   }
-  yb <- yc + chip_h + 0.08 + ch + 0.15
+  yb <- yc + chip_h + 0.08 + ch + 0.1
   deck_text(tx("A2.bottom"), c(GEO$ML, yb, GEO$CW, GEO$BODY_BOTTOM - yb), size = 16, bold = TRUE, label = "takeaway")
   deck_notes(tx("A2.notes", c(f, list(
     wc = a2_cfg("datasets", list(id = "Cohen2022_200mg_AI"), "weight_mean", "Cohen 2022 mean body weight (kg)", function(x) fnum(x, 1)),
     tmc = a2_cfg("datasets", list(id = "Cohen2022_200mg_AI"), "tmax_median", "Cohen 2022 median tmax (day)", function(x) fnum(x, 2)),
-    ca16 = drange(Q16, "gate_role=='external' & grepl('Cohen', id)", "AUClast_ratio", 2, "", "Cohen 2022 sim/obs AUC0-last, 2016")))))
+    ca16 = drange(Q16, "gate_role=='external' & grepl('Cohen', id)", "AUClast_ratio", 2, "", "Cohen 2022 sim/obs AUC0-last, 2016"),
+    doi = dcfg(LP, c("msb11456_iv", "doi"), "MSB11456 IV study, DOI"), yr = dcfg(LP, c("msb11456_iv", "year"), "MSB11456 IV study, publication year"),
+    pon = dcfg(LP, c("msb11456_iv", "published_online"), "MSB11456 IV study, published online"), pmid = dcfg(LP, c("msb11456_iv", "pmid"), "MSB11456 IV study, PubMed ID")))))
   deck_end()
 }

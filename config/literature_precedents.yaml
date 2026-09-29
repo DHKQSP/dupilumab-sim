@@ -1,0 +1,29 @@
+# Precedent studies cited in the results deck (appendix A2). Values copied from the source as quoted by the retrieval,
+# with the retrieval route and its limits. English only (the deck trace is English).
+msb11456_iv:
+  status: "search excerpt"      # not yet compared with the full text
+  verification: "Two web-search excerpts (2026-09-29) agree on design, endpoints and results. Publisher, PubMed, Europe PMC and Crossref pages are blocked by the analysis-environment egress proxy; compare with the full text before external use."
+  citation: "Pharmacokinetics of a proposed tocilizumab biosimilar (MSB11456) versus US-licensed tocilizumab: results of a randomized, double-blind, single-intravenous dose study in healthy adults. Expert Review of Clinical Immunology, published online 2023-02-13."
+  journal: "Expert Review of Clinical Immunology"
+  year: 2023
+  published_online: "2023-02-13"
+  doi: "10.1080/1744666X.2023.2174104"
+  pmid: "36715299"
+  drug: "tocilizumab (anti IL-6 receptor antibody)"
+  population: "healthy adults"
+  design: "randomized, double-blind, parallel-group, single dose"
+  n_randomized: 128
+  n_test: 62
+  n_reference: 66
+  reference_product: "US-licensed tocilizumab"
+  dose_mg_per_kg: 8
+  route: "single intravenous infusion"
+  infusion_h: 1
+  sampling_last_day: 48
+  primary_endpoint: "AUC0-last"
+  secondary_endpoints: "Cmax, AUC0-inf"
+  analysis: "ANOVA on the natural logarithm of the endpoint with treatment as a fixed effect"
+  ratio_pct:                    # geometric least-squares mean ratio (%), [estimate, 90% CI lower, 90% CI upper]
+    auc0_last: [103.34, 98.53, 108.37]
+    auc0_inf: [103.15, 97.86, 108.73]
+    cmax: [101.48, 97.23, 105.92]
