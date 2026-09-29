@@ -1,0 +1,22 @@
+A5a:
+  kicker: "별첨 A5a · ③ 세부: 경계 {n}칸의 Wilson 분류"
+  title: "AUCinf + Cmax는 {e}칸이 초과, AUClast + Cmax는 {c}칸이 보수적이다"
+  table:
+    head: ["조건 → 참 AUCinf 비", "AUClast\n+ Cmax", "AUCinf + Cmax\n(신뢰할 수 있는 AUCinf만)"]   # \n: 머리글 칸 안 줄바꿈
+    mark:
+      exceeding: " ▲"
+      nominal: " ○"
+      conservative: ""
+    ext: " †"
+  body:
+    - "AUCinf 구성의 최댓값은 두 모델 모두 {mech} 칸이다({i16}, {i20}). AUClast 구성의 초과 칸은 별첨 A5b."
+  caption:
+    - "▲ 초과: Wilson 95% 구간 하한 > {nom} · ○ 명목: 구간이 {nom} 포함 · 표시 없음: 보수적(상한 < {nom})"
+    - "분석 모형 M1(체중 층 포함), 시험 {reps}회(†: {ext}회). 흡수 속도 감소 칸은 참 Cmax 비가 동등 한계 밖이라 두 구성 모두 {zero}다."
+  notes: |
+    S9 점도표의 칸별 값이다. 경계 칸 = 시험약의 기전 하나를 바꿔 참 AUCinf 비를 동등 한계에 맞춘 가상 제품. 모델마다 {npm}칸, 합 {n}칸. 두 구성: AUClast + Cmax(두 지표 모두 통과해야 동등), AUCinf + Cmax(신뢰할 수 있는 AUCinf, 곧 adjusted R² ≥ {r2}와 외삽 ≤ {ex}%를 얻은 대상자만으로 AUCinf를 판정하는 규칙 A 세트 (iii)).
+    Wilson 분류(칸마다 시험 {reps}회의 통과 비율과 Wilson 95% 구간): 보수적 = 상한 < {nom}, 명목 = 구간이 {nom} 포함, 초과 = 하한 > {nom}. 점추정만 보면 AUCinf 구성은 {gk}칸, AUClast 구성은 {pk_}칸이 {nom}를 넘는다(S9 본문의 칸 수).
+    AUClast + Cmax(M1): 보수적 {c}칸, 명목 {pn}칸, 초과 {pe}칸. 초과 칸은 2020 모델 말초 분포 증가 칸 {p2ci}이다(원인은 별첨 A5b). 같은 칸에서 AUCinf 구성은 {g2v}로 보수적이다.
+    AUCinf + Cmax(M1): 초과 {e}칸, 명목 {gn}칸, 보수적 {gc}칸. 최댓값은 2016 모델 {i16}, 2020 모델 {i20}.
+    흡수 속도 감소 두 칸은 참 Cmax 비({cmr})가 동등 한계 밖이라 Cmax가 모든 시험에서 불통과한다. 두 구성 모두 이 칸의 판정에는 정보가 없다.
+    체중 층을 넣지 않은 M0에서는 AUCinf 구성 초과 {m0g}칸, AUClast 구성 보수적 {m0p}칸이다(분석 모형별 비교는 별첨 A5b).

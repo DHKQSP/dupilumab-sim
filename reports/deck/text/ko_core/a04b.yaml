@@ -1,0 +1,27 @@
+A4b:
+  kicker: "별첨 A4b · ② 세부: 관측 대 참 비"
+  title: "AUClast는 참 AUCinf의 중앙값 {med}(5번째 백분위수 {p05})를 담고, NCA AUCinf 대 참 비는 위쪽 꼬리가 길다"
+  fig:
+    xlab: "같은 대상자의 참 AUCinf에 대한 비 (1 = 참값). 세로축: 대상자 비율 (0.02 간격, 로그 눈금)"
+    s_win: "참 AUClast (창 포착률)"
+    s_last: "관측 AUClast"
+    s_B: "NCA 규칙 B"
+    s_A: "NCA 규칙 A (i)"
+    ovf: "{n}명"
+    ovf_tick: "≥{v}"
+  table:
+    head: ["대상자 수", "중앙값", "5~95백분위", "최대"]
+    rows:
+      win: "참 AUClast"
+      last: "관측 AUClast"
+      B: "NCA 규칙 B"
+      A: "NCA 규칙 A (i)"
+  caption:
+    - "관측 AUClast 대 참 비에는 잔차 오차와 사다리꼴 근사가 두 arm에 같게 들어간다. NCA AUCinf는 외삽 면적을 과대추정한다(외삽 비율 중앙값 비구획 {n} 대 참 {t}, S7)."
+    - "규칙 B: λz 산출 가능자 전원의 NCA AUCinf. 규칙 A (i): 세트 (i)(adjusted R² ≥ {r2}, 외삽 ≤ {ex}%) 충족자만."
+  notes: |
+    시험 모집단(건강인 {wt} kg, 체중 층화, 현행 채혈, {dose} mg), 모델당 {n}명의 대상자 수준 결과다. 참값은 잔차 없는 모델 적분값이다. 창 포착률(참 AUClast ÷ 참 AUCinf)은 분자·분모 모두 참 곡선의 적분이라 잔차 오차가 tlast를 통해서만 들어간다. 관측 대 참 비(관측 AUClast 또는 NCA AUCinf ÷ 같은 대상자의 참 AUCinf)는 비례 잔차 오차와 사다리꼴 근사도 담으며, 잔차 모형이 두 arm에 같으므로 두 arm에 같게 들어간다(M&S 보고서 Table 5-3).
+    NCA AUCinf 규칙 B 대 참 비의 중앙값은 {b16}(2016 모델), {b20}(2020 모델)이다. 로그 척도 표준편차는 관측 AUClast {sl16}, 규칙 B {sb16}, 규칙 A {sa16}(2016 모델); {sl20}, {sb20}, {sa20}(2020 모델)이다. 퍼짐의 대부분은 잔차 오차이고 두 평가변수에 같이 들어간다. NCA AUCinf에는 λz 외삽 오차가 더해진다(외삽 배수 AUCinf/AUClast 최대 {fx16}, {fx20}).
+    최솟값(2016 모델 / 2020 모델): {mn}. 관측 AUClast의 가장 낮은 값은 성긴 채혈에 붙은 비례 잔차 오차 때문이며 채혈 구간 때문이 아니다(창 포착률 최솟값은 별첨 A4a, S7).
+    그림에서 {top} 이상은 한 구간으로 모았다(규칙 B만: 2016 모델 {o16}명, 2020 모델 {o20}명). 세로축은 로그 눈금이라 몇 명뿐인 꼬리도 보인다. 분포는 로컬 대상자 수준 결과에서 만든 results/deck_inputs/coverage_hist.csv(0.02 간격)이며 커밋된 요약(표)과 대조했다.
+    세트: 규칙 A는 기준 세트 (i)(adjusted R² ≥ {r2i}, 외삽 ≤ {exi}%) 미달자를 뺀다. 신뢰할 수 있는 AUCinf(세트 (iii), adjusted R² ≥ {r2})로 뺀 관측 대 참 비는 결과 파일에 없어 싣지 않았다. 세트 (iii)이면 대상자의 {f3}가 빠진다(S5).

@@ -1,0 +1,29 @@
+A6:
+  kicker: "별첨 A6 · 실측 자료({dose} mg)"
+  title: "공개 비구획 평균 AUClast/AUCinf는 같은 조건 모의와 ±{tol}%p 안에서 일치하고, 모의 참값은 {tr}다"
+  fig:
+    coh:
+      pkm: "PKM12350 대조군 (FDA 리뷰 Table 4.2.c)"
+      clot: "Clot 2021 Table 3, 300 mg 코호트"
+    type:
+      lit: "문헌 비구획"
+      nca: "모의 비구획"
+      tv: "모의 참값"
+    lit_shape: "문헌"
+    xlab: "평균 AUClast / 평균 AUCinf"
+    band: "회색: 문헌 값 ±{tol}%p(일치 기준). 값: 2016 모델 / 2020 모델"
+    arm:
+      test: "시험약"
+      reference: "대조약"
+    sim: "모의"
+    xlab2: "arm별 평균 AUClast (mg·day/L)"
+    band2: "■ 관측 평균, 회색: 관측 ±{tol}%(검증 허용 범위)"
+  body:
+    - "arm별 관측 평균 AUClast: PKM14161 두 arm은 모의 평균과 ±{tol}% 안(모의/관측 {r1})이고, PKM12350 두 arm은 모의가 더 높다({r2}; 체중 미보고, {wt} kg 가정)."
+  caption: "비구획 평균비는 외삽을 과대추정해 참 AUClast/AUCinf의 하한이다(S7). 출처: FDA BLA 761055 임상약리 리뷰 Table 4.2.c, Clot 2021 Table 3; arm별 AUClast: {src}."
+  notes: |
+    평균비는 평균 AUClast를 평균 AUCinf로 나눈 값이다. 모의는 문헌과 같은 용량({dose} mg), 채혈 일정, 코호트 평균 체중(PKM12350 {pw} kg 가정, Clot 2021 {cw} kg)으로 만들었고, 모의 참 평균비는 모델 적분 참 AUClast 평균을 참 AUCinf 평균으로 나눈 값이다.
+    PKM12350 대조군(FDA BLA 761055 임상약리 리뷰 Table 4.2.c): 문헌 {pl}, 모의 비구획 {pn16} / {pn20}, 모의 참값 {pt16} / {pt20}(2016 모델 / 2020 모델). 모의 비구획 대 문헌 차이 {pd}%p. 시험군 공개 값({ptest})은 AUCinf 산출 대상자 수가 다를 가능성이 있어 공개 자료로 확인할 수 없으므로 쓰지 않았다.
+    Clot 2021 Table 3 {dose} mg: 문헌 {cl}, 모의 비구획 {cn16} / {cn20}, 모의 참값 {ct16} / {ct20}. 차이 {cd}%p. 일치 기준(±{tol}%p)은 프로젝트 문헌 표의 판정 기준이며 수치로 다시 계산해 결과 파일 판정과 같음을 확인했다. 같은 표의 {d600} mg 코호트는 문헌 {l600}보다 모의 참 평균비({t600})가 낮아 보수적 방향이고, {d200} mg은 연구와 다른 제형이라 외부 점검 성격이다(결과보고 덱 A1).
+    arm별 관측 평균 AUClast(mg·day/L): PKM12350 시험약 {o1}, 대조약 {o2}; PKM14161 시험약 {o3}, 대조약 {o4}. 모의 평균은 연구 채혈 일정별로 2016 모델 {s16a}(PKM12350), {s16b}(PKM14161), 2020 모델 {s20a}, {s20b}이다(두 arm에 같은 모의값). PKM12350의 모의/관측은 2016 모델 시험약 {q1}, 대조약 {q2}, 2020 모델 {q3}, {q4}로 검증 허용 범위(±{gt}%)를 넘는 arm이 있다. 체중이 보고되지 않아 가정 체중으로 모의했으며 불합격 여부는 가정 체중에 달려 있다(별첨 A1, 결과보고 덱 S07).
+    이전 지시의 FDA 리뷰 Table 4.2.b, TYENNE BMER(BLA 761275), MSB11456 피하 투여 초록 항목은 저장소에 자료가 없어 이 슬라이드에서 뺐다.
