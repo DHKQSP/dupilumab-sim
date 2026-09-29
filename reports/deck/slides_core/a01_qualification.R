@@ -55,6 +55,14 @@ slide_A1 <- function() {
   premise(all(q16$id %in% names(L$ds)), "a label for every data set")
   d <- rbind(q16[, .(id, gate_role, dose_mg, pk = "k2016", ratio = AUClast_ratio)], q20[, .(id, gate_role, dose_mg, pk = "k2020", ratio = AUClast_ratio)])
   d[, row := match(id, q16$id)][, mod := factor(unlist(ML[pk]), levels = unlist(ML))]
+  # 모델 개발 자료 표시(config/design_clot2021.yaml datasets의 dev_k2016/dev_k2020: internal 또는 partial이면 속이 빈 표식)
+  ds_cfg <- .read("config/design_clot2021.yaml")$datasets; dv_st <- rbindlist(lapply(ds_cfg, function(z) data.table(id = z$id, k2016 = z$dev_k2016, k2020 = z$dev_k2020)))
+  premise(all(d$id %in% dv_st$id) && all(unlist(dv_st[, .(k2016, k2020)]) %in% c("external", "internal", "partial")), "development-data status recorded for every data set")
+  d[, dev := mapply(function(i, m) dv_st[id == i][[m]] != "external", id, pk)]
+  premise(!any(d[gate_role == "external", dev]), "no 200 mg row is development data (only gate rows are marked)")
+  premise(setequal(d[dev == TRUE & pk == "k2016", id], "clot300_nonasian_pooled") && setequal(d[dev == TRUE & pk == "k2020", id], c("clot300_nonasian_pooled", "clot300_japanese_TDU12265", "clot600_japanese")) &&
+          all(unlist(dv_st[id == "clot300_nonasian_pooled", .(k2016, k2020)]) == "partial"), "development data: pooled non-Asian partly for both models, Japanese rows for the 2020 model (caption)")
+  dsrc("development-data status of the validation data sets (hollow markers)", "config/design_clot2021.yaml")
   d[, lab := vapply(seq_len(.N), function(i) if (gate_role[i] == "gate") fill(L$gate_lab, list(dose = fnum(dose_mg[i], 0), ds = L$ds[[id[i]]])) else L$ds[[id[i]]], "")]
   w <- dcast(d, id + gate_role + row + lab ~ pk, value.var = "ratio")[, vtxt := sprintf("%s / %s", fnum(k2016, 2), fnum(k2020, 2))]
   XL <- c(0.78, 1.20); XV <- 1.225
@@ -68,10 +76,11 @@ slide_A1 <- function() {
       annotate("rect", xmin = 1 - tolv / 100, xmax = 1 + tolv / 100, ymin = -Inf, ymax = Inf, fill = PAL$tint_blue) +
       geom_vline(xintercept = 1, colour = PAL$muted, linewidth = 0.5) +
       geom_segment(data = ww, aes(x = k2016, xend = k2020, y = labf, yend = labf), colour = PAL$muted, linewidth = 0.7) +
-      geom_point(data = dd, aes(ratio, labf, shape = mod), colour = col, size = 3.8) +
+      geom_point(data = dd, aes(ratio, labf, shape = mod, fill = dev), colour = col, size = 3.8, stroke = 1.1) +
       geom_text(data = ww, aes(x = XV, y = labf, label = vtxt), hjust = 0, size = PT(15), family = FONT, colour = PAL$ink) +
       annotate("text", x = XV, y = Inf, label = L$vals, hjust = 0, vjust = -0.5, size = PT(14), family = FONT, colour = PAL$ink2) +
-      scale_shape_manual(values = setNames(unname(CORE_MODEL_SHAPE), unlist(ML)), name = NULL, drop = FALSE) +
+      scale_shape_manual(values = setNames(c(21, 24), unlist(ML)), name = NULL, drop = FALSE) +                       # 21/24 = CORE_MODEL_SHAPE의 원·삼각형(속 채움 조절용)
+      scale_fill_manual(values = c(`FALSE` = col, `TRUE` = "white"), breaks = "TRUE", labels = L$dev, name = NULL, drop = FALSE) +
       scale_x_continuous(breaks = c(1 - tolv / 100, 1, 1 + tolv / 100), labels = function(v) fnum(v, 2)) +
       scale_y_discrete(expand = expansion(add = 0.6)) +
       coord_cartesian(xlim = XL, clip = "off") +
@@ -82,10 +91,11 @@ slide_A1 <- function() {
     p
   }
   # 범례(모델 = 표식 모양)는 위 그림에만(제목 줄 아래 왼쪽; 오른쪽 값 열 머리글과 떨어지게)
-  p1 <- mk("gate", L$g_gate, NULL) + guides(shape = guide_legend(override.aes = list(colour = PAL$ink))) +
+  p1 <- mk("gate", L$g_gate, NULL) + guides(shape = guide_legend(order = 1, override.aes = list(colour = PAL$ink, fill = PAL$ink)),
+                                             fill = guide_legend(order = 2, override.aes = list(shape = 21, colour = PAL$ink, size = 3.8))) +
     theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), legend.position = "top", legend.justification = "left", legend.margin = margin(0, 0, 2, 0),
           legend.box.spacing = grid::unit(2, "pt"), legend.text = element_text(size = 15, colour = PAL$ink))
-  p2 <- mk("external", fill(L$g_ext, list(dose = fnum(d200, 0))), L$xlab) + guides(shape = "none")
+  p2 <- mk("external", fill(L$g_ext, list(dose = fnum(d200, 0))), L$xlab) + guides(shape = "none", fill = "none")
   p <- patchwork::wrap_plots(p1, p2, ncol = 1, heights = c(nrow(w[gate_role == "gate"]), nrow(w[gate_role == "external"])))
 
   # ---- 본문 두 줄, 캡션 ----
@@ -101,11 +111,22 @@ slide_A1 <- function() {
              d200 = drange(Q16, "gate_role=='external'", "dose_mg", 0, "", "dose of the other presentation (mg)"),
              conc2 = a1_num(Q16, "id=='PKM14271_200mg_test'", "presentation", 2, 2, "other presentation: concentration (mg/mL)"),
              vol2 = a1_num(Q16, "id=='PKM14271_200mg_test'", "presentation", 1, 2, "other presentation: volume (mL)"),
-             to = to, ts = ts)
+             to = to, ts = ts,
+             d300 = drange(Q16, "gate_role=='gate' & dose_mg==300", "dose_mg", 0, "", "study-presentation single-injection dose (mg)"),
+             n3 = dcount(Q16, "gate_role=='gate' & dose_mg==300", "study-presentation 300 mg data sets"),
+             r16_3 = drange(Q16, "gate_role=='gate' & dose_mg==300", "AUClast_ratio", 2, "", "AUClast sim/obs range, 2016 model, 300 mg study presentation (as S3)"),
+             r20_3 = drange(Q20, "gate_role=='gate' & dose_mg==300", "AUClast_ratio", 2, "", "AUClast sim/obs range, 2020 model, 300 mg study presentation (as S3)"))
   # 배치: 왼쪽 그림(본문 높이 전체), 오른쪽 요점 두 문단, 아래 캡션
-  cap <- tx("A1.caption", list(tol = tol))
+  h16 <- rows(H16); h20 <- rows(H20); fl_ <- rbind(h16[pass_mean == FALSE], h20[pass_mean == FALSE])
+  premise(nrow(fl_) > 0 && all(fl_$type == "Li 2020 arm"), "every fully external failure is a Li 2020 single arm (no reported weight; caption)")
+  for (s_ in c("step1/step1_status.csv", "step1_k2020/step1_status.csv")) premise(startsWith(rows(s_)[role == "gate(외부만)", status], "FAIL"), sprintf("%s: fully external re-judgement FAIL (caption)", s_))
+  premise(isTRUE(.read("config/design_clot2021.yaml")$arm_checks_300mg$weight$status == "assumption"), "Li 2020 arm weight is an assumption (caption)")
+  w0 <- dcfg("design_clot2021.yaml", c("arm_checks_300mg", "weight", "mean"), "assumed mean weight of the single arms (kg)", num_fmt(0))
+  xo <- list(n16 = dcount(H16, "TRUE", "fully external items, 2016 model"), f16 = dcount(H16, "pass_mean==FALSE", "fully external items failing, 2016 model"),
+             n20 = dcount(H20, "TRUE", "fully external items, 2020 model"), f20 = dcount(H20, "pass_mean==FALSE", "fully external items failing, 2020 model"))
+  cap <- tx("A1.caption", c(list(tol = tol, w0 = w0, d200 = fb$d200), xo))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
-  FW <- 8.25; XR <- GEO$ML + FW + 0.3; WR <- GEO$W - GEO$MR - XR
+  FW <- 7.35; XR <- GEO$ML + FW + 0.3; WR <- GEO$W - GEO$MR - XR
   body <- tx("A1.body", fb); bh <- core_body_h(body, WR, gap_pt = 14)
   deck_text(body, c(XR, y0 + 0.45, WR, bh), size = SZ$body, label = "body", gap_pt = 14)
   deck_figure(p, "a1_qualification", c(GEO$ML, y0, FW, capy - 0.12 - y0), src = c(Q16, Q20))
@@ -115,8 +136,6 @@ slide_A1 <- function() {
   qg <- q16[gate_role == "gate"]; cid <- qg[which.max(Cmax_ratio), id]
   premise(sum(c(qg$Cmax_ratio, q20[gate_role == "gate", Cmax_ratio]) <= 1) <= 1, "Cmax over-predicted in all but at most one study-presentation cohort over both models (notes: mostly over-predicted)")
   premise(sum(q20[gate_role == "gate", Cmax_ratio] < 1) == 1 && all(q16[gate_role == "gate", Cmax_ratio] > 1), "2020 model: exactly one study-presentation Cmax ratio below 1, none in the 2016 model (notes)")
-  h16 <- rows(H16); h20 <- rows(H20); fl_ <- rbind(h16[pass_mean == FALSE], h20[pass_mean == FALSE])
-  premise(nrow(fl_) > 0 && all(fl_$type == "Li 2020 arm"), "every fully external failure is a Li 2020 single arm (no reported weight)")
   eo <- .read("config/design_clot2021.yaml")$external_only_gate
   premise(!setequal(unlist(eo$k2016), unlist(eo$k2020)), "fully external item lists differ by model (notes: different numbers of items)")
   premise(nrow(rows(A16)) == 6 && nrow(rows(A20)) == 6, "six 300 mg single arms")
@@ -139,7 +158,7 @@ slide_A1 <- function() {
     x1 = pr2("clot300_nonasian_pooled", "AUClast sim/obs, non-Asian pooled 300 mg,"), x2 = pr2("clot300_japanese_TDU12265", "AUClast sim/obs, Japanese 300 mg,"),
     x3 = pr2("clot300_chinese", "AUClast sim/obs, Chinese 300 mg,"), x4 = pr2("clot600_chinese", "AUClast sim/obs, Chinese 600 mg,"), x5 = pr2("clot600_japanese", "AUClast sim/obs, Japanese 600 mg,"),
     d200 = fb$d200, d600 = fb$d600, to = to, ts = ts, rng = rng,
-    d300 = drange(Q16, "gate_role=='gate' & dose_mg < 600", "dose_mg", 0, "", "study-presentation single-injection dose (mg)"),
+    d300 = fb$d300,
     e16 = drange(Q16, "gate_role=='external'", "AUClast_ratio", 2, "", "AUClast sim/obs, 200 mg presentation, 2016 model"),
     e20 = drange(Q20, "gate_role=='external'", "AUClast_ratio", 2, "", "AUClast sim/obs, 200 mg presentation, 2020 model"),
     z = drange(Q16, "gate_role=='external'", "AUClast_z", 1, "", "z of AUClast, 200 mg presentation, 2016 model"),
@@ -148,11 +167,10 @@ slide_A1 <- function() {
     c20 = drange(Q20, "gate_role=='gate'", "Cmax_ratio", 2, "", "Cmax sim/obs range, 2020 model, study presentation"),
     cmx = sprintf("%s mg %s", dv(Q16, sprintf("id=='%s'", cid), "dose_mg", 0, "", "dose of the cohort with the largest Cmax sim/obs, 2016 model"), L$ds[[cid]]),
     cmin20 = dext(Q20, "gate_role=='gate'", "Cmax_ratio", min, 3, "", "smallest Cmax sim/obs, 2020 model, study presentation"),
-    w0 = dcfg("design_clot2021.yaml", c("arm_checks_300mg", "weight", "mean"), "assumed mean weight of the single arms (kg)", num_fmt(0)),
+    w0 = w0,
     a16 = drange(A16, "TRUE", "ratio", 2, "", "300 mg single arms: mean AUClast sim/obs, 2016 model"),
     a20 = drange(A20, "TRUE", "ratio", 2, "", "300 mg single arms: mean AUClast sim/obs, 2020 model"),
-    n16 = dcount(H16, "TRUE", "fully external items, 2016 model"), f16 = dcount(H16, "pass_mean==FALSE", "fully external items failing, 2016 model"),
-    n20 = dcount(H20, "TRUE", "fully external items, 2020 model"), f20 = dcount(H20, "pass_mean==FALSE", "fully external items failing, 2020 model"),
+    n16 = xo$n16, f16 = xo$f16, n20 = xo$n20, f20 = xo$f20,
     l300 = lv("c300", "lit_mean_ratio", "Clot 2021 300 mg published mean AUClast/AUCinf"), n300 = two("c300", "nca_mean_ratio", "Clot 2021 300 mg simulated NCA mean ratio,"),
     t300 = two("c300", "true_mean_ratio", "Clot 2021 300 mg simulated true mean ratio,"),
     lpk = lv("pkm", "lit_mean_ratio", "PKM12350 control arm published mean AUClast/AUCinf"), npk = two("pkm", "nca_mean_ratio", "PKM12350 simulated NCA mean ratio,"),

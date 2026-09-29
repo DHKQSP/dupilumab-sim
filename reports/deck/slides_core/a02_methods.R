@@ -44,17 +44,7 @@ slide_A2 <- function() {
   f <- list(r2i = f_set("i", "r2"), r2iii = f_set("iii", "r2"))
   y0 <- core_title(tx("A2.title", f), tx("A2.kicker"))
 
-  # ---- 왼쪽: NCA 규칙 요점(3개 + AUCinf 하위 요점) ----
-  XL <- GEO$ML; WL <- 6.1; XR <- XL + WL + 0.3; WR <- GEO$W - GEO$MR - XR; LH <- 0.40
-  mp <- dcfg(NR, c("standard", "lambda_z", "min_points"), "lambda-z minimum points", num_fmt(0))
-  tol <- dcfg(NR, c("standard", "lambda_z", "tie_tolerance"), "lambda-z adjusted R-squared tie tolerance", num_fmt(4))
-  z0 <- dderived("BLQ before the first quantifiable value is set to zero", file.path("config", NR), "standard.blq.pre_first_quant == 'zero'", nr$blq$pre_first_quant, "0")
-  deck_text(tx("A2.rules_label"), c(XL, y0, WL, LH), size = 16, bold = TRUE, color = PAL$ink2, label = "label_rules", gap_pt = 0)
-  rl <- tx("A2.rules", list(mp = mp, tol = tol, z = z0))
-  rh <- est_height(vapply(rl, function(s) sub("^- ", "", s), ""), WL, SZ$body, gap_pt = 8, indent = 0.3) + 0.12
-  deck_bullets(rl, box = c(XL, y0 + LH + 0.04, WL, rh), size = SZ$body, gap_pt = 8, label = "body_rules")
-
-  # ---- 엔진 검증(캡션 둘째 줄) ----
+  # ---- 엔진 검증과 시험 모의 방법(캡션 두 줄) ----
   ev <- rows(EV); premise(nrow(ev) == 9 && all(ev$pass) && all(ev$lz_points_mismatch == 0) && all(ev$na_mismatch == 0), "every NCA engine comparison passed (9 rows)")
   premise(setequal(unique(unlist(strsplit(unique(ev$comparison), " vs ", fixed = TRUE))), c("this engine", "NonCompart", "PKNCA")), "engines: this engine, NonCompart, PKNCA")
   premise(!any(grepl("phoenix", list.files(proj_path("results/nca_engine"), recursive = TRUE), ignore.case = TRUE)), "no Phoenix output in results/nca_engine (caption: not compared with Phoenix itself)")
@@ -64,29 +54,59 @@ slide_A2 <- function() {
   g <- list(lz = dderived("lambda-z windows identical over all comparisons", EV, "sum(lz_points_identical) / sum(lz_points_identical + lz_points_mismatch)", c(lz_i, lz_t), sprintf("%s/%s", fint(lz_i), fint(lz_t))),
             ntot = dderived("profiles per engine comparison (Theoph + Indometh + simulated)", EV, "sum over datasets of n_profiles (one comparison each)", sum(np_$n), fint(sum(np_$n))),
             mx = local({ x <- max(ev$max_rel_diff); dderived("largest relative parameter difference (scientific notation)", EV, "max(max_rel_diff) :: printed as mantissa x 10^exponent", x, a2_sci(x)) }))
-  capy <- core_caption(tx("A2.caption", g), GEO$BODY_BOTTOM, size = 14)
+  oc <- .read("config/oc_design.yaml")
+  premise(grepl("기하평균비", oc$estimand$quantity) && grepl("적분", oc$estimand$auc) && grepl("공통 난수", oc$estimand$population$paired_crn), "truth: geometric mean ratio of model-integral values on common-random-number subjects (caption)")
+  premise(grepl("이분법", oc$inversion$method) && identical(as.numeric(unlist(oc$boundary_targets)), as.numeric(unlist(.read("config/trial_design.yaml")$be$limits))), "boundary cells: multiplier found by bisection so that the true AUCinf ratio equals an equivalence limit (caption)")
+  mth <- list(nt = dcfg("oc_design.yaml", c("estimand", "population", "n_subjects"), "common-random-number subjects of the true ratio", function(x) fnum(as.numeric(x), 0, big = TRUE)), reps = f_reps("boundary"))
+  capy <- core_caption(c(tx("A2.caption", g), tx("A2.method", mth)), GEO$BODY_BOTTOM, size = 14)
 
-  # ---- 오른쪽: 기준 세트 표 ----
-  deck_text(tx("A2.sets_label"), c(XR, y0, WR, LH), size = 16, bold = TRUE, color = PAL$ink2, label = "label_sets", gap_pt = 0)
+  # ---- 왼쪽: NCA 규칙 요점(3개 + AUCinf 하위 요점), 그 아래 Phoenix 상자 ----
+  XL <- GEO$ML; WL <- 6.1; XR <- XL + WL + 0.3; WR <- GEO$W - GEO$MR - XR; LH <- 0.38
+  mp <- dcfg(NR, c("standard", "lambda_z", "min_points"), "lambda-z minimum points", num_fmt(0))
+  tol <- dcfg(NR, c("standard", "lambda_z", "tie_tolerance"), "lambda-z adjusted R-squared tie tolerance", num_fmt(4))
+  z0 <- dderived("BLQ before the first quantifiable value is set to zero", file.path("config", NR), "standard.blq.pre_first_quant == 'zero'", nr$blq$pre_first_quant, "0")
+  deck_text(tx("A2.rules_label"), c(XL, y0, WL, LH), size = 16, bold = TRUE, color = PAL$ink2, label = "label_rules", gap_pt = 0)
+  rl <- tx("A2.rules", list(mp = mp, tol = tol, z = z0))
+  rh <- est_height(vapply(rl, function(s) sub("^- ", "", s), ""), WL, SZ$body, gap_pt = 5, indent = 0.3) + 0.08
+  deck_bullets(rl, box = c(XL, y0 + LH + 0.02, WL, rh), size = SZ$body, gap_pt = 5, label = "body_rules")
+  ph <- tx("A2.phoenix")
+  phh <- est_height(ph, WL, SZ$body, gap_pt = 4, card = TRUE) + 0.04; PY <- y0 + LH + 0.02 + rh + 0.12
+  premise(PY + phh <= capy - 0.08, "Phoenix box fits between the rules and the caption")
+  deck_text(ph, c(XL, PY, WL, phh), size = SZ$body, label = "body_phoenix", bg = PAL$tint_grey, geom = "roundRect", gap_pt = 4)
+
+  # ---- 오른쪽 위: 기준 세트 표(등록 상태 포함; 외삽 한도는 네 세트 공통이라 머리말에) ----
+  deck_text(tx("A2.sets_label", list(ex = f_set("i", "extrap"))), c(XR, y0, WR, LH), size = 16, bold = TRUE, color = PAL$ink2, label = "label_sets", gap_pt = 0)
   sets <- c("i", "ii", "iii", "iv")
   spn <- function(s_) if (s_ %in% c("ii", "iv")) fill(L$span, list(x = f_set(s_, "span"))) else L$none   # span 요건은 세트 (ii), (iv)만(전제)
-  df <- data.frame(a = unlist(L$set_names[sets]), b = vapply(sets, function(s_) fill(L$ge, list(x = f_set(s_, "r2"))), ""), c = vapply(sets, function(s_) fill(L$le, list(x = f_set(s_, "extrap"))), ""),
-                   d = vapply(sets, spn, ""), e = unlist(L$use[sets]), stringsAsFactors = FALSE, check.names = FALSE)
+  use <- function(s_) if (s_ == "iv") fill(L$use$iv, list(ex = f_set("iv", "extrap"))) else L$use[[s_]]
+  premise(!is.null(cs$i), "set (i) is part of the registered criteria sets (table: defined post hoc, then registered)")
+  df <- data.frame(a = unlist(L$set_names[sets]), b = vapply(sets, function(s_) fill(L$ge, list(x = f_set(s_, "r2"))), ""),
+                   d = vapply(sets, spn, ""), s = unlist(L$status[sets]), e = vapply(sets, use, ""), stringsAsFactors = FALSE, check.names = FALSE)
   names(df) <- tx("A2.table.head")
-  TY <- y0 + LH + 0.04; TH <- 2.05
-  deck_table(df, box = c(XR, TY, WR, TH), widths = c(0.5, 1.3, 0.8, 1.2, 2.05), size = 14, label = "table_sets", highlight = 3)
+  TY <- y0 + LH + 0.02; TH <- 1.98
+  deck_table(df, box = c(XR, TY, WR, TH), widths = c(0.5, 0.8, 1.2, 1.45, 2.23), size = 14, label = "table_sets", highlight = 3)
 
+  # ---- 오른쪽 아래: 공개 SAP 세 건(사전 등록 6절 문장에서 읽는다) ----
   sap <- core_sap("NCT04117607", "at least", "public SAP NCT04117607: adjusted R-squared at least")
-  premise(core_sap("NCT04441905", "at least", "public SAP NCT04441905: adjusted R-squared at least") == sap && as.numeric(sap) == cs$iii$adj_r2_min, "two verified public SAPs use the set (iii) threshold")
-  # Phoenix 사실과 공개 SAP: 두 단 아래 전체 폭 상자(캡션 위)
-  ph <- tx("A2.phoenix", list(sap = sap))
-  cend <- max(y0 + LH + 0.04 + rh, TY + TH)
-  phh <- est_height(ph, GEO$CW, SZ$body, gap_pt = 4, card = TRUE) + 0.06; PY <- min(cend + 0.3, capy - 0.12 - phh)
-  premise(PY >= cend + 0.05, "Phoenix box between the two columns and the caption")
-  deck_text(ph, c(GEO$ML, PY, GEO$CW, phh), size = SZ$body, label = "body_phoenix", bg = PAL$tint_orange, geom = "roundRect", gap_pt = 4)
+  s2 <- core_sap("NCT04441905", "at least", "public SAP NCT04441905: adjusted R-squared at least")
+  s3 <- core_sap("NCT04700163", "above", "public SAP NCT04700163: adjusted R-squared above")
+  premise(s2 == sap && s3 == sap && as.numeric(sap) == cs$iii$adj_r2_min, "three public SAPs use the set (iii) threshold value")
+  psx <- .read("config/prereg_20260926.yaml")$section6$s2_1_failure_by_set$public_saps
+  premise(grepl("NCT04117607 \\([^)]*; verified\\)", psx) && grepl("NCT04441905 \\([^)]*; verified\\)", psx) && grepl("NCT04700163 \\([^)]*web-search excerpt", psx) &&
+          grepl("otherwise AUC\\(INF\\) and other terminal parameters excluded", psx), "SAP verification status and the NCT04700163 exclusion rule (table)")
+  sp4 <- dderived("public SAP NCT04117607: span at least (half-lives)", "config/prereg_20260926.yaml", "section6.s2_1_failure_by_set.public_saps :: regex 'NCT04117607 \\(adjusted R-squared at least ([0-9.]+), span at least ([0-9.]+) half-lives' group 2",
+                  sp$span, fnum(sp$span, 0))
+  S <- L$sap
+  ds <- data.frame(a = c("NCT04117607", "NCT04441905", "NCT04700163"),
+                   b = c(fill(S$c1, list(x = sap, sp = sp4)), fill(S$c2, list(x = s2)), fill(S$c3, list(x = s3))),
+                   c = c(S$ok, S$ok, S$web), stringsAsFactors = FALSE)
+  names(ds) <- tx("A2.sap_head")
+  SY <- TY + TH + 0.14; SH <- 1.36
+  premise(SY + SH <= capy - 0.08, "SAP table fits above the caption")
+  deck_table(ds, box = c(XR, SY, WR, SH), widths = c(1.45, 3.45, 1.28), size = 14, label = "table_saps", header_fill = PAL$tint_grey)
 
   deck_notes(tx("A2.notes", c(f, g, list(mp = mp, tol = tol, z = z0, ex = f_set("i", "extrap"), sp2 = f_set("ii", "span"), sp4 = f_set("iv", "span"),
-    s1 = sap, s2 = core_sap("NCT04441905", "at least", "public SAP NCT04441905: adjusted R-squared at least"), s3 = core_sap("NCT04700163", "above", "public SAP NCT04700163: adjusted R-squared above"),
+    s1 = sap, s2 = s2, s3 = s3,
     nc = dderived("NonCompart version (renv.lock)", SE, "Software=='NonCompart' :: Version", row1(SE, "Software=='NonCompart'")$Version, row1(SE, "Software=='NonCompart'")$Version),
     pk = dderived("PKNCA version (renv.lock)", SE, "Software=='PKNCA' :: Version", row1(SE, "Software=='PKNCA'")$Version, row1(SE, "Software=='PKNCA'")$Version),
     nth = dint(EV, "comparison=='this engine vs NonCompart' & dataset=='Theoph (12 profiles)'", "n_profiles", "Theoph profiles"),

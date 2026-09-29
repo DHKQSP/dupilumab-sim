@@ -54,12 +54,24 @@ slide_A3b <- function() {
   premise(all(a[scenario == "ka_down_080", diff_lo] > 0) && all(a[scenario == "V2_up_080", diff_hi] < 0), "ka decreased: test arm fails more; V2 increased: test arm fails less (set iii, two models)")
   cw <- max(a$diff_hi - a$diff_lo); premise(cw < 1, "every 95% interval of the mean arm difference is narrower than 1 point (hidden by the markers)")
   aa <- rows(TAD, "set=='iii' & scenario!='S00'"); mxv <- max(abs(aa$diff_mean))
-  premise(abs(mxv - max(abs(a[scenario != "S00", diff_mean]))) < 1e-12, "the largest absolute set (iii) arm difference over all test products is in the plotted cells (title)")
+  premise(abs(mxv - max(abs(a[scenario != "S00", diff_mean]))) < 1e-12, "the largest absolute set (iii) arm difference over all test products is in the plotted cells (bullet)")
+  # 가장 큰 차이(흡수 속도 감소 칸)는 참 Cmax 비가 동등 범위 밖이라 Cmax를 넣은 판정은 늘 불통과한다: 판정에 의미 있는 칸(참 Cmax 비가 범위 안)의 최대를 따로 적는다(C11)
+  lim <- unlist(.read("config/trial_design.yaml")$be$limits)
+  premise(aa[which.max(abs(diff_mean)), scenario] == "ka_down_080" && all(aa[scenario == "ka_down_080", cmax_ratio] < lim[1]), "the largest arm difference is in the absorption-rate cell, whose true Cmax ratio is below the lower limit")
+  premise(all(aa[scenario != "ka_down_080", cmax_ratio > lim[1] & cmax_ratio < lim[2]]), "every other test product has a true Cmax ratio inside the limits (informative cells)")
+  kc <- rows("oc_models/type1_models.csv", "scenario=='ka_down_080' & !config %in% c('AUCinf_true_only','AUClast_only')")
+  premise(nrow(kc) > 0 && all(kc$pass_pct == 0), "absorption-rate cell: every configuration with Cmax passes in 0% of trials (both models, all analysis models)")
+  ai <- aa[scenario != "ka_down_080"]; mxi <- max(abs(ai$diff_mean)); ki <- ai[which.max(abs(diff_mean))]
+  premise(ki$scenario == "V2_up_080" && ki$pk_model == "k2020" && ki$scenario %in% A3B_SC, "largest informative arm difference: peripheral distribution increased, 2020 model, plotted (bullet)")
 
   # ---- 제목 ----
-  f <- list(r3b = dv(TRS, "variant=='resid12' & set=='iii'", "fail_pct", 1, "%", "set (iii) failing, 2016 model with residual 12%"),
+  f <- list(r3a = dv(TRS, "variant=='k2016' & set=='iii'", "fail_pct", 1, "%", "set (iii) failing, 2016 model (residual as estimated)"),
+            r3b = dv(TRS, "variant=='resid12' & set=='iii'", "fail_pct", 1, "%", "set (iii) failing, 2016 model with residual 12%"),
             mx = dderived("largest absolute test minus reference difference in the share failing set (iii) over the test products of both models (points)", TAD,
-                          "set=='iii' & scenario!='S00' :: max(abs(diff_mean))", mxv, fnum(mxv, 1)))
+                          "set=='iii' & scenario!='S00' :: max(abs(diff_mean))", mxv, fnum(mxv, 1)),
+            mxi = dderived("largest absolute arm difference in the share failing set (iii) over test products whose true Cmax ratio is inside the limits (points)", TAD,
+                           "set=='iii' & scenario!='S00' & scenario!='ka_down_080' :: max(abs(diff_mean))", mxi, fnum(mxi, 1)),
+            cmx = drange(TAD, "set=='iii' & scenario=='ka_down_080'", "cmax_ratio", 2, "", "true Cmax ratio, absorption-rate cell at 0.80, two models"))
   y0 <- core_title(tx("A3b.title", f), tx("A3b.kicker"))
 
   # ---- 요점(아래) ----
@@ -72,9 +84,8 @@ slide_A3b <- function() {
     gmr = drange(TCH, "set=='iii'", "true_aucinf_gmr", 2, "", "true AUCinf ratio, failing to retained subjects, set (iii), two models"),
     split = f_split(), sd = drange(TSI, "set=='iii'", "diff_pp", 1, "", "stratum difference, set iii, diff_pp"),
     s0 = dderived("largest absolute mean arm difference, identical products, set (iii), two models (points)", TAD, "scenario=='S00' & set=='iii' :: max(abs(diff_mean))", s0, s0p),
-    rng = { x <- range(a[scenario != "S00", diff_mean])
-      dderived("mean arm difference in the share failing set (iii), boundary cells at 0.80, range over mechanisms and models (points)", TAD,
-               sprintf("set=='iii' & scenario %%in%% %s & scenario!='S00' :: range(diff_mean)", a3b_in(A3B_SC)), x, sprintf("%s~%s", fnum(x[1], 1), a3b_signed(fnum(x[2], 1)))) }))
+    r80 = drange(TAD, sprintf("set=='iii' & scenario %%in%% %s & scenario!='S00'", a3b_in(A3B_SC)), "auc_ratio", 2, "", "true AUCinf ratio, plotted boundary cells, two models"),
+    mxi = f$mxi, mx = f$mx, cmx = f$cmx))
   BH <- est_height(bl, GEO$CW, 18, 6, indent = 0.3) + 0.04
   BY <- GEO$BODY_BOTTOM - BH
   deck_bullets(bl, box = c(GEO$ML, BY, GEO$CW, BH), size = 18, gap_pt = 6)
@@ -98,29 +109,36 @@ slide_A3b <- function() {
           panel.spacing.x = grid::unit(10, "pt"))
 
   # ---- 그림 오른쪽: arm 간 미달 차이(세트 (iii)) ----
-  a[, row := length(A3B_SC) + 1 - match(scenario, A3B_SC)][, y := row + fifelse(pk_model == "k2016", 0.15, -0.15)]
+  a[, row := length(A3B_SC) + 1 - match(scenario, A3B_SC)][scenario == "S00", row := row + 0.45][, y := row + fifelse(pk_model == "k2016", 0.15, -0.15)]   # 동일 제품 행 아래에 간격
   a[, mod := factor(unlist(ML[pk_model]), levels = unlist(ML))]
   lab_y <- unique(a[, .(row, scenario, key = paste(mechanism, direction, sep = "_"))])[order(row)]
   lab_y[, lab := vapply(seq_len(.N), function(j) if (scenario[j] == "S00") FL$s00 else FL$mech[[key[j]]], "")]
   xr <- range(a$diff_mean); xl <- c(floor(xr[1] / 2) * 2 - 1, ceiling(xr[2] / 2) * 2)
-  xv <- xl[2] + 1.2                                                           # 값 열(두 모델)
+  xb <- seq(-10, 15, 5); xb <- xb[xb >= xl[1] & xb <= xl[2]]                 # 눈금·격자선은 자료 범위 안에만(값 열과 겹치지 않게)
+  xv <- xl[2] + 2.2                                                           # 값 열(두 모델): 자료 영역 오른쪽 끝에서 띄운다
+  ys <- length(A3B_SC) - 0.5 + 0.2                                            # 동일 제품 아래 구분선(간격 가운데)
+  yk <- unique(a[scenario == "ka_down_080", row])
   vt <- a[, .(lab = paste(vapply(fnum(diff_mean[match(MOD, pk_model)], 1), a3b_signed, ""), collapse = " / ")), by = row]
   nt <- unique(a$n_trials); premise(length(nt) == 1, "same number of trials in every plotted cell")
   r80 <- mean(a[scenario != "S00", auc_ratio])
+  ytop <- max(a$row) + 1.15
   p2 <- ggplot(a, aes(diff_mean, y)) +
-    geom_hline(yintercept = length(A3B_SC) - 0.5, colour = PAL$grid, linewidth = 0.6) +
+    geom_vline(xintercept = xb, colour = PAL$grid, linewidth = 0.4) +
+    annotate("segment", x = xl[1], xend = xl[2], y = ys, yend = ys, colour = PAL$ink2, linewidth = 0.5) +
     geom_vline(xintercept = 0, colour = PAL$ink2, linewidth = 0.5) +
-    geom_segment(aes(x = 0, xend = diff_mean, yend = y, colour = mod), linewidth = 0.8, alpha = 0.45, show.legend = FALSE) +
-    geom_point(aes(shape = mod, colour = mod), size = 3.4) +
+    geom_segment(aes(x = 0, xend = diff_mean, yend = y), colour = PAL$muted, linewidth = 0.8, show.legend = FALSE) +
+    geom_point(aes(shape = mod), colour = PAL$ink, size = 3.4) +
+    annotate("text", x = -0.6, y = yk, label = fill(FL$ka_note, list(c = f$cmx)), hjust = 1, size = PT(14), family = FONT, colour = PAL$ink2) +
     geom_text(data = vt, aes(x = xv, y = row, label = lab), inherit.aes = FALSE, hjust = 0, size = PT(15), family = FONT, colour = PAL$ink) +
-    annotate("text", x = xv, y = length(A3B_SC) + 0.85, label = FL$vhead, hjust = 0, size = PT(14), family = FONT, colour = PAL$ink2) +
-    scale_shape_manual(values = unname(CORE_MODEL_SHAPE), name = NULL) + scale_colour_manual(values = unname(CORE_MODEL_COL), name = NULL) +
-    scale_y_continuous(breaks = lab_y$row, labels = lab_y$lab, limits = c(0.5, length(A3B_SC) + 1.2), expand = expansion(mult = 0)) +
-    scale_x_continuous(limits = c(xl[1], xv + 6.2), breaks = seq(-10, 15, 5), labels = function(v) ifelse(v > 0, sprintf("+%g", v), sprintf("%g", v)), expand = expansion(add = 0)) +
+    annotate("text", x = xv, y = max(a$row) + 0.8, label = FL$vhead, hjust = 0, size = PT(14), family = FONT, colour = PAL$ink2) +
+    scale_shape_manual(values = unname(CORE_MODEL_SHAPE), name = NULL) +
+    scale_y_continuous(breaks = lab_y$row, labels = lab_y$lab, limits = c(0.5, ytop), expand = expansion(mult = 0)) +
+    scale_x_continuous(limits = c(xl[1], xv + 7.2), breaks = xb, labels = function(v) ifelse(v > 0, sprintf("+%g", v), sprintf("%g", v)), expand = expansion(add = 0)) +
     coord_cartesian(clip = "off") +
     labs(x = fill(FL$xlab, list(n = fint(nt))), y = NULL, subtitle = fill(FL$sub2, list(r = fnum(r80, 2)))) + theme_core(16) +
     theme(legend.position = "top", legend.justification = "left", legend.margin = margin(0, 0, 0, 0), legend.box.spacing = grid::unit(2, "pt"),
-          panel.grid.major.y = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 15, colour = PAL$ink))
+          panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.text.y = element_text(size = 15, colour = PAL$ink),
+          axis.title.x = element_text(hjust = 0.35), plot.margin = margin(4, 12, 4, 4))
   FH <- BY - 0.1 - y0; WLF <- 3.75                                          # 두 그림(패널 높이를 서로 맞추지 않는다)
   deck_figure(p1, "a3b_residual", c(GEO$ML, y0, WLF, FH), src = TRS)
   deck_figure(p2, "a3b_arm_difference", c(GEO$ML + WLF + 0.2, y0, GEO$CW - WLF - 0.2, FH), src = TAD)
@@ -158,7 +176,8 @@ slide_A3b <- function() {
     pr = paste0(dspan(TSC, "scenario=='S00' & analysis_set=='iii'", "armdiff_p05", "armdiff_p95", 1, "", "armdiff, S00, iii: 5th to 95th percentile, two models"), "%p"),
     rb = dext(TSC, "analysis_set=='auclast'", "rand_armdiff_abs_max", max, 1, "", "largest between-arm difference in the heavier-stratum share at randomization (points)"),
     ntr = dint(TSC, "pk_model=='k2016' & scenario=='S00' & analysis_set=='auclast'", "n_trials", "regenerated trials per scenario"),
-    s00 = ad("S00"), ka = ad("ka_down_080"), vm = ad("Vmax_up_080"), fd = ad("F_down_080"), ke = ad("ke_up_080"), v2 = ad("V2_up_080"),
+    s00 = ad("S00"), ka = ad("ka_down_080"), cmx = f$cmx, mxi = f$mxi,
+    sp = paste0(dspan(TAD, "scenario=='S00' & set=='iii'", "diff_p05", "diff_p95", 1, "", "identical products, per-trial arm difference, 5th to 95th percentile, two models (points)"), "%p"), vm = ad("Vmax_up_080"), fd = ad("F_down_080"), ke = ad("ke_up_080"), v2 = ad("V2_up_080"),
     vmd = ad("Vmax_down_125"), fu = ad("F_up_125"), ked = ad("ke_down_125"),
     r80 = drange(TAD, sprintf("set=='iii' & scenario %%in%% %s & scenario!='S00'", a3b_in(A3B_SC)), "auc_ratio", 2, "", "true AUCinf ratio, plotted boundary cells, two models"),
     r125 = drange(TAD, "grepl('_125$', scenario) & set=='iii'", "auc_ratio", 2, "", "true AUCinf ratio, boundary cells at 1.25, two models"),

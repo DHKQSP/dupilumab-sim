@@ -14,6 +14,30 @@ a3a_table_h <- function(df, width, widths, size) {
   (hdr + sum(bod)) * size * 1.2 / 72 + (nrow(df) + 1) * 8 / 72
 }
 
+# deck_table과 같은 표(글꼴·크기·높이 검사·행 수 등록)에 세트 사이의 굵은 선을 더한다: 같은 세트의 두 모델 행 사이에는 선을 긋지 않고,
+# 세트가 바뀌는 곳(group_end 행 아래)에 진한 선을 그어 모델 쌍을 묶어 보이게 한다(시각 검토 V, A3a).
+a3a_table <- function(df, box, widths, size, highlight, group_end, label = "table") {
+  stopifnot(size >= SZ$table_min)
+  if (nrow(df) > LIMITS$table_rows) stop(sprintf("%s: table with %d body rows (limit %d)", REG$sec, nrow(df), LIMITS$table_rows), call. = FALSE)
+  DK$cur$table_rows <- max(DK$cur$table_rows, nrow(df))
+  df <- as.data.frame(df); for (j in seq_along(df)) df[[j]] <- nobreak(as.character(df[[j]])); names(df) <- nobreak(names(df))
+  ft <- flextable(df)
+  ft <- font(ft, fontname = FONT, part = "all", eastasia.family = FONT, hansi.family = FONT, cs.family = FONT)
+  ft <- fontsize(ft, size = size, part = "all"); ft <- color(ft, color = PAL$ink, part = "all")
+  ft <- bold(ft, part = "header"); ft <- bg(ft, bg = PAL$tint_blue, part = "header"); ft <- bold(ft, j = 1, part = "body")
+  ft <- bg(ft, i = highlight, bg = PAL$tint_orange, part = "body")
+  ft <- border_remove(ft)
+  ft <- hline(ft, i = group_end, border = fp_border_default(color = PAL$ink2, width = 1.5), part = "body")
+  ft <- hline_bottom(ft, border = fp_border_default(color = PAL$ink2, width = 1), part = "header"); ft <- hline_top(ft, border = fp_border_default(color = PAL$ink2, width = 1), part = "header")
+  ft <- padding(ft, padding.top = 4, padding.bottom = 4, padding.left = 5, padding.right = 5, part = "all")
+  ft <- align(ft, j = 2:ncol(df), align = "center", part = "all"); ft <- align(ft, j = 1, align = "left", part = "all"); ft <- valign(ft, valign = "center", part = "all")
+  w <- widths / sum(widths) * box[3]; ft <- width(ft, width = w)
+  h_est <- a3a_table_h(df, box[3], widths, size)
+  DK$fit[[length(DK$fit) + 1L]] <- data.table(slide = REG$sec, shape = label, est_h = h_est, box_h = box[4], ratio = h_est / box[4])
+  if (h_est > box[4] * 1.03 && isTRUE(DK$strict)) stop(sprintf("%s %s: estimated table height %.2f in exceeds box %.2f in", REG$sec, label, h_est, box[4]), call. = FALSE)
+  DK$x <- ph_with(DK$x, ft, location = loc(box, label)); invisible(NULL)
+}
+
 slide_A3a <- function() {
   TPF <- "trialpop/tp_failure_by_set.csv"; TPR <- "trialpop/tp_failure_reasons.csv"; TRA <- "trialpop/tp_retained_per_arm.csv"; PR <- "config/prereg_20260926.yaml"
   deck_slide("A3a", tag = "litsim")
@@ -67,7 +91,7 @@ slide_A3a <- function() {
   df <- as.data.frame(M, stringsAsFactors = FALSE); names(df) <- tx("A3a.table.head", list(ex = f_set("i", "extrap"), n = f_n_arm()))
   WD <- c(2.1, 1.05, 1.95, 0.95, 1.05, 1.0, 0.95, 1.05, 1.75)
   TH <- a3a_table_h(df, GEO$CW, WD, 14) + 0.04
-  deck_table(df, box = c(GEO$ML, y0, GEO$CW, TH), widths = WD, size = 14, highlight = 5:6, label = "table_sets")
+  a3a_table(df, box = c(GEO$ML, y0, GEO$CW, TH), widths = WD, size = 14, highlight = 5:6, group_end = c(2, 4, 6, 8), label = "table_sets")
 
   # ---- 요점과 캡션 ----
   RR <- a3a_R[["r2"]]; SP <- a3a_R[["sp"]]
