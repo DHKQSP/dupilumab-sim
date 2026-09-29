@@ -11,8 +11,7 @@ slide_A4a <- function() {
           "2020 model: median and 5th percentile subjects meet set (iii) and their NCA extrapolated area exceeds the true one (text)")
   premise(row1(P1, "model=='k2020' & group=='all'")[, extrap_nca_median > extrap_true_median], "2020 model: NCA extrapolated share above the true share at the median (caption: over-estimates)")
   med <- dv(RSf, "model=='k2020' & role=='median'", "coverage_true", 0, "%", "window coverage (true), 2020 median-coverage subject", scale = 100)
-  mn <- { x <- 100 * row1(RSf, "model=='k2020' & role=='min'")$coverage_true
-    dderived("window coverage (true), 2020 minimum-coverage subject, rounded down", RSf, "model=='k2020' & role=='min' :: floor(coverage_true x 100)", x, paste0(fnum(fl(x, 0), 0), "%")) }
+  mn <- dv(RSf, "model=='k2020' & role=='min'", "coverage_true", 1, "%", "window coverage (true), minimum subject, one decimal", scale = 100)   # S7과 같이 그림의 최솟값 대상자 값 그대로
   y0 <- core_title(tx("A4a.title", list(med = med, min = mn)), tx("A4a.kicker"))
   L <- DK$txt$A4a$fig
   p <- core_shaded_panels("k2020", L)
