@@ -1,34 +1,3 @@
-# A10 SAP·대응안(별첨): 카드 세 개 = (1) 제안 SAP(1차 AUClast + Cmax, 2차 AUCinf 두 분석군), (2) AUCinf 공동 1차 요구 시 대응안(AUClast 유지 + AUCinf 규칙 B 추가 =
-# 세 지표 공동 1차, config F3B; 비용 = 동시 통과율 감소, results/fallback/fallback_cost.csv cost_iii_pp, 기준 검정력 empirical_power.csv), (3) AUCinf + Cmax만은 권하지 않음.
-# 표 = 구성별 경계 1종 오류(M1: 점추정 > 5% 칸 수, 최대; type1_models.csv P2·F3B·G2_B·G2_Ai, criteria_g2_type1.csv G2_A_iii),
-# AUCinf 분석에서 arm당 빠지는 인원(평가 가능 인원 - trialpop/tp_retained_per_arm.csv 중앙값), 빠지는 대상자의 참 AUCinf(남는 대상자 대비, tp_characteristics.csv true_aucinf_gmr).
-# 규칙: A = 기준 미달자 제외(세트 (i) adjusted R² ≥ 0.80, (iii) 신뢰할 수 있는 AUCinf), B = λz 산출 전원, C = 미달자에 AUClast 대입. 자료 논리: 결과보고 덱 s23_sap.R, s24_questions.R.
-# deck_table과 같은 표를 셀 위아래 여백만 줄여(4pt -> 2pt) 그린다: 카드 세 개 + 표 6행 + 캡션(규제 기본값 포함)을 한 장에 둔다
-a10_table_h <- function(df, width, widths, size, pad) {
-  w <- widths / sum(widths) * width; nl <- function(v, w_, b = FALSE) vapply(as.character(v), function(s) est_lines(nobreak(s), w_ - 0.14, size, b), 1L)
-  hdr <- max(mapply(function(v, w_) max(nl(v, w_, TRUE)), names(df), w)); bod <- apply(matrix(sapply(seq_along(w), function(j) nl(df[[j]], w[j], j == 1)), nrow = nrow(df)), 1, max)
-  (hdr + sum(bod)) * size * 1.2 / 72 + (nrow(df) + 1) * 2 * pad / 72
-}
-a10_table <- function(df, box, widths, size, highlight, label, pad = 2) {
-  stopifnot(size >= SZ$table_min)
-  if (nrow(df) > LIMITS$table_rows) stop(sprintf("%s: table with %d body rows (limit %d)", REG$sec, nrow(df), LIMITS$table_rows), call. = FALSE)
-  DK$cur$table_rows <- max(DK$cur$table_rows, nrow(df))
-  df <- as.data.frame(df); for (j in seq_along(df)) df[[j]] <- nobreak(as.character(df[[j]])); names(df) <- nobreak(names(df))
-  ft <- flextable(df)
-  ft <- font(ft, fontname = FONT, part = "all", eastasia.family = FONT, hansi.family = FONT, cs.family = FONT)
-  ft <- fontsize(ft, size = size, part = "all"); ft <- color(ft, color = PAL$ink, part = "all")
-  ft <- bold(ft, part = "header"); ft <- bg(ft, bg = PAL$tint_blue, part = "header"); ft <- bold(ft, j = 1, part = "body")
-  ft <- bg(ft, i = highlight, bg = PAL$tint_orange, part = "body")
-  ft <- border_remove(ft); ft <- hline(ft, border = fp_border_default(color = PAL$grid, width = 0.75), part = "body")
-  ft <- hline_bottom(ft, border = fp_border_default(color = PAL$ink2, width = 1), part = "header"); ft <- hline_top(ft, border = fp_border_default(color = PAL$ink2, width = 1), part = "header")
-  ft <- padding(ft, padding.top = pad, padding.bottom = pad, padding.left = 5, padding.right = 5, part = "all")
-  ft <- align(ft, j = 2:ncol(df), align = "center", part = "all"); ft <- align(ft, j = 1, align = "left", part = "all"); ft <- valign(ft, valign = "center", part = "all")
-  ft <- width(ft, width = widths / sum(widths) * box[3])
-  h_est <- a10_table_h(df, box[3], widths, size, pad)
-  DK$fit[[length(DK$fit) + 1L]] <- data.table(slide = REG$sec, shape = label, est_h = h_est, box_h = box[4], ratio = h_est / box[4])
-  if (h_est > box[4] * 1.03 && isTRUE(DK$strict)) stop(sprintf("%s %s: estimated table height %.2f in exceeds box %.2f in", REG$sec, label, h_est, box[4]), call. = FALSE)
-  DK$x <- ph_with(DK$x, ft, location = loc(box, label)); invisible(NULL)
-}
 
 slide_A10 <- function() {
   T1 <- "oc_models/type1_models.csv"; CG <- "criteria/criteria_g2_type1.csv"; FC <- "fallback/fallback_cost.csv"; EP <- "fallback/empirical_power.csv"
@@ -93,10 +62,10 @@ slide_A10 <- function() {
                    f = vapply(RW, `[[`, "", 5), d = vapply(RW, `[[`, "", 3), e = vapply(RW, `[[`, "", 4), stringsAsFactors = FALSE)
   names(df) <- tx("A10.table.head", f)
   # 높이: 표 추정 높이를 먼저 구해 카드에 나머지를 준다
-  TWD <- c(3.8, 1.65, 0.85, 1.4, 1.95, 2.58)
-  th <- a10_table_h(df, GEO$CW, TWD, 14, 2) + 0.04
+  TWD <- c(4.1, 1.3, 0.9, 1.4, 2.3, 2.23)
+  th <- deck_table_h(df, GEO$CW, TWD, 14, pad = 2) + 0.04
   ty <- capy - 0.10 - th
-  a10_table(df, box = c(GEO$ML, ty, GEO$CW, th), widths = TWD, size = 14, highlight = 4:6, label = "table_configs")
+  deck_table(df, box = c(GEO$ML, ty, GEO$CW, th), widths = TWD, size = 14, highlight = 4:6, label = "table_configs", pad = 2)   # 셀 위아래 여백 2pt: 카드 세 개 + 표 + 캡션을 한 장에
   dsrc("configuration table", c(T1, CG, TR, TC, FC), "(table)")
 
   # ---- 카드 세 개 ----

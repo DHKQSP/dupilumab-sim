@@ -33,36 +33,7 @@ a7_max2 <- function(where, col, d, item, scale = 1) {
   dsrc(item, a7_sd(A7_V[["k2020"]]), "(table)")
   dderived(item, a7_sd(A7_V[["k2016"]]), sprintf("max over trials/schedule_decision_base.csv and trials/schedule_decision_struct2020.csv [%s] :: %s x %s", where, col, scale), max(x), fnum(max(x), d))
 }
-# deck_table과 같은 식의 표 높이 추정
-a7_table_h <- function(df, width, widths, size, pad = 4) {
-  widths <- widths / sum(widths) * width
-  nl <- function(v, w, b = FALSE) vapply(nobreak(as.character(v)), function(s) est_lines(s, w - 0.14, size, b), 1L)
-  hdr <- max(mapply(function(v, w) max(nl(v, w, TRUE)), names(df), widths))
-  bod <- apply(matrix(sapply(seq_along(widths), function(j) nl(df[[j]], widths[j], j == 1)), nrow = nrow(df)), 1, max)
-  (hdr + sum(bod)) * size * 1.2 / 72 + (nrow(df) + 1) * 2 * pad / 72
-}
 
-# deck_table과 같은 표를 셀 위아래 여백만 줄여(4pt -> 2pt) 그린다: 표 아래에 요점 두 개와 캡션 세 줄을 둘 자리(행 수 등록·높이 검사는 같다)
-a7_table <- function(df, box, widths, size, highlight, highlight_fill, label, pad = 2) {
-  stopifnot(size >= SZ$table_min)
-  if (nrow(df) > LIMITS$table_rows) stop(sprintf("%s: table with %d body rows (limit %d)", REG$sec, nrow(df), LIMITS$table_rows), call. = FALSE)
-  DK$cur$table_rows <- max(DK$cur$table_rows, nrow(df))
-  df <- as.data.frame(df); for (j in seq_along(df)) df[[j]] <- nobreak(as.character(df[[j]])); names(df) <- nobreak(names(df))
-  ft <- flextable(df)
-  ft <- font(ft, fontname = FONT, part = "all", eastasia.family = FONT, hansi.family = FONT, cs.family = FONT)
-  ft <- fontsize(ft, size = size, part = "all"); ft <- color(ft, color = PAL$ink, part = "all")
-  ft <- bold(ft, part = "header"); ft <- bg(ft, bg = PAL$tint_blue, part = "header"); ft <- bold(ft, j = 1, part = "body")
-  ft <- bg(ft, i = highlight, bg = highlight_fill, part = "body")
-  ft <- border_remove(ft); ft <- hline(ft, border = fp_border_default(color = PAL$grid, width = 0.75), part = "body")
-  ft <- hline_bottom(ft, border = fp_border_default(color = PAL$ink2, width = 1), part = "header"); ft <- hline_top(ft, border = fp_border_default(color = PAL$ink2, width = 1), part = "header")
-  ft <- padding(ft, padding.top = pad, padding.bottom = pad, padding.left = 5, padding.right = 5, part = "all")
-  ft <- align(ft, j = 2:ncol(df), align = "center", part = "all"); ft <- align(ft, j = 1, align = "left", part = "all"); ft <- valign(ft, valign = "center", part = "all")
-  w <- widths / sum(widths) * box[3]; ft <- width(ft, width = w)
-  h_est <- a7_table_h(df, box[3], widths, size, pad)
-  DK$fit[[length(DK$fit) + 1L]] <- data.table(slide = REG$sec, shape = label, est_h = h_est, box_h = box[4], ratio = h_est / box[4])
-  if (h_est > box[4] * 1.03 && isTRUE(DK$strict)) stop(sprintf("%s %s: estimated table height %.2f in exceeds box %.2f in", REG$sec, label, h_est, box[4]), call. = FALSE)
-  DK$x <- ph_with(DK$x, ft, location = loc(box, label)); invisible(NULL)
-}
 
 slide_A7 <- function() {
   RL <- "core_deck/reliable_iii_by_schedule.csv"; RP <- "reliability/reliability_paired_vs_B0.csv"; PSR <- "regulatory/tables/prespecification_register.csv"
@@ -132,8 +103,8 @@ slide_A7 <- function() {
   df <- rbind(setNames(as.data.frame(as.list(crit), stringsAsFactors = FALSE), names(df)), df)
   names(df) <- tx("A7.table.head", thr)
   WD <- c(2.45, 1.95, 1.95, 1.9, 1.9, 2.05)
-  TH <- a7_table_h(df, GEO$CW, WD, 14, pad = 2) + 0.04
-  a7_table(df, box = c(GEO$ML, y0, GEO$CW, TH), widths = WD, size = 14, highlight = 1, highlight_fill = PAL$tint_blue, label = "table_schedule")
+  TH <- deck_table_h(df, GEO$CW, WD, 14, pad = 2) + 0.04
+  deck_table(df, box = c(GEO$ML, y0, GEO$CW, TH), widths = WD, size = 14, highlight = 1, highlight_fill = PAL$tint_blue, label = "table_schedule", pad = 2)   # 셀 위아래 여백 2pt: 표 아래 요점·캡션 자리
 
   # ---- 요점과 캡션 ----
   ADD <- "schedule %in% c('D1','D2','D3','D4')"
@@ -187,7 +158,7 @@ slide_A7 <- function() {
     e16 = d2("base", "criterion (d) at 200,000 subjects, D3, k2016"), e20 = d2("struct2020", "criterion (d) at 200,000 subjects, D3, k2020"),
     st = dderived("sampling-schedule decision rule: timing status in the prespecification register", PSR, "grepl('^Sampling-schedule decision rule', Item) :: Status", ps$Status, ps$Status),
     sd = dderived("sampling-schedule decision rule: date (evidence) in the prespecification register", PSR, "grepl('^Sampling-schedule decision rule', Item) :: Date (evidence)", ps[["Date (evidence)"]], ps[["Date (evidence)"]]),
-    vm = vs$vm, d1 = vs$d1, n1 = vs$n1, n2 = vs$n2, d2 = vs$d2, ci = vs$ci, ab = vs$ab, vis = vs$vis,
+    vm = vs$vm, d1 = vs$d1, n1 = vs$n1, n2 = vs$n2, d2 = vs$d2, bci = vs$ci, ab = vs$ab, v3 = vs$vis,
     d2ci = dspan("individual200k/criterion_d_200k_vmax080_both.csv", "TRUE", "d_ratio_boot_lo", "d_ratio_boot_hi", 3, "", "(d) D3 bootstrap 95% interval at 200,000 subjects, Vmax x0.8"),
     pd = dcfg("prereg_20260926.yaml", "registered_on", "registration date of the v1.0.1 pre-registration", function(x) as.character(x)))))
   deck_end()

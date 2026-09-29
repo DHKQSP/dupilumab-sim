@@ -263,7 +263,18 @@ deck_box <- function(box, fill = PAL$tint_grey, geom = "roundRect", label = "sha
   invisible(NULL)
 }
 # 표: df는 문자열 data.frame(수치는 d* 결과). 본문 6행 이하.
-deck_table <- function(df, box, widths = NULL, size = SZ$table, header_fill = PAL$tint_blue, bold_col1 = TRUE, align_num = TRUE, highlight = NULL, highlight_fill = PAL$tint_orange, label = "table", align_cols = NULL) {
+# 표 높이 추정(인치): 셀마다 줄 수(Pretendard 폭) x 줄 높이 + 행마다 위아래 여백(pad pt x 2). 셀 여백 0.14 in(실제 넘침은 검사 9가 PDF로 확인)
+deck_table_h <- function(df, width, widths = NULL, size = SZ$table, bold_col1 = TRUE, pad = 4) {
+  df <- as.data.frame(df); for (j in seq_along(df)) df[[j]] <- nobreak(as.character(df[[j]])); names(df) <- nobreak(names(df))
+  if (is.null(widths)) widths <- rep(width / ncol(df), ncol(df)) else widths <- widths / sum(widths) * width
+  nl <- function(v, w, b = FALSE) vapply(as.character(v), function(s) est_lines(s, w - 0.14, size, b), 1L)
+  hdr <- max(mapply(function(v, w) max(nl(v, w, TRUE)), names(df), widths))
+  bod <- apply(matrix(sapply(seq_along(widths), function(j) nl(df[[j]], widths[j], bold_col1 && j == 1)), nrow = nrow(df)), 1, max)
+  (hdr + sum(bod)) * size * 1.2 / 72 + (nrow(df) + 1) * 2 * pad / 72
+}
+# pad: 셀 위아래 여백(pt). group_end: 주면 행 사이 가는 선 대신 그 행들 아래에만 굵은 선(묶음 구분)
+deck_table <- function(df, box, widths = NULL, size = SZ$table, header_fill = PAL$tint_blue, bold_col1 = TRUE, align_num = TRUE, highlight = NULL, highlight_fill = PAL$tint_orange, label = "table", align_cols = NULL,
+                       pad = 4, group_end = NULL) {
   stopifnot(size >= SZ$table_min)
   if (nrow(df) > LIMITS$table_rows) stop(sprintf("%s: table with %d body rows (limit %d)", REG$sec, nrow(df), LIMITS$table_rows), call. = FALSE)
   DK$cur$table_rows <- max(DK$cur$table_rows, nrow(df))
@@ -274,19 +285,16 @@ deck_table <- function(df, box, widths = NULL, size = SZ$table, header_fill = PA
   ft <- bold(ft, part = "header"); ft <- bg(ft, bg = header_fill, part = "header")
   if (bold_col1) ft <- bold(ft, j = 1, part = "body")
   if (!is.null(highlight)) ft <- bg(ft, i = highlight, bg = highlight_fill, part = "body")
-  ft <- border_remove(ft); ft <- hline(ft, border = fp_border_default(color = PAL$grid, width = 0.75), part = "body")
+  ft <- border_remove(ft)
+  ft <- if (is.null(group_end)) hline(ft, border = fp_border_default(color = PAL$grid, width = 0.75), part = "body") else hline(ft, i = group_end, border = fp_border_default(color = PAL$ink2, width = 1.5), part = "body")
   ft <- hline_bottom(ft, border = fp_border_default(color = PAL$ink2, width = 1), part = "header"); ft <- hline_top(ft, border = fp_border_default(color = PAL$ink2, width = 1), part = "header")
-  ft <- padding(ft, padding.top = 4, padding.bottom = 4, padding.left = 5, padding.right = 5, part = "all")
+  ft <- padding(ft, padding.top = pad, padding.bottom = pad, padding.left = 5, padding.right = 5, part = "all")
   if (align_num && ncol(df) > 1) ft <- align(ft, j = 2:ncol(df), align = "center", part = "all")
   ft <- align(ft, j = 1, align = "left", part = "all"); ft <- valign(ft, valign = "center", part = "all")
   if (!is.null(align_cols)) { stopifnot(length(align_cols) == ncol(df)); for (j in seq_along(align_cols)) ft <- align(ft, j = j, align = align_cols[j], part = "all") }   # 열별 정렬
   if (is.null(widths)) widths <- rep(box[3] / ncol(df), ncol(df)) else widths <- widths / sum(widths) * box[3]
   ft <- width(ft, width = widths)
-  # 행 높이 추정: 셀마다 줄 수(Pretendard 폭) x 줄 높이
-  nl <- function(v, w, b = FALSE) vapply(as.character(v), function(s) est_lines(s, w - 0.14, size, b), 1L)   # 셀 여백 0.14 in(실제 넘침은 검사 9가 PDF로 확인)
-  hdr <- max(mapply(function(v, w) max(nl(v, w, TRUE)), names(df), widths))
-  bod <- apply(matrix(sapply(seq_along(widths), function(j) nl(df[[j]], widths[j], bold_col1 && j == 1)), nrow = nrow(df)), 1, max)
-  h_est <- (hdr + sum(bod)) * size * 1.2 / 72 + (nrow(df) + 1) * 8 / 72
+  h_est <- deck_table_h(df, box[3], widths, size, bold_col1, pad)
   DK$fit[[length(DK$fit) + 1L]] <- data.table(slide = REG$sec, shape = label, est_h = h_est, box_h = box[4], ratio = h_est / box[4])
   if (h_est > box[4] * 1.03 && isTRUE(DK$strict)) stop(sprintf("%s %s: estimated table height %.2f in exceeds box %.2f in", REG$sec, label, h_est, box[4]), call. = FALSE)
   DK$x <- ph_with(DK$x, ft, location = loc(box, label)); invisible(NULL)

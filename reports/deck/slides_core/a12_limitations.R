@@ -22,29 +22,6 @@ a12_mult <- function(variants, par, item) {
 # config 문자열 값(상태 등)을 그대로 적는다(추적 행에 남김)
 a12_txt <- function(file, path, item) dcfg(file, path, item, function(x) as.character(x))
 
-# deck_table과 같은 표(첫 열 굵게, 강조 행)를 셀 위아래 여백만 줄여(4pt -> 2pt) 그린다: 8행 표와 캡션을 한 장에 둔다
-a12_table <- function(df, box, widths, size, highlight, highlight_fill, label, pad = 2) {
-  stopifnot(size >= SZ$table_min)
-  if (nrow(df) > LIMITS$table_rows) stop(sprintf("%s: table with %d body rows (limit %d)", REG$sec, nrow(df), LIMITS$table_rows), call. = FALSE)
-  DK$cur$table_rows <- max(DK$cur$table_rows, nrow(df))
-  df <- as.data.frame(df); for (j in seq_along(df)) df[[j]] <- nobreak(as.character(df[[j]])); names(df) <- nobreak(names(df))
-  ft <- flextable(df)
-  ft <- font(ft, fontname = FONT, part = "all", eastasia.family = FONT, hansi.family = FONT, cs.family = FONT)
-  ft <- fontsize(ft, size = size, part = "all"); ft <- color(ft, color = PAL$ink, part = "all")
-  ft <- bold(ft, part = "header"); ft <- bg(ft, bg = PAL$tint_blue, part = "header"); ft <- bold(ft, j = 1, part = "body")
-  ft <- bg(ft, i = highlight, bg = highlight_fill, part = "body")
-  ft <- border_remove(ft); ft <- hline(ft, border = fp_border_default(color = PAL$grid, width = 0.75), part = "body")
-  ft <- hline_bottom(ft, border = fp_border_default(color = PAL$ink2, width = 1), part = "header"); ft <- hline_top(ft, border = fp_border_default(color = PAL$ink2, width = 1), part = "header")
-  ft <- padding(ft, padding.top = pad, padding.bottom = pad, padding.left = 5, padding.right = 5, part = "all")
-  ft <- align(ft, align = "left", part = "all"); ft <- valign(ft, valign = "center", part = "all")
-  w <- widths / sum(widths) * box[3]; ft <- width(ft, width = w)
-  nl <- function(v, w_, b = FALSE) vapply(as.character(v), function(s_) est_lines(s_, w_ - 0.14, size, b), 1L)
-  hdr <- max(mapply(function(v, w_) max(nl(v, w_, TRUE)), names(df), w)); bod <- apply(matrix(sapply(seq_along(w), function(j) nl(df[[j]], w[j], j == 1)), nrow = nrow(df)), 1, max)
-  h_est <- (hdr + sum(bod)) * size * 1.2 / 72 + (nrow(df) + 1) * 2 * pad / 72
-  DK$fit[[length(DK$fit) + 1L]] <- data.table(slide = REG$sec, shape = label, est_h = h_est, box_h = box[4], ratio = h_est / box[4])
-  if (h_est > box[4] * 1.03 && isTRUE(DK$strict)) stop(sprintf("%s %s: estimated table height %.2f in exceeds box %.2f in", REG$sec, label, h_est, box[4]), call. = FALSE)
-  DK$x <- ph_with(DK$x, ft, location = loc(box, label)); invisible(NULL)
-}
 
 slide_A12 <- function() {
   CV <- "core_deck/coverage_by_case.csv"; PV <- "core_deck/provenance.csv"; INV <- "oc/inversion_all.csv"
@@ -146,8 +123,8 @@ slide_A12 <- function() {
   names(df) <- unlist(H$head)
   cap <- tx("A12.caption")
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
-  a12_table(df, box = c(GEO$ML, y0, GEO$CW, capy - 0.12 - y0), widths = c(1.85, 3.0, 7.38), size = 14, label = "table_limits",
-            highlight = 4:6, highlight_fill = PAL$tint_grey)   # 아직 하지 않은 검증(제목)
+  deck_table(df, box = c(GEO$ML, y0, GEO$CW, capy - 0.12 - y0), widths = c(1.95, 3.1, 7.18), size = 14, label = "table_limits", align_cols = rep("left", 3),
+             highlight = 4:6, highlight_fill = PAL$tint_grey, pad = 2)   # 셀 위아래 여백 2pt: 8행 표와 캡션을 한 장에   # 아직 하지 않은 검증(제목)
   deck_src_first(c(PV, QC, LC))
 
   # ---- 노트 ------------------------------------------------------------------------------------------------------------------------------
