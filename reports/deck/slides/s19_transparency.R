@@ -131,7 +131,7 @@ slide_S19 <- function() {
   dec <- function(col, am, item) s19_signed(dv(DE, WD(am), col, 3, "", sprintf("%s, 2020 V2 cell, %s", item, am)))
   cols <- c(ref = "ref_minus_5_pp", last = "auclast_minus_ref_pp", cmax = "p2_minus_auclast_pp", p2 = "p2_minus_5_pp")
   itm <- c(ref = "unbiased reference minus 5 (points)", last = "AUC0-last effect (points)", cmax = "Cmax effect (points)", p2 = "P2 minus 5 (points)")
-  df <- data.frame(a = vapply(names(cols), function(k) fill(L$table$rows[[k]], list(nom = nom)), ""),
+  df <- data.frame(a = vapply(names(cols), function(k) fill(L$table$rows[[k]], list(nom = nom, bias = f$bias)), ""),   # 제목의 AUC0-last 편향을 표에도 적는다
                    b = vapply(names(cols), function(k) dec(cols[[k]], "M1", itm[[k]]), ""),
                    c = vapply(names(cols), function(k) dec(cols[[k]], "M0", itm[[k]]), ""), stringsAsFactors = FALSE, check.names = FALSE)
   names(df) <- tx("S19.table.head")

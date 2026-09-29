@@ -69,6 +69,10 @@ slide_S21 <- function() {
              ncs = dint(CSH, "variant=='base'", "n", "subjects per curve-shape variant"), thr = thr80,
              lt = drange(CSH, "stress_test==FALSE", "coverage_lt80_pct", 0, "%", "share below 80% window coverage, non-stress curve-shape variants"),
              p95 = drange(CSH, "stress_test==FALSE", "extrap_true_p95", 2, "%", "95th percentile of true extrapolation, non-stress curve-shape variants"),
+             # 슬라이드에는 창 포착률 5번째 백분위수(= 100 - 참 외삽 95번째 백분위수)로 적는다(슬라이드 25와 같은 표기)
+             c05 = local({ x <- rev(100 - range(rows(CSH, "stress_test==FALSE")$extrap_true_p95))
+               dderived("5th percentile of window coverage (100 - 95th percentile of true extrapolation), non-stress curve-shape variants", CSH,
+                        "stress_test==FALSE :: 100 - extrap_true_p95 (range)", x, rng_fmt(x[1], x[2], 1, "%")) }),
              kmr = kmr, km = km_rng)
   LW <- "resid=='fixed'"
   r3 <- list(lg = f_lloq_grid(), nl = as.character(length(unlist(.read("config/assay.yaml")$lloq_sensitivity_mg_L))),

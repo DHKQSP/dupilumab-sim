@@ -51,11 +51,18 @@ slide_S17 <- function() {
   d[, y := as.numeric(ep) + ifelse(pk_model == "k2016", 0.2, -0.2) + (k - 1) * 0.085]
   d[, model := factor(model_lab()[pk_model], levels = model_lab())]
   xr <- range(d$tw); xl <- c(floor(xr[1]) - 0.5, ceiling(xr[2]) + 0.5)
+  ex_ <- rbind(d[endpoint == "AUClast"][which.max(abs(bias_pct))], d[endpoint %in% c("AUCinf_Ai", "AUCinf_A", "AUCinf_B")][which.max(abs(bias_pct))])
+  premise(nrow(ex_) == 2 && abs(abs(ex_$bias_pct[1]) - max(abs(d[endpoint == "AUClast"]$bias_pct))) < 1e-12, "figure labels: the two title extremes")
+  ex_[, lab := paste0(ifelse(tw > 0, "+", ""), fnum(tw, 2), "%")]
+  ex_[, `:=`(hj = ifelse(tw < 0, 1, 0.5), xt = ifelse(tw < 0, tw - 0.25, tw), yt = ifelse(tw < 0, y, y + 0.32))]
   FW <- 6.05; FH <- 2.72
   p <- ggplot(d, aes(x = tw, y = y, colour = model, shape = model)) +
     annotate("rect", xmin = 0, xmax = Inf, ymin = -Inf, ymax = Inf, fill = PAL$tint_orange, alpha = 0.7) +
     geom_vline(xintercept = 0, colour = PAL$ink2, linewidth = 0.5) +
     geom_point(size = 2.1, alpha = 0.75, stroke = 0.6) +
+    # 제목의 두 극단(AUC0-last 절댓값 최대, NCA 규칙 A (i)·(ii)·B 절댓값 최대)을 그림에 수치로 표시(자료에서 바로)
+    geom_label(data = ex_, aes(x = xt, y = yt, label = lab), inherit.aes = FALSE, hjust = ex_$hj, size = 3.7, family = FONT, colour = PAL$ink,
+               fill = "white", label.size = 0, label.padding = grid::unit(1, "pt")) +
     annotate("text", x = xl[2], y = length(EL) + 0.66, label = L$fig$right, hjust = 1, vjust = 1, size = 3.9, family = FONT, colour = PAL$orange, fontface = "bold") +
     annotate("text", x = xl[1], y = length(EL) + 0.66, label = L$fig$left, hjust = 0, vjust = 1, size = 3.9, family = FONT, colour = PAL$ink2) +
     scale_colour_manual(values = unname(MODEL_COL)) + scale_shape_manual(values = c(16, 17)) +

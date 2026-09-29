@@ -32,7 +32,7 @@ S19:
     head: ["같은 시험 안의 분해 (%p)", "M1", "M0"]
     rows:
       ref: "불편 참조(참 AUC0-inf 단독)와 {nom}의 차"
-      last: "AUC0-last 효과(단독과 참조의 차)"
+      last: "AUC0-last 효과(단독과 참조의 차; M1 GMR 편향 {bias}, 동등 쪽)"
       cmax: "Cmax 효과(Cmax를 더한 변화)"
       p2: "합계: AUC0-last + Cmax와 {nom}의 차"
   notes: |

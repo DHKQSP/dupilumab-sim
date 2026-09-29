@@ -159,8 +159,10 @@ BUL <- function(level) sprintf("⁣B%d⁣", level)   # 글머리표 표지(pp_bu
 # 표시층: AUC0-inf 같은 용어가 붙임표에서 줄바꿈되지 않도록 줄바꿈 없는 붙임표(U+2011)로 바꾼다(문구 파일은 그대로)
 # 한 덩어리로 읽는 말이 줄 끝에서 갈라지지 않게 한다(LibreOffice는 숫자와 한글, 숫자와 단위 사이에서도 줄을 바꾼다):
 #  숫자 뒤 공백 + 단위/모델, 'Day'·부등호 뒤 공백 → 줄바꿈 없는 공백(U+00A0); 숫자·%와 붙은 한글 사이 → 단어 결합자(U+2060)
+# 음수 부호로 쓴 줄바꿈 없는 붙임표(U+2011; 일부 슬라이드 코드가 넣음)를 ASCII '-'로 바꾼다. 앞이 숫자인 붙임표(날짜 2026-09-25 등)는 그대로 둔다
+neg_ascii <- function(s) gsub("(?<![0-9A-Za-z])\u2011(?=[0-9])", "-", s, perl = TRUE)
 nobreak <- function(s) {
-  s <- gsub("\u2011(?=[0-9])", "-", s, perl = TRUE)                                   # 음수 부호는 ASCII '-'로 통일(아래에서 숫자와 붙인다)
+  s <- neg_ascii(s)                                                                    # 음수 부호는 ASCII '-'로 통일(아래에서 숫자와 붙인다)
   s <- gsub("AUC0-(inf|last|tlast)", "AUC0\u2011\\1", s, perl = TRUE)
   s <- gsub("([0-9%)]) (?=(kg|mg|mL|L/|mg/|mg·|day|h\\b|모델|명|칸|일|회|배|개|시간|점|mg/kg)(?![A-Za-z]))", "\\1\u00a0\u2060", s, perl = TRUE)   # LibreOffice는 NBSP 뒤 한글에서 줄을 바꾸므로 U+2060을 덧붙인다
   s <- gsub("(Day|≥|≤|>|<|×) (?=[0-9])", "\\1\u00a0\u2060", s, perl = TRUE)
@@ -274,7 +276,7 @@ deck_figure <- function(p, name, box, src, dpi = 220) {
   ragg::agg_png(f, width = box[3], height = box[4], units = "in", res = dpi, background = "white"); print(p); grDevices::dev.off()
   DK$x <- ph_with(DK$x, external_img(f, width = box[3], height = box[4]), location = loc(box, sprintf("figure_%s", name)), use_loc_size = TRUE); invisible(f)
 }
-deck_notes <- function(s) { DK$x <- set_notes(DK$x, value = paste(s, collapse = "\n"), location = notes_location_type("body")); DK$cur$notes <- paste(s, collapse = "\n"); invisible(NULL) }
+deck_notes <- function(s) { s <- neg_ascii(s); DK$x <- set_notes(DK$x, value = paste(s, collapse = "\n"), location = notes_location_type("body")); DK$cur$notes <- paste(s, collapse = "\n"); invisible(NULL) }
 # 슬라이드 끝: 바닥글(결과 파일 ID, 버전, 커밋, 쪽 번호)과 메타 기록
 # 바닥글 출처 목록에서 맨 앞에 둘 파일(슬라이드의 핵심 출처가 설정 파일이라 '외 N개'에 가려질 때)
 deck_src_first <- function(files) { DK$cur$src_first <- files; invisible(NULL) }

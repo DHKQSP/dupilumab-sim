@@ -4,7 +4,7 @@ S24:
   qa:
     - id: "Q1"
       q: "왜 FDA 2016 가이던스의 AUC0-inf가 아닌가?"
-      a: "AUC0-inf + Cmax(규칙 A (i), M1)는 {ncell}칸 중 {ga}칸에서 점추정이, {gal}칸에서 Wilson 하한이 {nom}를 넘는다. 참 외삽 중앙값이 {ext}(2016 모델)라 AUC0-last가 AUC0-inf를 거의 다 담고, 원개발사 모집단 PK 분석도 의미 있는 말단 반감기를 계산할 수 없다고 보았다(Kovalenko 2020)."
+      a: "AUC0-inf + Cmax(규칙 A (i), M1)는 {ncell}칸 중 {ga}칸에서 점추정이, {gal}칸에서 Wilson 하한이 {nom}를 넘는다. 참 외삽(창 포착률 밖 몫) 중앙값이 {ext}(2016 모델)라 AUC0-last가 AUC0-inf를 거의 다 담고, 원개발사도 의미 있는 말단 반감기를 계산할 수 없다고 보았다(Kovalenko 2020)."
     - id: "Q3 · Q4"
       q: "채혈을 Day {last} 뒤로 늘리거나 말단에 추가하면?"
       a: "2016 모델에서 참 농도의 LLOQ 도달은 중앙값 Day {day16}, Day {d58} 뒤 LLOQ 위는 {a16}다. 절벽(길이 중앙값 {len}일)에 {k3}점 이상 드는 대상자는 매일 채혈로도 명목일 {pct}, 허용창 반영 {pctw}이고, 결과 보고 전 정한 기준 (a)~(d)를 충족한 일정은 없다(두 모델, (a)·(b)는 M0)."
