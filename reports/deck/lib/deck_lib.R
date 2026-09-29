@@ -160,6 +160,7 @@ BUL <- function(level) sprintf("⁣B%d⁣", level)   # 글머리표 표지(pp_bu
 # 한 덩어리로 읽는 말이 줄 끝에서 갈라지지 않게 한다(LibreOffice는 숫자와 한글, 숫자와 단위 사이에서도 줄을 바꾼다):
 #  숫자 뒤 공백 + 단위/모델, 'Day'·부등호 뒤 공백 → 줄바꿈 없는 공백(U+00A0); 숫자·%와 붙은 한글 사이 → 단어 결합자(U+2060)
 nobreak <- function(s) {
+  s <- gsub("\u2011(?=[0-9])", "-", s, perl = TRUE)                                   # 음수 부호는 ASCII '-'로 통일(아래에서 숫자와 붙인다)
   s <- gsub("AUC0-(inf|last|tlast)", "AUC0\u2011\\1", s, perl = TRUE)
   s <- gsub("([0-9%)]) (?=(kg|mg|mL|L/|mg/|mg·|day|h\\b|모델|명|칸|일|회|배|개|시간|점|mg/kg)(?![A-Za-z]))", "\\1\u00a0\u2060", s, perl = TRUE)   # LibreOffice는 NBSP 뒤 한글에서 줄을 바꾸므로 U+2060을 덧붙인다
   s <- gsub("(Day|≥|≤|>|<|×) (?=[0-9])", "\\1\u00a0\u2060", s, perl = TRUE)
@@ -169,11 +170,13 @@ nobreak <- function(s) {
   s <- gsub("(?<=^|[\\s(~,;:/])-(?=[0-9])", "-\u2060", s, perl = TRUE)                   # 음수 부호와 숫자
   # 한글과 여는 괄호는 붙이지 않는다: LibreOffice는 괄호 뒤 결합자를 무시하고, 붙인 덩어리가 길면 한글 단어 가운데서 줄을 바꾼다(시험 렌더링 확인)
   s <- gsub("(세트|규칙|모델|기준|분석군) (?=[(A-D])", "\\1\u00a0\u2060", s, perl = TRUE)          # '세트 (i)', '규칙 A
-  # 한 단위로 읽는 용어 쌍(검토에서 줄 끝 분리가 지적된 것): '1종 오류', '창 포착률', 'Wilson 하한', '개인 간', '참 AUC0-inf', 'Km 0.01', '(iv) 65.9%'
-  s <- gsub("(1종|2종|창|Wilson|개인) (?=(오류|포착률|하한|간)(?![\uac00-\ud7a3]{2}))", "\\1\u00a0\u2060", s, perl = TRUE)
+  # 한 단위로 읽는 용어 쌍: 'Wilson 하한', '참 AUC0-inf', 'Km 0.01', '(iv) 65.9%'.
+  # 한글 단어끼리의 쌍('창 포착률', '1종 오류')은 붙이지 않는다: LibreOffice는 한글 옆의 NBSP·U+2060·U+202F를 줄바꿈 금지로 보지 않고
+  # 그 앞뒤에서 줄을 바꾸며, 줄 첫머리에 공백이 보인다(2026-09-29 렌더링 시험: 16칸 중 10~12칸 분리)
+  s <- gsub("(Wilson) (?=하한)", "\\1\u00a0\u2060", s, perl = TRUE)
   s <- gsub("(참|모의|관측) (?=(AUC|Cmax))", "\\1\u00a0", s, perl = TRUE)
   s <- gsub("(?<![A-Za-z])(Km|Vmax|V2|ka|ke|Vc|CL|Q) (?=[×0-9])", "\\1\u00a0\u2060", s, perl = TRUE)
-  s <- gsub("(\\((?:i|ii|iii|iv)\\)) (?=[0-9])", "\\1\u00a0\u2060", s, perl = TRUE)
+  s <- gsub("(\\((?:i|ii|iii|iv)\\)) (?=-?[0-9][0-9.,]*%)", "\\1\u00a0\u2060", s, perl = TRUE)   # 세트 표지와 뒤따르는 백분율만('세트 (i) 2016 모델'은 붙이지 않음)
   s
 }
 para <- function(s, size = SZ$body, color = PAL$ink, bold = FALSE, align = "left", bullet = NA, gap_pt = 6, line = 1.1, accent = PAL$blue) {
@@ -228,7 +231,7 @@ deck_text <- function(s, box, size = SZ$body, bold = FALSE, color = NULL, align 
 # 큰 수치 한 개와 설명(수치는 반드시 d* 함수 결과)
 deck_stat <- function(value, label, box, color = PAL$blue, bg = PAL$tint_blue, label_size = SZ$stat_label, value_size = SZ$stat) {
   fit_check("stat_label", label, c(box[1], box[2], box[3], box[4] - value_size * 1.25 / 72), label_size, gap_pt = 0, card = box[4] >= CARD_MIN_H)
-  ps <- list(para(value, value_size, color, TRUE, "left", gap_pt = 2, line = 1.0), para(label, label_size, PAL$ink, FALSE, "left", gap_pt = 0))
+  ps <- list(para(value, value_size, color, TRUE, "left", gap_pt = 2, line = 0.9), para(label, label_size, PAL$ink, FALSE, "left", gap_pt = 0))   # 큰 수치 줄은 줄 간격 0.9(글자 위 여백이 커 가운데 정렬해도 위가 넓어 보인다)
   DK$x <- ph_with(DK$x, do.call(block_list, ps), location = loc(box, "stat", bg = bg, geom = "roundRect", ln = no_line())); invisible(NULL)
 }
 deck_box <- function(box, fill = PAL$tint_grey, geom = "roundRect", label = "shape", line_col = NULL) {

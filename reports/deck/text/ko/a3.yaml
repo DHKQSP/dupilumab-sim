@@ -2,8 +2,8 @@ A3:
   kicker: "부록 A3 · 모델 파라미터와 출처"
   title: "두 PK 모델의 파라미터는 논문 표에서 가져왔고(변환은 SD 제곱과 kpc 유도뿐), 어떤 값도 재추정하거나 보정하지 않았다"
   label:
-    k2016: ["**2016 모델(주분석)**", "Kovalenko 2016 Table 2, BLQ 포함 적합 열"]
-    k2020: ["**2020 모델(민감도)**", "Kovalenko 2020 Table 1(Model 1), 보충 Table S2"]
+    k2016: ["**2016 모델(주 모델)**", "Kovalenko 2016 Table 2, BLQ 포함 적합 열"]
+    k2020: ["**2020 모델(민감도 모델)**", "Kovalenko 2020 Table 1(Model 1), 보충 Table S2"]
   table:
     param: "파라미터"
     head: ["값", "개체간 분산 ω²", "출처 (논문 표기)"]
@@ -25,8 +25,8 @@ A3:
     - "2020 모델은 흡수 앞에 transit 구획 {ntr}개가 있다: 평균 이동 시간(MTT) {mtt}일, ω² {mttw}. 보충 Table S2의 로그 척도 SD를 제곱해 개체간 분산 ω²로 썼다(공분산은 보고되지 않아 대각만)."
     - "잔차: 비례 {sp16} / {sp20}(2016 모델 / 2020 모델), 가산 {sa} mg/L. 가산 잔차와 Km은 두 모델 모두 고정값."
   notes: |
-    2016 모델(주분석): Kovalenko 2016(CPT Pharmacometrics Syst Pharmacol) Table 2의 'BLQ data included' 열이다. 내부 이름과 논문 표기: Vc = V2, k12 = k23, k21 = k32. Vmax는 농도 단위(mg/L/day)이고 양 기준 식에서 Vc를 곱한다. 중심 용적은 (체중/{wr})^지수로 조정한다. 두 모델 모두 중심 구획에서 선형 소실과 Michaelis-Menten 소실이 병렬이고, 개인 파라미터는 로그정규 분포다.
-    2020 모델(민감도): Kovalenko 2020(Clin Pharmacol Drug Dev) Table 1의 Model 1과 보충 Table S2(프로젝트 config의 'Supplementary Table 2'와 같은 표)다. kpc는 Table 1의 Mpc에서 유도했다(kpc = kcp / Mpc). 보충자료는 개체간 변동을 로그 척도 SD로 보고한다(Vc {sd_vc}, ke {sd_ke}, ka {sd_ka}, Vmax {sd_vm}, MTT {sd_mtt}). 표의 2020 모델 ω²는 그 제곱이며, 공분산은 보고되지 않아 대각만 썼다. 이 두 변환(SD 제곱, kpc 유도) 외에는 논문 표의 값을 그대로 옮겼다. Vc 체중 지수는 공변량 고정효과라 개체간 분산이 해당하지 않는다.
+    2016 모델(주 모델): Kovalenko 2016(CPT Pharmacometrics Syst Pharmacol) Table 2의 'BLQ data included' 열이다. 내부 이름과 논문 표기: Vc = V2, k12 = k23, k21 = k32. Vmax는 농도 단위(mg/L/day)이고 양 기준 식에서 Vc를 곱한다. 중심 용적은 (체중/{wr})^지수로 조정한다. 두 모델 모두 중심 구획에서 선형 소실과 Michaelis-Menten 소실이 병렬이고, 개인 파라미터는 로그정규 분포다.
+    2020 모델(민감도 모델): Kovalenko 2020(Clin Pharmacol Drug Dev) Table 1의 Model 1과 보충 Table S2(프로젝트 config의 'Supplementary Table 2'와 같은 표)다. kpc는 Table 1의 Mpc에서 유도했다(kpc = kcp / Mpc). 보충자료는 개체간 변동을 로그 척도 SD로 보고한다(Vc {sd_vc}, ke {sd_ke}, ka {sd_ka}, Vmax {sd_vm}, MTT {sd_mtt}). 표의 2020 모델 ω²는 그 제곱이며, 공분산은 보고되지 않아 대각만 썼다. 이 두 변환(SD 제곱, kpc 유도) 외에는 논문 표의 값을 그대로 옮겼다. Vc 체중 지수는 공변량 고정효과라 개체간 분산이 해당하지 않는다.
     같은 논문의 Model 2는 BLQ를 제외하고 적합했고 가산 잔차가 커서 정량한계({lloq} mg/L) 근처 모의에 맞지 않는다. Model 3·Model 4는 3상 자료 모델로 개체간 변동이 Vc·ke뿐이고 가산 잔차가 커서 단회 투여 건강인 모의에 맞지 않는다. 그래서 쓰지 않았다(3.1절). Model 4의 공변량 계수는 부록 A5의 체중 견고성 점검에만 빌렸다.
     CL, Q, 말초 용적은 속도 상수와 Vc에서 계산한 환산값(기준 체중 {wr} kg)이며 논문 추정값이 아니다: CL = ke·Vc, Q = k12·Vc, 말초 용적 = Vc·k12/k21. 표의 ω²는 유효 숫자 세 자리로 반올림해 적었다. Kovalenko 2016의 V2는 말초가 아니라 중심 용적이다.
     민감도 변형: 개체간 분산 전부 {om_mult}배, 비례 잔차 {sp_alt}(보고서 5.3절, 5.7절).

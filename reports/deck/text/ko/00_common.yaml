@@ -12,8 +12,8 @@ common:
     more: "외 {n}개"
     commit: "커밋"
   models:
-    k2016: "2016 모델(주분석)"
-    k2020: "2020 모델(민감도)"
+    k2016: "2016 모델(주 모델)"
+    k2020: "2020 모델(민감도 모델)"
   sets:
     i: "세트 (i)"
     ii: "세트 (ii)"
@@ -53,6 +53,16 @@ check:
     MTT: "평균 (통과|이동) 시간"
     CL: "청소율"
     P2: "동시 통과"
+    ka: "흡수 속도상수"
+    ke: "소실 속도상수"
+    Vmax: "최대 (소실 )?속도"
+    V2: "말초 (분포)?용적"
+    Vc: "중심 (분포)?용적"
+    Km: "Michaelis-Menten"
+    span: "창 길이"
+    Clast: "마지막 정량 농도"
+    SD: "표준편차"
+    SE: "표준오차"
   # 숫자 허용 문맥(결과 수치가 아닌 식별자·서지·방법 상수). 이 정규식에 맞는 부분은 숫자 검사에서 뺀다
   number_contexts:
     - "(Kovalenko|Li|Clot|Cohen|Kamal|Syneos|FDA|EMA|ICH|Certara|Phoenix|WinNonlin|Zhang|Harb|Bansal)( et al\\.)? ?\\(?(19|20)[0-9]{2}\\)?[a-z]?"
@@ -65,8 +75,8 @@ check:
     - "(?<![0-9.])5(th|번째)"
     - "(Table|Figure|Appendix|표|그림) ?S?[A-Z]?[0-9]+(-[0-9]+)?"
     - "Model [0-9]"
-    - "(2016|2020) ?(모델|model|Model)"
     - "(2016|2020) ?/ ?(2016|2020) ?(모델|model)"
+    - "(2016|2020) ?(모델|model|Model)"
     - "[0-9]+(\\.[0-9]+)*절"
     - "슬라이드 [0-9]+"
     - "1:1"
