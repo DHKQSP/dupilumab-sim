@@ -10,14 +10,16 @@ S10_SCHED <- c(current = "B0", plus_39_46 = "D1", plus_39_46_53 = "D2", plus_32_
 
 # config 채혈일(투여 후 일)을 연구일로(연구일 = 투여 후 일 + 1). yaml이 정수·실수 혼합 목록으로 읽으므로 unlist(S08과 같은 사정)
 s10_days <- function(schedule) { d <- unlist(.read("config/trial_design.yaml")$schedules[[schedule]]$days); premise(length(d) > 0, paste("schedule", schedule)); d + 1 }
-# 후보 일정이 B0에 더하는 연구일(예 "39, 46"). 표 칸 폭보다 긴 한 단어는 deck_lib est_lines가 실수형을 돌려 표 높이 추정이 멈추므로 띄어 쓴다
-s10_added <- function(schedule, sep = ", ") {
+# 후보 일정이 B0에 더하는 연구일(예 "39·46"). 주의: 표 칸 폭보다 긴 한 단어는 deck_lib est_lines가 실수형을 돌려 표 높이 추정이 멈춘다(칸 폭을 넉넉히)
+s10_added <- function(schedule, sep = "·") {
   a <- sort(setdiff(round(s10_days(schedule), 6), round(s10_days("B0"), 6))); premise(length(a) >= 1 && all(a == round(a)), paste("added whole study days,", schedule))
   dderived(sprintf("schedule %s: study days added to B0", schedule), "config/trial_design.yaml", sprintf("setdiff(schedules.%s.days, schedules.B0.days) + 1", schedule), a, paste(fnum(a, 0), collapse = sep))
 }
 # 부호 표시(+). 인쇄값(추적 행)은 d* 함수가 남긴 그대로이고 "+"만 붙인다
 s10_signed <- function(p) if (grepl("^-", p) || grepl("^0(\\.0+)?$", p)) p else paste0("+", p)
 s10_signed_rng <- function(p) { p <- s10_signed(p); sub("~([0-9])", "~+\\1", p) }
+# 표시층: 음수 부호에서 줄이 바뀌지 않도록 줄바꿈 없는 붙임표(U+2011; check_deck이 숫자 검사 전에 "-"로 되돌린다)
+s10_nb <- function(p) gsub("(^|~|\\s)-(?=[0-9])", "\\1\u2011", p, perl = TRUE)
 # 매일 채혈(참고) 일정의 연구일 범위: 일정 코드 daily_<첫날>_<끝날>에서 읽고, cliff_schedules.csv의 추가일이 그 사이에 있는지 확인
 s10_daily_range <- function(CP) {
   code <- unique(rows(CP, "schedule=='daily_29_57'")$schedule); m <- as.numeric(regmatches(code, gregexpr("[0-9]+", code))[[1]])
@@ -45,6 +47,7 @@ slide_S10 <- function() {
   premise(all(cp[schedule != "daily_29_57", pct_ge2] == 0), "no fixed schedule puts two or more nominal samples on the cliff (both models)")
   premise(all(rows(CP, paste(WIN, "&", FIX))$pct_ge2 < 0.1), "windowed fixed schedules: two or more samples on the cliff below 0.1% (title bound)")
   premise(all(cp$pct_ge3 == 0), "no schedule, even daily sampling, puts three nominal samples on the cliff")
+  premise(all(cp[, .(up = all(pct_ge1[schedule %in% names(S10_SCHED)[2:5]] > pct_ge1[schedule == "current"])), by = model]$up), "every candidate schedule raises the share with one sample on the cliff over B0 (bullet)")
   rp <- rows(RP, RW); premise(nrow(rp) == 8, "reliability change: two models x D1 to D4")
   premise(!any(rp$crit_c_i %in% TRUE) && !any(rp$crit_c_ii %in% TRUE), "criterion (c) met in no cell under either criteria set")
   premise(max(rp$gain_i_pp) > max(rp$gain_ii_pp), "the largest gain is under set (i) (title: largest gain)")
@@ -63,15 +66,16 @@ slide_S10 <- function() {
   len <- drange(CS, "weight=='base'", "len1_median", 2, "", "median cliff length, 1-day definition, two models (60-90 kg)")
   int0 <- row1(CP, paste(NOM, "& model=='k2016' & schedule=='current'"))$min_interval_day
   lenv <- rows(CS, "model=='k2016' & weight=='base'")$len1_median
-  ymax <- max(h$pct) * 1.28; x0 <- 58.5
-  cmp <- data.table(y = ymax * c(0.9, 0.74), x1 = x0 + c(int0, lenv), col = c("b0", "cliff"),
-                    lab = c(fill(L$fig$cmp_b0, list(v = fnum(int0, 0))), fill(L$fig$cmp_cliff, list(v = fnum(lenv, 2)))))
+  mi0 <- row1(CSC, "schedule=='plus_39_46'")$min_interval_day_from_day22
+  premise(all(rows(CSC, "schedule %in% c('plus_39_46','plus_39_46_53','plus_32_39_46_53','plus_40_47')")$min_interval_day_from_day22 == mi0), "every candidate schedule has the same minimum interval (figure)")
+  ymax <- max(h$pct) * 1.42; x0 <- 50.5
+  cmp <- data.table(y = ymax * c(0.9, 0.78, 0.66), x1 = x0 + c(int0, mi0, lenv), col = c(PAL$ink2, PAL$blue, PAL$orange),
+                    lab = c(fill(L$fig$cmp_b0, list(v = fnum(int0, 0))), fill(L$fig$cmp_add, list(v = fnum(mi0, 0))), fill(L$fig$cmp_cliff, list(v = fnum(lenv, 2)))))
   p1 <- ggplot(h, aes(x = x, y = pct)) +
     geom_vline(xintercept = vis, colour = PAL$muted, linewidth = 0.45, linetype = "22") +
     geom_line(aes(colour = model, linetype = model), linewidth = 0.95) +
-    geom_segment(data = cmp, aes(x = x0, xend = x1, y = y, yend = y, colour = NULL, linetype = NULL), inherit.aes = FALSE,
-                 colour = c(PAL$ink2, PAL$orange), linewidth = c(1.2, 3.2), lineend = "butt") +
-    geom_text(data = cmp, aes(x = x0, y = y, label = lab), inherit.aes = FALSE, vjust = -0.7, hjust = 0, size = 3.9, family = FONT, colour = c(PAL$ink2, PAL$orange)) +
+    geom_segment(data = cmp, aes(x = x0, xend = x1, y = y, yend = y), inherit.aes = FALSE, colour = cmp$col, linewidth = 2.6, lineend = "butt") +
+    geom_text(data = cmp, aes(x = x0 + max(int0, mi0) + 0.8, y = y, label = lab), inherit.aes = FALSE, hjust = 0, size = 3.8, family = FONT, colour = cmp$col) +
     annotate("text", x = min(vis) + 0.4, y = ymax * 0.99, label = L$fig$b0, hjust = 0, vjust = 1, size = 3.9, family = FONT, colour = PAL$ink2) +
     scale_colour_manual(values = unname(MODEL_COL)) + scale_linetype_manual(values = unname(MODEL_LT)) +
     scale_x_continuous(breaks = vis, expand = expansion(add = 0)) + coord_cartesian(xlim = c(XMIN, XMAX), ylim = c(0, ymax), expand = FALSE) +
@@ -109,12 +113,12 @@ slide_S10 <- function() {
             b0 = drange(CP, paste(NOM, "& schedule=='current'"), "pct_ge1", 1, "%", "one or more samples on the cliff, B0, two models"),
             d3 = drange(CP, paste(NOM, "& schedule=='plus_32_39_46_53'"), "pct_ge1", 1, "%", "one or more samples on the cliff, D3, two models"),
             minpts = minpts, dly = drange(CP, paste(NOM, "& schedule=='daily_29_57'"), "pct_ge3", 1, "%", "three or more samples on the cliff, daily sampling, two models"),
-            ri = s10_signed_rng(drange(RP, RW, "gain_i_pp", 2, "", "reliability change versus B0, set (i), two models, D1 to D4")),
-            rii = s10_signed_rng(drange(RP, RW, "gain_ii_pp", 2, "", "reliability change versus B0, set (ii), two models, D1 to D4")),
+            ri = s10_nb(s10_signed_rng(drange(RP, RW, "gain_i_pp", 2, "", "reliability change versus B0, set (i), two models, D1 to D4"))),
+            rii = s10_nb(s10_signed_rng(drange(RP, RW, "gain_ii_pp", 2, "", "reliability change versus B0, set (ii), two models, D1 to D4"))),
             ndown = dcount(RP, paste(RW, "& gain_ii_pp < 0"), "cells where reliability under set (ii) falls, trial population"),
             nall = dcount(RP, RW, "added-sampling cells, trial population (two models x D1 to D4)"),
             thr = dcfg("trial_design.yaml", c("decision_rule", "reliability_gain_pp_min"), "criterion (c) threshold (points)", num_fmt(0)))
-  BH <- 3.02
+  BH <- 3.3
   deck_bullets(tx("S10.bullets", b), box = c(XR, GEO$BODY_TOP, WR, BH), size = 16, gap_pt = 7)
 
   # ---- 오른쪽 아래: 신뢰 충족률 변화 표(세트별, 모델별, D1~D4) ----
@@ -127,11 +131,11 @@ slide_S10 <- function() {
                             c(T$ii16, rowv("k2016", "ii")), c(T$ii20, rowv("k2020", "ii"))), stringsAsFactors = FALSE)
   names(df) <- c(T$head, DS)
   TY <- GEO$BODY_TOP + BH + 0.1
-  deck_table(df, box = c(XR, TY, WR, GEO$BODY_BOTTOM - TY), widths = c(1.72, 0.8, 0.8, 0.92, 0.8), size = 12, highlight = 1, highlight_fill = PAL$tint_grey)
+  deck_table(df, box = c(XR, TY, WR, GEO$BODY_BOTTOM - TY), widths = c(1.62, 0.66, 0.92, 1.16, 0.66), size = 12, highlight = 1, highlight_fill = PAL$tint_grey)
 
   # ---- 노트 ----
-  d3ci <- function(m, set) dci(RP, sprintf("variant=='%s' & schedule=='D3'", VAR[[m]]), sprintf("gain_%s_pp", set), sprintf("gain_%s_lo", set), sprintf("gain_%s_hi", set), 2, "%p",
-                               sprintf("reliability change versus B0, D3, set (%s), %s, with paired 95%% CI", set, m))
+  d3ci <- function(m, set) s10_signed(dci(RP, sprintf("variant=='%s' & schedule=='D3'", VAR[[m]]), sprintf("gain_%s_pp", set), sprintf("gain_%s_lo", set), sprintf("gain_%s_hi", set), 2, "%p",
+                               sprintf("reliability change versus B0, D3, set (%s), %s, with paired 95%% CI", set, m)))
   mn <- rp[which.min(gain_ii_pp)]; premise(mn$variant == "struct2020" && mn$schedule == "D4", "lowest set (ii) change is the 2020 model D4 (notes)")
   lw <- rows(LW, "variant %in% c('base','struct2020') & schedule %in% c('B0','D1','D2','D3','D4')")
   premise(all(lw[schedule == "B0", min_3pt_nominal_window_days] > lw[schedule != "B0", max(min_3pt_nominal_window_days)]), "added samples shorten the shortest three-point window (notes)")

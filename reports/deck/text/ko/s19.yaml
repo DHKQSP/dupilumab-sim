@@ -1,0 +1,42 @@
+S19:
+  kicker: "논거 ③ 투명성 · 경계 1종 오류가 {nom}를 넘는 한 칸"
+  title: "M1에서 {nom}를 넘는 한 칸(2020 모델 V2 ×{m20}, {p2})은 이 칸에서만 1 쪽으로 치우친 AUC0-last 편향 {bias}에서 나온다"
+  cls:
+    conservative: "보수적"
+    nominal: "명목"
+    exceeding: "초과"
+  fig:
+    xlab: "같은 칸의 경계 1종 오류 (%, Wilson 95% 구간). 점선: 명목 {nom}"
+    cfg:
+      P2: "AUC0-last + Cmax (제안), {n}회"
+      P2_10k: "AUC0-last + Cmax, 처음 {n}회"
+      AUClast_only: "AUC0-last 단독"
+      AUCinf_true_only: "참 AUC0-inf 단독 (불편 참조)"
+      G2_Ai: "AUC0-inf + Cmax, 규칙 A (i)"
+      G2_Aii: "AUC0-inf + Cmax, 규칙 A (ii)"
+      G2_B: "AUC0-inf + Cmax, 규칙 B"
+      G2_Ci: "AUC0-inf + Cmax, 규칙 C (i)"
+      G2_Cii: "AUC0-inf + Cmax, 규칙 C (ii)"
+  bullets:
+    - "**확대 경위**: M1은 사전 고정 {n10}회에서 이미 {m1_10k}였다. M0는 {m0_10k}로 구간이 {nom}를 포함해 확대가 정해졌고, 등록대로 두 모형을 함께 늘렸다."
+    - "**같은 칸의 규칙 A·B**(+ Cmax, M1)는 {ab}로 보수적이나, NCA AUC0-inf가 1에서 먼 쪽으로 치우친 결과다(A (ii) {ba}). {n}칸 전체로는 {nab}칸에서 {nom} 초과."
+  stat: "AUC0-last GMR 편향(1 쪽, M1). 경계 {n}칸 중 1 쪽 편향은 이 칸뿐이다(세 분석 모형)."
+  mech:
+    - "**기전** 시험약의 말초 분포용적 V2만 ×{m20}(2020 모델). 같은 참 AUC0-inf 비 {tr}에 2016 모델은 ×{m16}이 필요하며 그 칸은 {p16}(M1, 보수적)이다. 흡수·소실은 그대로다."
+  table:
+    head: ["같은 시험 안의 분해 (%p)", "M1", "M0"]
+    rows:
+      ref: "불편 참조(참 AUC0-inf 단독) - {nom}"
+      last: "+ AUC0-last 효과(단독 - 참조)"
+      cmax: "+ Cmax 효과(P2 - AUC0-last 단독)"
+      p2: "= AUC0-last + Cmax - {nom}"
+  notes: |
+    경계 칸은 시험약의 기전 하나를 한 방향으로 바꿔 참 AUC0-inf 비가 동등 한계에 닿게 한 칸이다(모델당 {npm}칸, 합 {n}칸). 이 칸은 2020 모델(민감도)에서 시험약의 말초 분포용적만 ×{m20} 늘린 칸이다(구획 간 청소율 고정, 흡수·소실 불변). 참 AUC0-inf 비 {auc}, 참 Cmax 비 {cmr}. 같은 참 비를 2016 모델(주)에서 만들려면 ×{m16}이 필요하고 그 칸은 M1에서 {p16}(보수적)이다.
+    AUC0-last + Cmax, 시험 {n20}회: M0 {p0}({c0}), M1 {p1}({c1}), M2 {p2m}({c2}). 사전 고정 {n10}회: M0 {k0}({ck0}), M1 {k1}({ck1}), M2 {k2}({ck2}). 분류는 Wilson 95% 구간의 상한이 {nom} 미만이면 보수적, 하한이 {nom}를 넘으면 초과, 그 밖은 명목이다. M1에서 이 칸을 뺀 나머지 칸은 모두 보수적이다.
+    확대 규칙(사전 등록 prereg section1, D-048 규칙을 분석 모형마다 적용): 사전 고정 {n10}회의 Wilson 구간이 {nom}를 포함하면 M0 또는 M1 어느 쪽이든 그 칸을 {n20}회로 늘리고 세 분석 모형을 모두 {n20}회로 보고하며 {n10}회 값을 함께 적는다. 이 칸은 M0 구간이 {nom}를 포함해 확대되었고, M1은 하한이 이미 {nom} 위여서 스스로 확대 조건을 만들지 않았다. v1.0의 M0 확대는 결과를 본 뒤 정한 것이어서(보고서 부록 D) 두 값을 모두 보고한다.
+    원인(같은 시험 안의 정확한 분해): M1에서 AUC0-last GMR 편향 {b1}(1 쪽)이 불편 참조 {r1}를 AUC0-last 단독 {l1}로 올리고, Cmax 불통과가 조금 낮춘다. M0 편향은 {b0}로 같다. M1이 M0보다 높은 것은 새 편향이 아니라 표준오차 보정 때문이다: 불편 참조가 M0 {r0}에서 M1 {r1}로 오르고, 불편 참조의 시험 간 SD / 시험 내 SE가 M0 {s0}, M1 {s1}이다.
+    같은 칸의 AUC0-inf + Cmax(M1 / M0): 규칙 A (i) {ai1} / {ai0}, A (ii) {aii1} / {aii0}, A (iii) {aiii1} / {aiii0}, A (iv) {aiv1} / {aiv0}, 규칙 B {bb1} / {bb0}, 규칙 C (i) {ci1} / {ci0}, C (ii) {cii1} / {cii0}, C (iii) {ciii1} / {ciii0}, C (iv) {civ1} / {civ0}. 이 칸의 NCA AUC0-inf GMR 편향(M1)은 규칙 A (ii) {nba}, A (i) {nbai}, B {nbb}로 1에서 먼 쪽이고, 규칙 C (ii)는 {nbc}로 1 쪽이다. 경계 {n}칸 전체(M1)에서 {nom} 초과 칸은 규칙 A (i) {nai}칸, A (ii) {naii}칸, B {nbB}칸, C (ii) {ncii}칸(이 칸)이다. 따라서 이 칸은 AUC0-inf에 유리한 근거가 아니다.
+    주의: M1의 불편 참조도 흡수 속도 감소 칸에서는 {nom}를 넘는다(2016 모델 {ka16}, 2020 모델 {ka20}). 그 칸에서는 Cmax가 모든 시험에서 불통과해 AUC0-last + Cmax가 {kap2}다.
+    결과 전 등록한 기대(보고서 Table 5-16): '{exp_c}', 결과와 일치 여부 {exp_ok}.
+    개연성 관련 사실(보고서 6.2절): 바이오시밀러 후보는 참조 면역글로불린 G4(IgG4) 항체와 아미노산 서열이 같다. 이 칸은 흡수와 소실은 그대로 두고 말초 분포용적만 ×{m20}(2020 모델) 또는 ×{m16}(2016 모델)로 바꾼 가정이다. 해석은 하지 않고 사실만 적는다.
+    관련 보고서: 요약(Synopsis), 5.4절, 5.9절(Table 5-15, Table 5-16, Figure 5-9), 6.2절, 6.3절, 부록 D; 예상 질의 Q7; DECISIONS D-048.

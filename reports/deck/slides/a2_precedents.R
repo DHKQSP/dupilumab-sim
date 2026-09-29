@@ -23,9 +23,13 @@ slide_A2 <- function() {
   y <- .read("config/design_clot2021.yaml")
   premise("PKM14161" %in% unlist(y$model_development_data$k2020) && !("PKM14161" %in% unlist(y$model_development_data$k2016)), "PKM14161 is in the 2020 model development data only")
   premise(all(rows(F16, "study=='PKM14161'")$pass_mean) && all(rows(F16, "study=='PKM14161'")$dev == "external"), "PKM14161 arms pass the 2016 model check as external data")
-  premise(!any(grepl("MSB11456|tocilizumab", c(readLines(proj_path("regulatory", "src", "MS_report.Rmd"), warn = FALSE), readLines(proj_path("SPEC.md"), warn = FALSE), readLines(proj_path("DECISIONS.md"), warn = FALSE),
-                                               readLines(proj_path("results", "literature", "literature_qualitative.csv"), warn = FALSE)), ignore.case = TRUE)),
-          "no project record of the tocilizumab MSB11456 IV study (report, SPEC, DECISIONS, literature excerpts)")
+  # 토실리주맙 MSB11456: 근거 문서(보고서, SPEC, config, 문헌 결과)에 없고, 결정 기록에는 '기록이 없는 항목'으로만 나온다
+  rx <- "MSB11456|tocilizumab|\ud1a0\uc2e4\ub9ac\uc8fc\ub9d9"; rd <- function(f) readLines(f, warn = FALSE, encoding = "UTF-8")
+  ev_files <- c(proj_path("regulatory", "src", "MS_report.Rmd"), proj_path("regulatory", "src", "FDA_questions.Rmd"), proj_path("SPEC.md"),
+                list.files(proj_path("config"), pattern = "\\.ya?ml$", full.names = TRUE), list.files(proj_path("results", "literature"), full.names = TRUE))
+  premise(!any(grepl(rx, unlist(lapply(ev_files, rd)), ignore.case = TRUE)), "no record of the tocilizumab MSB11456 IV study in the report, SPEC, config or literature results")
+  dl <- grep(rx, rd(proj_path("DECISIONS.md")), value = TRUE, ignore.case = TRUE)
+  premise(all(grepl("\uae30\ub85d\uc774 \uc5c6", dl)), "DECISIONS mentions the tocilizumab study only as an item without a project record")
 
   lsd_lab <- rows("fallback/sample_size_logsd.csv", "startsWith(variant, 'Cohen')")$variant
   premise(length(lsd_lab) == 1 && grepl("90% CI", lsd_lab, fixed = TRUE), "the Cohen 2022 GMR interval is recorded as a 90% CI")
@@ -47,7 +51,7 @@ slide_A2 <- function() {
     lsd = dv(LSD, "gate_role=='external'", "obs_log_sd", 2, "", "Cohen 2022 implied log SD of AUC0-last"))
 
   # ---- 카드 세 개: 상태 표지 + 기록 내용 ---------------------------------------------------------------------------------------------
-  gap <- 0.25; cw <- (GEO$CW - 2 * gap) / 3; yc <- GEO$BODY_TOP + 0.05; chip_h <- 0.42; ch <- 3.85
+  gap <- 0.25; cw <- (GEO$CW - 2 * gap) / 3; yc <- GEO$BODY_TOP + 0.05; chip_h <- 0.42; ch <- 3.6
   cards <- list(pkm = list(bg = PAL$tint_grey, chip = PAL$ink2), cohen = list(bg = PAL$tint_blue, chip = PAL$blue), toci = list(bg = PAL$tint_orange, chip = PAL$orange))
   for (k in seq_along(cards)) {
     nm <- names(cards)[k]; x <- GEO$ML + (k - 1) * (cw + gap)

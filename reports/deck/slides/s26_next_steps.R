@@ -31,6 +31,10 @@ slide_S26 <- function() {
   wp <- function(am) sprintf("input_model=='k2016' & cv==%s & gmr==0.95 & n==%s & analysis_model=='%s'", cv_v, n_v, am)
   wn <- function(am, tg) sprintf("cv==%s & gmr==0.95 & analysis_model=='%s' & target_pct==%s", cv_v, am, tg)
   tag <- DK$version; has_tag <- s26_tag_exists(tag)
+  # BPD·과학자문 질의 초안이 규제 문서 원본(regulatory/src)에 없다(예상 심사 질의응답, SAP 문안, 보고서만 있음)
+  src_txt <- unlist(lapply(list.files(proj_path("regulatory", "src"), pattern = "\\.Rmd$", full.names = TRUE), readLines, warn = FALSE, encoding = "UTF-8"))
+  premise(length(src_txt) > 0 && !any(grepl("BPD|Biosimilar Product Development|scientific advice|Type 2 meeting|\uacfc\ud559\uc790\ubb38", src_txt, ignore.case = TRUE)),
+          "no BPD meeting or scientific-advice question draft in regulatory/src")
 
   f <- list(
     lloq = f_lloq(), grid = f_lloq_grid(),

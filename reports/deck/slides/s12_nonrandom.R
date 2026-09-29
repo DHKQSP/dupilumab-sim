@@ -63,7 +63,7 @@ slide_S12 <- function() {
   sd_iii <- drange(TSI, "set=='iii'", "diff_pp", 1, "", "stratum difference, set iii, diff_pp")
   wd <- drange(TCH, "set=='i'", "wt_diff_kg", 2, "", "failing versus retained, set i, wt_diff_kg")
   C2Y <- GEO$BODY_TOP + C1H + 0.1; C2H <- 1.70
-  deck_stat(paste0(sd_i, "%p"), tx("S12.card_strata", list(split = f_split(), sd3 = sd_iii, wd = wd)), c(XL, C2Y, WL, C2H), color = PAL$orange, bg = PAL$tint_orange)
+  deck_stat(paste0(sd_i, "%p"), tx("S12.card_strata", list(split = f_split(), sd3 = sd_iii, wd = wd)), c(XL, C2Y, WL, C2H), color = PAL$ink, bg = PAL$tint_grey)
 
   # ---- 왼쪽 아래: 분석군별 arm 간 차이 요약(두 모델) ----
   thr <- dderived("threshold in column name armdiff_abs_gt5_pct (points)", TSC, "column name armdiff_abs_gt5_pct", 5, "5")
@@ -86,9 +86,9 @@ slide_S12 <- function() {
   h[, set := factor(SL[analysis_set], levels = SL)]; h[, model := factor(model_lab()[pk_model], levels = model_lab())]
   xr <- range(h$bin) + c(-1, 1); thr_n <- 5
   p <- ggplot(h, aes(x = bin, y = pct, fill = model)) +
-    annotate("rect", xmin = -Inf, xmax = -thr_n, ymin = -Inf, ymax = Inf, fill = PAL$tint_orange) +
-    annotate("rect", xmin = thr_n, xmax = Inf, ymin = -Inf, ymax = Inf, fill = PAL$tint_orange) +
-    geom_vline(xintercept = c(-thr_n, thr_n), colour = PAL$orange, linewidth = 0.5, linetype = "22") +
+    annotate("rect", xmin = -Inf, xmax = -thr_n, ymin = -Inf, ymax = Inf, fill = PAL$tint_grey) +
+    annotate("rect", xmin = thr_n, xmax = Inf, ymin = -Inf, ymax = Inf, fill = PAL$tint_grey) +
+    geom_vline(xintercept = c(-thr_n, thr_n), colour = PAL$ink2, linewidth = 0.5, linetype = "22") +
     geom_vline(xintercept = 0, colour = PAL$ink2, linewidth = 0.4) +
     geom_col(position = position_dodge(width = 0.9), width = 0.86, colour = NA) +
     facet_wrap(~set, ncol = 1, scales = "free_y") +
@@ -99,8 +99,8 @@ slide_S12 <- function() {
     theme(legend.position = "top", legend.justification = "left", legend.margin = margin(0, 0, 0, 0), legend.box.spacing = grid::unit(2, "pt"),
           panel.grid.major.x = element_blank(), panel.spacing = grid::unit(8, "pt"), strip.text = element_text(hjust = 0, size = 13, face = "bold", colour = PAL$ink),
           plot.subtitle = element_text(colour = PAL$ink2, size = 13, margin = margin(0, 0, 2, 0)))
-  p <- p + geom_text(data = data.table(set = factor(SL[["iii"]], levels = SL), x = xr[2] - 0.3, y = Inf, lab = fill(L$fig$thr, list(thr = thr_n))),
-                     aes(x = x, y = y, label = lab), inherit.aes = FALSE, hjust = 1, vjust = 1.4, size = 4.2, family = FONT, colour = PAL$orange)
+  p <- p + geom_text(data = data.table(set = factor(SL[["auclast"]], levels = SL), x = xr[2] - 0.3, y = Inf, lab = fill(L$fig$thr, list(thr = thr_n))),
+                     aes(x = x, y = y, label = lab), inherit.aes = FALSE, hjust = 1, vjust = 1.4, size = 4.2, family = FONT, colour = PAL$ink2)
   FH <- 4.3
   deck_figure(p, "s12_strata_armdiff", c(XR, GEO$BODY_TOP, WR, FH), src = c(GZ, HIST, TSC))
   rb <- dext(TSC, "analysis_set=='auclast'", "rand_armdiff_abs_max", max, 1, "", "largest between-arm difference in the heavier-stratum share at randomization (points)")
