@@ -118,7 +118,6 @@ slide_S25 <- function() {
   H <- DK$txt$S25$table
   df <- data.frame(a = tx("S25.table.col1", f), b = tx("S25.table.col2", f), c = tx("S25.table.col3", f), check.names = FALSE, stringsAsFactors = FALSE)
   names(df) <- tx("S25.table.head")
-  if (nzchar(Sys.getenv("S25_DEBUG"))) { data.table::fwrite(df, Sys.getenv("S25_DEBUG")); writeLines(c(tx("S25.card_nca", f), "", tx("S25.card_qc", f)), paste0(Sys.getenv("S25_DEBUG"), ".cards")) }
   tw <- 8.4
   deck_text(tx("S25.left_label"), c(GEO$ML, GEO$BODY_TOP - 0.04, tw, 0.45), size = 16, bold = TRUE, color = PAL$ink2, label = "label_model")
   tsz <- 13.5; tws <- c(1.95, 3.35, 3.1); ty <- GEO$BODY_TOP + 0.43

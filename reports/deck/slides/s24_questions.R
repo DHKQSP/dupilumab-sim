@@ -1,5 +1,5 @@
 # S24 예상 질의와 답: 예상 질의응답 문서(regulatory/src/FDA_questions.Rmd)에서 임상약리·임상개발에 가장 중요한 다섯 묶음(여덟 문항: Q1, Q3+Q4, Q7, Q11+Q19, Q12+Q17)을
-# 한국어로 줄였다(문서 번호 순). 왼쪽 질문 카드 + 오른쪽 답(2열). 다섯 행은 같은 높이이고 질문과 답은 행 가운데에 둔다(추정 글 높이 기준). [문헌+모의]
+# 한국어로 줄였다(문서 번호 순). 왼쪽 질문 카드 + 오른쪽 답(2열). 다섯 행과 질문 카드는 같은 높이이고 질문 카드와 답은 행 가운데에 둔다(추정 글 높이 기준). [문헌+모의]
 # M1 수치는 results/oc_models/type1_models.csv에서 읽는다(FDA_questions는 Q1, Q8, Q9에서 oc/g2_rules_flags.csv의 M0 수를 인쇄한다).
 S24_T1 <- "oc_models/type1_models.csv"; S24_DE <- "oc_models/p2_decomposition_models.csv"; S24_CS <- "cliff/cliff_summary.csv"; S24_CP <- "cliff/cliff_points.csv"
 s24_w <- function(am, cf, extra = "") sprintf("analysis_model=='%s' & config=='%s'%s", am, cf, extra)
@@ -83,20 +83,19 @@ slide_S24 <- function() {
   premise(f$exi == f$exiii, "sets (i) and (iii) share the extrapolation limit (Q11: set (iii) given by its adjusted R2 only)")
   deck_kicker(tx("S24.kicker")); deck_title(tx("S24.title", f))
 
-  # ---- 2열: 질문 상자 | 답 (행 높이 = 질문 카드와 답의 추정 높이 중 큰 값 + 남는 높이의 균등 몫) ----
+  # ---- 2열: 질문 카드 | 답 (같은 높이의 다섯 행, 카드와 답은 행 가운데) ----
   qs <- DK$txt$S24$qa; nq <- length(qs); premise(nq == 5, "five question groups")
   premise(length(unlist(strsplit(vapply(qs, function(q) q$id, ""), " · ", fixed = TRUE))) == 8, "eight numbered questions in the five groups (kicker)")
-  gap <- 0.07; y0 <- GEO$BODY_TOP; qw <- 2.97; ag <- 0.13; aw <- GEO$CW - qw - ag
-  qt <- vapply(seq_len(nq), function(i) sprintf("__%s__  %s", qs[[i]]$id, fill(qs[[i]]$q, f, sprintf("S24.qa.%d.q", i))), "")
+  gap <- 0.07; y0 <- GEO$BODY_TOP; qw <- 3.02; ag <- 0.08; aw <- GEO$CW - qw - ag
+  qt <- vapply(seq_len(nq), function(i) sprintf("__%s__ %s", qs[[i]]$id, fill(qs[[i]]$q, f, sprintf("S24.qa.%d.q", i))), "")
   at <- vapply(seq_len(nq), function(i) fill(qs[[i]]$a, f, sprintf("S24.qa.%d.a", i)), "")
-  # 같은 높이의 다섯 행; 질문 카드는 채운 도형 + 그 위 글상자(글상자 안쪽 여백 0.1 in + 0.02 in = 카드 안쪽 여백 0.12 in), 질문과 답을 행 가운데에 둔다
+  # 같은 높이의 다섯 행. 질문 카드는 모두 같은 높이(가장 긴 질문의 추정 높이 + 0.08 in: 줄 간격 110%의 윗여백만큼 아래 여백을 맞춤)이고,
+  # 질문 카드와 답을 행 가운데에 둔다
   rh <- (GEO$BODY_BOTTOM - y0 - (nq - 1) * gap) / nq
   y <- y0 + (seq_len(nq) - 1) * (rh + gap)
-  hq <- vapply(qt, function(s) est_height(s, qw - 0.04, 16, 0), 0); ha <- vapply(at, function(s) est_height(s, aw, 16, 0), 0)
-  if (nzchar(Sys.getenv("S24_DEBUG"))) writeLines(c(qt, at), Sys.getenv("S24_DEBUG"))
+  hq <- rep(max(vapply(qt, function(s) est_height(s, qw, 16, 0, card = TRUE), 0)) + 0.08, nq); ha <- vapply(at, function(s) est_height(s, aw, 16, 0), 0)
   for (i in seq_len(nq)) {
-    deck_box(c(GEO$ML, y[i], qw, rh), fill = PAL$tint_blue, geom = "roundRect", label = sprintf("q%d_card", i))
-    deck_text(qt[i], c(GEO$ML + 0.02, y[i] + (rh - hq[i]) / 2, qw - 0.04, hq[i]), size = 16, label = sprintf("q%d", i), gap_pt = 0)
+    deck_text(qt[i], c(GEO$ML, y[i] + (rh - hq[i]) / 2, qw, hq[i]), size = 16, bg = PAL$tint_blue, geom = "roundRect", label = sprintf("q%d", i), gap_pt = 0)
     deck_text(at[i], c(GEO$ML + qw + ag, y[i] + (rh - ha[i]) / 2, aw, ha[i]), size = 16, label = sprintf("a%d", i), gap_pt = 0)
   }
   premise(all(hq <= rh) && all(ha <= rh * 1.03), sprintf("every question and answer fits its row (row %.2f in; questions %s; answers %s)", rh, paste(round(hq, 2), collapse = " "), paste(round(ha, 2), collapse = " ")))
