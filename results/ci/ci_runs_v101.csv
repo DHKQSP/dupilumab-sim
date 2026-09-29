@@ -1,0 +1,22 @@
+workflow,run_number,commit,conclusion,created_at,event,note
+tests,78,9dfed32,success,2026-09-25T08:20:16Z,push,
+tests,79,521645a,success,2026-09-25T10:00:27Z,push,
+tests,80,c5b304b,success,2026-09-25T10:06:42Z,push,
+tests,81,211e8ed,success,2026-09-25T10:26:32Z,push,
+tests,82,5ccc6f8,success,2026-09-25T10:29:35Z,push,
+tests,83,62be272,success,2026-09-25T10:36:38Z,push,
+tests,84,ea8d182,cancelled,2026-09-25T10:54:23Z,push,superseded by a newer push (concurrency group)
+tests,85,34e3a4a,cancelled,2026-09-25T10:55:10Z,push,superseded by a newer push (concurrency group)
+tests,86,ae80325,success,2026-09-25T10:56:13Z,push,
+tests,87,325e63b,failure,2026-09-25T11:04:44Z,push,strict-skip rule: criteria-set identity test read a git-ignored file (D-058)
+tests,88,a4887a5,failure,2026-09-25T11:09:53Z,push,strict-skip rule: criteria-set identity test read a git-ignored file (D-058)
+tests,89,167e2f5,failure,2026-09-25T11:25:25Z,push,strict-skip rule: criteria-set identity test read a git-ignored file (D-058)
+tests,90,6f9d440,failure,2026-09-25T11:45:47Z,push,strict-skip rule: criteria-set identity test read a git-ignored file (D-058)
+tests,91,fa60914,failure,2026-09-25T12:12:32Z,push,strict-skip rule: criteria-set identity test read a git-ignored file (D-058)
+tests,92,d9320d1,success,2026-09-25T12:15:54Z,push,fix of runs 87-91 (D-058)
+tests,93,bae3574,success,2026-09-25T12:45:20Z,push,
+tests,94,6d38a8f,success,2026-09-25T12:49:28Z,push,
+tests,95,16d6f2b,success,2026-09-25T12:55:18Z,push,
+tests,96,83efca4,success,2026-09-25T13:03:32Z,push,
+tests,97,5b94d3e,success,2026-09-25T15:40:56Z,push,
+tests,98,e1d73b4,success,2026-09-25T15:57:43Z,push,latest run on the v1.0.1 package commit

@@ -1,0 +1,9 @@
+input,sha256,note
+/home/user/dupilumab-sim/results/cliff/cliff_subjects.rds,7f68cbb495bf81777bbca4b5739b6b78f434ee106c2f2308fa3db503bb9a835d,local subject-level result (git-ignored; produced by scripts/34 and scripts/10)
+/home/user/dupilumab-sim/results/individual/nca_base_20000.rds,6b92d4270854447646712e26ae4c848cbf112b2e8fc8cdefe393441bd83f7a05,local subject-level result (git-ignored; produced by scripts/34 and scripts/10)
+/home/user/dupilumab-sim/results/individual/nca_struct2020_20000.rds,f7c6d6efb82e6f442fc6973239ae5619ded1434ae719958a7d87bdb5782a3d10,local subject-level result (git-ignored; produced by scripts/34 and scripts/10)
+/home/user/dupilumab-sim/results/cliff/cliff_summary.csv,f853aba868c8cd024ca3a2c4a971159d7aece8f76fb8f2156c300c88e0dfd115,committed summary used for the checks
+/home/user/dupilumab-sim/results/trialpop/tp_coverage_individual.csv,beb14fd4f7176e6f2ef9052b677f4abdb908dd5be2e4a19aacbf68c1122be409,committed summary used for the checks
+/home/user/dupilumab-sim/results/trialpop/trialpop_counts_k2016.csv.gz,2e9343ab02d3598e6198fea38d0becf488127ec49401728a6edbd3cdeeed7a21,committed per-trial counts and summary
+/home/user/dupilumab-sim/results/trialpop/trialpop_counts_k2020.csv.gz,9d767a9a53ffda3cb94079e986d36c446cabb774e1719bcd174228b5e7794132,committed per-trial counts and summary
+/home/user/dupilumab-sim/results/trialpop/tp_strata_composition.csv,c888fc5d6871d4b71cb531fc782c07c0ccee83dc73c40b19a3c0215c6d1eb911,committed per-trial counts and summary

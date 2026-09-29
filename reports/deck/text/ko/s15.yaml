@@ -1,0 +1,44 @@
+S15:
+  kicker: "논거 ② 경계 1종 오류: 기전별 비교 (M1 주분석, M0 병기)"
+  title: "AUC0-last + Cmax는 경계 {n}칸 중 {k}칸에서 명목 이하지만, 규칙 A·B의 AUC0-inf + Cmax는 {r}칸에서 점추정이 {nom}를 넘는다"
+  fig:
+    xlab: "경계 1종 오류 (%, M1). 점선: 명목 {nom}, 가로선: Wilson 95% 구간"
+    ka: "Cmax 모든 시험 불통과"
+    cell: "{mech} {dir} → {tgt}"
+    mech:
+      F: "F"
+      ka: "ka"
+      ke: "ke"
+      Vmax: "Vmax"
+      V2: "V2"
+    dir:
+      up: "증가"
+      down: "감소"
+    cfg:
+      P2: "AUC0-last + Cmax (제안)"
+      G2_Aii: "AUC0-inf + Cmax, 규칙 A (ii) 지침 기본값"
+      G2_B: "AUC0-inf + Cmax, 규칙 B"
+  gloss: "F 생체이용률 · ka 흡수 속도 · ke 선형 소실 · Vmax 표적 매개 소실 용량 · V2 말초 분포용적. 화살표 뒤는 참 AUC0-inf 비."
+  stat:
+    value: "{k} / {n}칸"
+    label: "AUC0-last + Cmax가 명목 이하인 경계 칸 (M1, 모두 보수적). 나머지 {exc}칸은 초과: 2020 모델 V2 증가 {p2}. M0는 {m0}칸이 명목 이하."
+  table:
+    head: ["AUC0-inf 규칙 (+ Cmax): 점추정 > {nom} 칸 · 최대", "M1", "M0"]
+    rows:
+      G2_Aii: "A (ii) 지침 기본값"
+      G2_Ai: "A (i)"
+      G2_B: "B"
+      G2_Cii: "C (ii)"
+      P2: "비교: AUC0-last + Cmax"
+  bullets:
+    - "AUC0-inf 구성은 Vmax 변화 칸에서 가장 높다: 규칙 A (ii) {vmax}. V2 증가 칸에서는 규칙 A·B도 보수적이다."
+  notes: |
+    경계 칸: 시험약의 기전(F, ka, ke, Vmax, V2)을 한 방향으로 바꿔 참 AUC0-inf 비가 {tgt}에 닿게 한 칸이다. 칸 이름의 증가·감소는 파라미터 변화 방향이다(예: 2016 모델 Vmax ×{vm} 증가 → 참 비 {vmt}). ka와 V2는 상한에 닿지 않고 Km은 어느 경계에도 닿지 않아 모델당 {npm}칸, 합 {n}칸이다.
+    AUC0-last + Cmax(M1): 보수적 {c1}칸, 명목 {n1}칸, 초과 {e1}칸, 범위 {rng}. 명목 이하 {k}칸은 모두 보수적(Wilson 상한 < {nom})이다. 초과 칸은 2020 모델(민감도) V2 ×{v2m} 증가(참 AUC0-inf 비 {v2r})로 {p2}, 시험 {n20}회다. 사전 등록 {reps}회에서 Wilson 구간이 {nom}를 포함한 칸만 {n20}회로 늘렸고(DECISIONS D-048, 두 분석 모형에 함께 적용), 처음 {reps}회의 값은 {p2k}였다. 주모델인 2016 모델의 같은 기전 칸(V2 ×{v2m16})은 {p216}로 보수적이다.
+    M0: 보수적 {m0c}칸, 명목 {m0n}칸으로 {n}칸 모두 명목 이하다. 같은 칸은 {p2m0}.
+    ka 감소 두 칸은 참 Cmax 비({cmr})가 동등 하한 밖이어서 Cmax가 모든 시험에서 불통과하고, Cmax를 포함한 모든 구성이 {zero}다. 정보가 있는 칸은 {ninf}칸이다.
+    AUC0-inf + Cmax 최대(M1): 규칙 A (ii)는 2020 모델 Vmax 감소 칸 {aii}, 규칙 B는 2016 모델 Vmax 증가 칸 {b}. M0: 규칙 A (ii) {aii0}, 규칙 B {b0}. 통상 규칙(A (i), A (ii), B)의 점추정 {nom} 초과 칸은 M1 {r}칸, M0 {r0}칸이다. Wilson 하한까지 {nom}를 넘는 칸은 M1 A (ii) {lo_aii}, A (i) {lo_ai}, B {lo_b}칸; M0 {lo_aii0}, {lo_ai0}, {lo_b0}칸이다. 규칙 A (iii), (iv)와 규칙 C의 세트별 값은 슬라이드 14.
+    V2 증가 칸에서는 NCA AUC0-inf GMR의 편향이 1에서 멀어지는 방향이어서(두 모델 x 규칙 A (ii)·B의 {nv2}칸 모두, M1) 규칙 A·B가 보수적이다.
+    불편 참조(참 AUC0-inf로 판정)는 M1에서 {ref}다. M0는 체중 층을 무시해 SE가 표본 변동보다 크다(불편 참조의 시험 간 SD / 시험 내 SE: M0 {sd0}, M1 {sd1}). 같은 시험에서 P2의 M1에서 M0를 뺀 차이는 {pc}%p다.
+    그림은 M1만 그렸다. M0의 P2·AUC0-inf 구성 그림은 보고서 Figure 5-7(v1.0, M0), 분석 모형별 P2 그림은 Figure 5-9다.
+    관련 보고서: 요약 헤드라인, 5.4절(Table 5-8, Table 5-9, Figure 5-7), 5.9절(Table 5-15, Figure 5-9), 6.2절, 7절; FDA 질의 Q7, Q8, Q17; DECISIONS D-048, D-060.
