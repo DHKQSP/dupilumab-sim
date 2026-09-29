@@ -32,7 +32,7 @@ slide_S6 <- function() {
     geom_point(data = va, aes(day, y), shape = 21, fill = "white", colour = PAL$ink, size = 3.8, stroke = 1.1) +
     annotate("text", x = (cx0 + cx1) / 2, y = 1.75, label = fill(L$cliff, list(len = fnum(subj$len1, 1))), size = PT(15), family = FONT, colour = PAL$orange, fontface = "bold") +
     annotate("segment", x = ki, xend = ki + iv, y = 1.75, yend = 1.75, colour = PAL$ink2, linewidth = 0.6, arrow = grid::arrow(ends = "both", length = grid::unit(0.08, "in"))) +
-    annotate("text", x = ki + iv / 2, y = 2.15, label = fill(L$interval, list(d = fnum(iv, 0))), size = PT(15), family = FONT, colour = PAL$ink2) +
+    annotate("text", x = ki + iv / 2, y = 2.2, label = fill(L$interval, list(d = fnum(iv, 0))), size = PT(15), family = FONT, colour = PAL$ink2) +
     annotate("segment", x = kb2, xend = ka2, y = 0.3, yend = 0.3, colour = PAL$ink2, linewidth = 0.6, arrow = grid::arrow(ends = "both", length = grid::unit(0.08, "in"))) +
     annotate("text", x = (kb2 + ka2) / 2, y = -0.1, label = fill(L$added, list(d = fnum(gmin, 0))), size = PT(15), family = FONT, colour = PAL$ink2) +
     scale_x_continuous(breaks = vb$day, limits = c(min(vb$day) - 0.8, max(vb$day) + 0.8), expand = expansion(mult = 0)) +
@@ -43,18 +43,18 @@ slide_S6 <- function() {
   pb <- ggplot(d, aes(diff_vs_B0_pp, sch, shape = mod)) +
     geom_vline(xintercept = 0, colour = PAL$ink2, linewidth = 0.5) +
     geom_point(size = 3.4, colour = PAL$ink) +
-    scale_shape_manual(values = c(16, 2), name = NULL) +
-    scale_x_continuous(labels = function(v) sprintf("%+g", v), expand = expansion(add = 0.3)) +
+    scale_shape_manual(values = unname(CORE_MODEL_SHAPE), name = NULL) +
+    scale_x_continuous(labels = function(v) ifelse(abs(v) < 1e-9, "0", sprintf("%+g", v)), expand = expansion(add = 0.3)) +
     labs(x = L$dx, y = NULL, subtitle = L$change) + theme_core(16) + theme(legend.position = "right", legend.justification = c(0, 0.5))
   # ---- 오른쪽: 탈락자 대 유지자의 참 AUCinf 비 ----
   r <- copy(rows(TCH, "set=='iii'"))[, mod := factor(unlist(ML[pk_model]), levels = rev(unlist(ML)))]
   r[, lab := sprintf("%s (%s~%s)", fnum(true_aucinf_gmr, 2), fnum(true_aucinf_gmr_lo, 2), fnum(true_aucinf_gmr_hi, 2))]
-  pc <- ggplot(r, aes(true_aucinf_gmr, mod)) +
+  pc <- ggplot(r, aes(true_aucinf_gmr, mod, shape = mod)) +
     geom_vline(xintercept = 1, colour = PAL$ink2, linetype = "22", linewidth = 0.6) +
     geom_errorbarh(aes(xmin = true_aucinf_gmr_lo, xmax = true_aucinf_gmr_hi), height = 0.18, colour = PAL$orange, linewidth = 0.9) +
-    geom_point(size = 4.2, colour = PAL$orange) +
+    geom_point(size = 4.2, colour = PAL$orange) + scale_shape_manual(values = setNames(unname(CORE_MODEL_SHAPE), unlist(ML)), guide = "none") +
     geom_text(aes(label = lab), vjust = -1.2, size = PT(16), family = FONT, colour = PAL$ink) +
-    annotate("text", x = 1, y = 0.45, label = L$equal, hjust = 1.05, size = PT(14), family = FONT, colour = PAL$ink2) +
+    annotate("text", x = 1, y = 0.45, label = L$equal, hjust = 1.15, size = PT(14), family = FONT, colour = PAL$ink2) +
     scale_x_continuous(limits = c(0.8, 1.04), breaks = c(0.8, 0.9, 1.0)) + scale_y_discrete(expand = expansion(add = c(0.7, 0.7))) +
     labs(x = L$rx, y = NULL, subtitle = L$ratio) + theme_core(16)
   p <- patchwork::wrap_plots(patchwork::wrap_plots(pa, pb, ncol = 1, heights = c(1.15, 1)), pc, widths = c(1.35, 1))

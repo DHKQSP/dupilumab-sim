@@ -10,7 +10,9 @@ slide_S7 <- function() {
   L <- DK$txt$S7$fig
   p <- core_shaded_panels("k2016", L)
   cap <- tx("S7.caption", list(nca = dv(P1, "model=='k2016' & group=='all'", "extrap_nca_median", 1, "%", "median NCA extrapolated share, 2016"),
-                               true = dv(P1, "model=='k2016' & group=='all'", "extrap_true_median", 2, "%", "median true extrapolated share, 2016")))
+                               true = dv(P1, "model=='k2016' & group=='all'", "extrap_true_median", 2, "%", "median true extrapolated share, 2016"),
+                               q3 = dv(RSf, "model=='k2016' & role=='min'", "extrap_ratio_nca_to_true", 2, "", "NCA-to-true extrapolated area ratio, minimum subject")))
+  premise(row1(RSf, "model=='k2016' & role=='min'")$extrap_ratio_nca_to_true < 1 && row1(RSf, "model=='k2016' & role=='median'")$extrap_ratio_nca_to_true > 1, "median subject NCA over, minimum subject NCA under (caption)")
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
   by <- core_body(tx("S7.body", list(nsub = dint(P1, "model=='k2016' & group=='all'", "n_subjects", "virtual subjects, 2016"))), capy - 0.06)
   deck_figure(p, "s7_shaded_k2016", c(GEO$ML, y0, GEO$CW, by - 0.08 - y0), src = c(RSf, "core_deck/rep_profiles.csv", "core_deck/rep_obs.csv"))

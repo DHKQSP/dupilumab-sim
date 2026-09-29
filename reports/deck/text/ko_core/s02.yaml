@@ -1,10 +1,10 @@
 S2:
   kicker: "결론"
-  title: "AUCinf는 1차 평가변수로 적절하지 않다: 신뢰할 수 있는 값이 적고, AUClast로 충분하며, 판정이 흔들린다"
+  title: "AUCinf는 1차 평가변수로 적절하지 않다:\n신뢰할 수 있는 값이 적고, AUClast로 충분하며, 판정이 흔들린다"
   cards:
     c1:
       head: "① AUCinf 신뢰 기준 미달"
-      label: "신뢰할 수 있는 AUCinf(adjusted R² ≥ {r2}, 외삽 ≤ {ex}%)를 얻지 못한 대상자, 두 모델"
+      label: "신뢰할 수 있는 AUCinf를 얻지 못한 대상자(두 모델)\n기준: adjusted R² ≥ {r2}\n그리고 외삽 ≤ {ex}%"
     c2:
       head: "② AUClast/AUCinf (참값)"
       value: "{v} 이상"
@@ -13,7 +13,7 @@ S2:
       head: "③ 경계 1종 오류 최대"
       inf: "  AUCinf + Cmax"
       last: "  AUClast + Cmax"
-      label: "경계 조건 {n}개 중 최댓값(명목 {nom}), 체중 층 포함 분석"
+      label: "경계 조건 {n}개 중 최댓값(명목 {nom}).\nAUClast + Cmax는 {z}개 조건에서 {nom} 이하"
   conclusion: "AUCinf는 계산해서 보고하되, 1차 평가변수는 AUClast + Cmax"
   notes: |
     카드 1: 신뢰할 수 있는 AUCinf는 adjusted R² ≥ {r2} 그리고 외삽 ≤ {ex}%다(기준 세트 (iii)). 미달 비율은 2016 모델 {fail16}, 2020 모델 {fail20}이다(건강인 {wt} kg, 현행 채혈, 모델마다 대상자 {nsub}명). 2020 모델 값이 삼분의 일에 조금 못 미쳐 "삼분의 일 이상" 대신 범위로 적었다.

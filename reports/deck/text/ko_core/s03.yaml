@@ -4,7 +4,7 @@ S3:
   question: "질문: 계획 시험에서 AUCinf를 1차 평가변수로 쓸 수 있는가, AUClast + Cmax로 충분한가"
   boxes:
     - head: "공개 모집단 PK 모델"
-      text: "2016 모델(주 모델, Kovalenko 2016)과 2020 모델(민감도 모델, Kovalenko 2020 Model 1), 논문 파라미터 그대로"
+      text: "2016 모델(주 모델, Kovalenko 2016)과 2020 모델(민감도 모델, Kovalenko 2020 Model 1), 논문 파라미터 그대로"
     - head: "계획 시험 모의"
       text: "건강인 {wt} kg 체중 층화, {dose} mg 단회 피하, Syneos 채혈 {nB0}회(Day {last}까지), arm당 {n_arm}명"
     - head: "비구획 분석(NCA)"

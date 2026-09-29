@@ -22,8 +22,10 @@ slide_S10 <- function() {
   for (k in 1:4) {
     x <- GEO$ML + ((k - 1) %% 2) * (bw + gap); y <- y0 + ((k - 1) %/% 2) * (bh + gap); b <- B[[k]]
     fit_check("proposal", c(b$head, b$main, fill(b$sub, f)), c(x, y, bw, bh), SZ$body, gap_pt = 6, card = TRUE)
-    ps <- list(para(b$head, SZ$body, PAL$ink2, TRUE, "left", gap_pt = 4), para(b$main, 28, hc[k], TRUE, "left", gap_pt = 6, line = 1.0), para(fill(b$sub, f), SZ$body, PAL$ink, FALSE, "left", gap_pt = 0))
-    DK$x <- ph_with(DK$x, do.call(block_list, ps), location = loc(c(x, y, bw, bh), "cmid_proposal", bg = fills[k], geom = "roundRect", ln = no_line()))
+    subs <- strsplit(fill(b$sub, f), "\n", fixed = TRUE)[[1]]
+    ps <- c(list(para(b$head, SZ$body, PAL$ink2, TRUE, "left", gap_pt = 4), para(b$main, 28, hc[k], TRUE, "left", gap_pt = 6, line = 1.0)),
+            lapply(subs, function(z) para(z, SZ$body, PAL$ink, FALSE, "left", gap_pt = 2)))
+    DK$x <- ph_with(DK$x, do.call(block_list, ps), location = loc(c(x, y, bw, bh), "proposal", bg = fills[k], geom = "roundRect", ln = no_line()))   # 위 정렬(상자끼리 줄 맞춤)
   }
   deck_visual(c(GEO$ML, y0, GEO$CW, 2 * bh + gap))
   core_body(body, GEO$BODY_BOTTOM)

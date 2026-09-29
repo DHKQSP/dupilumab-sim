@@ -1,11 +1,12 @@
 S5:
   kicker: "① 신뢰할 수 있는 AUCinf"
-  title: "adjusted R² {r2} 기준이면 대상자 {fail}가 신뢰할 수 있는 AUCinf를 얻지 못한다"
+  title: "adjusted R² {r2} 기준이면 대상자 {fail}가\n신뢰할 수 있는 AUCinf를 얻지 못한다"
   fig:
     ylab: "신뢰할 수 있는 AUCinf를 얻지 못한 대상자"
     g80: "adjusted R² ≥ {v}"
     g90: "adjusted R² ≥ {v}"
-    ret_title: "arm당 {n}명 중 신뢰할 수 있는 AUCinf (R² ≥ {r2})"
+    ret_title: "arm당 평가 가능 {n}명 중 신뢰할 수 있는 AUCinf"
+    ret_x: "명 (막대: 중앙값, 가로선: 5~95백분위)"
     ret: "{m}명 ({lo}~{hi})"
     total: "{n}명"
   body:

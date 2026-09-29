@@ -32,11 +32,12 @@ slide_S9 <- function() {
     geom_segment(aes(x = 0, xend = pass_pct, yend = y), linewidth = 0.9, alpha = 0.5) +
     geom_point(size = 3.6) +
     geom_text(data = mx, aes(label = paste0(fnum(pass_pct, 1), "%")), hjust = -0.35, size = PT(15), family = FONT, fontface = "bold", show.legend = FALSE) +
-    geom_text(data = ka, aes(x = 1.0, y = row + 0.02, label = L$ka), inherit.aes = FALSE, hjust = 0, size = PT(14), family = FONT, colour = PAL$ink2) +
+    geom_label(data = ka, aes(x = nomv + 0.4, y = row + 0.02, label = L$ka), inherit.aes = FALSE, hjust = 0, size = PT(14), family = FONT, colour = PAL$ink2,
+               fill = "white", label.size = 0, label.padding = grid::unit(0.05, "lines")) +
     annotate("text", x = nomv, y = length(SC) + 0.78, label = fill(L$nom, list(v = nom)), hjust = -0.08, size = PT(14), family = FONT, colour = PAL$ink2) +
     facet_wrap(~ mod, nrow = 1) +
     scale_colour_manual(values = setNames(c(PAL$blue, PAL$orange), c(L$cfg$last, L$cfg$inf)), name = NULL) +
-    scale_shape_manual(values = setNames(c(16, 17), c(L$cfg$last, L$cfg$inf)), name = NULL) +
+    scale_shape_manual(values = setNames(c(15, 18), c(L$cfg$last, L$cfg$inf)), name = NULL) +   # 네모·마름모: 모델 표식(●/▲)과 겹치지 않게
     scale_y_continuous(breaks = lab_y$row, labels = lab_y$lab, limits = c(0.5, length(SC) + 1.05), expand = expansion(mult = 0)) +
     scale_x_continuous(limits = c(0, xmax), breaks = seq(0, xmax, 5), expand = expansion(add = c(0.3, 0))) +
     labs(x = L$xlab, y = NULL) + theme_core(16) +

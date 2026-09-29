@@ -2,11 +2,19 @@
 # 배치 원칙(지시 2026-09-29 §1): 제목(결론 문장, 28pt, 2줄 이내) → 주 그림(본문 영역의 60% 이상) → 본문(18pt, 3줄 이내) → 각주(14pt 이상).
 
 # 제목: 줄 수에 맞춘 높이로 두고 본문 시작 위치를 돌려준다(한 줄 제목이면 그림이 위로 올라간다)
-core_title <- function(s, kicker = NULL) {
+# 제목 안의 "\n"은 줄을 나누는 자리다(LibreOffice는 한글 옆의 줄바꿈 금지 문자를 무시해 '0.005% / 이하'처럼 갈라지므로 끊을 곳을 직접 정한다).
+core_title <- function(s, kicker = NULL, size = SZ$title, box_x = GEO$ML, top = GEO$TITLE_TOP, width = GEO$CW - 0.1, color = NULL) {
   if (!is.null(kicker)) deck_kicker(kicker)
-  n <- est_lines(s, GEO$CW - 0.1 - 0.2, SZ$title, TRUE); h <- n * SZ$title * 1.2 * 1.05 / 72 + 0.14
-  deck_title(s, box = c(GEO$ML, GEO$TITLE_TOP, GEO$CW - 0.1, h))
-  GEO$TITLE_TOP + h + 0.16
+  ln <- strsplit(s, "\n", fixed = TRUE)[[1]]
+  n <- sum(vapply(ln, est_lines, 1L, width = width - 0.2, size = size, bold = TRUE)); h <- n * size * 1.2 * 1.05 / 72 + 0.14
+  if (length(ln) == 1L) deck_title(s, size = size, box = c(box_x, top, width, h)) else {
+    DK$cur$title <- strip_markup(paste(ln, collapse = " ")); fit_check("title", ln, c(box_x, top, width, h), size, gap_pt = 0, bold = TRUE, line = 1.05)
+    DK$cur$title_lines <- n
+    if (!is.null(LIMITS$title_lines) && n > LIMITS$title_lines && isTRUE(DK$strict)) stop(sprintf("%s: title needs %d lines (limit %d)", REG$sec, n, LIMITS$title_lines), call. = FALSE)
+    col <- color %||% (if (DK$cur$dark) PAL$dark_ink else PAL$ink)
+    DK$x <- ph_with(DK$x, do.call(block_list, lapply(ln, function(z) para(z, size, col, bold = TRUE, gap_pt = 0, line = 1.05))), location = loc(c(box_x, top, width, h), "title"))
+  }
+  top + h + 0.16
 }
 # 본문(18pt): 문단 벡터. 아래 끝(bottom)에 맞춰 높이를 정하고 위쪽 y를 돌려준다
 core_body_h <- function(paras, width = GEO$CW, size = SZ$body, gap_pt = 4) est_height(paras, width, size, gap_pt) + 0.02
@@ -27,11 +35,12 @@ core_card <- function(head, value, label, box, bg, value_size = 48, head_color =
     if (wv > box[3] - 2 * CARD_INS[["lr"]]) stop(sprintf("%s card value line '%s' %.2f in wider than %.2f in", REG$sec, paste(vapply(ln, `[[`, "", 1), collapse = ""), wv, box[3] - 2 * CARD_INS[["lr"]]), call. = FALSE) }
   pv <- lapply(value, function(ln) do.call(fpar, c(lapply(ln, function(v) ftext(nobreak(v[[1]]), ftp(vsz(v), v[[2]], vsz(v) >= 30))),
                                                    list(fp_p = fp_par(text.align = "left", padding.bottom = 6, line_spacing = 0.95)))))
-  p2 <- para(label, SZ$body, PAL$ink, FALSE, "left", gap_pt = 0)
-  # 두 도형: 카드 바탕 + 위에 머리말(위 정렬, 카드끼리 줄 맞춤), 머리말 아래 영역에 수치·설명(같은 바탕색, 세로 가운데)
+  labs_ <- strsplit(label, "\n", fixed = TRUE)[[1]]
+  p2 <- lapply(seq_along(labs_), function(i) para(labs_[i], SZ$body, PAL$ink, FALSE, "left", gap_pt = if (i < length(labs_)) 4 else 0))
+  # 두 도형: 카드 바탕 + 위에 머리말(위 정렬, 카드끼리 줄 맞춤), 머리말 아래 영역에 수치·설명(같은 바탕색, 위 정렬). 설명의 "\n"은 문단 나눔
   hh <- SZ$body * 1.2 * 1.1 / 72 + 2 * CARD_INS[["tb"]] + 0.04
   DK$x <- ph_with(DK$x, para(head, SZ$body, head_color, TRUE, "left", gap_pt = 0), location = loc(box, "card", bg = bg, geom = "roundRect", ln = no_line()))
-  DK$x <- ph_with(DK$x, do.call(block_list, c(pv, list(p2))), location = loc(c(box[1], box[2] + hh, box[3], box[4] - hh - 0.06), "cmid_cardval", bg = bg, geom = "rect", ln = no_line()))
+  DK$x <- ph_with(DK$x, do.call(block_list, c(pv, p2)), location = loc(c(box[1], box[2] + hh, box[3], box[4] - hh - 0.06), "cardval", bg = bg, geom = "rect", ln = no_line()))   # 위 정렬: 카드끼리 큰 수치 줄 맞춤
   invisible(NULL)
 }
 # 도식 상자(글자 있음): 머리말 + 내용 줄. 글자 없는 상자는 deck_box
@@ -90,13 +99,12 @@ core_shaded_panels <- function(model, L) {
       geom_line(data = pr, aes(study_day, conc), colour = PAL$ink, linewidth = 0.8) +
       geom_hline(yintercept = lloq_v, colour = PAL$ink2, linetype = "22", linewidth = 0.4) +
       geom_vline(xintercept = tl, colour = PAL$ink2, linetype = "42", linewidth = 0.5) +
-      annotate("text", x = tl, y = ymax * 0.06, label = L$tlast, hjust = -0.08, size = PT(14), family = FONT, colour = PAL$ink2) +
       geom_point(data = q, aes(study_day, conc_obs), shape = 21, fill = PAL$blue, colour = "white", size = 2.3, stroke = 0.4) +
       geom_point(data = b, aes(study_day, 0), shape = 21, fill = "white", colour = PAL$blue, size = 2.1, stroke = 0.8) +
       scale_x_continuous(limits = c(1, 70), breaks = c(1, 15, 29, 43, 57, 70), expand = expansion(mult = 0)) +
       scale_y_continuous(limits = c(0, ymax), expand = expansion(mult = c(0.02, 0))) +
       coord_cartesian(clip = "off") +
-      labs(x = L$xlab, y = NULL, title = head, subtitle = L$role[[s$role]]) + theme_core(16) +
+      labs(x = L$xlab, y = NULL, title = head, subtitle = fill(L$sub, list(role = L$role[[s$role]]))) + theme_core(16) +
       theme(plot.title = element_text(size = 20, face = "bold", colour = PAL$blue, margin = margin(0, 0, 2, 0)), plot.subtitle = element_text(size = 15, colour = PAL$ink2),
             panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(), plot.margin = margin(4, 10, 4, 4))
     # ---- 삽입도(로그 눈금) ----
@@ -120,7 +128,7 @@ core_shaded_panels <- function(model, L) {
       labs(x = NULL, y = NULL, title = lab) + theme_core(16) +
       theme(plot.title = element_text(size = 14, face = "bold", colour = PAL$ink, margin = margin(0, 0, 2, 0), lineheight = 0.95), panel.grid.minor = element_blank(),
             plot.background = element_rect(fill = "white", colour = PAL$grid, linewidth = 0.6), plot.margin = margin(3, 6, 2, 3))
-    p + patchwork::inset_element(ip, left = 0.40, bottom = 0.33, right = 1.0, top = 1.0, align_to = "panel")
+    p + patchwork::inset_element(ip, left = 0.45, bottom = 0.24, right = 1.0, top = 1.0, align_to = "panel")
   }
   patchwork::wrap_plots(lapply(1:3, mk), nrow = 1)
 }

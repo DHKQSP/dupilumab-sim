@@ -35,7 +35,7 @@ slide_S4 <- function() {
     geom_point(data = full[quant == FALSE], aes(day, Cp), shape = 21, fill = "white", colour = PAL$blue, size = 3.2, stroke = 1.1) +
     lab_(x1 + 0.8, 20, fill(L$cliff, list(len = fnum(subj$len1, 2))), hjust = 0, col = PAL$orange, face = "bold") +
     lab_(x1 + 0.8, 7, fill(L$start, list(c = fnum(c0, 2), d1 = fnum(.read("config/oc_design.yaml")$cliff$definition_days[1], 0))), hjust = 0, col = PAL$orange) +
-    lab_(max(b0) + 1 + 2.5, lloq_v, fill(L$lloq, list(v = lloq)), hjust = 1, vjust = -0.15) +
+    lab_(max(b0) + 1 + 2.5, lloq_v * 1.12, fill(L$lloq, list(v = lloq)), hjust = 1, vjust = -0.15) +
     lab_(max(b0) + 1 + 2.5, ymin * 1.25, L$blq, hjust = 1, vjust = -0.5, col = PAL$blue) +
     lab_(3, 0.03, L$legend, hjust = 0, col = PAL$ink2) +
     scale_y_log10(breaks = c(0.01, 0.1, 1, 10, 100), labels = function(x) formatC(x, format = "fg"), limits = c(ymin, 100), expand = expansion(mult = 0)) +

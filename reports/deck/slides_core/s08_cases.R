@@ -38,15 +38,16 @@ slide_S8 <- function() {
   xlo <- floor(min(c(d$min, e80)) * 100 - 5) / 100                     # 기준선 왼쪽에 'EMA 기준' 표지 자리
   bl <- d[case %in% c("k2016_base", "k2020_base")]
   p <- ggplot() +
-    geom_vline(xintercept = e80, colour = PAL$orange, linewidth = 0.9) +
+    geom_vline(xintercept = e80, colour = PAL$ink2, linewidth = 0.8, linetype = "22") +
     geom_segment(data = d, aes(x = p05, xend = p95, y = lab, yend = lab), colour = PAL$blue, linewidth = 4.2, alpha = 0.45) +
     geom_point(data = d, aes(median, lab), shape = 21, fill = PAL$blue, colour = "white", size = 4.2, stroke = 0.7) +
     geom_point(data = d, aes(min, lab), shape = 124, colour = PAL$ink, size = 6) +
-    geom_text(data = d, aes(min, lab, label = paste0(fnum(100 * min, 1), "%")), hjust = -0.3, size = PT(14), family = FONT, colour = PAL$ink2) +
+    geom_label(data = d, aes(min, lab, label = paste0(fnum(100 * min, 1), "%")), hjust = -0.18, size = PT(14), family = FONT, colour = PAL$ink2,
+               fill = "white", label.size = 0, label.padding = grid::unit(0.06, "lines")) +
     geom_point(data = lit, aes(v, lab), shape = 22, fill = PAL$ink, colour = "white", size = 4.0) +
     geom_text(data = lit, aes(v, lab, label = paste0(fnum(100 * v, 1), "%")), hjust = 1.35, size = PT(14), family = FONT, colour = PAL$ink2) +
     geom_text(data = data.table(grp = factor(levels(d$grp)[1], levels = levels(d$grp)), x = e80), aes(x = x, y = Inf, label = fill(L$ema, list(v = fnum(100 * e80, 0)))),
-              hjust = 1.05, vjust = 1.2, size = PT(14), family = FONT, colour = PAL$orange) +
+              hjust = 1.05, vjust = 1.2, size = PT(14), family = FONT, colour = PAL$ink2) +
     facet_grid(rows = vars(grp), scales = "free_y", space = "free_y", switch = "y") +
     scale_x_continuous(limits = c(xlo, 1), breaks = seq(0.8, 1, 0.05), labels = function(v) paste0(round(100 * v), "%"), expand = expansion(add = c(0, 0.004))) +
     labs(x = L$xlab, y = NULL) + theme_core(16) +

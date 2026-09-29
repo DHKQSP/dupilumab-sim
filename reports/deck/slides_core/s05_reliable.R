@@ -15,7 +15,7 @@ slide_S5 <- function() {
   d[, lab := paste0(fnum(fail_pct, 1), "%")]
   r2i <- fnum(.read("config/prereg_20260926.yaml")$section4$criteria_sets$i$adj_r2_min, 2); r2iii <- fnum(.read("config/prereg_20260926.yaml")$section4$criteria_sets$iii$adj_r2_min, 2)
   grp <- data.table(x = c(1.5, 4.1), lab = c(fill(L$g80, list(v = r2i)), fill(L$g90, list(v = r2iii))), face = c("plain", "bold"))
-  ymax <- max(d$fail_hi) * 1.36
+  ymax <- max(d$fail_hi) * 1.45
   p1 <- ggplot(d) +
     geom_col(aes(x, fail_pct, fill = set), width = 0.78) +
     geom_errorbar(aes(x, ymin = fail_lo, ymax = fail_hi), width = 0.18, colour = PAL$ink2, linewidth = 0.5) +
@@ -40,7 +40,7 @@ slide_S5 <- function() {
     annotate("text", x = na, y = 2.55, label = fill(L$total, list(n = fnum(na, 0))), hjust = 1, size = PT(15), family = FONT, colour = PAL$ink2) +
     scale_x_continuous(limits = c(0, na), breaks = c(0, 50, 100), expand = expansion(add = c(0, 2))) +
     scale_y_continuous(limits = c(0.55, 2.75), breaks = NULL, expand = expansion(mult = 0)) +
-    labs(x = NULL, y = NULL, subtitle = fill(L$ret_title, list(n = fnum(na, 0), r2 = r2iii))) + theme_core(16) + theme(panel.grid.major.y = element_blank())
+    labs(x = L$ret_x, y = NULL, subtitle = fill(L$ret_title, list(n = fnum(na, 0)))) + theme_core(16) + theme(panel.grid.major.y = element_blank())
   p <- patchwork::wrap_plots(p1, p2, widths = c(1.25, 1))
 
   lzr <- { x <- rows(TPF, "set=='iii'"); v <- 100 - x$lz_pct

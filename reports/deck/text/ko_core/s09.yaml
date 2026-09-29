@@ -19,8 +19,8 @@ S9:
       V2_up: "말초 분포 증가"
       ka_down: "흡수 속도 감소"
   body:
-    - "AUCinf 구성은 {n}개 경계 조건 중 {k}개에서 {nom}를 넘는다(최대 {max}). AUClast 구성은 {z}개에서 {nom} 이하다(나머지 한 조건 {p2max}, 별첨 A5)."
-  caption: "경계 조건: 시험약의 기전 하나를 바꿔 참 AUCinf 비를 동등 한계({tgt})에 맞춘 가상 제품. 시험 {reps}회(한 조건 {ext}회), 분석 모형 M1(체중 층 포함)."
+    - "AUCinf 구성은 {n}개 경계 조건 중 {k}개에서 {nom}를 넘는다(최대 {max}). AUClast 구성은 {z}개에서 {nom} 이하다(나머지 조건은 {p2max}, 별첨 A5)."
+  caption: "경계 조건: 시험약의 기전 하나를 바꿔 참 AUCinf 비를 동등 한계({tgt})에 맞춘 가상 제품. 시험 {reps}회(한 조건 {ext}회), 분석 모형 M1(체중 층)."
   notes: |
     두 구성: AUClast + Cmax는 두 지표가 모두 동등 기준을 통과해야 동등이다. AUCinf + Cmax는 신뢰할 수 있는 AUCinf(adjusted R² ≥ {r2}, 외삽 ≤ {ex}%)를 얻은 대상자만으로 AUCinf를 판정하고 Cmax와 함께 통과해야 동등이다(규칙 A, 세트 (iii)).
     최댓값: AUCinf 구성은 2016 모델 {i16}, 2020 모델 {i20}(모두 표적 매개 소실 칸). AUClast 구성의 {nom} 초과 한 조건은 2020 모델 말초 분포 증가 칸 {ci}이다(원인 분해는 별첨 A5).
