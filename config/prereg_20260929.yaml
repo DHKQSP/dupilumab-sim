@@ -1,0 +1,78 @@
+# 핵심 덱 재구성 지시(2026-09-29, 덱 v1.1)의 사전 등록 (D-063).
+# 동결 규칙: 결과를 바꾸는 항목(새 요약·재생성·제목 결정 규칙)은 이 파일에 적고 커밋한 뒤에 계산한다.
+# 새 시험 모의는 없다. 저장된 대상자 수준 결과(.rds, git 밖)를 요약하고, 개체 수준 파일이 없는 곡선 모양 변형과
+# 대표 대상자의 관측값은 원래 시드 규칙으로 다시 만든다. 다시 만든 결과는 커밋된 요약과 같아야 하며(허용 오차 1e-9), 다르면 멈춘다.
+version: 1
+registered_on: "2026-09-29"
+directive: "정량 근거 중심 핵심 덱 재구성 (2026-09-29, v1.1)"
+results_version: v1.0.1          # 결과는 v1.0.1 그대로; 이 등록은 요약과 표시만 더한다
+
+# ---------------------------------------------------------------------------------------------------------------------
+section7:
+  script: scripts/63_core_deck_inputs.R
+  output_dir: results/core_deck
+  terms:
+    reliable_aucinf: "adjusted R-squared >= 0.90 and extrapolated share <= 20% (criteria set (iii), R/criteria.R crit_ok(x, 'iii'))"
+    window_coverage: "true AUC0-tlast / true AUC0-inf (model integral; tlast = observed last quantifiable time); column coverage_true"
+    schedule: B0
+
+  # 7a. 창 포착률(AUClast/AUCinf, 참값)의 케이스별 분포: 핵심 덱 S8과 S2 카드 2
+  case_coverage:
+    statistics: [n, median, p05, p95, min, pct_lt80]   # 분위수는 R quantile type 7; pct_lt80 = 100 x mean(coverage_true < 0.80)
+    cases:
+      - {case: k2016_base,  label: "2016 model, base",            source: "results/individual/nca_base_20000.rds, schedule == 'B0'",
+         identity_check: "results/trialpop/tp_coverage_individual.csv (k2016, window coverage: n, median, p05, p95, min, max)"}
+      - {case: k2020_base,  label: "2020 model, base",            source: "results/individual/nca_struct2020_20000.rds, schedule == 'B0'",
+         identity_check: "results/trialpop/tp_coverage_individual.csv (k2020, window coverage)"}
+      - {case: vmax080,     label: "Vmax x0.8 (both arms, 2016 model)",  source: "regenerate curve-shape variant vmax080_both (scripts/21 seed rule: master seed 20260923, tag curve_vmax080_both, 20,000 subjects, B0)",
+         identity_check: "results/curve_shape/curve_shape_B0.csv (n, extrap_true_median, extrap_true_p95, extrap_true_max, coverage_lt80_pct)"}
+      - {case: vmax125,     label: "Vmax x1.25 (both arms, 2016 model)", source: "regenerate curve-shape variant vmax125_both (same rule)", identity_check: "curve_shape_B0.csv"}
+      - {case: km05,        label: "Km x0.5 (both arms, 2016 model)",    source: "regenerate curve-shape variant km05_both (same rule)",   identity_check: "curve_shape_B0.csv"}
+      - {case: km10,        label: "Km x10 (both arms, 2016 model)",     source: "regenerate curve-shape variant km10_both (same rule)",   identity_check: "curve_shape_B0.csv"}
+      - {case: lloq002,     label: "LLOQ 0.02 mg/L (2016 model, estimated residual)", source: "results/lloq/lloq_individual_nca_k2016.rds, lloq == 0.02 & resid == 'fixed'",
+         identity_check: "results/lloq/lloq_individual_table.csv (k2016, fixed, 0.02: n, extrap_true_median, extrap_true_p95, coverage_lt80_pct)"}
+      - {case: lloq05,      label: "LLOQ 0.5 mg/L (2016 model, estimated residual)",  source: "same file, lloq == 0.5 & resid == 'fixed'", identity_check: "lloq_individual_table.csv (k2016, fixed, 0.5)"}
+      - {case: resid12,     label: "proportional residual 12% (2016 model)", source: "results/individual/nca_resid12_20000.rds, schedule == 'B0'",
+         identity_check: "results/individual/individual_resid12.csv (schedule B0: n, extrap_true_median, extrap_true_p95, coverage_lt80_pct)"}
+      - {case: wt60_75,     label: "weight stratum 60-75 kg (2016 model, base)", source: "nca_base_20000.rds, B0, WT <= 75 (trial_design.yaml stratification.split_kg; right-closed as in section1)"}
+      - {case: wt75_90,     label: "weight stratum >75-90 kg (2016 model, base)", source: "nca_base_20000.rds, B0, WT > 75"}
+    curve_shape_base_note: "the curve-shape study also has its own base draw (tag curve_base); it is regenerated with the other variants for the identity check and reported in the notes, not as a row"
+    literature_points: "results/literature/literature_numeric.csv lit_mean_ratio for Clot 2021 Table 3 300 mg and the PKM12350 control arm (published NCA mean AUC0-last/AUC0-inf; a lower bound of the true window coverage)"
+    regulatory_reference: "EMA Guideline on the Investigation of Bioequivalence (CPMP/EWP/QWP/1401/98 Rev. 1): AUC(0-t) should cover at least 80% of AUC(0-inf); recorded in config/literature_precedents.yaml with its verification status"
+
+  # 7b. 핵심 덱 S8 제목과 S2 카드 2의 문구 결정 규칙(결과를 보기 전에 고정)
+  title_rule:
+    all_cases_min_ge_84: "if the minimum window coverage is >= 84.0% in every case of 7a, the S8 title says 'all cases >= 84%'"
+    otherwise: "the S8 title states: base-case minimum (both models), the largest pct_lt80 over all cases, and the smallest p05 over all cases; S2 card 2 carries the words 'base case'"
+    rounding: "half away from zero for printed values; a 'at least' bound is printed by rounding the minimum down (floor) to the printed precision"
+
+  # 7c. 대표 대상자(핵심 덱 S7: 2016 모델, 별첨 A4: 2020 모델)
+  representative_subjects:
+    models: [k2016, k2020]
+    population: "the base individual population of scripts/10 (tag ind_base for k2016, ind_struct2020 for k2020), schedule B0"
+    roles:
+      median: "subject whose coverage_true is closest to the median of coverage_true"
+      p05: "subject whose coverage_true is closest to the 5th percentile (type 7)"
+      min: "subject with the minimum coverage_true"
+    ties: "smallest id"
+    regeneration: "run_individual_population with the scripts/10 arguments (master seed 20260923, design$schedule_analysis, jitter TRUE, tag ind_<variant>); stop unless the regenerated B0 NCA of all 20,000 subjects equals the stored .rds (tlast, Clast, lambda_z, AUClast, AUClast_true, AUCinf_true, coverage_true; tolerance 1e-9)"
+    outputs:
+      - "dense true concentration curve (0.05-day grid, study day 1 to 70) from solve_model with the subject's individual parameters"
+      - "observed B0 samples: study day, concentration, BLQ flag (value below the study LLOQ)"
+      - "NCA terminal extrapolation: Clast, lambda_z, tlast; NCA extrapolated area = AUCINF_obs - AUClast; true extrapolated area = AUCinf_true - AUClast_true; ratio of the two"
+    study_day: "study day = days after dose + 1 (dose on Day 1)"
+
+  # 7d. 채혈 추가 시 신뢰할 수 있는 AUCinf(세트 (iii)) 비율 변화(핵심 덱 S6 왼쪽)
+  schedule_reliability_iii:
+    source: "stored NCA of scripts/10 (nca_base_20000.rds, nca_struct2020_20000.rds), same subjects in every schedule"
+    statistic: "share meeting set (iii) under D1, D2, D3, D4 minus the share under B0 (percentage points, paired); range over schedules and models"
+    note: "sets (i) and (ii) are already in results/reliability/reliability_paired_vs_B0.csv; set (iii) is new here"
+
+  # 7e. 핵심 덱 S9와 S2 카드 3의 구성
+  boundary_type1:
+    analysis_model: M1
+    configurations: {proposed: "P2 = AUC0-last + Cmax (results/oc_models/type1_models.csv, config P2)",
+                     aucinf: "AUC0-inf rule A with criteria set (iii) + Cmax (results/criteria/criteria_g2_type1.csv, config G2_A_iii)"}
+    cells: "16 boundary cells (both models, 8 mechanisms x direction as in oc_design.yaml), point estimates of the pass rate"
+    fallback: "if G2_A_iii under M1 is absent, use G2_A_i and say so in a footnote"
+    headline: "number of cells above 5% and the maximum for each configuration; the Wilson classification stays in the appendix"
