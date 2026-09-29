@@ -1,1 +1,2 @@
 # source: GitHub Actions API (repos/DHKQSP/dupilumab-sim/actions/workflows/tests.yml/runs, branch claude/epic-bardeen-axbreo), read 2026-09-29; runs up to 77 are in ci_runs_after_fix.csv
+# ci_runs_deck.csv: runs after the v1.0.1 package commit (results deck work), same API and branch, read 2026-09-29; run 99 failed during environment setup (see note), run 100 carries the fix. Later runs are not listed here (a record cannot contain the run of its own commit).

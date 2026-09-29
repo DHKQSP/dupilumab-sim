@@ -29,7 +29,9 @@ slide_S12 <- function() {
   premise(all(ch[set %in% c("i", "iii"), true_aucinf_gmr_hi] < 1) && all(ch[set %in% c("i", "iii"), auclast_gmr_hi] < 1), "failing subjects have lower true AUC0-inf and AUC0-last (upper 95% limit below 1), sets i and iii")
   premise(all(ch[set == "i", wt_diff_lo] > 0), "failing subjects are heavier, set i (lower 95% limit above 0)")
   premise(all(si[set %in% c("i", "iii"), diff_lo] > 0), "heavier stratum fails more often, sets i and iii (Newcombe lower limit above 0)")
-  premise(all(ch[set == "iii", true_aucinf_gmr] > ch[set == "i", true_aucinf_gmr]), "set iii ratio is closer to 1 than set i (smaller difference)")
+  premise(all(ch[set == "iii", true_aucinf_gmr] > ch[set == "i", true_aucinf_gmr]) && all(ch[set == "iv", true_aucinf_gmr] > ch[set == "i", true_aucinf_gmr]) &&
+            all(ch[set %in% c("iii", "iv"), true_aucinf_gmr] > max(ch[set %in% c("i", "ii"), true_aucinf_gmr])), "sets iii and iv ratios are closer to 1 than sets i and ii (smaller difference), both models")
+  premise(all(ch[set == "iii", wt_diff_kg] < ch[set == "i", wt_diff_kg]), "set iii weight difference is smaller than set i, both models")
   n_arm_num <- as.numeric(.read("config/trial_design.yaml")$n_per_arm)
   premise(all(abs(sc$rand_armdiff_abs_max - 100 / n_arm_num) < 1e-9), "randomization bound equals one subject of n_per_arm")
 
@@ -53,16 +55,16 @@ slide_S12 <- function() {
   deck_kicker(tx("S12.kicker")); deck_title(tx("S12.title", list(gmr = gmr_i)))
 
   # ---- 왼쪽: 수치 카드 두 개 ----
-  XL <- GEO$ML; WL <- 4.45
+  XL <- GEO$ML; WL <- 5.3
   lo_pct <- 100 * (1 - ch[set == "i", true_aucinf_gmr]); pl <- rng_fmt(min(lo_pct), max(lo_pct), 1, "%")
   pl <- dderived("true AUC0-inf of failing subjects lower than retained, set i, two models (percent)", TCH, "range over 2 rows [set=='i'] :: 100 x (1 - true_aucinf_gmr)", range(lo_pct), pl)
   g3 <- drange(TCH, "set=='iii'", "true_aucinf_gmr", 3, "", "failing versus retained, set iii, true_aucinf_gmr")
-  C1H <- 1.74
+  C1H <- 1.72; GAP <- 0.08
   deck_stat(gmr_i, tx("S12.card_gmr", list(pl = pl, g3 = g3)), c(XL, GEO$BODY_TOP, WL, C1H))
   sd_i <- drange(TSI, "set=='i'", "diff_pp", 1, "", "stratum difference, set i, diff_pp")
   sd_iii <- drange(TSI, "set=='iii'", "diff_pp", 1, "", "stratum difference, set iii, diff_pp")
   wd <- drange(TCH, "set=='i'", "wt_diff_kg", 2, "", "failing versus retained, set i, wt_diff_kg")
-  C2Y <- GEO$BODY_TOP + C1H + 0.1; C2H <- 1.70
+  C2Y <- GEO$BODY_TOP + C1H + GAP; C2H <- 1.72
   deck_stat(paste0(sd_i, "%p"), tx("S12.card_strata", list(split = f_split(), sd3 = sd_iii, wd = wd)), c(XL, C2Y, WL, C2H), color = PAL$ink, bg = PAL$tint_grey)
 
   # ---- 왼쪽 아래: 분석군별 arm 간 차이 요약(두 모델) ----
@@ -74,8 +76,8 @@ slide_S12 <- function() {
                    c = vapply(SETS, function(k) drange(TSC, w_(k), "armdiff_abs_gt5_pct", 1, "%", sprintf("share of trials with a between-arm heavier-stratum difference above 5 points, S00, %s", k)), ""),
                    stringsAsFactors = FALSE, check.names = FALSE)
   names(df) <- tx("S12.table.head", list(thr = thr))
-  TY <- C2Y + C2H + 0.1
-  deck_table(df, box = c(XL, TY, WL, GEO$BODY_BOTTOM - TY), widths = c(1.75, 1.45, 1.25), size = 13, highlight = 3, label = "table_balance")
+  TY <- C2Y + C2H + GAP
+  deck_table(df, box = c(XL, TY, WL, GEO$BODY_BOTTOM - TY), widths = c(1.75, 2.25, 1.3), size = 13, highlight = 3, label = "table_balance")
 
   # ---- 오른쪽: 동일 제품 시험의 arm 간 무거운 층 비율 차이 분포(분석군 × 두 모델) ----
   XR <- XL + WL + 0.3; WR <- GEO$W - GEO$MR - XR
@@ -101,19 +103,24 @@ slide_S12 <- function() {
           plot.subtitle = element_text(colour = PAL$ink2, size = 13, margin = margin(0, 0, 2, 0)))
   p <- p + geom_text(data = data.table(set = factor(SL[["auclast"]], levels = SL), x = xr[2] - 0.3, y = Inf, lab = fill(L$fig$thr, list(thr = thr_n))),
                      aes(x = x, y = y, label = lab), inherit.aes = FALSE, hjust = 1, vjust = 1.4, size = 4.2, family = FONT, colour = PAL$ink2)
-  FH <- 4.3
+  FH <- 4.1
   deck_figure(p, "s12_strata_armdiff", c(XR, GEO$BODY_TOP, WR, FH), src = c(GZ, HIST, TSC))
   rb <- dext(TSC, "analysis_set=='auclast'", "rand_armdiff_abs_max", max, 1, "", "largest between-arm difference in the heavier-stratum share at randomization (points)")
   deck_text(tx("S12.takeaway", list(rb = rb)), c(XR, GEO$BODY_TOP + FH + 0.05, WR, GEO$BODY_BOTTOM - GEO$BODY_TOP - FH - 0.05), size = 16, label = "text_takeaway")
 
   # ---- 노트 ----
   q <- function(where, col, d, unit, item) dv(TSI, where, col, d, unit, item)
+  wci <- function(m) dci(TCH, sprintf("pk_model=='%s' & set=='i'", m), "wt_diff_kg", "wt_diff_lo", "wt_diff_hi", 2, " kg", sprintf("failing minus retained body weight with Welch 95%% CI, set i, %s", m))
   ci <- function(m) dci(TSI, sprintf("pk_model=='%s' & set=='i'", m), "diff_pp", "diff_lo", "diff_hi", 1, "%p", sprintf("stratum difference with Newcombe 95%% CI, set i, %s", m))
   deck_notes(tx("S12.notes", list(
     wt = f_wt_range(), dose = f_dose(), n = dint(TPF, "pk_model=='k2016' & set=='i'", "n", "subjects per model"), ntr = ntr,
     g16 = dv(TCH, "pk_model=='k2016' & set=='i'", "true_aucinf_gmr", 3, "", "true AUC0-inf GMR failing to retained, set i, k2016"),
     g20 = dv(TCH, "pk_model=='k2020' & set=='i'", "true_aucinf_gmr", 3, "", "true AUC0-inf GMR failing to retained, set i, k2020"),
-    pl = pl, g3 = g3, al = drange(TCH, "set=='i'", "auclast_gmr", 3, "", "AUC0-last GMR failing to retained, set i, two models"),
+    pl = pl, g3 = g3,
+    g2 = drange(TCH, "set=='ii'", "true_aucinf_gmr", 3, "", "failing versus retained, set ii, true_aucinf_gmr, two models"),
+    g4 = drange(TCH, "set=='iv'", "true_aucinf_gmr", 3, "", "failing versus retained, set iv, true_aucinf_gmr, two models"),
+    w16 = wci("k2016"), w20 = wci("k2020"), w3 = drange(TCH, "set=='iii'", "wt_diff_kg", 2, " kg", "failing minus retained body weight, set iii, two models"),
+    al = drange(TCH, "set=='i'", "auclast_gmr", 3, "", "AUC0-last GMR failing to retained, set i, two models"),
     l16 = q("pk_model=='k2016' & set=='i'", "fail_light_pct", 1, "%", "failing, lighter stratum, set i, k2016"),
     h16 = q("pk_model=='k2016' & set=='i'", "fail_heavy_pct", 1, "%", "failing, heavier stratum, set i, k2016"),
     l20 = q("pk_model=='k2020' & set=='i'", "fail_light_pct", 1, "%", "failing, lighter stratum, set i, k2020"),

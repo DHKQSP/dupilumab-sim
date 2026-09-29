@@ -27,35 +27,43 @@ slide_S06 <- function() {
   names(f)[names(f) == "next_"] <- "next"
   deck_kicker(tx("S06.kicker")); deck_title(tx("S06.title", f))
 
-  # ---- 단계 카드 5개(①~⑤): 제목 + 설명. 카드 사이 간격을 두어 단계를 구분한다 ----
-  S <- DK$txt$S06$steps; n <- length(S); gap <- 0.14; w <- (GEO$CW - (n - 1) * gap) / n; y0 <- GEO$BODY_TOP + 0.05; hc <- 3.1
+  # ---- 단계 카드 5개(①~⑤): 제목 + 설명. 카드 너비는 글 양에 맞춰 나누고(가중치), 높이는 가장 긴 카드의 추정 높이에 맞춘다 ----
+  S <- DK$txt$S06$steps; n <- length(S); gap <- 0.12; y0 <- GEO$BODY_TOP + 0.05
+  wt_ <- c(2.15, 1.95, 2.35, 2.5, 2.8); w <- wt_ / sum(wt_) * (GEO$CW - (n - 1) * gap)
+  paras <- lapply(seq_len(n), function(i) c(sprintf("__%s__", S[[i]]$head), vapply(S[[i]]$body, function(s) fill(s, f, sprintf("S06.steps.%d", i)), "")))
+  hc <- max(vapply(seq_len(n), function(i) est_height(vapply(paras[[i]], nobreak, ""), w[i], 16, gap_pt = 7, card = TRUE), 0)) + 0.08
   for (i in seq_len(n)) {
-    x <- GEO$ML + (i - 1) * (w + gap)
-    body <- vapply(S[[i]]$body, function(s) fill(s, f, sprintf("S06.steps.%d", i)), "")
-    deck_text(c(sprintf("__%s__", S[[i]]$head), body), c(x, y0, w, hc), size = 16, label = sprintf("step%d", i), gap_pt = 7,
+    x <- GEO$ML + sum(w[seq_len(i - 1)]) + (i - 1) * gap
+    deck_text(paras[[i]], c(x, y0, w[i], hc), size = 16, label = sprintf("step%d", i), gap_pt = 7,
               bg = if (i == n) PAL$tint_orange else PAL$tint_blue, geom = "roundRect")
   }
 
-  # ---- NCA 엔진 검증 표 ----
+  # ---- NCA 엔진 검증 표(이 엔진·NonCompart·PKNCA 쌍별 비교) ----
   ds <- c(theoph = "Theoph (12 profiles)", indometh = "Indometh (6 profiles, extravascular rules)", dupi = "simulated dupilumab (1,000 profiles: 500 per model)")
   ev <- rows(EV); premise(all(ev$pass) && setequal(unique(ev$dataset), ds), "every NCA engine comparison passed; three data sets")
+  premise(setequal(unique(ev$comparison), c("this engine vs NonCompart", "PKNCA vs NonCompart", "this engine vs PKNCA")), "three pairwise comparisons: this engine, NonCompart, PKNCA (table header)")
+  efmt <- function(x) formatC(x, format = "e", digits = 1)   # 같은 형식(가수 한 자리 소수)
   one <- function(k) {
     w_ <- sprintf("dataset=='%s'", ds[[k]]); r <- rows(EV, w_)
     np <- dint(EV, sprintf("%s & comparison=='this engine vs NonCompart'", w_), "n_profiles", sprintf("NCA engine validation: profiles, %s", k))
     a <- sum(r$lz_points_identical); b <- sum(r$lz_points_identical + r$lz_points_mismatch)
     lz <- dderived(sprintf("lambda-z windows identical, %s, three comparisons", k), EV, sprintf("%s :: sum(lz_points_identical) / sum(lz_points_identical + lz_points_mismatch)", w_), c(a, b), sprintf("%s / %s", fint(a), fint(b)))
-    mx <- dderived(sprintf("largest relative parameter difference, %s", k), EV, sprintf("%s :: max(max_rel_diff)", w_), max(r$max_rel_diff), format(signif(max(r$max_rel_diff), 2)))
+    mx <- dderived(sprintf("largest relative parameter difference, %s", k), EV, sprintf("%s :: max(max_rel_diff)", w_), max(r$max_rel_diff), efmt(max(r$max_rel_diff)))
     c(DK$txt$S06$table$rows[[k]], np, lz, mx, fill(DK$txt$S06$table$pass, list(k = dcount(EV, sprintf("%s & pass==TRUE", w_), sprintf("comparisons passed, %s", k)))))
   }
   m <- do.call(rbind, lapply(names(ds), one)); df <- as.data.frame(m, stringsAsFactors = FALSE); names(df) <- unlist(DK$txt$S06$table$head)
-  yb <- y0 + hc + 0.3; hb <- 1.3
-  deck_table(df, box = c(GEO$ML, yb, 7.45, hb), widths = c(2.45, 0.95, 1.45, 1.3, 1.3), size = 14)
+  yb <- y0 + hc + 0.25; hb <- GEO$BODY_BOTTOM - yb; tw <- 7.6
+  deck_table(df, box = c(GEO$ML, yb, tw, min(hb, 1.45)), widths = c(2.75, 1.0, 1.35, 1.35, 1.15), size = 13)
 
   # ---- 사전 등록 상자 ----
   c779 <- s06_commit("^Operating-characteristic design", "pre-registration commit, operating-characteristic design")
   c521 <- s06_commit("^Analysis-model re-judgement", "pre-registration commit, analysis models (v1.0.1)")
+  c68b <- s06_commit("^Extension to 20,000 trials", "commit of the post hoc extension rule (v1.0)")
+  pr <- rows("regulatory/tables/prespecification_register.csv")
+  premise(grepl("^post hoc", pr[grepl("^Extension to 20,000 trials", Item), Status]) && grepl("^pre-registered", pr[grepl("^Analysis-model re-judgement", Item), Status]),
+          "register: extension rule post hoc in v1.0, analysis models and per-model extension rule pre-registered in v1.0.1 (prereg box)")
   premise(startsWith(rows("oc/prereg.csv")$prereg_commit, c779) && !isTRUE(as.logical(rows("oc/prereg.csv")$changed_since)), "oc/prereg.csv: same commit, design unchanged since")
-  xr <- GEO$ML + 7.45 + 0.3
+  xr <- GEO$ML + tw + 0.3
   deck_text(tx("S06.prereg", list(c1 = c779, c2 = c521)), c(xr, yb, GEO$W - GEO$MR - xr, hb), size = 16, label = "prereg", bg = PAL$tint_grey, geom = "roundRect")
 
   # ---- 노트 ----
@@ -63,6 +71,10 @@ slide_S06 <- function() {
   EXW <- "pk_model=='k2020' & scenario=='V2_up_080' & analysis_model=='M0'"
   premise(!any(rows(T1, "analysis_model=='M1' & config=='P2'")$mechanism == "Km"), "no Km boundary cell (notes)")
   premise(rows(EX, "analysis_model=='M0' & selected==TRUE")$scenario == "V2_up_080" && rows(EX, "analysis_model=='M0' & selected==TRUE")$pk_model == "k2020", "the extended cell is the 2020 model V2 up cell")
+  ex0 <- row1(EX, EXW); ex1 <- row1(EX, "pk_model=='k2020' & scenario=='V2_up_080' & analysis_model=='M1'")
+  premise(isTRUE(ex0$triggers) && !isTRUE(ex1$triggers) && isTRUE(ex1$selected) && ex1$lo > 5, "extension triggered by M0 only; M1 not triggered (lower bound above 5%) but extended with the cell (card 5 and notes)")
+  v10 <- row1("oc/extension_decision.csv", "model=='k2020' & scenario=='V2_up_080' & config=='P2'")
+  premise(isTRUE(v10$selected) && abs(v10$pass_pct - ex0$pass_pct) < 1e-9, "the M0 value of the extended cell equals the v1.0 value (known before the v1.0.1 registration; notes)")
   deck_notes(tx("S06.notes", list(
     km = dcfg("params_typical.yaml", c("theta", "Km", "value"), "Km, both models (mg/L)", num_fmt(2)),
     s16 = dcfg(PV, c("residual", "sigma_prop", "value"), "proportional residual, 2016 model (%)", function(x) paste0(fnum(100 * x, 1), "%")),
@@ -76,7 +88,7 @@ slide_S06 <- function() {
     ncmp = dcount(EV, "pass==TRUE", "NCA engine comparisons passed"), ncmp_all = dcount(EV, "TRUE", "NCA engine comparisons"),
     lz = local({ ev <- rows(EV); a <- sum(ev$lz_points_identical); b <- sum(ev$lz_points_identical + ev$lz_points_mismatch)
       dderived("lambda-z windows identical over all comparisons", EV, "sum(lz_points_identical) / sum(lz_points_identical + lz_points_mismatch)", c(a, b), sprintf("%s / %s", fint(a), fint(b))) }),
-    mx = local({ x <- max(rows(EV)$max_rel_diff); dderived("largest relative parameter difference", EV, "max(max_rel_diff)", x, format(signif(x, 2))) }),
+    mx = local({ x <- max(rows(EV)$max_rel_diff); dderived("largest relative parameter difference", EV, "max(max_rel_diff)", x, efmt(x)) }),
     n_arm = f$n_arm, n_rand = f$n_rand, split = f$split,
     df0 = local({ n_ <- as.numeric(.read("config/trial_design.yaml")$n_per_arm); dderived("degrees of freedom of the pooled t-test (2 x n_per_arm - 2)", "config/trial_design.yaml", "n_per_arm :: 2 x n - 2", 2 * n_ - 2, fnum(2 * n_ - 2, 0)) }),
     npm = dderived("boundary cells per PK model", T1, "analysis_model=='M1' & config=='P2' :: rows per pk_model", as.integer(table(rows(T1, "analysis_model=='M1' & config=='P2'")$pk_model)),
@@ -84,6 +96,7 @@ slide_S06 <- function() {
     ncell = f$ncell, reps = f$reps, ext = f$ext,
     thr = dcfg("prereg_20260926.yaml", c("section1", "extension", "threshold_pct"), "extension threshold (%)", num_fmt(0)),
     m0 = dci(EX, EXW, "pass_pct", "lo", "hi", 2, "%", "M0 P2 boundary type I error at 10,000 trials, extended cell"),
-    c1 = c779, c2 = c521)))
+    m1 = dci(EX, "pk_model=='k2020' & scenario=='V2_up_080' & analysis_model=='M1'", "pass_pct", "lo", "hi", 2, "%", "M1 P2 boundary type I error at 10,000 trials, extended cell"),
+    c1 = c779, c2 = c521, c3 = c68b)))
   deck_end()
 }

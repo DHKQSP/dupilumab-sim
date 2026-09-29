@@ -33,6 +33,10 @@ slide_S13 <- function() {
   mx <- dderived("largest absolute test minus reference difference in the share failing set i over the test scenarios of both models (points)", TAD,
                  "set=='i' & scenario!='S00' :: max(abs(diff_mean))", abs(ri$diff_mean[k]), fnum(abs(ri$diff_mean[k]), 1))
   deck_kicker(tx("S13.kicker")); deck_title(tx("S13.title", list(zero = zero, mx = mx)))
+  premise(all(g("ka_down_080", "iii")$diff_lo > 0) && min(g("ka_down_080", "iii")$diff_mean) > abs(ri$diff_mean[k]), "ka decreased, set iii: test arm fails more, and by more than the set i maximum (both models)")
+  # 95% CI 폭(그림에서 표식보다 좁아 보이지 않음): 가장 넓은 것도 1%p 미만
+  cw <- max(a$diff_hi - a$diff_lo); premise(cw < 1, "every 95% CI of the mean arm difference is narrower than 1 point (hidden by the markers)")
+  cwp <- dderived("widest 95% CI of the mean arm difference, sets i and iii, all scenarios, two models (points)", TAD, "set %in% c('i','iii') :: max(diff_hi - diff_lo)", cw, fnum(cw, 2))
 
   # ---- 왼쪽: 시나리오별 arm 간 차이(세트 (i)·(iii), 두 모델) ----
   ad <- function(sc, s_, d = 2) drange(TAD, sprintf("scenario=='%s' & set=='%s'", sc, s_), "diff_mean", d, "", sprintf("test minus reference failing, %s, set %s, diff_mean", sc, s_))
@@ -60,6 +64,7 @@ slide_S13 <- function() {
   dd[, grp := factor(grp_lab[grp], levels = grp_lab)]; dd[, model := factor(model_lab()[pk_model], levels = model_lab())]
   dd[, setl := factor(unlist(DK$txt$common$sets)[set], levels = unlist(DK$txt$common$sets[c("i", "iii")]))]
   labmap <- setNames(ordk$lab, ordk$row)
+  xl <- c(floor(min(a$diff_lo) / 5) * 5, ceiling(max(a$diff_hi) / 5) * 5)   # 두 패널 같은 범위, 5%p 눈금에 맞춤
   ntr_n <- unique(a$n_trials); premise(length(ntr_n) == 1, "same number of trials in every scenario")
   p <- ggplot(dd, aes(x = diff_mean, y = y, colour = model, shape = model)) +
     geom_vline(xintercept = 0, colour = PAL$ink2, linewidth = 0.5) +
@@ -68,23 +73,25 @@ slide_S13 <- function() {
     facet_grid(grp ~ setl, scales = "free_y", space = "free_y", switch = "y") +
     scale_colour_manual(values = unname(MODEL_COL)) + scale_shape_manual(values = unname(MODEL_SHAPE)) +
     scale_y_continuous(breaks = ordk$row, labels = function(b) unname(labmap[as.character(b)]), expand = expansion(add = 0.5)) +
-    scale_x_continuous(breaks = seq(-10, 15, by = 5)) +
+    scale_x_continuous(breaks = seq(-20, 20, by = 5)) + coord_cartesian(xlim = xl) +
     labs(x = fill(L$fig$xlab, list(n = fint(ntr_n))), y = NULL) + theme_deck(13) +
     theme(legend.position = "top", legend.justification = "left", legend.margin = margin(0, 0, 0, 0), legend.box.spacing = grid::unit(2, "pt"),
           strip.placement = "outside", strip.text.y.left = element_text(angle = 0, hjust = 1, vjust = 0.5, size = 12, face = "bold", colour = PAL$ink2, lineheight = 0.95),
           strip.text.x = element_text(size = 13, face = "bold"), panel.grid.major.y = element_blank(), panel.spacing.y = grid::unit(6, "pt"),
-          panel.spacing.x = grid::unit(14, "pt"), panel.background = element_rect(fill = "#fafaf8", colour = NA), axis.text.y = element_text(size = 12, colour = PAL$ink))
-  XL <- GEO$ML; WF <- 7.1
+          panel.spacing.x = grid::unit(22, "pt"), panel.background = element_rect(fill = "#fafaf8", colour = NA), axis.text.y = element_text(size = 12, colour = PAL$ink))
+  XL <- GEO$ML; WF <- 6.6
   deck_figure(p, "s13_arm_difference", c(XL, GEO$BODY_TOP, WF, GEO$BODY_BOTTOM - GEO$BODY_TOP), src = TAD)
 
   # ---- 오른쪽: 요점 ----
   XR <- XL + WF + 0.25; WR <- GEO$W - GEO$MR - XR
+  s0 <- max(abs(a[scenario == "S00", diff_mean])); s0p <- fnum(s0, 2); premise(as.numeric(s0p) >= s0, "printed bound for identical products is not below the largest absolute mean difference")
+  s0m <- dderived("largest absolute mean arm difference, identical products, sets i and iii, two models (points)", TAD, "scenario=='S00' & set %in% c('i','iii') :: max(abs(diff_mean))", s0, s0p)
   deck_bullets(tx("S13.bullets", list(
-    zero = zero, s00i = ad("S00", "i"), s00iii = ad("S00", "iii"), vmm = mult[["VM125"]], vm = ad("VM125", "i"), ka = ad("ka_down_080", "i"),
-    r80 = r80, v2 = adn("V2_up_080", "i"), v2iii = adn("V2_up_080", "iii"),
+    zero = zero, s0m = s0m, vmm = mult[["VM125"]], vm = ad("VM125", "i"), ka = ad("ka_down_080", "i"),
+    r80 = r80, v2 = adn("V2_up_080", "i"),
     r2i = drange(TAF, "set=='i'", "r_squared", 2, "", "arm difference per 10% lower true ratio, set i, r_squared"),
     r2iii = drange(TAF, "set=='iii'", "r_squared", 2, "", "arm difference per 10% lower true ratio, set iii, r_squared"))),
-    box = c(XR, GEO$BODY_TOP, WR, GEO$BODY_BOTTOM - GEO$BODY_TOP), size = 16, gap_pt = 9)
+    box = c(XR, GEO$BODY_TOP, WR, GEO$BODY_BOTTOM - GEO$BODY_TOP), size = 16, gap_pt = 13)
 
   # ---- 노트 ----
   idr <- rows(TID); premise(nrow(idr) == 2 && all(idr$ok), "trial-population regeneration equals section1 in both models")
@@ -97,7 +104,8 @@ slide_S13 <- function() {
     pr = drange(TAD, "scenario %in% c('F097','KE110','KE120','VM125') & set=='i'", "auc_ratio", 2, "", "true AUC0-inf ratio, product scenarios, two models"),
     r80 = r80, r125 = r125, nb = dcount(TAD, "pk_model=='k2016' & set=='i' & !scenario %in% c('S00','F097','KE110','KE120','VM125')", "boundary cells per model"),
     p_s00 = dspan(TAD, "scenario=='S00' & set=='i'", "diff_p05", "diff_p95", 2, "", "per-trial arm difference, identical products, set i, 5th to 95th percentile, two models"),
-    zero = zero, ke120 = ad("KE120", "i"),
+    s00i = ad("S00", "i"), s00iii = ad("S00", "iii"),
+    zero = zero, ke120 = ad("KE120", "i"), w = cwp, v2iii = adn("V2_up_080", "iii"), ka3 = ad("ka_down_080", "iii"),
     ke_iii = drange(TAD, "scenario %in% c('KE110','KE120') & set=='iii'", "diff_mean", 2, "", "reference minus test failing (magnitude), ke scenarios, set iii, two models", scale = -1),
     nsc = dint(TAF, "pk_model=='k2016' & set=='i'", "n_scenarios", "scenario means per linear fit"))))
   deck_end()

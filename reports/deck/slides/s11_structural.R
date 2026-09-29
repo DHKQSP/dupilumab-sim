@@ -1,5 +1,6 @@
 # S11 논거 ①-3 구조적 원인. 시험 모집단(건강인 60~90 kg, B0)만.
-#  왼쪽: 비례 잔차를 절반으로 줄여도(2016 모델 24.2% → 12%) 세트 (iv)(span ≥ 3) 탈락은 그대로다. results/trialpop/tp_residual_sensitivity.csv
+#  왼쪽: 비례 잔차를 절반으로 줄여도(2016 모델 24.2% → 12%) 세트 (iv)(span ≥ 3) 탈락은 그대로다. 세트 (ii)도 span 조건(≥ 2)이 있으나
+#        잔차를 줄이면 탈락이 준다(그림에 표시). 세트 (iii) 충족·span 미달 몫은 오히려 는다(요점). results/trialpop/tp_residual_sensitivity.csv
 #        (12% 변형은 2016 구조에만 있다; 대응 CI 없음, Wilson 구간만). span 미달의 원인: λz 창(B0) 대 반감기(reliability_lz_window_by_schedule.csv),
 #        tp_failure_reasons.csv.
 #  오른쪽: LLOQ가 낮을수록 세트 (i) AUC0-inf 신뢰 충족이 떨어진다(두 모델, 잔차 두 변형 모두). results/lloq/lloq_individual_table.csv.
@@ -47,7 +48,7 @@ slide_S11 <- function() {
 
   # ---- 배치 ----
   WP <- (GEO$CW - 0.35) / 2; XL <- GEO$ML; XR <- XL + WP + 0.35
-  HH <- 0.42; FY <- GEO$BODY_TOP + HH + 0.02; FH <- 2.45; BY <- FY + FH + 0.1; BHt <- GEO$BODY_BOTTOM - BY
+  HH <- 0.42; FY <- GEO$BODY_TOP + HH + 0.02; FH <- 2.38; BY <- FY + FH + 0.08; BHt <- GEO$BODY_BOTTOM - BY
   s24 <- dv(TRS, "variant=='k2016' & set=='i'", "sigma_prop_pct", 1, "%", "proportional residual, 2016 model")
   s12 <- dv(TRS, "variant=='resid12' & set=='i'", "sigma_prop_pct", 1, "%", "proportional residual, sensitivity variant")
 
@@ -58,13 +59,18 @@ slide_S11 <- function() {
   d[, res := factor(rl[variant], levels = rl)]
   d[, sx := factor(unlist(DK$txt$common$sets[set]), levels = unlist(DK$txt$common$sets[sets]))]
   pd <- position_dodge(width = 0.8)
+  spv <- function(s_) .read("config/prereg_20260926.yaml")$section4$criteria_sets[[s_]]$span_ratio_min
+  premise(is.null(spv("i")) && is.null(spv("iii")) && !is.null(spv("ii")) && !is.null(spv("iv")), "sets (ii) and (iv) carry a span condition, (i) and (iii) do not (figure labels)")
+  premise(g("resid12", "ii", "fail_hi") < g("k2016", "ii", "fail_lo"), "set (ii), also with a span condition, falls with the smaller residual (figure)")
+  # 두 잔차 수준은 같은 2016 모델이므로 모델 색(파랑/주황)을 쓰지 않고 파랑 계열 명암으로 구분한다. 음영은 잔차와 무관하게 그대로인 세트 (iv)
   p1 <- ggplot(d, aes(x = sx, y = fail_pct, fill = res)) + geom_blank() +
-    annotate("rect", xmin = 3.52, xmax = 4.48, ymin = 0, ymax = 100, fill = PAL$tint_orange) +
-    annotate("text", x = 4, y = 97, label = L$fig$iv_note, vjust = 1, size = 3.9, family = FONT, colour = PAL$orange, fontface = "bold") +
+    annotate("rect", xmin = 3.52, xmax = 4.48, ymin = 0, ymax = 100, fill = PAL$tint_grey) +
+    annotate("text", x = 4, y = 97, label = fill(L$fig$iv_note, list(v = fnum(spv("iv"), 0))), vjust = 1, size = 3.9, family = FONT, colour = PAL$ink2, fontface = "bold") +
+    annotate("text", x = 2, y = g("k2016", "ii", "fail_hi") + 16, label = fill(L$fig$iv_note, list(v = fnum(spv("ii"), 0))), vjust = 0, size = 3.7, family = FONT, colour = PAL$ink2) +
     geom_col(position = pd, width = 0.74, colour = "white", linewidth = 0.5) +
     geom_errorbar(aes(ymin = fail_lo, ymax = fail_hi), position = pd, width = 0.2, linewidth = 0.45, colour = PAL$ink2) +
     geom_text(aes(y = fail_hi, label = fnum(fail_pct, 1)), position = pd, vjust = -0.5, size = 3.8, family = FONT, colour = PAL$ink) +
-    scale_fill_manual(values = c(PAL$blue, PAL$orange)) + scale_y_continuous(limits = c(0, 100), breaks = c(0, 25, 50, 75, 100), expand = expansion(mult = c(0, 0))) +
+    scale_fill_manual(values = c(PAL$blue, "#9cc3ef")) + scale_y_continuous(limits = c(0, 100), breaks = c(0, 25, 50, 75, 100), expand = expansion(mult = c(0, 0))) +
     labs(x = NULL, y = NULL, subtitle = L$fig$ylab1) + theme_deck(12) +
     theme(legend.position = "top", legend.justification = "left", legend.margin = margin(0, 0, 0, 0), legend.box.spacing = grid::unit(2, "pt"),
           panel.grid.major.x = element_blank(), plot.subtitle = element_text(colour = PAL$ink2, size = 12, margin = margin(0, 0, 2, 0)))
@@ -81,7 +87,10 @@ slide_S11 <- function() {
              r4a = f$a, r4b = f$b, spa = spd("k2016"), spb = spd("resid12"), sp4 = f_set("iv", "span"),
              win = drange(LW, "variant %in% c('base','struct2020') & schedule=='B0'", "window_median", 1, "", "median lambda-z window, B0, two models (days)"),
              hl = drange(LW, "variant %in% c('base','struct2020') & schedule=='B0'", "HL_median", 1, "", "median half-life from lambda-z, B0, two models (days)"),
-             any = drange(TPR, "set=='iv' & reason=='span ratio below threshold'", "any_pct", 1, "%", "span ratio below 3 (any flag), two models"))
+             any = drange(TPR, "set=='iv' & reason=='span ratio below threshold'", "any_pct", 1, "%", "span ratio below 3 (any flag), two models"),
+             spm = drange(LW, "variant %in% c('base','struct2020') & schedule=='B0'", "span_median", 2, "", "median span ratio, B0, two models"))
+  premise(all(abs(rows(LW, "variant %in% c('base','struct2020') & schedule=='B0'")$span_median - as.numeric(spv("iv"))) < 0.5), "median span ratio lies just above the set (iv) threshold (bullet: close to 3)")
+  premise(g("resid12", "iv") - g("resid12", "iii") > g("k2016", "iv") - g("k2016", "iii"), "the span-only share rises with the smaller residual (bullet)")
   deck_bullets(tx("S11.bullets_left", bl), box = c(XL, BY, WP, BHt), size = 16, gap_pt = 7, label = "body_left")
 
   # ---- 오른쪽: LLOQ 역설 ----
@@ -89,15 +98,26 @@ slide_S11 <- function() {
   q <- copy(li); q[, model_ := factor(model_lab()[model], levels = model_lab())]; q[, rv := factor(unlist(L$fig$resid[resid]), levels = unlist(L$fig$resid[c("fixed", "scaled")]))]
   q[, lx := log10(lloq)]
   grid_ <- sort(unique(q$lloq)); yl <- range(q$reliable_no_span_pct)
+  # 끝 숫자: 가장 낮은 LLOQ에서 연구 LLOQ 대비 변화(%p, 자료 그대로). 겹치지 않게 세로로 벌리고 연결선(선 모양 = 잔차 변형)으로 잇는다
+  yr <- c(floor(yl[1]) - 2.5, ceiling(yl[2]) + 2.5)
+  el_ <- q[abs(lloq - lqmin) < 1e-9, .(model_, rv, y = reliable_no_span_pct, lab = paste0(vapply(fnum(d_rel_i_pp, 2), s11_signed, ""), "%p"))][order(y)]
+  sep <- diff(yr) * 0.15; el_[, yl_ := y]
+  for (k in seq_len(nrow(el_))[-1]) if (el_$yl_[k] - el_$yl_[k - 1] < sep) el_$yl_[k] <- el_$yl_[k - 1] + sep
+  el_[, yl_ := yl_ - (mean(yl_) - mean(y))]; if (min(el_$yl_) < yr[1] + 0.5) el_[, yl_ := yl_ + (yr[1] + 0.5 - min(yl_))]
+  lx0 <- log10(lqmin)
   p2 <- ggplot(q, aes(x = lx, y = reliable_no_span_pct, colour = model_, shape = model_, linetype = rv, group = interaction(model_, rv))) +
     geom_vline(xintercept = log10(lq0), colour = PAL$ink2, linewidth = 0.5, linetype = "22") +
-    annotate("text", x = log10(lq0), y = yl[2] + 1.3, label = fill(L$fig$study, list(v = fnum(lq0, 3))), hjust = 1.05, vjust = 0, size = 3.8, family = FONT, colour = PAL$ink2) +
-    geom_line(linewidth = 0.9) + geom_point(size = 2.5) +
+    annotate("text", x = log10(lq0) + 0.035, y = yl[2] + 1.3, label = fill(L$fig$study, list(v = fnum(lq0, 3))), hjust = 1, vjust = 0, size = 3.8, family = FONT, colour = PAL$ink2) +
+    geom_line(data = q[resid == "fixed"], linewidth = 1.05) + geom_point(data = q[resid == "fixed"], size = 2.6) +
+    geom_line(data = q[resid == "scaled"], linewidth = 0.6) + geom_point(data = q[resid == "scaled"], size = 1.7) +          # 비례 변형은 가늘게 위에
+    geom_segment(data = el_, aes(x = lx0 - 0.03, xend = lx0 - 0.11, y = y, yend = yl_, colour = model_, linetype = rv), inherit.aes = FALSE, linewidth = 0.5) +
+    geom_text(data = el_, aes(x = lx0 - 0.13, y = yl_, label = lab, colour = model_), inherit.aes = FALSE, hjust = 0, size = 3.6, family = FONT, show.legend = FALSE) +
     scale_colour_manual(values = unname(MODEL_COL)) + scale_shape_manual(values = unname(MODEL_SHAPE)) + scale_linetype_manual(values = c("solid", "42")) +
-    scale_x_reverse(breaks = log10(grid_[abs(grid_ - lq0) > 1e-9]), labels = vapply(grid_[abs(grid_ - lq0) > 1e-9], function(x) format(x), "")) +     # 연구 LLOQ는 점선 글자로
-    scale_y_continuous(limits = c(floor(yl[1]) - 2.5, ceiling(yl[2]) + 2.5)) +
+    scale_x_reverse(breaks = log10(grid_[abs(grid_ - lq0) > 1e-9]), labels = vapply(grid_[abs(grid_ - lq0) > 1e-9], function(x) format(x), ""),     # 연구 LLOQ는 점선 글자로
+                    expand = expansion(add = c(0.06, 0.42))) +
+    scale_y_continuous(limits = yr) +
     labs(x = L$fig$xlab2, y = NULL, subtitle = L$fig$ylab2) + theme_deck(12) +
-    guides(colour = guide_legend(order = 1), shape = guide_legend(order = 1), linetype = guide_legend(order = 2, override.aes = list(colour = PAL$ink2))) +
+    guides(colour = guide_legend(order = 1), shape = guide_legend(order = 1), linetype = guide_legend(order = 2, override.aes = list(colour = PAL$ink2, linewidth = 0.8))) +
     theme(legend.position = "top", legend.justification = "left", legend.box = "vertical", legend.box.just = "left", legend.spacing.y = grid::unit(0, "pt"),
           legend.margin = margin(0, 0, 0, 0), legend.box.spacing = grid::unit(2, "pt"), legend.key.width = grid::unit(2.2, "lines"),
           plot.subtitle = element_text(colour = PAL$ink2, size = 12, margin = margin(0, 0, 2, 0)))
@@ -109,7 +129,8 @@ slide_S11 <- function() {
   br <- list(lq = lq, lqm = lqm, d16 = dd("k2016", "fixed"), d20 = dd("k2020", "fixed"), s16 = dd("k2016", "scaled"), s20 = dd("k2020", "scaled"),
              sa = dcfg("params_variability.yaml", c("residual", "sigma_add", "value"), "additive residual SD (mg/L), both models", num_fmt(2)),
              f0 = mech("k2016", lq0, "flag_rsq_pct", 1, "adjusted R-squared below 0.80, 2016 model, study LLOQ (%)"),
-             f1 = mech("k2016", lqmin, "flag_rsq_pct", 1, "adjusted R-squared below 0.80, 2016 model, lowest LLOQ (%)"))
+             f1 = mech("k2016", lqmin, "flag_rsq_pct", 1, "adjusted R-squared below 0.80, 2016 model, lowest LLOQ (%)"),
+             ii16 = s11_nb(s11_signed(dci(LI, wl("k2016", "fixed", lqmin), "d_rel_ii_pp", "d_rel_ii_lo", "d_rel_ii_hi", 2, "%p", "set (ii) reliability change with paired 95% CI, lowest LLOQ vs study LLOQ, 2016 model, residual as estimated"))))
   deck_bullets(tx("S11.bullets_right", br), box = c(XR, BY, WP, BHt), size = 16, gap_pt = 7, label = "body_right")
 
   # ---- 노트 ----
@@ -131,12 +152,12 @@ slide_S11 <- function() {
     h4 = drange(TPR, "set=='iv' & reason=='span ratio below threshold'", "hierarchical_pct", 1, "%", "span below 3 (hierarchical), two models"),
     any = bl$any, win = bl$win, hl = bl$hl,
     w3 = drange(LW, "variant %in% c('base','struct2020') & schedule=='B0'", "min_3pt_nominal_window_days", 0, "", "shortest three-point nominal window after Day 22, B0 (days)"),
-    spm = drange(LW, "variant %in% c('base','struct2020') & schedule=='B0'", "span_median", 2, "", "median span ratio, B0, two models"),
+    spm = bl$spm,
     lq = lq, lqm = lqm, lqx = dv(LI, wl("k2016", "fixed", lqmax), "lloq", 1, "", "highest LLOQ in the sensitivity grid (mg/L)"),
     c16 = lci("k2016", "fixed"), c20 = lci("k2020", "fixed"), cs16 = lci("k2016", "scaled"), cs20 = lci("k2020", "scaled"),
     i16a = rel("k2016", "fixed", lqmin), i16b = rel("k2016", "fixed", lq0), i16c = rel("k2016", "fixed", lqmax),
     i20a = rel("k2020", "fixed", lqmin), i20b = rel("k2020", "fixed", lq0), i20c = rel("k2020", "fixed", lqmax),
-    ii16 = s11_signed(dci(LI, wl("k2016", "fixed", lqmin), "d_rel_ii_pp", "d_rel_ii_lo", "d_rel_ii_hi", 2, "%p", "set (ii) reliability change with paired 95% CI, lowest LLOQ vs study LLOQ, 2016 model, residual as estimated")),
+    ii16 = br$ii16,
     ii20 = dv(LI, wl("k2020", "fixed", lqmin), "d_rel_ii_pp", 2, "%p", "set (ii) reliability change, lowest LLOQ, 2020 model, residual as estimated"),
     iis16 = dv(LI, wl("k2016", "scaled", lqmin), "d_rel_ii_pp", 2, "%p", "set (ii) reliability change, lowest LLOQ, 2016 model, residual scaled"),
     iis20 = dv(LI, wl("k2020", "scaled", lqmin), "d_rel_ii_pp", 2, "%p", "set (ii) reliability change, lowest LLOQ, 2020 model, residual scaled"),

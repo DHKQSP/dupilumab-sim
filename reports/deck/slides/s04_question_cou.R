@@ -37,15 +37,15 @@ slide_S04 <- function() {
   df <- data.frame(a = vapply(keys, function(k) tx(sprintf("S04.table.rows.%s", k), f)[1], ""),
                    b = vapply(keys, function(k) tx(sprintf("S04.table.rows.%s", k), f)[2], ""), check.names = FALSE, stringsAsFactors = FALSE)
   names(df) <- tx("S04.table.head")
-  tw <- 7.45
-  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, tw, GEO$BODY_BOTTOM - GEO$BODY_TOP), widths = c(1.75, 5.7), size = 14, align_num = FALSE)
+  tw <- 6.95
+  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, tw, GEO$BODY_BOTTOM - GEO$BODY_TOP), widths = c(1.9, 5.05), size = 14, align_num = FALSE)
 
   # 오른쪽: 근거 범위(시험 모집단) 카드와 답하지 않는 것
-  xr <- GEO$ML + tw + 0.25; wr <- GEO$CW - tw - 0.25; hs <- 2.45
-  deck_text(tx("S04.scope", f), c(xr, GEO$BODY_TOP, wr, hs), size = 16, bg = PAL$tint_blue, geom = "roundRect", label = "scope", gap_pt = 5)
-  yn <- GEO$BODY_TOP + hs + 0.2
-  deck_text(tx("S04.not.head"), c(xr, yn, wr, 0.42), size = 18, bold = TRUE, label = "not_head")
-  deck_bullets(tx("S04.not.bullets"), c(xr, yn + 0.42, wr, GEO$BODY_BOTTOM - yn - 0.42), size = 16, gap_pt = 5)
+  xr <- GEO$ML + tw + 0.25; wr <- GEO$CW - tw - 0.25; hs <- 2.50
+  deck_text(tx("S04.scope", f), c(xr, GEO$BODY_TOP, wr, hs), size = 16, bg = PAL$tint_blue, geom = "roundRect", label = "scope", gap_pt = 3)
+  yn <- GEO$BODY_TOP + hs + 0.14
+  deck_text(tx("S04.not.head"), c(xr, yn, wr, 0.44), size = 18, bold = TRUE, label = "not_head")
+  deck_bullets(tx("S04.not.bullets"), c(xr, yn + 0.44, wr, GEO$BODY_BOTTOM - yn - 0.44), size = 16, gap_pt = 5)
 
   INV <- "oc/inversion_all.csv"
   deck_notes(tx("S04.notes", c(f, list(km = s04_km(), km_lo = dext(INV, "mechanism=='Km'", "end_multiplier", min, 2, "", "smallest Km multiplier examined"),

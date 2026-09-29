@@ -36,9 +36,12 @@ slide_S02 <- function() {
   premise(all(rows(TCH, "set=='i'")$true_aucinf_gmr_hi < 1), "failing subjects have a lower true AUC0-inf than retained subjects (text: not random)")
   a_i <- rows(CGf, "analysis_model=='M1' & config=='G2_A_i'"); c_i <- rows(CGf, "analysis_model=='M1' & config=='G2_C_i'")
   premise(sum(a_i$pass_pct > 5) > sum(c_i$pass_pct > 5), "rule A (i) has more boundary cells above 5% than rule C (i) under M1 (text: decision depends on the rule)")
+  premise(sum(a_i$lo > 5) == sum(a_i$class == "exceeding") && sum(c_i$lo > 5) == sum(c_i$class == "exceeding"), "Wilson lower bound above 5% equals class 'exceeding' in the criteria file (text: Wilson counts)")
+  c_pt <- c_i[pass_pct > 5]; premise(nrow(c_pt) == 1 && c_pt$class == "nominal", "the single rule C (i) cell above 5% (point) is Wilson nominal under M1 (text)")
   p2 <- rows(T1f, "analysis_model=='M1' & config=='P2'"); premise(nrow(p2) == 16 && sum(p2$class == "exceeding") == 1, "one exceeding P2 cell under M1 (text)")
   m0n <- rows(T1f, "analysis_model=='M0' & config=='P2' & class=='nominal'")
   premise(nrow(m0n) == 1 && m0n$pk_model == "k2020" && m0n$scenario == "V2_up_080", "the single nominal M0 P2 cell is the same 2020 model V2 up cell (notes: same cell)")
+  premise(p2[class == "exceeding"]$pk_model == "k2020", "the exceeding P2 cell under M1 is from the 2020 model (text)")
   pmax <- p2[which.max(pass_pct)]; premise(pmax$pk_model == "k2020" && pmax$scenario == "V2_up_080", "the exceeding P2 cell under M1 is the 2020 model V2 up (notes)")
 
   f <- list(
@@ -50,8 +53,9 @@ slide_S02 <- function() {
     # 논거 ② 대표 수치: M1 규칙 A (i)에서 5% 초과 칸
     a = headline(dcount(CGf, "analysis_model=='M1' & config=='G2_A_i' & pass_pct > 5", "M1 G2_A_i cells above 5% (point)")),
     ncell = dcount(CGf, "analysis_model=='M1' & config=='G2_A_i'", "boundary cells per configuration (M1)"),
+    alo = dcount(CGf, "analysis_model=='M1' & config=='G2_A_i' & lo > 5", "M1 G2_A_i cells with Wilson lower bound above 5%"),
     c = dcount(CGf, "analysis_model=='M1' & config=='G2_C_i' & pass_pct > 5", "M1 G2_C_i cells above 5% (point)"),
-    inst = s02_inst_m1("inst_all", "median"),
+    gmr2 = drange(TCH, "set=='i'", "true_aucinf_gmr", 2, "", "true AUC0-inf ratio failing to retained, set (i), two models"),
     # 논거 ③ 대표 수치: 창 포착률 중앙값(두 모델)
     cov = headline(drange(TCV, MW, "median", 1, "%", "window coverage, median, two models", scale = 100)),
     cmin = s02_cov_min(),
@@ -61,12 +65,12 @@ slide_S02 <- function() {
     p2max = dv(T1f, "analysis_model=='M1' & config=='P2' & pk_model=='k2020' & scenario=='V2_up_080'", "pass_pct", 2, "%", "M1 P2 maximum"))
 
   # 위: 제안 카드 + 한 문장 요약
-  top <- GEO$BODY_TOP; h_top <- 1.36; pw <- 4.9
+  top <- GEO$BODY_TOP; h_top <- 1.52; pw <- 5.6
   deck_text(tx("S02.proposal"), c(GEO$ML, top, pw, h_top), size = 16, bg = PAL$tint_orange, geom = "roundRect", label = "proposal", gap_pt = 4)
   deck_text(tx("S02.summary", f), c(GEO$ML + pw + 0.25, top, GEO$CW - pw - 0.25, h_top), size = 17, label = "summary")
 
   # 아래: 논거 ①②③ 카드 세 개(위 대표 수치, 가운데 주장, 아래 근거)
-  y0 <- top + h_top + 0.14; gw <- 0.22; cw <- (GEO$CW - 2 * gw) / 3; ch <- GEO$BODY_BOTTOM - y0; sh <- 0.96
+  y0 <- top + h_top + 0.12; gw <- 0.22; cw <- (GEO$CW - 2 * gw) / 3; ch <- GEO$BODY_BOTTOM - y0; sh <- 0.96
   args <- lapply(c("a1", "a2", "a3"), function(k) list(lab = tx(sprintf("S02.args.%s.label", k), f), claim = tx(sprintf("S02.args.%s.claim", k)), det = tx(sprintf("S02.args.%s.detail", k), f)))
   vals <- c(f$iii, tx("S02.args.a2.value", f), f$cov)
   for (k in seq_along(args)) {
@@ -81,8 +85,10 @@ slide_S02 <- function() {
     n_ind = dint(TPF, "pk_model=='k2016' & set=='i'", "n", "subjects per model"), dose = f_dose(),
     a_max = dext(CGf, "analysis_model=='M1' & config=='G2_A_i'", "pass_pct", max, 2, "%", "M1 G2_A_i largest boundary pass rate"),
     aii = dcount(CGf, "analysis_model=='M1' & config=='G2_A_ii' & pass_pct > 5", "M1 G2_A_ii cells above 5% (point)"),
+    clo = dcount(CGf, "analysis_model=='M1' & config=='G2_C_i' & lo > 5", "M1 G2_C_i cells with Wilson lower bound above 5%"),
+    c_ci = dci(CGf, "analysis_model=='M1' & config=='G2_C_i' & pass_pct > 5", "pass_pct", "lo", "hi", 2, "%", "M1 G2_C_i cell above 5% (point) with Wilson 95% CI"),
     b = dcount(CGf, "analysis_model=='M1' & config=='G2_B' & pass_pct > 5", "M1 G2_B cells above 5% (point)"),
-    inst_max = s02_inst_m1("inst_all", "max"), inst0 = s02_inst_m0("inst_all", "median"), inst0_max = s02_inst_m0("inst_all", "max"),
+    inst = s02_inst_m1("inst_all", "median"), inst_max = s02_inst_m1("inst_all", "max"), inst0 = s02_inst_m0("inst_all", "median"), inst0_max = s02_inst_m0("inst_all", "max"),
     p2ci = dci(T1f, "analysis_model=='M1' & config=='P2' & pk_model=='k2020' & scenario=='V2_up_080'", "pass_pct", "lo", "hi", 2, "%", "M1 P2 maximum with 95% CI"),
     tgt = dv(T1f, "analysis_model=='M1' & config=='P2' & pk_model=='k2020' & scenario=='V2_up_080'", "target", 2, "", "true AUC0-inf ratio target, exceeding cell"),
     ntr = dint(T1f, "analysis_model=='M1' & config=='P2' & pk_model=='k2020' & scenario=='V2_up_080'", "n_trials", "trials, exceeding cell"),

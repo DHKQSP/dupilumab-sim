@@ -5,7 +5,8 @@ slide_S01 <- function() {
   deck_title(tx("S01.title"), size = 36, box = c(GEO$ML, 1.9, 11.6, 1.45))
   deck_text(tx("S01.subtitle"), c(GEO$ML, 3.45, 11.6, 1.2), size = 22, color = "#d5dde6", label = "subtitle")
   deck_text(tx("S01.scope", list(wt = f_wt_range(), dose = f_dose())), c(GEO$ML, 4.75, 11.6, 0.9), size = 18, color = "#aab6c2", label = "scope")
-  deck_text(tx("S01.meta", list(version = DK$version, date = DK$date, commit = DK$commit)), c(GEO$ML, 6.05, 8, 0.5), size = 16, color = "#aab6c2", label = "meta")
+  # 커밋 표기는 바닥글과 같은 문자열(작업 트리가 커밋과 다르면 '*')
+  deck_text(tx("S01.meta", list(version = DK$version, date = DK$date, commit = paste0(DK$commit, if (isTRUE(DK$clean)) "" else "*"))), c(GEO$ML, 6.05, 8, 0.5), size = 16, color = "#aab6c2", label = "meta")
   deck_notes(tx("S01.notes"))
   deck_end()
 }

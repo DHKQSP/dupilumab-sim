@@ -1,0 +1,4 @@
+workflow,run_number,commit,conclusion,created_at,event,note
+tests,99,b02ae21,failure,2026-09-29T01:13:55Z,push,environment setup: gdtools (flextable dependency of the results deck) built from source could not find cairo-ft.h; renv::restore stopped before any test ran
+tests,100,d1e2062,success,2026-09-29T01:30:39Z,push,fix of run 99: libcairo2-dev and libfreetype6-dev added to the system dependencies
+tests,101,3099121,success,2026-09-29T02:03:23Z,push,

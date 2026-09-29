@@ -36,7 +36,9 @@ S <- rbindlist(lapply(seq_along(slide_files), function(i) {
   rows_ <- lapply(sh, function(s) {
     nm <- xml_attr(xml_find_first(s, ".//p:cNvPr", ns), "name"); kind <- xml_name(s)
     szs <- as.integer(xml_attr(xml_find_all(s, ".//a:rPr[@sz] | .//a:endParaRPr[@sz]", ns), "sz"))
-    data.table(n = i, shape = nm, kind = kind, text = para_text(s), min_sz = if (length(szs)) min(szs) else NA_integer_)
+    off <- xml_find_first(s, "./p:spPr/a:xfrm/a:off | ./p:xfrm/a:off", ns)
+    data.table(n = i, shape = nm, kind = kind, text = para_text(s), min_sz = if (length(szs)) min(szs) else NA_integer_,
+               y = if (inherits(off, "xml_missing")) NA_real_ else as.numeric(xml_attr(off, "y")), x = if (inherits(off, "xml_missing")) NA_real_ else as.numeric(xml_attr(off, "x")))
   })
   out <- rbindlist(rows_)
   # 발표자 노트
@@ -49,7 +51,7 @@ S <- rbindlist(lapply(seq_along(slide_files), function(i) {
 meta <- meta[order(n)]; S[, id := meta$id[n]]   # n = 슬라이드의 pptx 안 순서(부분 빌드에서도 meta와 같은 순서)
 if (!nrow(S) || anyNA(S$id)) stop("slide text extraction failed")
 for (sid in meta$id) if (!nrow(S[id == sid & kind != "notes" & nzchar(text)])) stop("no text extracted for ", sid)
-vis <- S[!grepl("^footer_|^tag$|^background$", shape) & kind != "notes"]
+vis <- S[!grepl("^footer_|^tag$|^background$", shape) & kind != "notes"][order(n, round(y / 45720), x)]   # 읽는 순서(위에서 아래, 0.05 in 단위로 같은 줄이면 왼쪽부터)
 num_tokens <- function(s) {
   s <- gsub("‑", "-", s); for (rx in unlist(CK$number_contexts)) s <- gsub(rx, " ", s, perl = TRUE)
   m <- regmatches(s, gregexpr("(?<![A-Za-z0-9_.‑-])-?[0-9][0-9,]*(\\.[0-9]+)?|(?<=[~\\s(])-[0-9][0-9,]*(\\.[0-9]+)?", s, perl = TRUE))[[1]]
@@ -86,8 +88,11 @@ for (a in names(ab)) {
   rx <- sprintf("(?<![A-Za-z])%s(?![a-z]|M[0-9])", gsub("([&.])", "\\\\\\1", a))   # PKM12350 같은 시험 번호는 약어가 아니다
   first <- NA_character_; for (sid in meta$id) { t_ <- paste(vis[id == sid, text], collapse = "\n"); if (grepl(rx, gsub("‑", "-", t_), perl = TRUE)) { first <- sid; break } }
   if (is.na(first)) next
-  t_ <- paste(vis[id == first, text], collapse = "\n")
-  if (grepl(ab[[a]], t_, perl = TRUE)) add("5 abbreviation first use", first, "pass", a) else add("5 abbreviation first use", first, "FAIL", sprintf("%s first used without '%s'", a, ab[[a]]))
+  t_ <- gsub("‑", "-", paste(vis[id == first, text], collapse = "\n"))
+  # 풀이는 읽는 순서로 첫 등장 앞이나 바로 뒤(괄호 풀이)에 있어야 한다
+  pa <- regexpr(rx, t_, perl = TRUE)[1]; pe <- regexpr(ab[[a]], t_, perl = TRUE)[1]
+  if (pe > 0 && pe <= pa + nchar(a) + 3) add("5 abbreviation first use", first, "pass", a)
+  else add("5 abbreviation first use", first, "FAIL", if (pe < 0) sprintf("%s first used without '%s'", a, ab[[a]]) else sprintf("%s first used before its expansion '%s' (reading order)", a, ab[[a]]))
 }
 # ---- 6 형식 ---------------------------------------------------------------------------------------------------------------------------
 for (k in seq_len(nrow(S))) {
