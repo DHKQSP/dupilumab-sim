@@ -72,9 +72,9 @@ slide_S19 <- function() {
   fd[, y := ypos[config] + ifelse(am == "M1", 0.17, -0.17)]
   fd[, amf := factor(AML[am], levels = AML)]
   # 오른쪽 수치 열: 행마다 M1(파랑), M0(주황) 점추정. 그림 안 숫자는 자료에서 바로 그린다
-  xmax <- max(ceiling(max(fd$hi)), nom_num + 2); xc <- c(M1 = xmax + 0.95, M0 = xmax + 2.05)
+  xmax <- max(ceiling(max(fd$hi)), nom_num + 2); xc <- c(M1 = xmax + 1.05, M0 = xmax + 2.45)   # 열 머리(● M1, ▲ M0)가 겹치지 않게 간격 1.4
   txt <- fd[, .(amf, x = xc[am], y = ypos[config], lab = fnum(est, 2))]
-  hdr <- data.table(amf = factor(AML, levels = AML), x = unname(xc[c("M1", "M0")]), y = max(ypos) + 0.7, lab = c("M1", "M0"))
+  hdr <- data.table(amf = factor(AML, levels = AML), x = unname(xc[c("M1", "M0")]), y = max(ypos) + 0.7, lab = c("\u25cf M1", "\u25b2 M0"))   # 열 머리가 범례를 겸한다(색·표식)
   FW <- 6.4; FH <- 3.1
   p <- ggplot(fd, aes(x = est, y = y, colour = amf, shape = amf)) +
     annotate("rect", xmin = -Inf, xmax = Inf, ymin = min(ypos[c("P2", "P2_10k")]) - 0.45, ymax = max(ypos[c("P2", "P2_10k")]) + 0.45, fill = PAL$tint_blue, alpha = 0.8) +
@@ -82,20 +82,17 @@ slide_S19 <- function() {
     geom_errorbarh(aes(xmin = lo, xmax = hi), height = 0, linewidth = 0.7) +
     geom_point(size = 2.4) +
     geom_text(data = txt, aes(x = x, y = y, label = lab), hjust = 1, size = 11 / .pt, family = FONT, show.legend = FALSE, inherit.aes = FALSE, colour = ifelse(txt$amf == AML[1], PAL$blue, PAL$orange)) +
-    geom_text(data = hdr, aes(x = x, y = y, label = lab), hjust = 1, size = 11 / .pt, family = FONT, fontface = "bold", show.legend = FALSE, inherit.aes = FALSE, colour = PAL$ink2) +
+    geom_text(data = hdr, aes(x = x, y = y, label = lab), hjust = 1, size = 11 / .pt, family = FONT, fontface = "bold", show.legend = FALSE, inherit.aes = FALSE, colour = c(PAL$blue, PAL$orange)) +
     scale_colour_manual(values = c(PAL$blue, PAL$orange)) + scale_shape_manual(values = c(16, 17)) +
     scale_y_continuous(breaks = unname(ypos), labels = unname(lab), expand = expansion(add = 0)) +
     scale_x_continuous(limits = c(0, max(xc) + 0.05), breaks = seq(0, xmax, by = 1), expand = expansion(add = c(0.1, 0.1))) +
     coord_cartesian(ylim = c(min(ypos) - 0.45, max(ypos) + 0.95), clip = "off") +
     labs(x = fill(L$fig$xlab, list(nom = nom)), y = NULL) + theme_deck(12) +
-    # 범례는 위 네 행의 빈 왼쪽(점과 구간은 모두 4% 위)에 넣어 세로 자리를 아낀다
-    theme(legend.position = c(0.005, 1), legend.justification = c(0, 1), legend.direction = "vertical",
-          legend.background = element_blank(), legend.key.height = grid::unit(13, "pt"), legend.margin = margin(0, 0, 0, 0),
-          legend.text = element_text(size = 11, colour = PAL$ink2),
+    # 범례 상자는 두지 않는다: 행 띠 안에 두면 범례 항목이 행 이름처럼 읽힌다(검토 3회차). 오른쪽 수치 열 머리(● M1 파랑, ▲ M0 주황)가 범례를 겸한다
+    theme(legend.position = "none",
           axis.title.x = element_text(hjust = 1, size = 11, margin = margin(3, 0, 0, 0)), axis.text.x = element_text(size = 11),
           panel.grid.major.y = element_blank(), panel.grid.minor.x = element_blank(), axis.text.y = element_text(colour = PAL$ink, size = 11.5),
           plot.margin = margin(4, 8, 4, 4))
-  premise(max(fd[config %in% CT, hi]) < max(xc) && min(fd[config %in% CT, lo]) > 3.5, "the four upper rows leave the left part of the panel free for the legend")
   deck_figure(p, "s19_v2_cell", c(GEO$ML, GEO$BODY_TOP, FW, FH), src = c(T1, CG))
 
   # ---- 왼쪽 아래: 같은 칸의 AUC0-inf 구성(분류와 편향 방향; 값은 그림), 16칸 전체(규칙별 점추정 칸 수와 Wilson 초과 칸 수) ----

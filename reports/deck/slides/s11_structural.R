@@ -107,7 +107,7 @@ slide_S11 <- function() {
   # 끝 숫자: 가장 낮은 LLOQ에서 연구 LLOQ 대비 변화(%p, 자료 그대로). 겹치지 않게 세로로 벌리고 연결선(선 모양 = 잔차 변형)으로 잇는다
   yr <- c(floor(yl[1]) - 2.5, ceiling(yl[2]) + 2.5)
   el_ <- q[abs(lloq - lqmin) < 1e-9, .(model_, rv, y = reliable_no_span_pct, lab = paste0(vapply(fnum(d_rel_i_pp, 2), s11_signed, ""), "%p"))][order(y)]
-  sep <- diff(yr) * 0.15; el_[, yl_ := y]
+  sep <- diff(yr) * 0.18; el_[, yl_ := y]
   for (k in seq_len(nrow(el_))[-1]) if (el_$yl_[k] - el_$yl_[k - 1] < sep) el_$yl_[k] <- el_$yl_[k - 1] + sep
   el_[, yl_ := yl_ - (mean(yl_) - mean(y))]; if (min(el_$yl_) < yr[1] + 0.5) el_[, yl_ := yl_ + (yr[1] + 0.5 - min(yl_))]
   lx0 <- log10(lqmin)
@@ -118,8 +118,10 @@ slide_S11 <- function() {
              size = 3.6, family = FONT, colour = MODEL_COL[[1]]) +                                  # 2016 모델의 두 선이 겹쳐 점선이 보이지 않는 이유
     geom_line(data = q[resid == "fixed"], linewidth = 1.05) + geom_point(data = q[resid == "fixed"], size = 2.6) +
     geom_line(data = q[resid == "scaled"], linewidth = 0.6) + geom_point(data = q[resid == "scaled"], size = 1.7) +          # 비례 변형은 가늘게 위에
-    geom_segment(data = el_, aes(x = lx0 - 0.03, xend = lx0 - 0.11, y = y, yend = yl_, colour = model_, linetype = rv), inherit.aes = FALSE, linewidth = 0.5) +
-    geom_text(data = el_, aes(x = lx0 - 0.13, y = yl_, label = lab, colour = model_), inherit.aes = FALSE, hjust = 0, size = 3.6, family = FONT, show.legend = FALSE) +
+    # 연결선은 가는 실선(점선이면 끝 대시가 음수 부호와 붙어 보인다), 글자 앞에서 끊고, 글자는 흰 바탕(격자선이 글자를 지나지 않게)
+    geom_segment(data = el_, aes(x = lx0 - 0.03, xend = lx0 - 0.10, y = y, yend = yl_, colour = model_), inherit.aes = FALSE, linewidth = 0.4, linetype = "solid", show.legend = FALSE) +
+    geom_label(data = el_, aes(x = lx0 - 0.125, y = yl_, label = lab, colour = model_), inherit.aes = FALSE, hjust = 0, size = 3.6, family = FONT, show.legend = FALSE,
+               fill = "white", label.size = 0, label.padding = grid::unit(0.8, "pt")) +
     scale_colour_manual(values = unname(MODEL_COL)) + scale_shape_manual(values = unname(MODEL_SHAPE)) + scale_linetype_manual(values = c("solid", "42")) +
     scale_x_reverse(breaks = log10(grid_[abs(grid_ - lq0) > 1e-9]), labels = vapply(grid_[abs(grid_ - lq0) > 1e-9], function(x) format(x), ""),     # 연구 LLOQ는 점선 글자로
                     expand = expansion(add = c(0.06, 0.42))) +

@@ -18,7 +18,7 @@ S08:
       label: "논거 ②"
       claim: "AUC0-inf의 판정이 처리 규칙에 좌우된다."
       value: "{a} / {ncell}칸"
-      caption: "AUC0-inf + Cmax 경계 1종 오류가 점추정 {nom}를 넘는 칸, 규칙 A (i), M1. 그중 초과(Wilson 하한 > {nom}) {aw}칸. 규칙 C (i)는 점추정 {c}칸, 명목(구간이 {nom} 포함)."
+      caption: "AUC0-inf + Cmax 경계 1종 오류가 점추정 {nom}를 넘는 칸, 규칙 A (i), M1. 그중 초과(Wilson 하한 > {nom}) {aw}칸. 규칙 C (i)은 점추정 {c}칸, 명목(구간이 {nom} 포함)."
       ref: "슬라이드 14부터"
     a3:
       label: "논거 ③"
