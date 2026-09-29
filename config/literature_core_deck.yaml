@@ -1,0 +1,23 @@
+# Guideline and review statements cited in the core deck v1.1 (directive 2026-09-29; slides S4 and S8). Kept apart from
+# config/literature_precedents.yaml so that the results deck v1.0.1 (technical backup) keeps its source hashes.
+# Values copied from the source as quoted by the retrieval, with the retrieval route and its limits. English only.
+fda_bla761055_clinpharm:
+  status: "search excerpt"      # not yet compared with the full text; page not verified
+  verification: "Web-search summaries (2026-09-29) attribute the phrase to the FDA clinical pharmacology and biopharmaceutics review of BLA 761055 (dated 2016-07-29) but also blend it with Kovalenko 2020 (Results: terminal slope approaching minus infinity near the LLOQ, target-mediated phase nearly vertical), which is in results/literature/literature_qualitative.csv from the article. The review PDF on accessdata.fda.gov is blocked by the analysis-environment egress proxy (checked 2026-09-29), so the page number given in the directive (48) and the exact wording are unverified; compare with the original before external use."
+  title: "Clinical pharmacology and biopharmaceutics review, BLA 761055 (dupilumab)"
+  reference: "BLA 761055Orig1s000, Clinical Pharmacology Review"
+  review_date: "2016-07-29"
+  page: 48                      # as given in the directive; not verified in this environment
+  page_verified: false
+  phrase: "very steep target-mediated phase"
+  corroborating_source: "Kovalenko 2020 Results (results/literature/literature_qualitative.csv)"
+
+ema_be_guideline_80pct:
+  status: "search excerpt"      # not yet compared with the full text
+  verification: "Two web-search summaries (2026-09-29) quoting the EMA guideline PDF on ema.europa.eu (guideline-investigation-bioequivalence-rev1_en.pdf); the page is blocked by the analysis-environment egress proxy. The guideline addresses bioequivalence of generic (mainly immediate-release) products; it is cited here as the conventional adequacy threshold for AUC0-t, not as a biosimilar requirement. Compare with the original before external use."
+  title: "Guideline on the Investigation of Bioequivalence"
+  reference: "CPMP/EWP/QWP/1401/98 Rev. 1/Corr"
+  year: 2010
+  excerpt: "AUC(0-t) should cover at least 80% of AUC(0-inf). Subjects should not be excluded from the statistical analysis if AUC(0-t) covers less than 80% of AUC(0-inf), but if the percentage is less than 80% in more than 20% of the observations then the validity of the study may need to be discussed."
+  coverage_min_pct: 80
+  observations_share_pct: 20

@@ -467,3 +467,10 @@ Km 근거: Kovalenko 2016에서 0.01 미만은 목적함수가 둔감했으므�
 - 렌더링: `render_deck.py`(LibreOffice UNO, 한글·영문 사이 자동 간격을 끄고 PDF; PyMuPDF로 PNG). 글꼴 Pretendard 1.3.9(zip SHA-256 README 기재). 표시층(`nobreak`)은 숫자와 단위, 숫자·영문과 붙은 한글, 'Wilson 하한' 같은 영문·한글 쌍을 줄바꿈 없는 문자로 잇는다. 한글 단어끼리는 잇지 않는다(LibreOffice가 한글 옆의 NBSP·U+2060·U+202F를 무시하고 줄 첫머리에 공백을 남김, 2026-09-29 시험).
 - 산출물: `reports/deck/dupilumab_endpoint_results_v1.0.1.pptx`와 같은 이름의 PDF, `deck_traceability.csv`, `deck_meta*.csv`, 검사 결과 `*_checks.csv`·`*_render.csv`. 최종본: 32장(본문 26, 부록 6), 인쇄 수치 1,683개 추적, 검사 237개 통과·0개 실패, 커밋된 깨끗한 트리에서 빌드(바닥글 커밋 62da7a9).
 - 검증 경과(D-062): 시각·내용 검토 3회(1회차 지적 294건, 2회차 153건 + 흐름·범위 24건, 3회차 13건)와 슬라이드 묶음별 수정. 3회차 내용 검토는 인쇄 수치 약 220개를 결과 파일에서 다시 계산해 모두 일치했다. 산출되지 않은 항목은 슬라이드에 "미산출"과 사유를 적는다.
+
+## 16. 핵심 덱 v1.1 (지시 2026-09-29, 정량 근거 중심 재구성; `reports/deck/`, 사전 등록 `config/prereg_20260929.yaml`, D-063)
+- 목적: "AUCinf는 1차 평가변수로 적절하지 않다"를 한 흐름으로 보여 주는 짧은 덱(본문 10장 + 표지, 별첨). 기존 32장 결과보고 덱(v1.0.1, 15절)은 기술 백업으로 그대로 둔다(파일·추적표·출처 해시 불변).
+- 흐름: 전제(말단 절벽) → ① adjusted R² 0.90 기준이면 대상자 3분의 1 이상이 신뢰할 수 있는 AUCinf를 얻지 못한다 → ② AUClast가 이미 총노출의 대부분을 담는다 → ③ AUCinf를 1차로 쓰면 유사성 판정이 흔들린다 → 결론(1차 AUClast + Cmax, AUCinf는 2차로 계산·보고).
+- 용어: 신뢰할 수 있는 AUCinf = adjusted R² ≥ 0.90 그리고 외삽 ≤ 20%(기준 세트 (iii)); AUClast/AUCinf = 참값 기준(모델 적분, 관측 tlast까지의 참 AUC / 참 AUCinf; 열 coverage_true); 2016 모델(주 모델), 2020 모델(민감도 모델).
+- 새 요약(새 시험 모의 없음): `scripts/63_core_deck_inputs.R` → `results/core_deck/`. 케이스 11개의 창 포착률 분포(곡선 모양 변형 4개는 scripts/21 시드 규칙으로 다시 만들고 커밋된 요약과 대조), S8 제목 규칙 판정, 대표 대상자(두 모델 x 중앙값·5백분위·최솟값; scripts/10 모집단을 다시 만들어 저장된 NCA 20,000명과 7개 열 일치 확인), 채혈 일정별 세트 (iii) 충족 비율. 대조 검사 34개 일치(`results/core_deck/provenance.csv`).
+- 문헌·지침 인용 기록: `config/literature_core_deck.yaml`(FDA BLA 761055 임상약리 리뷰 "very steep target-mediated phase", EMA 생동 지침 AUC0-t ≥ 80%; 둘 다 상태 "search excerpt", 원문 미대조, FDA 쪽 쪽수 미확인). 기존 `config/literature_precedents.yaml`은 32장 덱의 출처 해시를 지키려고 고치지 않는다.

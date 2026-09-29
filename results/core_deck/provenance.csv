@@ -1,0 +1,44 @@
+check,value,committed,equal
+input results/individual/nca_base_20000.rds,6b92d4270854447646712e26ae4c848cbf112b2e8fc8cdefe393441bd83f7a05,,
+input results/individual/nca_struct2020_20000.rds,f7c6d6efb82e6f442fc6973239ae5619ded1434ae719958a7d87bdb5782a3d10,,
+input results/trialpop/tp_coverage_individual.csv,beb14fd4f7176e6f2ef9052b677f4abdb908dd5be2e4a19aacbf68c1122be409,,
+"k2016 base B0: n, median, p05, p95, min vs tp_coverage_individual",20000;0.993479499465;0.963673434596;0.999845954621;0.847764361879,20000;0.993479499465;0.963673434596;0.999845954621;0.847764361879,TRUE
+"k2020 base B0: n, median, p05, p95, min vs tp_coverage_individual",20000;0.993596498487;0.964604403843;0.999882437862;0.843159734852,20000;0.993596498487;0.964604403843;0.999882437862;0.843159734852,TRUE
+input results/curve_shape/curve_shape_B0.csv,4796d407dad3bba1496ae1268dae39063c5e3e2c8bec7b583e0625bc8c022c44,,
+"curve-shape base regenerated vs curve_shape_B0.csv (n, extrap median, p95, lt80, max)",20000;0.650784737638;3.5857765459;0;16.5895314117,20000;0.650784737638;3.5857765459;0;16.5895314117,TRUE
+"curve-shape vmax080_both regenerated vs curve_shape_B0.csv (n, extrap median, p95, lt80, max)",20000;0.530030658067;2.79897741689;0;14.213942499,20000;0.530030658067;2.79897741689;0;14.213942499,TRUE
+"curve-shape vmax125_both regenerated vs curve_shape_B0.csv (n, extrap median, p95, lt80, max)",20000;0.93352333502;5.29374148845;0;19.8932949959,20000;0.93352333502;5.29374148845;0;19.8932949959,TRUE
+"curve-shape km05_both regenerated vs curve_shape_B0.csv (n, extrap median, p95, lt80, max)",20000;0.669454060006;3.66748239193;0;17.6102472309,20000;0.669454060006;3.66748239193;0;17.6102472309,TRUE
+"curve-shape km10_both regenerated vs curve_shape_B0.csv (n, extrap median, p95, lt80, max)",20000;0.39990466826;2.79005164754;0;14.0446091405,20000;0.39990466826;2.79005164754;0;14.0446091405,TRUE
+input results/lloq/lloq_individual_nca_k2016.rds,9bebd27b8c795dd72e3f0ce144d10e5ced526619e3031a594157b08fbf71f297,,
+input results/lloq/lloq_individual_table.csv,6d5fc6a570bb69ad49d2d235250f61e39c074ab5d023b5a9fdd0cfaa79b0e3b5,,
+"LLOQ 0.02 (k2016, fixed) vs lloq_individual_table.csv",20000;0.0291620371767;2.70638973616;0,20000;0.0291620371767;2.70638973616;0,TRUE
+"LLOQ 0.5 (k2016, fixed) vs lloq_individual_table.csv",20000;1.0040292176;4.56565790831;0.005,20000;1.0040292176;4.56565790831;0.005,TRUE
+input results/individual/nca_resid12_20000.rds,36c8896857b903365779a5fc1ed4afc9aaba8623f8ccae96af70387c3028ef5f,,
+input results/individual/individual_resid12.csv,939b6c1184e9588b6395528a318935553bcdc3a2ec0b268a9914453bae78c2db,,
+resid12 B0 vs individual_resid12.csv,20000;0.643297614576;3.57719444394;0,20000;0.643297614576;3.57719444394;0,TRUE
+k2016 regenerated B0 NCA equals stored: tlast (NA pattern and values),"20001 values, sha256 90bb69fcb7641a870dd497771fb2d702b45f7cb058e8a4d1fcbe59fdd762ccbd","20001 values, sha256 90bb69fcb7641a870dd497771fb2d702b45f7cb058e8a4d1fcbe59fdd762ccbd",TRUE
+k2016 regenerated B0 NCA equals stored: Clast (NA pattern and values),"20001 values, sha256 cfe14e6b19d101d7a4352c059a60c9e78fdadd6db54b91c1c414293dba2b4d4d","20001 values, sha256 cfe14e6b19d101d7a4352c059a60c9e78fdadd6db54b91c1c414293dba2b4d4d",TRUE
+k2016 regenerated B0 NCA equals stored: lambda_z (NA pattern and values),"19709 values, sha256 cd0000ec65acbcf3a004fd897eb2331a4474347a5b4d330c9ec8523a996f77dd","19709 values, sha256 cd0000ec65acbcf3a004fd897eb2331a4474347a5b4d330c9ec8523a996f77dd",TRUE
+k2016 regenerated B0 NCA equals stored: AUClast (NA pattern and values),"20001 values, sha256 288836d2029ae24e3fcee4cb0db8faea7a800380ac70b8467fc10d77c0fe2814","20001 values, sha256 288836d2029ae24e3fcee4cb0db8faea7a800380ac70b8467fc10d77c0fe2814",TRUE
+k2016 regenerated B0 NCA equals stored: AUClast_true (NA pattern and values),"20001 values, sha256 103ef0971d6d0e94ac099407674a7a33372abe4504648d9e2b471619abd008d5","20001 values, sha256 103ef0971d6d0e94ac099407674a7a33372abe4504648d9e2b471619abd008d5",TRUE
+k2016 regenerated B0 NCA equals stored: AUCinf_true (NA pattern and values),"20001 values, sha256 ea3c0a661a2a65840d2157076ab4a3c45f4cac292328dcc9b48a263b291b25fa","20001 values, sha256 ea3c0a661a2a65840d2157076ab4a3c45f4cac292328dcc9b48a263b291b25fa",TRUE
+k2016 regenerated B0 NCA equals stored: coverage_true (NA pattern and values),"20001 values, sha256 0524e27f20b5f1d165397e655ebf51f8464886e9de7835356df0b368521e2610","20001 values, sha256 0524e27f20b5f1d165397e655ebf51f8464886e9de7835356df0b368521e2610",TRUE
+k2016 subject 8070: true AUC at observed tlast,466.51191197,466.51191197,TRUE
+k2016 subject 9220: true AUC at observed tlast,484.959602408,484.959602408,TRUE
+k2016 subject 10279: true AUC at observed tlast,161.230600384,161.230600384,TRUE
+k2016 representative subjects: re-solved true concentration at the observed times (max relative difference),0,0,TRUE
+k2020 regenerated B0 NCA equals stored: tlast (NA pattern and values),"20001 values, sha256 2669205fcd592f9ff5184ba29af9b0f1011b4b5cb36f36ca42de365f7d959079","20001 values, sha256 2669205fcd592f9ff5184ba29af9b0f1011b4b5cb36f36ca42de365f7d959079",TRUE
+k2020 regenerated B0 NCA equals stored: Clast (NA pattern and values),"20001 values, sha256 b7009b1b5187840cb054e757b589b761a43d9795abd31bb0733978af3afa5d1e","20001 values, sha256 b7009b1b5187840cb054e757b589b761a43d9795abd31bb0733978af3afa5d1e",TRUE
+k2020 regenerated B0 NCA equals stored: lambda_z (NA pattern and values),"19878 values, sha256 6384152f33ebea87d2d3be190d2c6f881dbe75a367eaf53e0bfad19b69f341ea","19878 values, sha256 6384152f33ebea87d2d3be190d2c6f881dbe75a367eaf53e0bfad19b69f341ea",TRUE
+k2020 regenerated B0 NCA equals stored: AUClast (NA pattern and values),"20001 values, sha256 510ad13a24b4cf44b5b3188630352dfaa3957c54723e3f47f374aab6aed2f721","20001 values, sha256 510ad13a24b4cf44b5b3188630352dfaa3957c54723e3f47f374aab6aed2f721",TRUE
+k2020 regenerated B0 NCA equals stored: AUClast_true (NA pattern and values),"20001 values, sha256 319b0a3e853e2fb04bbc827f5a4bd9250c3e085d06c3bc601891807d9496158d","20001 values, sha256 319b0a3e853e2fb04bbc827f5a4bd9250c3e085d06c3bc601891807d9496158d",TRUE
+k2020 regenerated B0 NCA equals stored: AUCinf_true (NA pattern and values),"20001 values, sha256 8bf7992b7b384170e43be37ea0ab7199639dc9af6080d781e760b96a03b4ebf3","20001 values, sha256 8bf7992b7b384170e43be37ea0ab7199639dc9af6080d781e760b96a03b4ebf3",TRUE
+k2020 regenerated B0 NCA equals stored: coverage_true (NA pattern and values),"20001 values, sha256 24494724a511eec9d6315576e87c38b066cfc1c590dd77d371faeb3ad7291d68","20001 values, sha256 24494724a511eec9d6315576e87c38b066cfc1c590dd77d371faeb3ad7291d68",TRUE
+k2020 subject 14636: true AUC at observed tlast,558.454928437,558.454928437,TRUE
+k2020 subject 12784: true AUC at observed tlast,490.971772383,490.971772383,TRUE
+k2020 subject 11228: true AUC at observed tlast,150.930202151,150.930202151,TRUE
+k2020 representative subjects: re-solved true concentration at the observed times (max relative difference),0,0,TRUE
+input results/trialpop/tp_failure_by_set.csv,245552b2db5039299ce2f100ed592fc537ebac8bb1693371509535992aa6ca09,,
+k2016 set (iii) B0 failing share vs tp_failure_by_set.csv,38.76,38.76,TRUE
+k2020 set (iii) B0 failing share vs tp_failure_by_set.csv,33.215,33.215,TRUE

@@ -1,0 +1,13 @@
+case,label,model,n,median,p05,p95,min,pct_lt80,source,identity_checked,role
+k2016_base,"2016 model, base",k2016,20000,0.993479499465381,0.963673434596318,0.999845954620805,0.847764361879052,0,results/individual/nca_base_20000.rds [schedule == 'B0'],TRUE,row
+k2020_base,"2020 model, base",k2020,20000,0.9935964984871,0.964604403843398,0.999882437862002,0.843159734852213,0,results/individual/nca_struct2020_20000.rds [schedule == 'B0'],TRUE,row
+vmax080,"Vmax x0.8 (both arms, 2016 model)",k2016,20000,0.994699693419334,0.972010225831104,0.999852550343733,0.857860575010045,0,regenerated scripts/21 variant vmax080_both (tag curve_vmax080_both),TRUE,row
+vmax125,"Vmax x1.25 (both arms, 2016 model)",k2016,20000,0.990664766649802,0.947062585115505,0.9998113598551,0.801067050041309,0,regenerated scripts/21 variant vmax125_both (tag curve_vmax125_both),TRUE,row
+km05,"Km x0.5 (both arms, 2016 model)",k2016,20000,0.993305459399945,0.963325176080659,0.999871164482672,0.82389752769147,0,regenerated scripts/21 variant km05_both (tag curve_km05_both),TRUE,row
+km10,"Km x10 (both arms, 2016 model)",k2016,20000,0.996000953317401,0.972099483524614,0.999594463697504,0.859553908595399,0,regenerated scripts/21 variant km10_both (tag curve_km10_both),TRUE,row
+lloq002,"LLOQ 0.02 mg/L (2016 model, estimated residual)",k2016,20000,0.999708379628233,0.972936102638439,0.999994910376195,0.875408225813521,0,results/lloq/lloq_individual_nca_k2016.rds [lloq == 0.02 & resid == 'fixed'],TRUE,row
+lloq05,"LLOQ 0.5 mg/L (2016 model, estimated residual)",k2016,20000,0.989959707823968,0.954343420916948,0.999172787578002,0.793468548230559,0.005,results/lloq/lloq_individual_nca_k2016.rds [lloq == 0.5 & resid == 'fixed'],TRUE,row
+resid12,proportional residual 12% (2016 model),k2016,20000,0.993567023854241,0.964228055560575,0.999850717935682,0.830249405813659,0,results/individual/nca_resid12_20000.rds [schedule == 'B0'],TRUE,row
+wt60_75,"weight stratum 60-75 kg (2016 model, base)",k2016,9948,0.993824360080424,0.966545267695619,0.999856066852246,0.864324715585781,0,results/individual/nca_base_20000.rds [B0 & WT <= 75],FALSE,row
+wt75_90,"weight stratum >75-90 kg (2016 model, base)",k2016,10052,0.993018815083767,0.96079420159512,0.999835013849485,0.847764361879052,0,results/individual/nca_base_20000.rds [B0 & WT > 75],FALSE,row
+curve_base,curve-shape study base draw (2016 model; note only),k2016,20000,0.993492152623623,0.964142234540986,0.999841842272091,0.834104685882608,0,regenerated scripts/21 variant base (tag curve_base),TRUE,note
