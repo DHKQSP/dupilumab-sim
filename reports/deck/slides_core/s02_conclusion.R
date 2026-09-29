@@ -17,17 +17,18 @@ slide_S2 <- function() {
   nom <- f_nominal()
 
   # ---- 카드 3개(주 시각 요소) ----
-  gap <- 0.25; cw <- (GEO$CW - 2 * gap) / 3; ch <- 3.35; cy <- y0 + 0.05
+  gap <- 0.25; cw <- (GEO$CW - 2 * gap) / 3; ch <- 3.45; cy <- y0 + 0.10
   C <- DK$txt$S2$cards
   core_card(C$c1$head, list(list(f$fail, PAL$orange)), fill(C$c1$label, f), c(GEO$ML, cy, cw, ch), bg = PAL$tint_orange)
   core_card(C$c2$head, list(list(fill(C$c2$value, list(v = cmin)), PAL$blue)), fill(C$c2$label, list(med = cmed)), c(GEO$ML + cw + gap, cy, cw, ch), bg = PAL$tint_blue)
   core_card(fill(C$c3$head, list(nom = nom)), list(list(list(t_inf, PAL$orange, 40), list(C$c3$inf, PAL$ink2, 18)), list(list(t_last, PAL$blue, 40), list(C$c3$last, PAL$ink2, 18))),
-            fill(C$c3$label, list(n = dcount(T1, "analysis_model=='M1' & config=='P2'", "boundary cells"))), c(GEO$ML + 2 * (cw + gap), cy, cw, ch), bg = PAL$tint_grey)
+            fill(C$c3$label, list(nom = nom, n = dcount(T1, "analysis_model=='M1' & config=='P2'", "boundary cells"))), c(GEO$ML + 2 * (cw + gap), cy, cw, ch), bg = PAL$tint_grey)
   deck_visual(c(GEO$ML, cy, GEO$CW, ch))
 
   # ---- 결론 한 줄 ----
-  by <- cy + ch + 0.30
-  deck_text(tx("S2.conclusion"), c(GEO$ML, by, GEO$CW, 0.62), size = 24, bold = TRUE, color = PAL$ink, label = "body_conclusion", bg = PAL$tint_grey, align = "center")
+  by <- cy + ch + 0.35
+  deck_text(tx("S2.conclusion"), c(GEO$ML, by, GEO$CW, 0.66), size = 24, bold = TRUE, color = PAL$ink, label = "cmid_body_conclusion", bg = PAL$tint_grey, align = "center")
+  DK$cur$body_lines <- DK$cur$body_lines + 1L                         # 결론 한 줄(이름이 cmid_로 시작해 자동으로 세지 않음)
 
   deck_notes(tx("S2.notes", c(f, list(cmin = cmin, cmed = cmed, t_inf = t_inf, t_last = t_last, nom = nom,
     fail16 = dv(TPF, "pk_model=='k2016' & set=='iii'", "fail_pct", 1, "%", "share without a reliable AUCinf, set (iii), 2016 model"),

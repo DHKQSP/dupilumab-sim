@@ -13,7 +13,7 @@ S3:
       text: "참 AUCinf = 모델 적분. 참값 기준 AUClast/AUCinf와 동등성 판정의 1종 오류를 계산"
   body: "모델은 연구 제형 {dose} mg의 관측 AUClast를 ±{tol}% 안에서 재현한다(별첨 A1)."
   notes: |
-    모델: 2016 모델은 Kovalenko 2016(주 모델, 2구획 + 선형·Michaelis-Menten 병렬 소실), 2020 모델은 Kovalenko 2020 Model 1(민감도 모델, 흡수 통과 구획 포함)이다. 파라미터는 논문 표의 값을 그대로 썼고 재추정하거나 보정하지 않았다(별첨 A2).
+    모델: 2016 모델은 Kovalenko 2016(주 모델, 두 구획 + 선형·Michaelis-Menten 병렬 소실), 2020 모델은 Kovalenko 2020 Model 1(민감도 모델, 흡수 통과 구획 포함)이다. 파라미터는 논문 표의 값을 그대로 썼고 재추정하거나 보정하지 않았다(별첨 A2).
     계획 시험: 건강인 {wt} kg(체중 층화 배정), {dose} mg 단회 피하 투여, Syneos 채혈 일정 {nB0}회(Day {last}까지), arm당 평가 가능 {n_arm}명. 채혈 시각 허용 범위와 측정 잔차, 정량한계 {lloq} mg/L 미만 처리를 넣었다.
     비구획 분석: Phoenix WinNonlin 규칙(선형 증가·로그 감소 사다리꼴, λz는 tmax 이후 마지막 {minpts}점 이상 구간 중 adjusted R² 최대)을 따르는 엔진이다(별첨 A2). AUCinf = AUClast + Clast / λz.
     참값: 같은 대상자의 모델 곡선을 적분한 값이다. AUClast/AUCinf(참값)는 관측 마지막 정량 시점까지의 참 AUC를 참 AUCinf로 나눈 값이다.

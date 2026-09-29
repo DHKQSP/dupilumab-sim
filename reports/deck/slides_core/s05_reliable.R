@@ -61,6 +61,6 @@ slide_S5 <- function() {
     s3 = core_sap("NCT04700163", "above", "public SAP NCT04700163: adjusted R-squared above"),
     ri = drange(TRA, "set=='i'", "retained_median", 0, "", "median evaluable subjects per arm meeting set (i), two models"),
     lo = dspan(TRA, "set=='iii'", "retained_p05", "retained_p95", 0, "", "5th to 95th percentile subjects per arm meeting set (iii), two models"),
-    nsub = dint(TPF, "pk_model=='k2016' & set=='iii'", "n", "virtual subjects per model"), ntr = dint(TRA, "pk_model=='k2016' & set=='iii'", "n_trials", "simulated trials per model (retained per arm)"))))
+    wt = f_wt_range(), nsub = dint(TPF, "pk_model=='k2016' & set=='iii'", "n", "virtual subjects per model"), ntr = dint(TRA, "pk_model=='k2016' & set=='iii'", "n_trials", "simulated trials per model (retained per arm)"))))
   deck_end()
 }

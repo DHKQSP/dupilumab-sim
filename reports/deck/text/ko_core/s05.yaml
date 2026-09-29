@@ -14,7 +14,7 @@ S5:
     - "arm당 평가 가능 {n}명 중 신뢰할 수 있는 AUCinf는 중앙값 {ret}명이다."
   caption: "신뢰할 수 있는 AUCinf = adjusted R² ≥ {r2}, 외삽 ≤ {ex}%. 공개 SAP(ClinicalTrials.gov): NCT04117607, NCT04441905, NCT04700163"
   notes: |
-    미달 비율(건강인 60~90 kg, 현행 채혈): adjusted R² ≥ {r2i}(외삽 ≤ {ex}%)이면 2016 모델 {f16i}, 2020 모델 {f20i}; ≥ {r2}이면 {f16}, {f20}. λz를 산출했는데도 기준에 못 미친 비율은 {r2} 기준에서 {e16}, {e20}이다.
-    Phoenix WinNonlin의 Lambda Z Acceptance Criteria는 사용자가 값을 넣는 선택 항목이며, 기준 미달 프로필은 제외되지 않고 표시만 된다(Certara Phoenix 8.2 NCA 문서). {r2i}은 통계분석계획 관행의 하한이고, 공개 SAP는 {r2}을 쓴다: NCT04117607(span 3.0 이상도 요구, 확인), NCT04441905(확인), NCT04700163(adjusted R² {s3} 초과, 검색 발췌로 확인).
+    미달 비율(건강인 {wt} kg, 현행 채혈): adjusted R² ≥ {r2i}(외삽 ≤ {ex}%)이면 2016 모델 {f16i}, 2020 모델 {f20i}; ≥ {r2}이면 {f16}, {f20}. λz를 산출했는데도 기준에 못 미친 비율은 {r2} 기준에서 {e16}, {e20}이다.
+    Phoenix WinNonlin의 Lambda Z Acceptance Criteria는 사용자가 값을 넣는 선택 항목이며, 기준 미달 프로필은 제외되지 않고 표시만 된다(Certara Phoenix 8.2 NCA 문서). {r2i}은 통계분석계획 관행의 하한이고, 공개 SAP는 {r2}을 쓴다: NCT04117607(span 조건도 요구, 확인), NCT04441905(확인), NCT04700163(adjusted R² {s3} 초과, 검색 발췌로 확인).
     arm당 인원: 시험 모의에서 arm당 평가 가능 대상자 중 기준을 충족한 인원. {r2i} 기준이면 중앙값 {ri}명, {r2} 기준이면 5~95백분위 {lo}명이다.
     그림: 막대의 가는 선은 95% 신뢰구간(모델마다 대상자 {nsub}명), 오른쪽 가로선은 5~95백분위(시험 {ntr}회)다.

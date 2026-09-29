@@ -300,7 +300,8 @@ deck_visual <- function(box) { DK$cur$visual <- max(DK$cur$visual, box[3] * box[
 # 그림 안 글자 크기 하한(core: 14pt). 테마의 모든 글자 요소와 글자 레이어(geom_text/label, annotate)를 검사한다. patchwork는 하위 그림까지
 gg_leaves <- function(p) {
   if (inherits(p, "patchwork")) { out <- list(); for (q in p$patches$plots) out <- c(out, gg_leaves(q))
-    q0 <- p; q0$patches <- NULL; class(q0) <- setdiff(class(q0), "patchwork"); c(out, list(q0)) }
+    q0 <- p; q0$patches <- NULL; class(q0) <- setdiff(class(q0), "patchwork")
+    if (length(q0$layers)) out <- c(out, list(q0)); out }                # wrap_plots의 바탕(빈 ggplot, 그리는 글자 없음)은 건너뛴다
   else if (inherits(p, "ggplot")) list(p) else list()
 }
 fig_text_check <- function(p, name, min_pt = SZ$fig_min) {

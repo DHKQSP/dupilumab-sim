@@ -1,0 +1,27 @@
+S9:
+  kicker: "③ 판정 안정성"
+  title: "AUCinf를 1차로 쓰면 판정이 흔들린다: 경계 1종 오류 최대 {max}"
+  fig:
+    xlab: "경계 1종 오류 (동등으로 판정한 비율, %)"
+    nom: "명목 {v}"
+    ka: "Cmax가 한계 밖"
+    cell: "{mech} → {tgt}"
+    cfg:
+      last: "AUClast + Cmax"
+      inf: "AUCinf + Cmax (신뢰할 수 있는 AUCinf만)"
+    mech:
+      F_down: "흡수량 감소"
+      F_up: "흡수량 증가"
+      ke_up: "선형 소실 증가"
+      ke_down: "선형 소실 감소"
+      Vmax_up: "표적 소실 증가"
+      Vmax_down: "표적 소실 감소"
+      V2_up: "말초 분포 증가"
+      ka_down: "흡수 속도 감소"
+  body:
+    - "AUCinf 구성은 {n}개 경계 조건 중 {k}개에서 {nom}를 넘는다(최대 {max}). AUClast 구성은 {z}개에서 {nom} 이하다(나머지 한 조건 {p2max}, 별첨 A5)."
+  caption: "경계 조건: 시험약의 기전 하나를 바꿔 참 AUCinf 비를 동등 한계({tgt})에 맞춘 가상 제품. 시험 {reps}회(한 조건 {ext}회), 분석 모형 M1(체중 층 포함)."
+  notes: |
+    두 구성: AUClast + Cmax는 두 지표가 모두 동등 기준을 통과해야 동등이다. AUCinf + Cmax는 신뢰할 수 있는 AUCinf(adjusted R² ≥ {r2}, 외삽 ≤ {ex}%)를 얻은 대상자만으로 AUCinf를 판정하고 Cmax와 함께 통과해야 동등이다(규칙 A, 세트 (iii)).
+    최댓값: AUCinf 구성은 2016 모델 {i16}, 2020 모델 {i20}(모두 표적 매개 소실 칸). AUClast 구성의 {nom} 초과 한 조건은 2020 모델 말초 분포 증가 칸 {ci}이다(원인 분해는 별첨 A5).
+    참조: 참 AUCinf로 판정하면 경계 1종 오류는 {ref}다. 체중 층을 넣지 않은 분석 모형(M0)에서는 AUCinf 구성 {i0}개, AUClast 구성 {p0}개 조건이 {nom}를 넘는다(별첨 A5).

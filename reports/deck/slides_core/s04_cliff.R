@@ -42,7 +42,8 @@ slide_S4 <- function() {
     scale_x_continuous(breaks = brk, limits = c(0, max(b0) + 1 + 2.5), expand = expansion(mult = 0)) +
     labs(x = L$xlab, y = NULL, subtitle = L$ylab) + theme_core(16) +
     theme(plot.subtitle = element_text(margin = margin(0, 0, 4, 0)), panel.grid.minor = element_blank())
-  body <- tx("S4.body", list(d1 = dcfg("oc_design.yaml", c("cliff", "definition_days"), "cliff start: instantaneous half-life threshold (days)", function(x) fnum(x[1], 0)),
+  d1v <- .read("config/oc_design.yaml")$cliff$definition_days[1]
+  body <- tx("S4.body", list(d1 = dderived("cliff start: instantaneous half-life threshold, primary definition (days)", "config/oc_design.yaml", "cliff.definition_days :: first element (primary definition)", d1v, fnum(d1v, 0)),
                              int = dint(CP, "model=='k2016' & weight=='base' & timing=='nominal' & definition_day==1 & schedule=='current'", "min_interval_day", "sampling interval of the current schedule in the cliff window (days)"),
                              ge1 = dv(CP, "model=='k2016' & weight=='base' & timing=='nominal' & definition_day==1 & schedule=='current'", "pct_ge1", 0, "%", "share with one or more current samples on the cliff, 2016"),
                              ge2 = dv(CP, "model=='k2016' & weight=='base' & timing=='nominal' & definition_day==1 & schedule=='current'", "pct_ge2", 0, "%", "share with two or more current samples on the cliff, 2016"),
