@@ -1,6 +1,6 @@
 S17:
   kicker: "논거 ③ AUC0-last가 AUC0-inf를 대신한다 · 시험 수준"
-  title: "AUC0-last 시험 GMR의 기하평균은 참 AUC0-inf 비에서 {a} 이내이고, NCA AUC0-inf(규칙 A (i)·(ii)·B)는 최대 {b} 벗어난다"
+  title: "칸별 AUC0-last 시험 GMR의 기하평균은 참 AUC0-inf 비에서 {a} 이내이고, NCA AUC0-inf(규칙 A (i)·(ii)·B)는 최대 {b} 벗어난다"
   ep:
     AUCinf_true: "참 AUC0-inf 끝점"
     AUClast: "AUC0-last"
