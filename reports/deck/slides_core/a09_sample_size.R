@@ -34,15 +34,18 @@ slide_A9 <- function() {
     mc_n = dcount(MC, "TRUE", "grid cells simulated"),
     cv16 = dv(SI, "input_model=='k2016'", "cv_auc_pct", 1, "%", "AUClast CV, 2016 model (%)"), cv20 = dv(SI, "input_model=='k2020'", "cv_auc_pct", 1, "%", "AUClast CV, 2020 model (%)"),
     li = dcfg("design_clot2021.yaml", c("variability_checks", "li2020", "cv_pct_range"), "Li 2020 Table 3, 300 mg arms, SD/mean range (%)", function(x) rng_fmt(x[1], x[2], 0)),
-    coh = dv(LS, "startsWith(variant, 'Cohen')", "AUClast_logcv", 0, "%", "Cohen 2022 implied AUClast CV (%)")))
+    coh = dv(LS, "startsWith(variant, 'Cohen')", "AUClast_logcv", 0, "%", "Cohen 2022 implied AUClast CV (%)"),
+    cvc = dv(SI, "input_model=='k2016'", "cv_cmax_pct", 1, "%", "Cmax CV, 2016 model (%)")))
+  premise(any(grepl("^held at the simulated value", unlist(pr))), "Cmax CV held at the simulated value (caption)")
+  premise(any(grepl("^equal to the AUClast GMR \\(primary, conservative\\)", unlist(pr))), "true Cmax ratio equal to the AUClast ratio, primary conservative assumption (caption)")
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
 
   # ---- 왼쪽: 검정력 표와 본문 ----
   TW <- 7.6; hh <- 0.40
-  body <- tx("A9.body", list(n_arm = f$n_arm, n_rand = f$n_rand, cv_ok = dint(TP, a9_w(cv_ok, n_arm), "cv", "largest grid CV with power at the target, protocol n (%)"),
+  body <- tx("A9.body", list(g = dv(TP, a9_w(cv_b, n_arm), "gmr", 2, "", "true GMR of the power table (body)"), n_arm = f$n_arm, n_rand = f$n_rand, cv_ok = dint(TP, a9_w(cv_ok, n_arm), "cv", "largest grid CV with power at the target, protocol n (%)"),
                              tgt = dint(NN, a9_wn(cv_b, "M1", tg), "target_pct", "target power (%)")))
-  by <- core_body(body, capy - 0.10, width = TW)
-  deck_text(tx("A9.head", list(n_rand = f$n_rand, n_arm = f$n_arm)), c(GEO$ML, y0, TW, hh), size = 16, bold = TRUE, label = "label_table", gap_pt = 0)
+  by <- core_body(body, capy - 0.06, width = TW)
+  deck_text(tx("A9.head", list(n_rand = f$n_rand, n_arm = f$n_arm, g = dv(TP, a9_w(cv_b, n_arm), "gmr", 2, "", "true GMR of the power table (table label)"))), c(GEO$ML, y0, TW, hh), size = 16, bold = TRUE, label = "label_table", gap_pt = 0)
   tag <- function(cv) if (cv == cv_b) L$table$base else if (cv == cv_s) L$table$sens else ""
   row_lab <- function(cv) { s <- fill(L$table$row, list(cv = dint(TP, a9_w(cv, n_arm), "cv", sprintf("grid CV %s (%%)", cv)))); t_ <- tag(cv); if (nzchar(t_)) paste(s, t_) else s }
   cell <- function(cv, n) dv(TP, a9_w(cv, n), "analytic_pct", 1, "", sprintf("P2 power n %s CV %s GMR 0.95 M1", n, cv))
@@ -50,8 +53,8 @@ slide_A9 <- function() {
   for (n in ns) df[[as.character(n)]] <- vapply(cvs, function(cv) cell(cv, n), "")
   nlab <- function(n) dint(TP, a9_w(cv_b, n), "n", "evaluable subjects per arm (grid column)")
   names(df) <- c(L$table$h_cv, vapply(ns, function(n) fill(if (n == n_arm) L$table$h_now else L$table$h_n, list(n = nlab(n))), ""))
-  ty <- y0 + hh; th <- by - 0.10 - ty
-  deck_table(df, box = c(GEO$ML, ty, TW, th), widths = c(2.3, 1.25, 1.55, 1.25, 1.25), size = 14, highlight = which(cvs %in% c(cv_b, cv_s)), highlight_fill = PAL$tint_blue, label = "table_power")
+  ty <- y0 + hh; th <- by - 0.06 - ty
+  deck_table(df, box = c(GEO$ML, ty, TW, th), widths = c(2.3, 1.25, 1.55, 1.25, 1.25), size = 14, highlight = which(cvs %in% c(cv_b, cv_s)), highlight_fill = PAL$tint_blue, label = "table_power", pad = 2)   # 셀 위아래 여백 2pt: 표 아래 본문·캡션 세 줄 자리
   dsrc("power table", TP, "(table)")
 
   # ---- 오른쪽: 카드 두 개(프로토콜, 민감도), 캡션 위까지 ----

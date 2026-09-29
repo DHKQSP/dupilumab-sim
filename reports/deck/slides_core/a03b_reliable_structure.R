@@ -86,10 +86,10 @@ slide_A3b <- function() {
     s0 = dderived("largest absolute mean arm difference, identical products, set (iii), two models (points)", TAD, "scenario=='S00' & set=='iii' :: max(abs(diff_mean))", s0, s0p),
     r80 = drange(TAD, sprintf("set=='iii' & scenario %%in%% %s & scenario!='S00'", a3b_in(A3B_SC)), "auc_ratio", 2, "", "true AUCinf ratio, plotted boundary cells, two models"),
     mxi = f$mxi, mx = f$mx, cmx = f$cmx))
-  capy <- core_caption(tx("A3b.caption", list(r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap"), r2i = f_set("i", "r2"), sp4 = f_set("iv", "span"))), GEO$BODY_BOTTOM, size = 14)
-  BH <- est_height(bl, GEO$CW, 18, 6, indent = 0.3) + 0.04
+  capy <- core_caption(tx("A3b.caption", list(r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap"), r2i = f_set("i", "r2"), sp4 = f_set("iv", "span"), mx = f$mx, cmx = f$cmx)), GEO$BODY_BOTTOM, size = 14)
+  BH <- est_height(bl, GEO$CW, 18, 4, indent = 0.3) + 0.04
   BY <- capy - 0.04 - BH
-  deck_bullets(bl, box = c(GEO$ML, BY, GEO$CW, BH), size = 18, gap_pt = 6)
+  deck_bullets(bl, box = c(GEO$ML, BY, GEO$CW, BH), size = 18, gap_pt = 4)
 
   # ---- 그림 왼쪽: 잔차 절반 ----
   FL <- L$fig

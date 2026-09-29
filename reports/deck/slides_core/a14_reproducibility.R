@@ -23,7 +23,7 @@ slide_A14 <- function() {
   PV <- "core_deck/provenance.csv"; P29 <- "config/prereg_20260929.yaml"
   CB <- "ci/ci_failures_before.csv"; CS <- "ci/ci_failure_summary.csv"; CA <- "ci/ci_runs_after_fix.csv"; CV <- "ci/ci_runs_v101.csv"; CD <- "ci/ci_runs_deck.csv"
   RI <- "repro/repro_github_items.csv"; RC <- "repro/repro_check.csv"
-  deck_slide("A14", tag = "sim")
+  deck_slide("A14", tag = "none")   # 모의 결과가 아니라 재현성·검증 기록
 
   # ---- ① 핵심 덱 입력: 대조 행과 입력 행 ----
   pv <- rows(PV); inp <- startsWith(pv$check, "input ")
@@ -45,9 +45,11 @@ slide_A14 <- function() {
   sh <- sub("^  prereg_20260929.yaml: ", "", grep("^  prereg_20260929.yaml: ", ll, value = TRUE))
   premise(length(sh) == 1 && identical(sh, digest::digest(file = proj_path(P29), algo = "sha256")), "the registration read by the latest scripts/63 run is the current config/prereg_20260929.yaml")
   unc <- sub("^  uncommitted: [A-Z?]+ ", "", grep("^  uncommitted: ", ll, value = TRUE)); clean63 <- any(ll == "git_code_clean: TRUE")
+  d63 <- readLines(proj_path("DECISIONS.md"), warn = FALSE, encoding = "UTF-8")
+  premise(!clean63 || (any(grepl("git_code_clean: FALSE", d63, fixed = TRUE)) && any(grepl("바이트 단위로 같았다", d63, fixed = TRUE))),
+          "clean latest run: DECISIONS D-063 records the earlier uncommitted run and the byte-identical re-run (notes)")
   premise(clean63 == (length(unc) == 0) && !any(grepl("prereg_20260929", unc, fixed = TRUE)), "the registration was committed when scripts/63 ran; the clean flag matches the list of uncommitted files")
   cm63 <- substr(sub("^git_sha: ", "", grep("^git_sha: [0-9a-f]{40}$", ll, value = TRUE)), 1, 7); premise(length(cm63) == 1 && nchar(cm63) == 7, "commit of the scripts/63 run")
-  d63 <- readLines(proj_path("DECISIONS.md"), warn = FALSE, encoding = "UTF-8")
   premise(any(grepl("앞선 세 번의 실행은 결과 전에 멈추거나 대체됐다", d63, fixed = TRUE) & grepl("사전 등록에 없는 조건이라 뺌", d63, fixed = TRUE) & grepl("세 로그는 지웠고", d63, fixed = TRUE)),
           "DECISIONS D-063: three earlier runs stopped or were superseded (one on a premise not in the registration, dropped); their logs were deleted")
   seed <- dderived("master seed of the regeneration (original seed rule of scripts/10 and scripts/21)", P29,
@@ -100,7 +102,8 @@ slide_A14 <- function() {
              rf = drange(CV, "conclusion=='failure'", "run_number", 0, "", "failed runs (strict-skip rule), run numbers"),
              fx2 = dint(CV, "grepl('^fix of runs', note)", "run_number", "run that fixed the strict-skip failures"),
              rd = dint(CD, "workflow=='tests' & conclusion=='failure'", "run_number", "failed run of the deck record (environment setup)"),
-             fx3 = dint(CD, "workflow=='tests' & grepl('^fix of run', note)", "run_number", "run that fixed the environment-setup failure"))
+             fx3 = dint(CD, "workflow=='tests' & grepl('^fix of run', note)", "run_number", "run that fixed the environment-setup failure"),
+    r1 = drange(CB, "TRUE", "run_number", 0, "", "runs before the environment fix, run numbers"))
   premise(as.numeric(f3$nf) == nrow(fl) + nrow(dfl), "failures after the fix = strict-skip failures + the environment-setup failure")
 
   y0 <- core_title(tx("A14.title", list(neq = f1$neq, ni = f2$ni)), tx("A14.kicker"))
@@ -128,7 +131,6 @@ slide_A14 <- function() {
     ncol = { x <- nrow(rows(PV, RX$nca)) / 2; dderived("NCA columns compared per model", PV, sprintf("count of rows [%s] / 2 models", RX$nca), x, fnum(x, 0)) },
     nsub = dcount(PV, RX$sub, "representative-subject checks (true AUC at tlast, re-solved concentration)"),
     nsum = dcount(PV, RX$sum, "identity checks against stored summaries"),
-    r1 = drange(CB, "TRUE", "run_number", 0, "", "runs before the environment fix, run numbers"),
     a = dint(CS, "cause=='no renv.lock in commit'", "n_runs", "runs failed: no renv.lock in commit"),
     b = dint(CS, "cause=='xml2 missing for testthat::JunitReporter'", "n_runs", "runs failed: xml2 missing for JunitReporter"),
     nl = dcount(RC, "pass==TRUE", "reproducibility items passing locally"),

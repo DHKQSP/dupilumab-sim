@@ -149,7 +149,7 @@ slide_A12 <- function() {
   names(df) <- unlist(H$head)
   cap <- tx("A12.caption")
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
-  deck_table(df, box = c(GEO$ML, y0, GEO$CW, capy - 0.12 - y0), widths = c(1.65, 2.8, 7.78), size = 14, label = "table_limits", align_cols = rep("left", 3),
+  deck_table(df, box = c(GEO$ML, y0, GEO$CW, capy - 0.05 - y0), widths = c(1.65, 2.8, 7.78), size = 14, label = "table_limits", align_cols = rep("left", 3),
              highlight = 5:7, highlight_fill = PAL$tint_grey, pad = 2)   # 셀 위아래 여백 2pt: 8행 표와 캡션을 한 장에   # 아직 하지 않은 검증(제목)
   deck_src_first(c(PV, QC, LC))
 

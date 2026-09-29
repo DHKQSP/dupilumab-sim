@@ -103,7 +103,7 @@ slide_A7 <- function() {
   df <- rbind(setNames(as.data.frame(as.list(crit), stringsAsFactors = FALSE), names(df)), df)
   names(df) <- tx("A7.table.head", thr)
   WD <- c(2.45, 1.95, 1.95, 1.9, 1.9, 2.05)
-  TH <- deck_table_h(df, GEO$CW, WD, 14, pad = 2) + 0.04
+  TH <- deck_table_h(df, GEO$CW, WD, 14, pad = 2) + 0.02
   deck_table(df, box = c(GEO$ML, y0, GEO$CW, TH), widths = WD, size = 14, highlight = 1, highlight_fill = PAL$tint_blue, label = "table_schedule", pad = 2)   # 셀 위아래 여백 2pt: 표 아래 요점·캡션 자리
 
   # ---- 요점과 캡션 ----
@@ -129,8 +129,8 @@ slide_A7 <- function() {
   premise(all(c(cs_$ii$extrap_max_pct, cs_$iii$extrap_max_pct) == .read("config/nca_rules.yaml")$standard$reliability$extrap_max_pct), "sets (ii) and (iii) use the same extrapolation limit as the NCA flag (caption)")
   cap <- tx("A7.caption", c(vs, list(x = thr$x, r2i = f_set("ii", "r2"), sp2 = f_set("ii", "span"), r2 = f_set("iii", "r2"))))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
-  BY <- y0 + TH + 0.1
-  deck_bullets(bl, box = c(GEO$ML, BY, GEO$CW, capy - 0.04 - BY), size = 18, gap_pt = 6)
+  BY <- y0 + TH + 0.02
+  deck_bullets(bl, box = c(GEO$ML, BY, GEO$CW, capy - 0.02 - BY), size = 18, gap_pt = 3)
 
   # ---- 노트 ----
   D200 <- function(v) sprintf("individual200k/criterion_d_200k_%s.csv", v)
