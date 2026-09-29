@@ -45,7 +45,7 @@ S <- rbindlist(lapply(seq_along(slide_files), function(i) {
   rf <- file.path(dirname(slide_files[i]), "_rels", paste0(basename(slide_files[i]), ".rels"))
   if (file.exists(rf)) { rr <- read_xml(rf); tg <- xml_attr(xml_children(rr), "Target"); nt <- tg[grepl("notesSlide", tg)]
     if (length(nt)) { nd <- read_xml(normalizePath(file.path(dirname(slide_files[i]), nt))); body <- xml_find_all(nd, "//p:sp[.//p:ph[@type='body']]", ns)
-      out <- rbind(out, data.table(n = i, shape = "notes", kind = "notes", text = paste(vapply(body, para_text, ""), collapse = "\n"), min_sz = NA_integer_)) } }
+      out <- rbind(out, data.table(n = i, shape = "notes", kind = "notes", text = paste(vapply(body, para_text, ""), collapse = "\n"), min_sz = NA_integer_, y = NA_real_, x = NA_real_)) } }
   out
 }))
 meta <- meta[order(n)]; S[, id := meta$id[n]]   # n = 슬라이드의 pptx 안 순서(부분 빌드에서도 meta와 같은 순서)

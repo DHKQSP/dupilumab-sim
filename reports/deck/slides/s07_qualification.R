@@ -21,6 +21,8 @@ slide_S07 <- function() {
   tol <- dcfg("design_clot2021.yaml", c("gate", "auclast_mean_tol_pct"), "validation criterion: simulated AUC0-last mean within +-x% of observed (%)", num_fmt(0))
   d200 <- drange(Q16, "gate_role=='external'", "dose_mg", 0, "", "dose of the other presentation (mg)")
   deck_kicker(tx("S07.kicker")); deck_title(tx("S07.title", list(tol = tol, d200 = d200)))
+  to <- drange(Q16, "gate_role=='external'", "tmax_obs_median", 1, "", "observed median tmax, other presentation (days)")
+  ts <- drange(Q16, "gate_role=='external'", "tmax_sim_median", 0, "", "simulated median tmax, other presentation (days)")
 
   # ---- 그림: 자료별 AUC0-last 모의/관측, 두 모델, 허용 범위 ----
   L <- DK$txt$S07$fig
@@ -42,16 +44,20 @@ slide_S07 <- function() {
   I <- rbindlist(items); H <- rbindlist(heads)
   P <- melt(I, id.vars = c("y", "lab"), measure.vars = c("k2016", "k2020"), variable.name = "model", value.name = "ratio")
   P[, model := factor(model_lab()[as.character(model)], levels = model_lab())]
-  xl <- c(0.7, 1.35); FW <- 5.95
+  xl <- c(0.7, 1.35); FW <- 5.5
+  # 허용 범위 음영과 기준선 1은 자료 행이 있는 구간에만 그린다(묶음 제목 줄은 비워 제목이 음영을 가리지 않게)
+  I[, grp := rep(seq_along(G), vapply(G, nrow, 1L))]
+  GB <- I[, .(y0 = min(y) - 0.5, y1 = max(y) + 0.5), by = grp]
+  premise(max(g3$k2016, g3$k2020) < 1 + tolv / 2, "200 mg points lie left of the tmax note (right part of the panel)")
   p <- ggplot() +
-    annotate("rect", xmin = 1 - tolv, xmax = 1 + tolv, ymin = -Inf, ymax = Inf, fill = PAL$tint_grey) +
-    geom_vline(xintercept = 1, colour = PAL$muted, linewidth = 0.5) +
+    geom_rect(data = GB, aes(xmin = 1 - tolv, xmax = 1 + tolv, ymin = y0, ymax = y1), fill = PAL$tint_grey) +
+    geom_segment(data = GB, aes(x = 1, xend = 1, y = y0, yend = y1), colour = PAL$muted, linewidth = 0.5) +
     geom_segment(data = I, aes(x = k2016, xend = k2020, y = y, yend = y), colour = PAL$muted, linewidth = 0.6) +
     geom_point(data = P, aes(ratio, y, colour = model, shape = model), size = 3) +
-    geom_label(data = H, aes(x = xl[1], y = y, label = lab), hjust = 0, vjust = 0.5, size = 4.3, fontface = "bold", family = FONT, colour = PAL$ink,
-               fill = "white", label.size = 0, label.padding = grid::unit(0.12, "lines"), label.r = grid::unit(0, "lines")) +
-    annotate("label", x = 1, y = max(H$y) + 0.9, label = fill(L$band, list(tol = tol)), hjust = 0.5, vjust = 0.5, size = 3.9, family = FONT, colour = PAL$ink2,
-             fill = PAL$tint_grey, label.size = 0, label.padding = grid::unit(0.1, "lines")) +
+    geom_text(data = H, aes(x = xl[1], y = y, label = lab), hjust = 0, vjust = 0.5, size = 4.3, fontface = "bold", family = FONT, colour = PAL$ink) +
+    annotate("text", x = 1, y = max(H$y) + 0.95, label = fill(L$band, list(tol = tol)), hjust = 0.5, vjust = 0.5, size = 3.9, family = FONT, colour = PAL$ink2) +
+    annotate("label", x = xl[2] - 0.01, y = mean(I[grp == length(G), y]), label = fill(L$tmax, list(to = to, ts = ts)), hjust = 1, vjust = 0.5, size = 3.9, family = FONT,
+             colour = PAL$ink2, lineheight = 0.95, fill = "white", label.size = 0, label.padding = grid::unit(0.15, "lines"), label.r = grid::unit(0, "lines")) +
     scale_colour_manual(values = unname(MODEL_COL)) + scale_shape_manual(values = unname(MODEL_SHAPE)) +
     scale_y_continuous(breaks = I$y, labels = I$lab, limits = c(min(I$y) - 0.5, max(H$y) + 1.45), expand = expansion(0)) +
     scale_x_continuous(limits = xl, breaks = seq(0.7, 1.3, by = 0.1), expand = expansion(0)) +
@@ -68,8 +74,7 @@ slide_S07 <- function() {
     gc20 = drange(Q20, "gate_role=='gate'", "Cmax_ratio", 2, "", "Cmax sim/obs range, 2020"),
     vol = s07_num(Q16, "id=='PKM14271_200mg_test'", "presentation", 1, 2, "other presentation: volume (mL)"),
     conc = s07_num(Q16, "id=='PKM14271_200mg_test'", "presentation", 2, 2, "other presentation: concentration (mg/mL)"),
-    to = drange(Q16, "gate_role=='external'", "tmax_obs_median", 1, "", "observed median tmax, other presentation (days)"),
-    ts = drange(Q16, "gate_role=='external'", "tmax_sim_median", 0, "", "simulated median tmax, other presentation (days)"),
+    to = to, ts = ts,
     r16 = drange(Q16, "gate_role=='external'", "AUClast_ratio", 2, "", "AUC0-last sim/obs, other presentation, 2016"),
     r20 = drange(Q20, "gate_role=='external'", "AUClast_ratio", 2, "", "AUC0-last sim/obs, other presentation, 2020"),
     km = drange(DSM, "ka_multiplier %in% c(1.5, 2)", "ka_multiplier", 1, "", "absorption diagnostic: ka multipliers"),
@@ -84,8 +89,16 @@ slide_S07 <- function() {
     x16 = dv(H16, "item=='PKM12350 test'", "ratio", 2, "", "PKM12350 test arm sim/obs, 2016 (fully external judgement)"),
     w0 = dcfg("design_clot2021.yaml", c("arm_checks_300mg", "weight", "mean"), "assumed mean weight of the single arms (kg)", num_fmt(0)),
     p1 = dv(A16, "study=='PKM12350' & arm=='test'", "auclast_obs", 1, "", "PKM12350 test arm observed mean AUC0-last"),
-    p2 = dv(A16, "study=='PKM12350' & arm=='reference'", "auclast_obs", 0, "", "PKM12350 reference arm observed mean AUC0-last"),
-    pmx = dext(A16, "TRUE", "auclast_obs", max, 0, "", "largest observed 300 mg single-arm mean AUC0-last"))
+    p2 = dv(A16, "study=='PKM12350' & arm=='reference'", "auclast_obs", 1, "", "PKM12350 reference arm observed mean AUC0-last"),
+    pmx = dext(A16, "TRUE", "auclast_obs", max, 1, "", "largest observed 300 mg single-arm mean AUC0-last"))
+  # Cmax 비: 최대 코호트(이름은 그림 문구에서, 용량은 자료에서), 과대 예측이 아닌 값은 많아야 하나
+  qg <- q16[gate_role == "gate"]; cid <- qg[which.max(Cmax_ratio), id]
+  fct$cmx <- sprintf("%s mg %s", dv(Q16, sprintf("id=='%s'", cid), "dose_mg", 0, "", "dose of the cohort with the largest Cmax sim/obs, 2016"), sub(" \\(.*\\)$", "", L$ds[[cid]]))
+  premise(sum(c(qg$Cmax_ratio, q20[gate_role == "gate", Cmax_ratio]) <= 1) <= 1, "Cmax over-predicted in all but at most one study-presentation cohort over both models (text: mostly over-predicted)")
+  premise(nrow(a16) == 6, "six 300 mg single arms (text: lowest of six)")
+  premise(length(list.files(proj_path("results"), pattern = "heterogen", recursive = TRUE, ignore.case = TRUE)) == 0, "no between-study heterogeneity statistic in the result files (text: not computed)")
+  eo <- .read("config/design_clot2021.yaml")$external_only_gate
+  premise(!setequal(unlist(eo$k2016), unlist(eo$k2020)), "fully external item lists differ by model (text: different numbers of items)")
   fl <- rbind(rows(H16, "pass_mean==FALSE"), rows(H20, "pass_mean==FALSE"))
   premise(all(fl$type == "Li 2020 arm"), "every fully external failure is a Li 2020 single arm (no reported weight)")
   premise(identical(a16[order(auclast_obs)][1:2, study], c("PKM12350", "PKM12350")), "PKM12350 arms have the two lowest observed means of the six 300 mg arms")
@@ -108,6 +121,7 @@ slide_S07 <- function() {
     rng = dspan("step1/step1f_300mg_arm_check_summary.csv", "TRUE", "arm_min", "arm_max", 1, "", "observed 300 mg single-arm mean range"),
     x16 = fct$x16, w0 = fct$w0,
     x78 = dv(WS, sprintf("model=='k2016' & study=='PKM12350' & arm=='test' & weight_mean==%s", .read("config/design_clot2021.yaml")$arm_checks_300mg$weight$mean), "ratio", 2, "", "PKM12350 test sim/obs at the assumed weight, weight-sensitivity run, 2016"),
-    f20 = fct$f20, n20 = fct$n20, n16 = fct$n16, f16 = fct$f16)))
+    f20 = fct$f20, n20 = fct$n20, n16 = fct$n16, f16 = fct$f16, cmx = fct$cmx,
+    cmin20 = dext(Q20, "gate_role=='gate'", "Cmax_ratio", min, 3, "", "smallest Cmax sim/obs, 2020, study presentation"))))
   deck_end()
 }

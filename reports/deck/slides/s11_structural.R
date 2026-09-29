@@ -148,7 +148,7 @@ slide_S11 <- function() {
     ar2a = dv(TRS, "variant=='k2016' & set=='i'", "adj_r2_median", 3, "", "median adjusted R-squared, 2016 model"),
     ar2b = dv(TRS, "variant=='resid12' & set=='i'", "adj_r2_median", 3, "", "median adjusted R-squared, residual 12%"),
     m20iv = dv(TRS, "variant=='k2020' & set=='iv'", "fail_pct", 1, "%", "set (iv) failing, 2020 model"), m20iii = dv(TRS, "variant=='k2020' & set=='iii'", "fail_pct", 1, "%", "set (iii) failing, 2020 model"),
-    spa = bl$spa, spb = bl$spb, sp4 = bl$sp4,
+    spa = bl$spa, spb = bl$spb, sp4 = bl$sp4, sp2 = f_set("ii", "span"),
     h4 = drange(TPR, "set=='iv' & reason=='span ratio below threshold'", "hierarchical_pct", 1, "%", "span below 3 (hierarchical), two models"),
     any = bl$any, win = bl$win, hl = bl$hl,
     w3 = drange(LW, "variant %in% c('base','struct2020') & schedule=='B0'", "min_3pt_nominal_window_days", 0, "", "shortest three-point nominal window after Day 22, B0 (days)"),

@@ -30,8 +30,9 @@ slide_A1 <- function() {
     wt <- dv(G16, WG[[k]], "weight_mean", 1, "", sprintf("%s, mean body weight of the simulated cohort (kg)", k))
     premise(row1(G16, WG[[k]])$weight_mean == row1(G20, WG[[k]])$weight_mean, sprintf("same weight in both models (%s)", k))
     lab <- a1_label(G16, WG[[k]], sprintf("%s, source label", k))
-    interp <- if (agree) tx("A1.interp.agree", list(d = dd, tol = tol$p)) else {
-      premise(r$nca_mean_ratio_k2016 < r$lit_mean_ratio && r$true_mean_ratio_k2016 < r$lit_mean_ratio && r$true_mean_ratio_k2020 < r$lit_mean_ratio, sprintf("simulated true ratio below the published NCA ratio (%s)", k))
+    interp <- if (agree) tx("A1.interp.agree", list(d = dd)) else {
+      premise(r$nca_mean_ratio_k2016 < r$lit_mean_ratio && r$nca_mean_ratio_k2020 < r$lit_mean_ratio && r$true_mean_ratio_k2016 < r$lit_mean_ratio && r$true_mean_ratio_k2020 < r$lit_mean_ratio,
+              sprintf("simulated NCA and true mean ratios below the published NCA ratio in both models (%s)", k))
       tx("A1.interp.lower", list(d = dd)) }
     if (k == "c200") interp <- paste(interp, tx("A1.interp.ext"))
     if (k == "pkm") interp <- paste(interp, tx("A1.interp.wt"))
@@ -42,21 +43,23 @@ slide_A1 <- function() {
       interp)
   }
   keys <- c("c300", "pkm", "c600", "c200")
-  m <- t(vapply(keys, row_of, character(5))); df <- as.data.frame(m, stringsAsFactors = FALSE); names(df) <- tx("A1.table.head")
+  m <- t(vapply(keys, row_of, character(5))); df <- as.data.frame(m, stringsAsFactors = FALSE); names(df) <- tx("A1.table.head", list(tol = tol$p))
   agree_of <- function(k) { r <- row1(LN, W[[k]]); abs(r$nca_mean_ratio_k2016 - r$lit_mean_ratio) * 100 <= tol$x + 1e-12 && abs(r$nca_mean_ratio_k2020 - r$lit_mean_ratio) * 100 <= tol$x + 1e-12 }
   premise(agree_of("c300") && agree_of("pkm") && !agree_of("c600") && row1(LN, W$pkm)$dose_mg == 300, "title: both 300 mg rows agree, the 600 mg row does not")
   deck_kicker(tx("A1.kicker")); premise(as.numeric(.read("config/trial_design.yaml")$dose_mg) == 300, "study dose equals the 300 mg literature rows")
   deck_title(tx("A1.title", list(tol = tol$p, dose = f_dose(), d600 = dint(LN, W$c600, "dose_mg", "dose of the lower-coverage literature row (mg)"))))
-  th <- 2.85
-  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, th), widths = c(2.8, 1.3, 2.1, 2.1, 3.95), size = 13, align_num = TRUE, highlight = 1)
-  deck_text(tx("A1.caption"), c(GEO$ML, GEO$BODY_TOP + th + 0.06, GEO$CW, 0.45), size = 16, color = PAL$ink2, label = "caption_lowerbound")
+  # 해석 열은 한 줄(일치 기준은 머리글에), 차이 계산 방식과 보수적 방향의 이유는 표 아래 설명에 둔다. 강조 행 없음(색만으로 뜻을 나타내지 않는다)
+  th <- 2.78
+  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, th), widths = c(2.75, 1.2, 1.75, 1.75, 4.78), size = 13, align_num = TRUE)
+  yc <- GEO$BODY_TOP + th + 0.1; hc <- 0.72
+  deck_text(tx("A1.caption"), c(GEO$ML, yc, GEO$CW, hc), size = 16, color = PAL$ink2, label = "caption_lowerbound", gap_pt = 0)
   # 정성 서술(프로젝트 문헌 발췌표 literature_qualitative.csv; 보고서 1.1절)
   dsrc("qualitative statements of the originator literature", "literature/literature_qualitative.csv", "(table)")
-  yq <- GEO$BODY_TOP + th + 0.57; hq <- GEO$BODY_BOTTOM - yq; wq <- (GEO$CW - 0.3) / 2
-  deck_text(tx("A1.qual_label"), c(GEO$ML, yq, GEO$CW, 0.45), size = 16, bold = TRUE, color = PAL$ink2, label = "label_qual")
+  yq <- yc + hc + 0.12; hq <- GEO$BODY_BOTTOM - yq; wq <- (GEO$CW - 0.3) / 2
+  deck_text(tx("A1.qual_label"), c(GEO$ML, yq, GEO$CW, 0.42), size = 16, bold = TRUE, color = PAL$ink2, label = "label_qual", gap_pt = 0)
   q <- tx("A1.qual")
-  deck_bullets(q[1:3], c(GEO$ML, yq + 0.45, wq, hq - 0.45), size = 16, gap_pt = 4, label = "qual_left")
-  deck_bullets(q[4:5], c(GEO$ML + wq + 0.3, yq + 0.45, wq, hq - 0.45), size = 16, gap_pt = 4, label = "qual_right")
+  deck_bullets(q[1:3], c(GEO$ML, yq + 0.42, wq, hq - 0.42), size = 16, gap_pt = 4, label = "qual_left")
+  deck_bullets(q[4:5], c(GEO$ML + wq + 0.3, yq + 0.42, wq, hq - 0.42), size = 16, gap_pt = 4, label = "qual_right")
   deck_notes(tx("A1.notes", list(
     tol = tol$p,
     n16 = dv(G16, "grepl('Clot', source) & dose_mg==300", "mean_ratio_nca_reliable", 1, "%", "Clot 300 mg, simulated NCA mean ratio in subjects meeting the criteria, 2016", scale = 100),

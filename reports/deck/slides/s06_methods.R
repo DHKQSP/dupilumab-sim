@@ -29,7 +29,7 @@ slide_S06 <- function() {
 
   # ---- 단계 카드 5개(①~⑤): 제목 + 설명. 카드 너비는 글 양에 맞춰 나누고(가중치), 높이는 가장 긴 카드의 추정 높이에 맞춘다 ----
   S <- DK$txt$S06$steps; n <- length(S); gap <- 0.12; y0 <- GEO$BODY_TOP + 0.05
-  wt_ <- c(2.15, 1.95, 2.35, 2.5, 2.8); w <- wt_ / sum(wt_) * (GEO$CW - (n - 1) * gap)
+  wt_ <- c(2.1, 2.03, 2.35, 2.55, 2.72); w <- wt_ / sum(wt_) * (GEO$CW - (n - 1) * gap)
   paras <- lapply(seq_len(n), function(i) c(sprintf("__%s__", S[[i]]$head), vapply(S[[i]]$body, function(s) fill(s, f, sprintf("S06.steps.%d", i)), "")))
   hc <- max(vapply(seq_len(n), function(i) est_height(vapply(paras[[i]], nobreak, ""), w[i], 16, gap_pt = 7, card = TRUE), 0)) + 0.08
   for (i in seq_len(n)) {
@@ -53,7 +53,9 @@ slide_S06 <- function() {
   }
   m <- do.call(rbind, lapply(names(ds), one)); df <- as.data.frame(m, stringsAsFactors = FALSE); names(df) <- unlist(DK$txt$S06$table$head)
   yb <- y0 + hc + 0.25; hb <- GEO$BODY_BOTTOM - yb; tw <- 7.6
-  deck_table(df, box = c(GEO$ML, yb, tw, min(hb, 1.45)), widths = c(2.75, 1.0, 1.35, 1.35, 1.15), size = 13)
+  th <- 1.36   # 머리글 한 줄 + 3행(LibreOffice는 행 높이를 가장 높은 행에 맞추므로 머리글을 한 줄로 둔다)
+  deck_table(df, box = c(GEO$ML, yb, tw, th), widths = c(2.85, 0.85, 1.3, 1.2, 1.4), size = 13)
+  deck_text(DK$txt$S06$table$caption, c(GEO$ML, yb + th + 0.06, tw, 0.4), size = 16, color = PAL$ink2, label = "table_note")
 
   # ---- 사전 등록 상자 ----
   c779 <- s06_commit("^Operating-characteristic design", "pre-registration commit, operating-characteristic design")

@@ -1,4 +1,4 @@
-# S23 통계분석계획(SAP) 제안 요지: 1차(AUC0-last + Cmax, 주분석 M1, M0 민감도), 이차(AUC0-inf, 기준 세트 (i), 두 분석군, adjusted R² 0.90 인원 병기),
+# S23 통계분석계획(SAP) 제안 요지: 1차(AUC0-last + Cmax, 주분석 M1(의뢰자 결정 전), M0 민감도), 이차(AUC0-inf, 기준 세트 (i), 두 분석군, adjusted R² 0.90 인원 병기),
 # 민감도(규칙 C 세트 (i), 항약물항체 상태별), FDA 요구 시 대응안(규칙 B 공동 1차). 카드 네 개(도식). [문헌+모의]
 # 출처: regulatory/sap_text_proposals_en.md 1~7절의 문안(수치는 같은 결과 파일에서 SAP 문서와 같은 행 조건으로 읽는다).
 # 주의: SAP 문안은 주분석 모형을 "[M0 or M1, to be selected by the sponsor]"로 두고 7절 상태가 "pending (sponsor)"다. 덱은 M1을 기준으로 하되 확인 대기로 적는다.
@@ -24,25 +24,32 @@ slide_S23 <- function() {
   mx1 <- rows(CG, s23_w("M1", "G2_C_i")); mx1 <- mx1[which.max(pass_pct)]; p2 <- rows(T1, s23_w("M1", "P2")); p2 <- p2[which.max(pass_pct)]
   premise(mx1$pk_model == p2$pk_model && mx1$scenario == p2$scenario, "rule C (i) and P2 are highest in the same boundary cell under M1 (notes)")
   premise(nrow(rows(T1, s23_w("M1", "F3B", " & class=='conservative'"))) == 16, "fallback F3B conservative in all 16 cells under M1 (text)")
+  # 대응안의 규칙 A·C 민감도(F3A, F3C)는 세트 (ii) 탈락 정의(AUCinf_A, AUCinf_C)로 계산되었고 세트 (i) 세 평가변수 구성은 없다(노트)
+  OC <- .read("config/oc_design.yaml")$configurations; CB <- "criteria/criteria_bias.csv"
+  premise(identical(unlist(OC$F3A$endpoints), c("AUClast", "Cmax", "AUCinf_A")) && identical(unlist(OC$F3C$endpoints), c("AUClast", "Cmax", "AUCinf_C")) &&
+          all(rows(CB, "endpoint=='AUCinf_A'")$config == "A_ii") && all(rows(CB, "endpoint=='AUCinf_C'")$config == "C_ii") &&
+          !any(grepl("^F3.*i$", unique(rows(T1)$config))), "fallback rule A and C sensitivity use set (ii); no set (i) three-endpoint configuration (notes)")
+  premise(nrow(rows(CG, s23_w("M1", "G2_C_i", " & class=='nominal'"))) >= 1 && rows(CG, s23_w("M1", "G2_C_i"))[which.max(pass_pct)]$class == "nominal", "rule C set (i) M1 largest cell is nominal (text)")
 
   f <- list(r1 = drange(T1, s23_w("M1", "P2"), "pass_pct", 2, "%", "M1 P2 boundary type I error range"),
             r0 = drange(T1, s23_w("M0", "P2"), "pass_pct", 2, "%", "M0 P2 boundary type I error range"),
             c1 = dcount(T1, s23_w("M1", "P2", " & class=='conservative'"), "M1 P2 cells classified conservative"),
             e1 = dcount(T1, s23_w("M1", "P2", " & class=='exceeding'"), "M1 P2 cells classified exceeding"),
-            r2i = f_set("i", "r2"), exi = f_set("i", "extrap"), r2iii = f_set("iii", "r2"),
+            r2i = f_set("i", "r2"), exi = f_set("i", "extrap"), r2iii = f_set("iii", "r2"), exiii = f_set("iii", "extrap"),
             fi = drange(TPF, "set=='i'", "fail_pct", 1, "%", "trial population, set (i) failing, two models"),
             fiii = drange(TPF, "set=='iii'", "fail_pct", 1, "%", "trial population, set (iii) failing, two models"),
             gc0 = s23_max(CG, "M0", "G2_C_i", item = "M0 rule C set (i) largest boundary value"),
             gc1 = s23_max(CG, "M1", "G2_C_i", item = "M1 rule C set (i) largest boundary value"),
             fb1 = drange(T1, s23_w("M1", "F3B"), "pass_pct", 2, "%", "M1 F3B boundary type I error range"),
             gbn = dcount(T1, s23_w("M1", "G2_B", " & pass_pct > 5"), "M1 G2_B cells with point estimate above 5%"),
+            gbl = dcount(T1, s23_w("M1", "G2_B", " & lo > 5"), "M1 G2_B cells with Wilson lower bound above 5%"),
             ncell = dcount(T1, s23_w("M1", "G2_B"), "boundary cells per configuration (M1)"),
             nom = f_nominal())
   deck_kicker(tx("S23.kicker")); deck_title(tx("S23.title", f))
 
   # ---- 카드 네 개(2 x 2): 1차, 이차 / 민감도, 대응안 ----
   gap <- 0.22; cw <- (GEO$CW - gap) / 2; y1 <- GEO$BODY_TOP; hh <- 0.46
-  chs <- c(2.7, GEO$BODY_BOTTOM - y1 - gap - 2.7)   # 위 줄(1차, 이차)이 문단이 많아 더 높다
+  chs <- c(2.6, GEO$BODY_BOTTOM - y1 - gap - 2.6)   # 위 줄(1차, 이차)이 문단이 많아 더 높다
   cards <- list(list(k = "primary", fill = PAL$tint_orange, col = PAL$orange), list(k = "secondary", fill = PAL$tint_blue, col = PAL$blue),
                 list(k = "sens", fill = PAL$tint_grey, col = PAL$ink), list(k = "fallback", fill = PAL$tint_grey, col = PAL$ink2))
   for (i in seq_along(cards)) {
@@ -85,7 +92,8 @@ slide_S23 <- function() {
     fbm1 = s23_max(T1, "M1", "F3B", TRUE, "M1 F3B maximum"),
     gbm1 = s23_max(T1, "M1", "G2_B", TRUE, "M1 G2_B maximum"),
     gbn0 = dcount(T1, s23_w("M0", "G2_B", " & pass_pct > 5"), "M0 G2_B cells with point estimate above 5%"),
-    fa1 = drange(T1, s23_w("M1", "F3A"), "pass_pct", 2, "%", "M1 F3A boundary type I error range"),
-    fc1 = drange(T1, s23_w("M1", "F3C"), "pass_pct", 2, "%", "M1 F3C boundary type I error range")))))
+    gbl0 = dcount(T1, s23_w("M0", "G2_B", " & lo > 5"), "M0 G2_B cells with Wilson lower bound above 5%"),
+    fa1 = drange(T1, s23_w("M1", "F3A"), "pass_pct", 2, "%", "M1 F3A (set ii) boundary type I error range"),
+    fc1 = drange(T1, s23_w("M1", "F3C"), "pass_pct", 2, "%", "M1 F3C (set ii) boundary type I error range")))))
   deck_end()
 }

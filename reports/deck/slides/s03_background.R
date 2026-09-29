@@ -11,7 +11,7 @@ slide_S03 <- function() {
   f <- list(ci = f_ci_level(), lim = f_limits())
 
   # 위: 지침 카드 세 개(연도순)
-  y0 <- GEO$BODY_TOP + 0.05; gw <- 0.25; cw <- (GEO$CW - 2 * gw) / 3; chh <- 2.75
+  y0 <- GEO$BODY_TOP + 0.05; gw <- 0.25; cw <- (GEO$CW - 2 * gw) / 3; chh <- 2.62
   cards <- c("ema", "fda16", "fda25"); fills <- c(PAL$tint_blue, PAL$tint_blue, PAL$tint_orange)
   for (k in seq_along(cards)) {
     x <- GEO$ML + (k - 1) * (cw + gw)
