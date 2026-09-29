@@ -36,20 +36,23 @@ slide_S21 <- function() {
   premise(length(unique(rows(LT)$scenario)) == 3 && all(rows(LT)$n_trials == 5000) && !"pk_model" %in% names(rows(LT)), "LLOQ trials: 3 boundary cells, 5,000 trials, primary model only (file has no PK model column)")
   premise(row1(TRS, "variant=='resid12' & set=='iii'")$fail_pct > 20 && row1(TRS, "variant=='resid12' & set=='iv'")$fail_pct > 50, "with residual 12% many subjects still fail sets (iii) and (iv)")
   premise(nrow(rows(SR)) == 1 && rows(SR)$schedule == "D2" && !isTRUE(rows(SR)$recommend), "residual 12%: only D2 evaluated, not recommended")
-  premise(!file.exists(proj_path("results", "oc_models", "type1_resid12.csv")) && !any(grepl("resid", names(rows(T1)))) && all(rows(LT)$resid %in% c("fixed", "scaled")),
+  rf <- list.files(proj_path("results"), pattern = "resid12", recursive = TRUE)
+  premise(!any(grepl("^(oc|oc_models|criteria|lloq)/|type1", rf)) && all(rows(LT)$resid %in% c("fixed", "scaled")),
           "no boundary type I error was computed with the 12% residual (resid in the LLOQ file is the additive-error version, not the proportional residual)")
   for (am in c("M0", "M1", "M2")) { r <- rows(T1, sprintf("analysis_model=='%s' & config=='P2' & class!='conservative'", am))
     premise(nrow(r) == 1 && r$pk_model == "k2020" && r$scenario == "V2_up_080", paste("the only non-conservative P2 cell is the 2020 V2 cell,", am)) }
 
   # ---- 제목 ----
-  deck_kicker(tx("S21.kicker")); deck_title(tx("S21.title"))
+  s12 <- dv(TRS, "variant=='resid12' & set=='iii'", "sigma_prop_pct", 0, "%", "proportional residual, variant")
+  deck_kicker(tx("S21.kicker")); deck_title(tx("S21.title", list(nom = nom)))
 
   # ---- 표 ----
   pmax <- function(m, am = "M1") dext(T1, sprintf("analysis_model=='%s' & config=='P2' & pk_model=='%s'", am, m), "pass_pct", max, 2, "%", sprintf("largest P2 boundary type I error, %s, %s", m, am))
   gcnt <- function(m) dcount(T1, sprintf("analysis_model=='M1' & config=='G2_Ai' & pk_model=='%s' & pass_pct > 5", m), sprintf("M1 G2_Ai cells above 5%%, %s", m))
   npm <- dcount(T1, "analysis_model=='M1' & config=='P2' & pk_model=='k2016'", "boundary cells per model")
   r1 <- list(npm = npm, n10 = f_reps("boundary"), n20 = f_reps("ext"), p16 = pmax("k2016"), p20 = pmax("k2020"), g16 = gcnt("k2016"), g20 = gcnt("k2020"), nom = nom)
-  kmr <- dcfg("oc_design.yaml", c("mechanisms", "Km", "range"), "Km multiplier search range, test arm", function(x) rng_fmt(x[1], x[2], 2))
+  mfmt <- function(x) sub("\\.?0+$", "", fnum(as.numeric(x), 2))
+  kmr <- dcfg("oc_design.yaml", c("mechanisms", "Km", "range"), "Km multiplier search range, test arm", function(x) sprintf("%s~×%s", mfmt(x[1]), mfmt(x[2])))
   km_rng <- local({ r <- rows(IA, "mechanism=='Km' & is.finite(end_auc_ratio)"); r2 <- rows(IA, "mechanism=='Km' & reachable==TRUE"); x <- range(c(r$end_auc_ratio, r2$auc_ratio))
     dderived("true AUC0-inf ratio range over Km x0.01 to x100 (range ends and reached rows)", IA, "mechanism=='Km' :: end_auc_ratio, auc_ratio", x, rng_fmt(x[1], x[2], 3)) })
   thr80 <- dderived("window coverage threshold in column name coverage_lt80_pct (percent)", CSH, "column name coverage_lt80_pct", 80, "80")
@@ -69,7 +72,7 @@ slide_S21 <- function() {
   # nl, nc는 config 격자 길이와 파일의 칸 수: 추적 행을 남긴다
   dderived("number of LLOQ values in the sensitivity grid", "config/assay.yaml", "length(lloq_sensitivity_mg_L)", as.integer(r3$nl), r3$nl)
   dderived("boundary cells in the LLOQ trials", LT, "length(unique(scenario))", as.integer(r3$nc), r3$nc)
-  r4 <- list(s12 = dv(TRS, "variant=='resid12' & set=='iii'", "sigma_prop_pct", 0, "%", "proportional residual, variant"), s24 = dv(TRS, "variant=='k2016' & set=='iii'", "sigma_prop_pct", 1, "%", "proportional residual, 2016 model"),
+  r4 <- list(s12 = s12, s24 = dv(TRS, "variant=='k2016' & set=='iii'", "sigma_prop_pct", 1, "%", "proportional residual, 2016 model"),
              f24 = dv(TRS, "variant=='k2016' & set=='iii'", "fail_pct", 1, "%", "set (iii) failing, residual 24.2%"), f12 = dv(TRS, "variant=='resid12' & set=='iii'", "fail_pct", 1, "%", "set (iii) failing, residual 12%"),
              g24 = dv(TRS, "variant=='k2016' & set=='iv'", "fail_pct", 1, "%", "set (iv) failing, residual 24.2%"), g12 = dv(TRS, "variant=='resid12' & set=='iv'", "fail_pct", 1, "%", "set (iv) failing, residual 12%"),
              ntr = dint(PR, "scenario=='S00' & schedule=='B0' & endpoint=='AUClast'", "n_trials", "trials per scenario, residual 12%"))
@@ -81,13 +84,13 @@ slide_S21 <- function() {
   df <- data.frame(a = vapply(1:5, function(i) fill(L$table$cond[[i]], R[[i]]), ""), b = vapply(1:5, function(i) fill(L$table$scope[[i]], R[[i]]), ""),
                    c = vapply(1:5, function(i) fill(L$table$result[[i]], R[[i]]), ""), d = unlist(L$table$verdict), stringsAsFactors = FALSE, check.names = FALSE)
   names(df) <- tx("S21.table.head")
-  TH <- 4.0
-  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, TH), widths = c(1.95, 3.1, 5.4, 1.8), size = 12, highlight = 4, label = "table_robust")
+  TH <- 4.3
+  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, TH), widths = c(1.95, 3.35, 5.15, 1.78), size = 13, highlight = 4, align_num = FALSE, label = "table_robust")
 
   # ---- 아래: 요점 ----
   v2 <- function(am) dv(T1, sprintf("%s & analysis_model=='%s' & config=='P2'", V2C, am), "pass_pct", 2, "%", sprintf("P2, 2020 V2 cell, %s", am))
   BY <- GEO$BODY_TOP + TH + 0.12
-  deck_bullets(tx("S21.bullets", list(nom = nom, m0 = v2("M0"), m1 = v2("M1"), m2 = v2("M2"), nc = r3$nc)), box = c(GEO$ML, BY, GEO$CW, GEO$BODY_BOTTOM - BY), size = 16)
+  deck_bullets(tx("S21.bullets", list(nom = nom, s12 = s12, m0 = v2("M0"), m1 = v2("M1"), m2 = v2("M2"), nc = r3$nc)), box = c(GEO$ML, BY, GEO$CW, GEO$BODY_BOTTOM - BY), size = 16)
 
   # ---- 노트 ----
   nts <- list(
@@ -99,7 +102,7 @@ slide_S21 <- function() {
     gm20 = dext(T1, "analysis_model=='M1' & config=='G2_Ai' & pk_model=='k2020'", "pass_pct", max, 2, "%", "largest G2_Ai, 2020 model, M1"),
     fi16 = dv("trialpop/tp_failure_by_set.csv", "pk_model=='k2016' & set=='i'", "fail_pct", 1, "%", "set (i) failing, 2016 model"),
     fi20 = dv("trialpop/tp_failure_by_set.csv", "pk_model=='k2020' & set=='i'", "fail_pct", 1, "%", "set (i) failing, 2020 model"),
-    ncs = r2$ncs, k1 = r2$k1, k2 = r2$k2, v1 = r2$v1, v2 = r2$v2, thr = thr80, p95 = r2$p95,
+    lt = r2$lt, ncs = r2$ncs, k1 = r2$k1, k2 = r2$k2, v1 = r2$v1, v2 = r2$v2, thr = thr80, p95 = r2$p95,
     p95k = dv(CSH, "variant=='km10_both'", "extrap_true_p95", 2, "%", "95th percentile true extrapolation, Km x10"),
     p95v = dv(CSH, "variant=='vmax125_both'", "extrap_true_p95", 2, "%", "95th percentile true extrapolation, Vmax x1.25"),
     sx = s21_mult("vmax050_both", "Vmax"), sp95 = dv(CSH, "variant=='vmax050_both'", "extrap_true_p95", 2, "%", "95th percentile true extrapolation, Vmax x0.5 stress test"),
@@ -123,6 +126,8 @@ slide_S21 <- function() {
     ntr = r4$ntr, s00 = dv(PR, "scenario=='S00' & schedule=='B0' & endpoint=='AUClast'", "pass_rate", 1, "%", "AUC0-last pass rate S00, residual 12%"),
     ke = dv(PR, "scenario=='KE110' & schedule=='B0' & endpoint=='AUClast'", "pass_rate", 1, "%", "AUC0-last pass rate KE110, residual 12%"),
     f90 = dv(PR, "scenario=='F090' & schedule=='B0' & endpoint=='AUClast'", "pass_rate", 1, "%", "AUC0-last pass rate F090, residual 12%"),
+    kem = dcfg("scenarios.yaml", c("scenarios", "KE110", "T_multipliers", "ke"), "ke multiplier, scenario KE110", num_fmt(2)),
+    fm = dcfg("scenarios.yaml", c("scenarios", "F090", "T_multipliers", "F"), "F multiplier, scenario F090", num_fmt(2)),
     s00b = dv(PB, "scenario=='S00' & schedule=='B0' & endpoint=='AUClast'", "pass_rate", 1, "%", "AUC0-last pass rate S00, base"),
     keb = dv(PB, "scenario=='KE110' & schedule=='B0' & endpoint=='AUClast'", "pass_rate", 1, "%", "AUC0-last pass rate KE110, base"),
     f90b = dv(PB, "scenario=='F090' & schedule=='B0' & endpoint=='AUClast'", "pass_rate", 1, "%", "AUC0-last pass rate F090, base"),
@@ -133,6 +138,8 @@ slide_S21 <- function() {
     sd1 = drange(SS, "endpoint=='AUCinf_true' & analysis_model=='M1' & !scenario %in% c('S00','F097')", "sd_se_ratio", 3, "", "SD/SE AUCinf_true M1"),
     pw0 = dci(PW, "pk_model=='k2016' & scenario=='S00' & analysis_model=='M0' & config=='P2'", "pass_pct", "lo", "hi", 1, "%", "power k2016 S00 M0 P2"),
     pw1 = dci(PW, "pk_model=='k2016' & scenario=='S00' & analysis_model=='M1' & config=='P2'", "pass_pct", "lo", "hi", 1, "%", "power k2016 S00 M1 P2"))
+  premise(identical(range(rows(CSH, "stress_test==FALSE & variant!='vmax080_both'")$extrap_true_p95), range(cs$extrap_true_p95)) && all(rows(CSH, "stress_test==FALSE & variant!='vmax080_both'")$coverage_lt80_pct == 0),
+          "the curve-shape ranges are the same without Vmax x0.8 (notes)")
   premise(row1(CSH, "variant=='vmax080_both'")$stress_test == FALSE && abs(row1(CSH, "variant=='vmax080_both'")$AUClast_ratio_vs_obs544 - 1) * 100 > as.numeric(.read("config/design_clot2021.yaml")$gate$auclast_mean_tol_pct),
           "Vmax x0.8 (both arms) lies outside the AUClast exposure gate but is not flagged as a stress test (notes)")
   deck_notes(tx("S21.notes", nts))

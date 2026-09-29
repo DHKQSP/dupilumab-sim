@@ -61,8 +61,8 @@
 ```
 . <scratchpad>/renv_env.sh        # 또는 export RENV_CONFIG_EXTERNAL_LIBRARIES=... LANG=C.UTF-8 LC_ALL=C.UTF-8
 Rscript reports/deck/build_deck.R --only S12,S13 --out <작업폴더>/g.pptx
-Rscript reports/deck/check_deck.R <작업폴더>/g.pptx        # 5(약어) 실패는 부분 빌드에선 앞 슬라이드가 없어 생길 수 있다
 DECK_SOFFICE_HELPER=<pptx skill>/scripts/office/soffice.py python3 reports/deck/render_deck.py <작업폴더>/g.pptx <작업폴더>/png --dpi 110
+Rscript reports/deck/check_deck.R <작업폴더>/g.pptx        # 렌더링 뒤에 실행(검사 9). 5(약어) 실패는 부분 빌드에선 앞 슬라이드가 없어 생길 수 있다
 ```
 PNG를 직접 열어(이미지 보기) 글자 넘침·겹침·잘림, 표 가독성, 그림 해상도, 빈 값을 확인하고 고친다.
 검사 9(렌더링 배치)는 렌더링한 PDF가 있어야 한다: render_deck.py를 먼저 실행한 뒤 check_deck.R를 실행한다(PDF는 pptx 옆이나 그 아래 폴더에서

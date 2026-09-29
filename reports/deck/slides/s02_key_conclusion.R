@@ -73,8 +73,8 @@ slide_S02 <- function() {
     a <- args[[k]]; x <- GEO$ML + (k - 1) * (cw + gw)
     s02_panel(c(x, y0, cw, ch), PAL$tint_grey, "roundRect", sprintf("card_%d", k))
     deck_stat(vals[k], a$lab, c(x, y0, cw, sh), value_size = 28)
-    deck_text(a$claim, c(x + 0.04, y0 + sh + 0.04, cw - 0.08, 0.72), size = 18, bold = TRUE, label = sprintf("claim_%d", k))
-    deck_text(a$det, c(x + 0.04, y0 + sh + 0.76, cw - 0.08, ch - sh - 0.78), size = 16, color = PAL$ink2, label = sprintf("detail_%d", k))
+    deck_text(a$claim, c(x + 0.04, y0 + sh + 0.02, cw - 0.08, 0.78), size = 18, bold = TRUE, label = sprintf("claim_%d", k))
+    deck_text(a$det, c(x + 0.04, y0 + sh + 0.80, cw - 0.08, ch - sh - 0.80), size = 16, color = PAL$ink2, label = sprintf("detail_%d", k))
   }
 
   deck_notes(tx("S02.notes", c(f, list(

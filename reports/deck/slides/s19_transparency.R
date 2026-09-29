@@ -99,12 +99,12 @@ slide_S19 <- function() {
 
   # ---- 오른쪽: 편향 카드, 기전, 같은 시험 안의 분해(M1, M0) ----
   XR <- GEO$ML + FW + 0.3; WR <- GEO$W - GEO$MR - XR
-  SH <- 1.45
+  SH <- 1.72
   deck_stat(f$bias, tx("S19.stat", list(n = b$n)), c(XR, GEO$BODY_TOP, WR, SH))
   mech <- list(m20 = m20, m16 = dv(DE, WD("M0", "k2016"), "multiplier", 2, "", "V2 multiplier k2016"),
                tr = dv(DE, WD("M1"), "target", 2, "", "true AUC0-inf ratio targeted in the V2 cells"),
                p16 = dv(T1, WT("M1", "P2", "pk_model=='k2016' & scenario=='V2_up_080'"), "pass_pct", 2, "%", "P2, 2016 model V2 cell, M1"))
-  MY <- GEO$BODY_TOP + SH + 0.12; MH <- 1.3
+  MY <- GEO$BODY_TOP + SH + 0.12; MH <- 1.1
   deck_text(tx("S19.mech", mech), c(XR, MY, WR, MH), size = 16, label = "text_mech", bg = PAL$tint_grey, geom = "roundRect", gap_pt = 4)
   dec <- function(col, am, item) s19_signed(dv(DE, WD(am), col, 3, "", sprintf("%s, 2020 V2 cell, %s", item, am)))
   cols <- c(ref = "ref_minus_5_pp", last = "auclast_minus_ref_pp", cmax = "p2_minus_auclast_pp", p2 = "p2_minus_5_pp")
