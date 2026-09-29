@@ -46,6 +46,7 @@ slide_S15 <- function() {
   # ---- 제목 ----
   f <- list(n = dcount(T1, "analysis_model=='M1' & config=='P2'", "M1 P2 boundary cells"),
             k = headline(s15_atnom("M1")), nom = f_nominal(),
+            p2n = dcount(T1, "analysis_model=='M1' & config=='P2' & pass_pct > 5", "M1 P2 cells above 5% (point)"),
             r = s15_cnt_rng("M1", USUAL, "M1 AUC0-inf + Cmax, rules A (i), A (ii) and B: cells above 5% (point), range over configurations"))
   deck_kicker(tx("S15.kicker")); deck_title(tx("S15.title", f))
 
@@ -79,20 +80,20 @@ slide_S15 <- function() {
     theme(panel.grid.major.y = element_blank(), panel.grid.minor.x = element_blank(), legend.position = "top", legend.justification = "left", legend.text = element_text(size = 12),
           legend.margin = margin(0, 0, 0, 0), legend.box.spacing = grid::unit(2, "pt"), strip.text = element_text(hjust = 0, size = 13),
           axis.text.y = element_text(size = 12, colour = PAL$ink), panel.spacing.x = grid::unit(26, "pt"), axis.title.x = element_text(size = 12, margin = margin(4, 0, 0, 0))) +
-    guides(colour = guide_legend(ncol = 1), shape = guide_legend(ncol = 1))
-  FW <- 6.6; GH <- 1.04; FH <- GEO$BODY_BOTTOM - GEO$BODY_TOP - GH - 0.05
+    guides(colour = guide_legend(ncol = 2), shape = guide_legend(ncol = 2))   # 열 우선: 1열 AUC0-last·규칙 B, 2열 규칙 A (ii)
+  FW <- 6.6; GH <- 1.36; FH <- GEO$BODY_BOTTOM - GEO$BODY_TOP - GH - 0.05
   deck_figure(p, "s15_boundary_by_mechanism", c(GEO$ML, GEO$BODY_TOP, FW, FH), src = T1)
   deck_text(tx("S15.gloss", f), c(GEO$ML, GEO$BODY_TOP + FH + 0.05, FW, GH), size = 16, color = PAL$ink2, label = "gloss", gap_pt = 2)
 
   # ---- 오른쪽: 헤드라인 카드, 구성별 표(칸 수와 최대를 따로), 요점 ----
   xr <- GEO$ML + FW + 0.3; wr <- GEO$W - GEO$MR - xr
   p2ci <- dci(T1, "analysis_model=='M1' & config=='P2' & pk_model=='k2020' & scenario=='V2_up_080'", "pass_pct", "lo", "hi", 2, "%", "M1 P2, 2020 model V2 up cell")
-  sh <- 1.68
+  sh <- 1.70
   deck_stat(tx("S15.stat.value", f), tx("S15.stat.label", list(n = f$n, exc = dcount(T1, "analysis_model=='M1' & config=='P2' & class=='exceeding'", "M1 P2 cells classified exceeding"),
                                                               p2 = dv(T1, "analysis_model=='M1' & config=='P2' & pk_model=='k2020' & scenario=='V2_up_080'", "pass_pct", 2, "%", "M1 P2, 2020 model V2 up cell"),
                                                               m0 = s15_atnom("M0"),
                                                               p2m0 = dv(T1, "analysis_model=='M0' & config=='P2' & pk_model=='k2020' & scenario=='V2_up_080'", "pass_pct", 2, "%", "M0 P2, 2020 model V2 up cell"))),
-            c(xr, GEO$BODY_TOP, wr, sh), value_size = 36)
+            c(xr, GEO$BODY_TOP, wr, sh), value_size = 32)
   premise(p2m0r$pk_model == "k2020" && p2m0r$scenario == "V2_up_080", "M0 P2: the cell above 5% is the 2020 V2 up cell (text)")
   TR <- DK$txt$S15$table
   ncell <- function(am, cf) dcount(T1, sprintf("analysis_model=='%s' & config=='%s' & pass_pct > 5", am, cf), sprintf("%s %s cells above 5%% (point)", am, cf))
@@ -101,10 +102,12 @@ slide_S15 <- function() {
   df <- data.frame(a = unlist(TR$rows[rc]), b = vapply(rc, function(cf) ncell("M1", cf), ""), c = vapply(rc, function(cf) mxv("M1", cf), ""),
                    d = vapply(rc, function(cf) ncell("M0", cf), ""), e = vapply(rc, function(cf) mxv("M0", cf), ""), stringsAsFactors = FALSE)
   names(df) <- tx("S15.table.head", f)
-  ty <- GEO$BODY_TOP + sh + 0.1; th <- 2.3
-  deck_table(df, box = c(xr, ty, wr, th), widths = c(1.77, 0.98, 0.8, 0.98, 0.8), size = 12, highlight = 5, highlight_fill = PAL$tint_blue)
-  by <- ty + th + 0.08
-  deck_bullets(tx("S15.bullets", list(vmax = drange(T1, "analysis_model=='M1' & config=='G2_Aii' & mechanism=='Vmax'", "pass_pct", 2, "%", "M1 G2_Aii, Vmax cells, range"))),
+  ty <- GEO$BODY_TOP + sh + 0.08; th <- 2.07
+  deck_table(df, box = c(xr, ty, wr, th), widths = c(1.75, 1.02, 0.77, 1.02, 0.77), size = 12, highlight = 5, highlight_fill = PAL$tint_blue)
+  by <- ty + th + 0.06
+  a16 <- function(cf) dv(CG, sprintf("analysis_model=='M1' & config=='%s' & pk_model=='k2016' & scenario=='V2_up_080'", cf), "pass_pct", 2, "%", sprintf("M1 %s, 2016 model V2 up cell", cf))
+  deck_bullets(tx("S15.bullets", list(vmax = drange(T1, "analysis_model=='M1' & config=='G2_Aii' & mechanism=='Vmax'", "pass_pct", 2, "%", "M1 G2_Aii, Vmax cells, range"),
+                                      aiii16 = a16("G2_A_iii"), aiv16 = a16("G2_A_iv"))),
                box = c(xr, by, wr, GEO$BODY_BOTTOM - by), size = 16, gap_pt = 4)
 
   # ---- 노트 ----

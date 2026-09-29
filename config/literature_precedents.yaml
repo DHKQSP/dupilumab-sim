@@ -1,5 +1,5 @@
-# Precedent studies cited in the results deck (appendix A2). Values copied from the source as quoted by the retrieval,
-# with the retrieval route and its limits. English only (the deck trace is English).
+# Precedent studies and guideline statements cited in the results deck (slide S03, appendix A2). Values copied from the source
+# as quoted by the retrieval, with the retrieval route and its limits. English only (the deck trace is English).
 msb11456_iv:
   status: "search excerpt"      # not yet compared with the full text
   verification: "Two web-search excerpts (2026-09-29) agree on design, endpoints and results. Publisher, PubMed, Europe PMC and Crossref pages are blocked by the analysis-environment egress proxy; compare with the full text before external use."
@@ -27,3 +27,13 @@ msb11456_iv:
     auc0_last: [103.34, 98.53, 108.37]
     auc0_inf: [103.15, 97.86, 108.73]
     cmax: [101.48, 97.23, 105.92]
+
+ema_2012_mab:
+  status: "search excerpt"      # not yet compared with the full text
+  verification: "Web-search summary (2026-09-29) citing the guideline PDF on ema.europa.eu and a review (Frontiers in Pharmacology 2018, doi 10.3389/fphar.2018.01079). The guideline page is blocked by the analysis-environment egress proxy (checked again 2026-09-29); compare with the original before external use."
+  title: "Guideline on similar biological medicinal products containing monoclonal antibodies: non-clinical and clinical issues"
+  reference: "EMA/CHMP/BMWP/403543/2010"
+  year: 2012
+  excerpt: "The primary parameter should be AUC(0-inf) in single dose study. Furthermore, for subcutaneous administration Cmax should be co-primary parameter."
+  primary_endpoint_single_dose: "AUC0-inf"
+  subcutaneous_co_primary: "Cmax"

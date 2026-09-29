@@ -1,5 +1,5 @@
-# S24 예상 질의와 답: 예상 질의응답 문서(regulatory/src/FDA_questions.Rmd)에서 임상약리·임상개발에 가장 중요한 다섯 문항(Q1, Q3+Q4, Q7, Q11+Q19, Q12+Q17)을
-# 한국어로 줄였다(문서 번호 순). 왼쪽 질문 상자 + 오른쪽 답(2열). 행 높이는 추정 글 높이에 맞추고 남는 높이를 고르게 나눈다. [문헌+모의]
+# S24 예상 질의와 답: 예상 질의응답 문서(regulatory/src/FDA_questions.Rmd)에서 임상약리·임상개발에 가장 중요한 다섯 묶음(여덟 문항: Q1, Q3+Q4, Q7, Q11+Q19, Q12+Q17)을
+# 한국어로 줄였다(문서 번호 순). 왼쪽 질문 카드 + 오른쪽 답(2열). 다섯 행은 같은 높이이고 질문과 답은 행 가운데에 둔다(추정 글 높이 기준). [문헌+모의]
 # M1 수치는 results/oc_models/type1_models.csv에서 읽는다(FDA_questions는 Q1, Q8, Q9에서 oc/g2_rules_flags.csv의 M0 수를 인쇄한다).
 S24_T1 <- "oc_models/type1_models.csv"; S24_DE <- "oc_models/p2_decomposition_models.csv"; S24_CS <- "cliff/cliff_summary.csv"; S24_CP <- "cliff/cliff_points.csv"
 s24_w <- function(am, cf, extra = "") sprintf("analysis_model=='%s' & config=='%s'%s", am, cf, extra)
@@ -34,6 +34,12 @@ slide_S24 <- function() {
   sd_ <- rbindlist(lapply(c("base", "struct2020"), function(k) rows(sprintf("trials/schedule_decision_%s.csv", k))[, variant := k]))
   premise(nrow(sd_) > 0 && !any(sd_$recommend %in% TRUE), "the pre-specified rule recommended no added samples in either model (Q4)")
   premise(rows(CS, "model=='k2016' & weight=='base'")$lloq_studyday_median < max(unlist(.read("config/trial_design.yaml")$schedules$B0$days)) + 1, "median LLOQ day before the last B0 sample (Q3)")
+  premise(nrow(sd_) > 0 && !any(unlist(sd_[, .(crit_a, crit_b, crit_c, crit_d)]) %in% TRUE), "no candidate schedule met any of the pre-specified criteria (a) to (d) in either model (Q4)")
+  premise(rows(PC, "model=='k2016' & group=='all'")$extrap_true_median < 1, "median true extrapolation below 1% (Q1: AUC0-last captures nearly all of AUC0-inf)")
+  premise(all(rows(TPF, "set=='i'")$fail_pct < rows(TPF, "set=='iii'")$fail_pct), "set (iii) fails more often than set (i) in both models (Q11: failing shares listed in the order (i), (iii))")
+  ssr <- rows(SS, "endpoint=='AUCinf_true' & !scenario %in% c('S00','F097')")
+  premise(all(ssr[analysis_model == "M0", sd_se_ratio] < 1) && median(abs(ssr[analysis_model == "M1", sd_se_ratio] - 1)) < median(abs(ssr[analysis_model == "M0", sd_se_ratio] - 1)),
+          "M0 SE larger than the between-trial SD in every scenario (conservative); M1 ratio closer to 1 (Q17)")
 
   f <- list(nom = f_nominal(), r2i = f_set("i", "r2"), r2iii = f_set("iii", "r2"), exi = f_set("i", "extrap"), exiii = f_set("iii", "extrap"), last = s24_last(),
             # Q1
@@ -74,21 +80,26 @@ slide_S24 <- function() {
   premise(nrow(rows(TP, "input_model=='k2016' & cv==43 & gmr==0.95 & n==117 & analysis_model=='M1'")) == 1 &&
           as.numeric(.read("config/prereg_20260926.yaml")$section3$base_cv_pct) == 43 && as.numeric(.read("config/prereg_20260926.yaml")$section3$sensitivity_cv_pct) == 50 &&
           as.numeric(.read("config/trial_design.yaml")$n_per_arm) == 117, "power rows are the protocol CV, sensitivity CV and protocol evaluable n (Q12)")
+  premise(f$exi == f$exiii, "sets (i) and (iii) share the extrapolation limit (Q11: set (iii) given by its adjusted R2 only)")
   deck_kicker(tx("S24.kicker")); deck_title(tx("S24.title", f))
 
   # ---- 2열: 질문 상자 | 답 (행 높이 = 질문 카드와 답의 추정 높이 중 큰 값 + 남는 높이의 균등 몫) ----
-  qs <- DK$txt$S24$qa; nq <- length(qs); premise(nq == 5, "five questions")
-  gap <- 0.06; y0 <- GEO$BODY_TOP; qw <- 3.05; ag <- 0.18; aw <- GEO$CW - qw - ag
+  qs <- DK$txt$S24$qa; nq <- length(qs); premise(nq == 5, "five question groups")
+  premise(length(unlist(strsplit(vapply(qs, function(q) q$id, ""), " · ", fixed = TRUE))) == 8, "eight numbered questions in the five groups (kicker)")
+  gap <- 0.07; y0 <- GEO$BODY_TOP; qw <- 2.97; ag <- 0.13; aw <- GEO$CW - qw - ag
   qt <- vapply(seq_len(nq), function(i) sprintf("__%s__  %s", qs[[i]]$id, fill(qs[[i]]$q, f, sprintf("S24.qa.%d.q", i))), "")
   at <- vapply(seq_len(nq), function(i) fill(qs[[i]]$a, f, sprintf("S24.qa.%d.a", i)), "")
-  rh <- pmax(vapply(qt, function(s) est_height(s, qw, 16, 0, card = TRUE), 0), vapply(at, function(s) est_height(s, aw, 16, 0), 0))
-  rh <- rh + max(0, (GEO$BODY_BOTTOM - y0 - (nq - 1) * gap - sum(rh)) / nq)
-  y <- y0 + c(0, cumsum(rh + gap))[seq_len(nq)]
+  # 같은 높이의 다섯 행; 질문 카드는 채운 도형 + 그 위 글상자(글상자 안쪽 여백 0.1 in + 0.02 in = 카드 안쪽 여백 0.12 in), 질문과 답을 행 가운데에 둔다
+  rh <- (GEO$BODY_BOTTOM - y0 - (nq - 1) * gap) / nq
+  y <- y0 + (seq_len(nq) - 1) * (rh + gap)
+  hq <- vapply(qt, function(s) est_height(s, qw - 0.04, 16, 0), 0); ha <- vapply(at, function(s) est_height(s, aw, 16, 0), 0)
+  if (nzchar(Sys.getenv("S24_DEBUG"))) writeLines(c(qt, at), Sys.getenv("S24_DEBUG"))
   for (i in seq_len(nq)) {
-    deck_text(qt[i], c(GEO$ML, y[i], qw, rh[i]), size = 16, bold = FALSE, bg = PAL$tint_blue, geom = "roundRect", label = sprintf("q%d", i), gap_pt = 0)
-    deck_text(at[i], c(GEO$ML + qw + ag, y[i], aw, rh[i]), size = 16, label = sprintf("a%d", i), gap_pt = 0)
+    deck_box(c(GEO$ML, y[i], qw, rh), fill = PAL$tint_blue, geom = "roundRect", label = sprintf("q%d_card", i))
+    deck_text(qt[i], c(GEO$ML + 0.02, y[i] + (rh - hq[i]) / 2, qw - 0.04, hq[i]), size = 16, label = sprintf("q%d", i), gap_pt = 0)
+    deck_text(at[i], c(GEO$ML + qw + ag, y[i] + (rh - ha[i]) / 2, aw, ha[i]), size = 16, label = sprintf("a%d", i), gap_pt = 0)
   }
-  premise(y[nq] + rh[nq] <= GEO$BODY_BOTTOM + 0.05, "question rows end inside the body area")
+  premise(all(hq <= rh) && all(ha <= rh * 1.03), sprintf("every question and answer fits its row (row %.2f in; questions %s; answers %s)", rh, paste(round(hq, 2), collapse = " "), paste(round(ha, 2), collapse = " ")))
 
   # ---- 노트 ----
   EXf <- "oc_models/extension_decision_models.csv"; PW <- "oc_models/power_models.csv"; PCf <- "oc_models/type1_paired_change.csv"; NN <- "sample_size/ss_table_n_needed.csv"

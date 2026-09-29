@@ -25,22 +25,27 @@ slide_S06 <- function() {
             reps = f_reps("boundary"), ext = f_reps("ext"),
             next_ = dcount(EX, "analysis_model=='M0' & selected==TRUE", "boundary cells extended"))
   names(f)[names(f) == "next_"] <- "next"
+  km_fixed <- vapply(c("config/params_typical.yaml", "config/params_k2020_model1.yaml"), function(p_) isTRUE(.read(p_)$theta$Km$fixed), TRUE)
+  premise(all(km_fixed), "Km is fixed in both models (card 1)")
   deck_kicker(tx("S06.kicker")); deck_title(tx("S06.title", f))
 
   # ---- 단계 카드 5개(①~⑤): 제목 + 설명. 카드 너비는 글 양에 맞춰 나누고(가중치), 높이는 가장 긴 카드의 추정 높이에 맞춘다 ----
-  S <- DK$txt$S06$steps; n <- length(S); gap <- 0.12; y0 <- GEO$BODY_TOP + 0.05
-  wt_ <- c(2.1, 2.03, 2.35, 2.55, 2.72); w <- wt_ / sum(wt_) * (GEO$CW - (n - 1) * gap)
+  # ③은 식이 "AUC0-inf = AUC0-last" / "+ Clast/λz" 두 줄로 나뉘는 너비(식 전체 한 줄은 카드 두 개 폭이 필요), ①·②는 가장 긴 낱말 덩어리가 들어가는 최소 폭.
+  # 높이 추정은 렌더링의 실제 글줄 폭(카드 너비 - 0.27 in)에 맞춰 0.04 in 좁게 잰다(추정 0.24 in 여백보다 렌더링이 조금 좁다)
+  S <- DK$txt$S06$steps; n <- length(S); gap <- 0.12; y0 <- GEO$BODY_TOP; cgap <- 6
+  wt_ <- c(2.1, 2.0, 2.6, 2.5, 2.55); w <- wt_ / sum(wt_) * (GEO$CW - (n - 1) * gap)
   paras <- lapply(seq_len(n), function(i) c(sprintf("__%s__", S[[i]]$head), vapply(S[[i]]$body, function(s) fill(s, f, sprintf("S06.steps.%d", i)), "")))
-  hc <- max(vapply(seq_len(n), function(i) est_height(vapply(paras[[i]], nobreak, ""), w[i], 16, gap_pt = 7, card = TRUE), 0)) + 0.08
+  hc <- max(vapply(seq_len(n), function(i) est_height(vapply(paras[[i]], nobreak, ""), w[i] - 0.04, 16, gap_pt = cgap, card = TRUE), 0)) + 0.08
   for (i in seq_len(n)) {
     x <- GEO$ML + sum(w[seq_len(i - 1)]) + (i - 1) * gap
-    deck_text(paras[[i]], c(x, y0, w[i], hc), size = 16, label = sprintf("step%d", i), gap_pt = 7,
+    deck_text(paras[[i]], c(x, y0, w[i], hc), size = 16, label = sprintf("step%d", i), gap_pt = cgap,
               bg = if (i == n) PAL$tint_orange else PAL$tint_blue, geom = "roundRect")
   }
 
   # ---- NCA 엔진 검증 표(이 엔진·NonCompart·PKNCA 쌍별 비교) ----
   ds <- c(theoph = "Theoph (12 profiles)", indometh = "Indometh (6 profiles, extravascular rules)", dupi = "simulated dupilumab (1,000 profiles: 500 per model)")
   ev <- rows(EV); premise(all(ev$pass) && setequal(unique(ev$dataset), ds), "every NCA engine comparison passed; three data sets")
+  premise(all(ev$lz_points_identical + ev$lz_points_mismatch == ev$n_profiles), "lambda-z window counts are per profile and comparison (table note: matched windows / (profiles x pairs))")
   premise(setequal(unique(ev$comparison), c("this engine vs NonCompart", "PKNCA vs NonCompart", "this engine vs PKNCA")), "three pairwise comparisons: this engine, NonCompart, PKNCA (table header)")
   efmt <- function(x) formatC(x, format = "e", digits = 1)   # 같은 형식(가수 한 자리 소수)
   one <- function(k) {
@@ -52,10 +57,10 @@ slide_S06 <- function() {
     c(DK$txt$S06$table$rows[[k]], np, lz, mx, fill(DK$txt$S06$table$pass, list(k = dcount(EV, sprintf("%s & pass==TRUE", w_), sprintf("comparisons passed, %s", k)))))
   }
   m <- do.call(rbind, lapply(names(ds), one)); df <- as.data.frame(m, stringsAsFactors = FALSE); names(df) <- unlist(DK$txt$S06$table$head)
-  yb <- y0 + hc + 0.25; hb <- GEO$BODY_BOTTOM - yb; tw <- 7.6
-  th <- 1.45   # 머리글 한 줄 + 3행(LibreOffice는 행 높이를 가장 높은 행에 맞추므로 머리글을 한 줄로 둔다)
-  deck_table(df, box = c(GEO$ML, yb, tw, th), widths = c(3.0, 0.8, 1.3, 1.2, 1.3), size = 13)
-  deck_text(DK$txt$S06$table$caption, c(GEO$ML, yb + th + 0.06, tw, 0.4), size = 16, color = PAL$ink2, label = "table_note")
+  yb <- y0 + hc + 0.2; hb <- GEO$BODY_BOTTOM - yb; tw <- 7.35
+  th <- 1.34   # 머리글 한 줄 + 3행(LibreOffice는 행 높이를 가장 높은 행에 맞추므로 머리글을 한 줄로 둔다)
+  deck_table(df, box = c(GEO$ML, yb, tw, th), widths = c(2.6, 1.05, 1.3, 1.2, 1.2), size = 13)
+  deck_text(unlist(DK$txt$S06$table$caption), c(GEO$ML, yb + th + 0.04, tw, 0.72), size = 16, color = PAL$ink2, label = "table_note", gap_pt = 2)
 
   # ---- 사전 등록 상자 ----
   c779 <- s06_commit("^Operating-characteristic design", "pre-registration commit, operating-characteristic design")

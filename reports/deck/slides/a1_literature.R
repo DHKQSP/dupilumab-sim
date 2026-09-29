@@ -30,6 +30,11 @@ slide_A1 <- function() {
     wt <- dv(G16, WG[[k]], "weight_mean", 1, "", sprintf("%s, mean body weight of the simulated cohort (kg)", k))
     premise(row1(G16, WG[[k]])$weight_mean == row1(G20, WG[[k]])$weight_mean, sprintf("same weight in both models (%s)", k))
     lab <- a1_label(G16, WG[[k]], sprintf("%s, source label", k))
+    if (k == "pkm") {   # 공개 값은 PKM12350 대조군 arm뿐(결과 파일 출처 열에 '대조군'이 있다): 표의 자료 이름에 밝힌다
+      ctrl <- tx("A1.table.ctrl")
+      premise(grepl(sprintf("(PKM12350 %s)", ctrl), r$source, fixed = TRUE) && grepl("(PKM12350)", lab, fixed = TRUE), "PKM12350 literature row is the control arm")
+      lab <- sub("(PKM12350)", sprintf("(PKM12350 %s)", ctrl), lab, fixed = TRUE)
+    }
     interp <- if (agree) tx("A1.interp.agree", list(d = dd)) else {
       premise(r$nca_mean_ratio_k2016 < r$lit_mean_ratio && r$nca_mean_ratio_k2020 < r$lit_mean_ratio && r$true_mean_ratio_k2016 < r$lit_mean_ratio && r$true_mean_ratio_k2020 < r$lit_mean_ratio,
               sprintf("simulated NCA and true mean ratios below the published NCA ratio in both models (%s)", k))
@@ -46,11 +51,15 @@ slide_A1 <- function() {
   m <- t(vapply(keys, row_of, character(5))); df <- as.data.frame(m, stringsAsFactors = FALSE); names(df) <- tx("A1.table.head", list(tol = tol$p))
   agree_of <- function(k) { r <- row1(LN, W[[k]]); abs(r$nca_mean_ratio_k2016 - r$lit_mean_ratio) * 100 <= tol$x + 1e-12 && abs(r$nca_mean_ratio_k2020 - r$lit_mean_ratio) * 100 <= tol$x + 1e-12 }
   premise(agree_of("c300") && agree_of("pkm") && !agree_of("c600") && row1(LN, W$pkm)$dose_mg == 300, "title: both 300 mg rows agree, the 600 mg row does not")
+  r600 <- row1(LN, W$c600)
+  premise(r600$true_mean_ratio_k2016 < r600$lit_mean_ratio && r600$true_mean_ratio_k2020 < r600$lit_mean_ratio &&
+          r600$nca_mean_ratio_k2016 < r600$lit_mean_ratio && r600$nca_mean_ratio_k2020 < r600$lit_mean_ratio,
+          "title: at 600 mg the simulated true mean ratio (and the simulated NCA ratio) is below the published NCA ratio in both models")
   deck_kicker(tx("A1.kicker")); premise(as.numeric(.read("config/trial_design.yaml")$dose_mg) == 300, "study dose equals the 300 mg literature rows")
   deck_title(tx("A1.title", list(tol = tol$p, dose = f_dose(), d600 = dint(LN, W$c600, "dose_mg", "dose of the lower-coverage literature row (mg)"))))
   # 해석 열: 판정과 차이 한 줄 + 덧붙임 한 줄(명시적 줄바꿈). 일치 기준과 반올림 전 계산은 머리글에, 하한의 뜻은 표 아래 설명에. 강조 행 없음(색만으로 뜻을 나타내지 않는다)
   th <- 2.8
-  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, th), widths = c(2.95, 1.1, 2.2, 2.2, 3.78), size = 13, align_num = TRUE, align_cols = c("left", "center", "center", "center", "left"))
+  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, th), widths = c(3.45, 1.05, 2.2, 2.2, 3.33), size = 13, align_num = TRUE, align_cols = c("left", "center", "center", "center", "left"))
   yc <- GEO$BODY_TOP + th + 0.08; hc <- 0.42
   deck_text(tx("A1.caption"), c(GEO$ML, yc, GEO$CW, hc), size = 16, color = PAL$ink2, label = "caption_lowerbound", gap_pt = 0)
   # 정성 서술(프로젝트 문헌 발췌표 literature_qualitative.csv; 보고서 1.1절)

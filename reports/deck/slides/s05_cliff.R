@@ -75,11 +75,11 @@ slide_S05 <- function() {
               p90 = s05_litnum(k21, 3, 5, "Kovalenko 2021: share of circulating target removed (%)"),
               hl = s05_litnum(k21, 4, 5, "Kovalenko 2021: instantaneous half-life in the beta phase (days)"),
               hl0 = s05_litnum(k21, 5, 5, "Kovalenko 2021: instantaneous half-life in the target-mediated phase (days)"))
-  # 머리글 문구의 전제: 보고서 1.1절에는 Kovalenko 2020, Li 2020, Cohen 2022가 있고 Kovalenko 2021은 없다
+  # 노트 문구의 전제: 보고서 1.1절에는 Kovalenko 2020, Li 2020, Cohen 2022가 있고 Kovalenko 2021은 없다
   rmd <- readLines(proj_path("regulatory", "src", "MS_report.Rmd"), encoding = "UTF-8"); i11 <- grep("^## 1\\.1 ", rmd); i12 <- grep("^## 1\\.2 ", rmd)
   premise(length(i11) == 1 && length(i12) == 1, "report section 1.1 found"); s11 <- paste(rmd[i11:i12], collapse = "\n")
   premise(all(vapply(c("Kovalenko 2020", "Li 2020", "Cohen 2022"), grepl, TRUE, x = s11, fixed = TRUE)) && !grepl("Kovalenko 2021", s11, fixed = TRUE),
-          "report section 1.1 cites Kovalenko 2020, Li 2020 and Cohen 2022 but not Kovalenko 2021 (table header)")
+          "report section 1.1 cites Kovalenko 2020, Li 2020 and Cohen 2022 but not Kovalenko 2021 (notes)")
   for (s_ in c("^Kovalenko 2020 Results", "^Kovalenko 2020 Discussion", "^Li 2020", "^Cohen 2022")) dsrc(sprintf("literature statement %s", s_), "literature/literature_qualitative.csv", "(table)")
   T <- DK$txt$S05$table
   df <- data.frame(a = unlist(T$src), b = c(T$k20, fill(T$k21, lit), T$li, T$cohen), stringsAsFactors = FALSE)

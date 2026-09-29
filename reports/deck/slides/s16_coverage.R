@@ -34,8 +34,8 @@ slide_S16 <- function() {
   deck_kicker(tx("S16.kicker")); deck_title(tx("S16.title", f))
 
   # ---- 왼쪽 위: 정의 ----
-  XL <- GEO$ML; WL <- 5.45
-  DH <- 2.02
+  XL <- GEO$ML; WL <- 5.6
+  DH <- 2.14
   deck_text(tx("S16.defs"), c(XL, GEO$BODY_TOP, WL, DH), size = 16, label = "text_defs", bg = PAL$tint_grey, geom = "roundRect", gap_pt = 6)
 
   # ---- 왼쪽 가운데: 창 포착률 분포(두 모델, 0.02 간격 막대, 로그 세로축) ----
@@ -49,24 +49,25 @@ slide_S16 <- function() {
   hw[, model := factor(model_lab()[pk_model], levels = model_lab())]
   hw[, `:=`(x0 = 100 * bin_lo + ifelse(pk_model == "k2016", 0.12, 1.0), x1 = 100 * bin_lo + ifelse(pk_model == "k2016", 0.98, 1.86))]
   YF <- 0.004
-  lab2 <- dcast(hw, bin_lo ~ pk_model, value.var = "pct")[order(-bin_lo)][1:2]      # 위 두 구간만 값 표시(2016 / 2020 모델), 막대 왼쪽
+  lab2 <- dcast(hw, bin_lo ~ pk_model, value.var = "pct")[order(-bin_lo)][1:2]      # 위 두 구간만 값 표시(2016 / 2020 모델, %)
   lab2[, lab := vapply(seq_len(.N), function(i) fill(L$fig$cov_lab, list(a = fnum(k2016[i], 1), b = fnum(k2020[i], 1))), "")]
-  lab2[, `:=`(x = 100 * bin_lo + 1.9, y = pmax(k2016, k2020) * 1.3)]
+  # 가장 높은 구간은 막대 바로 위(오른쪽 맞춤), 그다음 구간은 막대 왼쪽(막대 꼭대기 높이): 두 값이 겹치거나 눈금선에 걸리지 않게
+  lab2[, `:=`(x = 100 * bin_lo + c(1.9, -0.08), y = pmax(k2016, k2020) * c(1.45, 1), hj = 1, vj = c(0, 0.5))]
   mn <- vapply(M, function(m) row1(TCV, wm(MW, m))$min, 1)
   premise(all(mn >= min(hw$bin_lo)) && all(mn < min(hw$bin_lo) + bw), "the smallest subject of each model lies in the lowest histogram bin")
   low <- dcast(hw[bin_lo == min(bin_lo)], bin_lo ~ pk_model, value.var = "n")                     # 가장 낮은 구간의 대상자 수(아래 꼬리)
   mlab <- data.table(x = 100 * low$bin_lo + 0.1, y = max(hw[bin_lo == min(bin_lo), pct]) * 2.2, lab = fill(L$fig$cov_min, list(a = fint(low$k2016), b = fint(low$k2020))))
   pw <- ggplot(hw) +
     geom_rect(aes(xmin = x0, xmax = x1, ymin = YF, ymax = pct, fill = model), colour = NA) +
-    geom_text(data = lab2, aes(x = x, y = y, label = lab), vjust = 0, hjust = 1, size = 3.8, family = FONT, colour = PAL$ink) +
+    geom_text(data = lab2, aes(x = x, y = y, label = lab, hjust = hj, vjust = vj), size = 3.8, family = FONT, colour = PAL$ink) +
     geom_text(data = mlab, aes(x = x, y = y, label = lab), vjust = 0, hjust = 0, size = 3.8, family = FONT, colour = PAL$ink) +
     scale_fill_manual(values = GREY, name = L$fig$cov_leg) +
     scale_x_continuous(breaks = seq(84, 100, by = 4), labels = function(x) paste0(fnum(x, 0), "%"), limits = c(100 * min(hw$bin_lo) - 0.3, 100.3), expand = expansion(0)) +
-    scale_y_log10(limits = c(YF, 700), breaks = c(0.01, 0.1, 1, 10, 100), labels = function(x) ifelse(x %in% c(0.01, 1, 100), formatC(x, format = "fg"), ""), expand = expansion(0)) +
+    scale_y_log10(limits = c(YF, 1500), breaks = c(0.01, 0.1, 1, 10, 100), labels = function(x) ifelse(x %in% c(0.01, 1, 100), formatC(x, format = "fg"), ""), expand = expansion(0)) +
     labs(x = L$fig$cov_xlab, y = NULL) + theme_deck(12) +
     theme(legend.position = "top", legend.justification = "left", legend.margin = margin(0, 0, 0, 0), legend.box.spacing = grid::unit(2, "pt"),
           legend.title = element_text(colour = PAL$ink2, size = 12, margin = margin(0, 10, 0, 0)), panel.grid.major.x = element_blank())
-  FY <- GEO$BODY_TOP + DH + 0.08; TH <- 1.2; FH <- GEO$BODY_BOTTOM - FY - TH - 0.08
+  FY <- GEO$BODY_TOP + DH + 0.08; TH <- 1.18; FH <- GEO$BODY_BOTTOM - FY - TH - 0.08      # TH = 머리글 두 줄 + 두 행(행 높이가 같게)
   deck_figure(pw, "s16_window_coverage_hist", c(XL, FY, WL, FH), src = CH)
 
   # ---- 왼쪽 아래: 창 포착률 요약 표(두 모델) ----
@@ -75,7 +76,7 @@ slide_S16 <- function() {
                     d = vapply(M, cv, "", col = "min"), e = vapply(M, s16_lt80, ""), stringsAsFactors = FALSE, check.names = FALSE)
   names(dfc) <- tx("S16.cov_table.head", list(thr = thr))
   TY <- GEO$BODY_BOTTOM - TH
-  deck_table(dfc, box = c(XL, TY, WL, TH), widths = c(0.92, 0.72, 0.76, 0.8, 0.7, 1.55), size = 12, label = "table_cov")
+  deck_table(dfc, box = c(XL, TY, WL, TH), widths = c(0.96, 0.73, 0.76, 0.8, 0.73, 1.62), size = 12, label = "table_cov")
 
   # ---- 오른쪽 위: 관측 대 참 비 분포(AUC0-last 전체, NCA AUC0-inf 규칙 A 세트 (i), 규칙 B), 모델별 ----
   XR <- XL + WL + 0.3; WR <- GEO$W - GEO$MR - XR
@@ -90,14 +91,14 @@ slide_S16 <- function() {
   ovf <- ho[bin_lo >= top]; ovf[, x := top + bw * 2]
   premise(nrow(ovf) > 0 && all(ovf$metric == "aucinf_B"), "only rule B has subjects in the open bin (label marker is the rule B square)")
   ovf[, lab := vapply(seq_len(.N), function(i) fill(L$fig$ovf, list(v = fnum(top, 1), n = fint(n[i]), p = fnum(pct[i], if (pct[i] < 0.01) 3 else 2))), "")]
+  LY <- 30                                                     # 열린 구간 값: 패널 위쪽 오른쪽(점 바로 위에서 끝나게), 점까지 세로 지시선
   COLS <- setNames(c(PAL$blue, "#a8441c", PAL$orange), SER); LTS <- setNames(c("solid", "22", "solid"), SER); SHP <- setNames(c(16, 17, 15), SER)
-  pk <- body_[, .SD[which.max(pct)], by = .(model, ser)]
   po <- ggplot(body_, aes(x = x, y = pct, colour = ser, linetype = ser)) +
     geom_vline(xintercept = 1, colour = PAL$ink2, linewidth = 0.5) +
     geom_line(linewidth = 0.85) +
-    geom_point(data = pk, aes(shape = ser), size = 2.6) +
-    geom_point(data = ovf, aes(shape = ser), size = 2.8) +
-    geom_text(data = ovf, aes(x = top + bw * 3.4, y = 40, label = lab), hjust = 1, size = 3.7, family = FONT, show.legend = FALSE) +
+    geom_segment(data = ovf, aes(x = x, xend = x, y = LY * 0.62, yend = pct * 1.7), linetype = "solid", linewidth = 0.35, show.legend = FALSE) +
+    geom_point(data = ovf, aes(shape = ser), size = 2.8, show.legend = FALSE) +
+    geom_text(data = ovf, aes(x = x + bw * 0.6, y = LY, label = lab), hjust = 1, size = 3.7, family = FONT, show.legend = FALSE) +
     facet_wrap(~model, nrow = 1) +
     scale_colour_manual(values = COLS) + scale_linetype_manual(values = LTS) + scale_shape_manual(values = SHP) +
     scale_y_log10(breaks = c(0.01, 0.1, 1, 10), labels = function(x) formatC(x, format = "fg"), limits = c(0.004, 100)) +
@@ -116,10 +117,10 @@ slide_S16 <- function() {
   r_ <- rows(TCV, "grepl('AUCinf', metric) & grepl('observed-to-true', metric)")
   premise(r_[pk_model == "k2016" & metric == MET[["lz_B"]], max] > 5 && all(r_[!(pk_model == "k2016" & metric == MET[["lz_B"]]), max] < 2),
           "only the 2016 model rule B maximum exceeds 5; the other NCA AUC0-inf maxima are below 2")
-  KH <- 0.98; OTH <- 1.7
+  KH <- 0.98; OTH <- 1.78
   OTY <- GEO$BODY_BOTTOM - KH - 0.06 - OTH; OH <- OTY - 0.08 - GEO$BODY_TOP
   deck_figure(po, "s16_observed_to_true_hist", c(XR, GEO$BODY_TOP, WR, OH), src = CH)
-  deck_table(dfo, box = c(XR, OTY, WR, OTH), widths = c(3.2, 1.7, 1.58), size = 12, highlight = 2, label = "table_ot")
+  deck_table(dfo, box = c(XR, OTY, WR, OTH), widths = c(2.25, 2.04, 2.04), size = 12, highlight = 2, label = "table_ot")
   deck_text(tx("S16.takeaway", list(b16 = q("lz_B", "k2016", "max", 2), b20 = q("lz_B", "k2020", "max", 2), a16 = q("i_A", "k2016", "max", 2), a20 = q("i_A", "k2020", "max", 2))),
             c(XR, GEO$BODY_BOTTOM - KH, WR, KH), size = 16, label = "text_takeaway")
 

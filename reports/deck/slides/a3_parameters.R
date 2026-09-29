@@ -59,7 +59,8 @@ slide_A3 <- function() {
              sprintf("%s / %s", th("k12", dk12, "k12 (1/day)"), th("k21", 3, "k21 (1/day)")),
              sprintf("%s / %s", th("ka", 3, "ka (1/day)"), th("F", 3, "F")),
              sprintf("%s / %s", th("Vmax", dvm, "Vmax (mg/L/day)"), th("Km", 2, "Km (mg/L), fixed")))
-    om <- c(iv("Vc", 4), L$na, iv("ke", if (m == "k2016") 3 else 4), none, sprintf("%s / %s", iv("ka", if (m == "k2016") 3 else 4), none), sprintf("%s / %s", iv("Vmax", 4), none))
+    # ω²는 유효 숫자 세 자리로 적는다(2020 ka, MTT는 SD 제곱이라 네 자리로 저장됨)
+    om <- c(iv("Vc", 4), L$na, iv("ke", if (m == "k2016") 3 else 4), none, sprintf("%s / %s", iv("ka", 3), none), sprintf("%s / %s", iv("Vmax", 4), none))
     df <- data.frame(b = val, c = om, d = unlist(L$src[[m]]), stringsAsFactors = FALSE, check.names = FALSE)
     names(df) <- paste0(tx("A3.table.head"), if (m == "k2020") " " else ""); df
   }
@@ -72,6 +73,10 @@ slide_A3 <- function() {
     deck_text(tx(sprintf("A3.label.%s", m)), c(x, ly, sum(wd[2:4]), lh), size = 16, label = sprintf("label_%s", m), gap_pt = 0)
   }
   deck_table(df, box = c(GEO$ML, ty, GEO$CW, th_), widths = wd, size = 13, label = "table_params")
+  # 두 모델 열 묶음 사이 세로 구분선(1 pt): 모델 이름표 위에서 표 아래 테두리까지. deck_table은 세로 테두리를 두지 않으므로 글자 없는 가는 도형으로 그린다.
+  # 표 행 높이는 내용으로 정해져 렌더링한 표가 상자(th_)보다 조금 길다(실측 2.714 in: 한 줄 행 23.5 pt, 두 줄 행 39 pt). 선 끝은 그 실측 아래 테두리에 맞춘다
+  xd <- GEO$ML + sum(wd[1:4]); lw <- 1 / 72; tb <- ty + th_ + 0.044
+  deck_text(" ", c(xd - lw / 2, ly + 0.06, lw, tb - ly - 0.06), size = 16, bg = PAL$muted, geom = "rect", label = "rule_models", gap_pt = 0)
 
   # ---- 아래: 75 kg 환산(CL, Q, 말초 용적), 2020 흡수 구조, 잔차 ----
   cv <- function(y, file, m) {
@@ -86,7 +91,7 @@ slide_A3 <- function() {
   f <- list(cl16 = c16$cl, cl20 = c20$cl, q16 = c16$q, q20 = c20$q, vp16 = c16$vp, vp20 = c20$vp, wr = wr,
             ntr = a3_v(P20, c("theta", "n_transit", "value"), "2020 Model 1, number of transit compartments", 0),
             mtt = a3_v(P20, c("theta", "MTT", "value"), "2020 Model 1, mean transit time (day)", 3),
-            mttw = a3_v(P20, c("iiv", "sd", "MTT", "omega2"), "2020 Model 1, IIV variance MTT", 4),
+            mttw = a3_v(P20, c("iiv", "sd", "MTT", "omega2"), "2020 Model 1, IIV variance MTT", 3),
             sp16 = dderived("2016 model, proportional residual (%)", "config/params_variability.yaml", "residual.sigma_prop.value x 100", 100 * pv$residual$sigma_prop$value, paste0(fnum(100 * pv$residual$sigma_prop$value, 1), "%")),
             sp20 = dderived("2020 Model 1, proportional residual (%)", "config/params_k2020_model1.yaml", "residual.sigma_prop.value x 100", 100 * p20$residual$sigma_prop$value, paste0(fnum(100 * p20$residual$sigma_prop$value, 1), "%")),
             sa = a3_v(PV, c("residual", "sigma_add", "value"), "additive residual SD (mg/L), fixed, both models", 2))

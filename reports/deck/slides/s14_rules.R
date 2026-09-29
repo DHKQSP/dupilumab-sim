@@ -1,7 +1,7 @@
 # S14 논거 ② 처리 규칙에 따라 판정이 달라진다. AUC0-inf + Cmax의 경계 1종 오류를 규칙 A/B/C x 기준 세트 (i)~(iv)(9가지 변형)로,
 # AUC0-inf GMR 편향(참 AUC0-inf 비 대비), 판정 불안정(같은 시험의 판정이 변형 사이에서 갈리는 비율). M1(체중 층 포함), M0 병기.
 # 자료: results/criteria/criteria_g2_type1.csv, criteria_bias.csv, criteria_instability.csv(시험 모집단 재생성 시험: 건강인, 체중 층화).
-# 표 6행: 규칙 A 세트별 4행, 규칙 B 1행, 규칙 C는 SAP 제안의 세트 (i) 1행. 규칙 C 세트 (ii)~(iv)는 요점(최대)과 노트(세트별 모든 열)에 세트별로 적는다
+# 표 6행: 규칙 A 세트별 4행, 규칙 B 1행, 규칙 C는 SAP 제안의 세트 (i) 1행. 규칙 C 세트 (ii)~(iv)는 요점(V2 칸 세트별 값)과 노트(세트별 모든 열)에 세트별로 적는다
 # (세트 사이 최소·최대를 한 값으로 합치지 않는다).
 # 칸 수 표기: "점추정 > 5%"(pass_pct > 5)와 "Wilson 하한 > 5%"(lo > 5, 분류 exceeding)를 따로 적는다(두 수가 다른 변형이 있다).
 
@@ -78,16 +78,17 @@ slide_S14 <- function() {
   m <- do.call(rbind, lapply(names(RW), function(k) one(k, RW[[k]])))
   df <- as.data.frame(m, stringsAsFactors = FALSE); names(df) <- tx("S14.table.head", f)
   LW <- 7.85; th <- 2.52
-  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, LW, th), widths = c(1.84, 1.21, 1.48, 0.87, 1.33, 1.12), size = 12, highlight = 6)
+  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, LW, th), widths = c(1.74, 1.21, 1.66, 0.84, 1.27, 1.12), size = 12, highlight = 6)
 
   # ---- 요점(표 아래) ----
   abmax <- dext(CG, sprintf("analysis_model=='M1' & config %%in%% %s", s14_in(AB)), "pass_pct", max, 2, "%", "M1 rules A and B: largest boundary pass rate")
   p2v <- dv(T1, "analysis_model=='M1' & config=='P2' & pk_model=='k2020' & scenario=='V2_up_080'", "pass_pct", 2, "%", "M1 AUC0-last + Cmax, 2020 model V2 up cell")
   WV2 <- "analysis_model=='M1' & pk_model=='k2020' & scenario=='V2_up_080'"
-  civ1 <- dv(CG, sprintf("%s & config=='G2_C_i'", WV2), "pass_pct", 2, "%", "M1 G2_C_i, 2020 model V2 up cell")
-  cxr <- drange(CG, sprintf("%s & config %%in%% %s", WV2, s14_in(CC[c("C_ii", "C_iii", "C_iv")])), "pass_pct", 2, "%", "M1 G2_C_ii to G2_C_iv, 2020 model V2 up cell, range over sets (ii) to (iv)")
+  # 규칙 C 세트별 값(세트 사이 범위로 합치지 않는다)
+  cv2 <- lapply(CC, function(cf) dv(CG, sprintf("%s & config=='%s'", WV2, cf), "pass_pct", 2, "%", sprintf("M1 %s, 2020 model V2 up cell", cf)))
   yb <- GEO$BODY_TOP + th + 0.14
-  deck_bullets(tx("S14.bullets", list(c = f$c, nom = f$nom, p2 = p2v, abmax = abmax, ci = civ1, cx = cxr, one = one_)), box = c(GEO$ML, yb, LW, GEO$BODY_BOTTOM - yb), size = 16, gap_pt = 6)
+  deck_bullets(tx("S14.bullets", list(c = f$c, nom = f$nom, p2 = p2v, abmax = abmax, ci = cv2$C_i, cii = cv2$C_ii, ciii = cv2$C_iii, civ = cv2$C_iv, one = one_)),
+               box = c(GEO$ML, yb, LW, GEO$BODY_BOTTOM - yb), size = 16, gap_pt = 6)
 
   # ---- 오른쪽: 판정 불안정(정의, 카드 두 개) ----
   xr <- GEO$ML + LW + 0.3; wr <- GEO$W - GEO$MR - xr
@@ -97,7 +98,7 @@ slide_S14 <- function() {
   nvar <- local({ k <- sort(unique(rows(CG, "analysis_model=='M1'")$config)); premise(setequal(k, c(AB, CC)), "nine variants in the criteria file")
     dderived("number of AUC0-inf + Cmax variants (rule x criteria set)", CG, "analysis_model=='M1' :: count of distinct config", length(k), as.character(length(k))) })
   inf$nvar <- nvar
-  dh <- 1.42
+  dh <- 1.48   # 카드 아래 여백이 위 여백과 비슷하게(검사 9 tight_bottom)
   deck_text(tx("S14.inst.def", inf), c(xr, GEO$BODY_TOP, wr, dh), size = 16, label = "inst_def", bg = PAL$tint_grey, geom = "roundRect", gap_pt = 2)
   ch <- (GEO$BODY_BOTTOM - GEO$BODY_TOP - dh - 0.24) / 2; y1 <- GEO$BODY_TOP + dh + 0.12
   i_all <- s14_inst("M1", "inst_all", "median"); i14 <- s14_inst("M1", "inst_all", "median", drop_ka = TRUE)

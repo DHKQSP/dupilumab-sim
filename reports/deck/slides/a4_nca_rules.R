@@ -39,8 +39,8 @@ slide_A4 <- function() {
   premise(nr$reliability$adj_r2_min == cs$ii$adj_r2_min && nr$reliability$extrap_max_pct == cs$ii$extrap_max_pct && nr$reliability$span_ratio_min == cs$ii$span_ratio_min,
           "engine reliability flag in nca_rules.yaml equals criteria set (ii)")
   premise(is.null(cs$i$span_ratio_min) && is.null(cs$iii$span_ratio_min) && !is.null(cs$ii$span_ratio_min) && !is.null(cs$iv$span_ratio_min), "span only in sets (ii) and (iv)")
-  premise(any(grepl("optional user entries", unlist(pr$facts_for_documents))) && any(grepl("flagged .*not excluded", unlist(pr$facts_for_documents))) &&
-            any(grepl("Certara Phoenix 8.2", unlist(pr$facts_for_documents))), "Phoenix Lambda Z Acceptance Criteria: optional, flag only (prereg section4 facts)")
+  premise(any(grepl("optional user entries", unlist(pr$facts_for_documents))) && any(grepl("flagged \\(Accepted / Not_Accepted\\), not excluded", unlist(pr$facts_for_documents))) &&
+            any(grepl("Certara Phoenix 8.2", unlist(pr$facts_for_documents))), "Phoenix Lambda Z Acceptance Criteria: optional user entries; failing profiles flagged Not_Accepted, not excluded (prereg section4 facts)")
   # 세트의 지위: 사전 명시 등록부(영문)
   reg <- rows(PR)
   premise(nrow(reg[grepl("^Reliability criteria set \\(i\\)", Item) & Status == "post hoc" & grepl("set \\(ii\\) is the pre-specified definition", `How reported`)]) == 1,
@@ -63,7 +63,7 @@ slide_A4 <- function() {
   premise(cs$i$adj_r2_min == 0.8, "set (i) adjusted R-squared is the 0.80 named in prereg section4")
   deck_kicker(tx("A4.kicker")); deck_title(tx("A4.title"), box = c(GEO$ML, GEO$TITLE_TOP, GEO$CW - GEO$TAG_W - 0.2, GEO$TITLE_H))   # 제목이 오른쪽 위 태그 아래로 들어가지 않게
 
-  # ---- 왼쪽: NCA 엔진 규칙(요점 5개: BLQ, AUC0-last, λz, AUC0-inf, 미달자 처리 규칙 A·B·C) + 엔진 검증 카드 ----
+  # ---- 왼쪽: NCA 엔진 규칙(요점 5개: BLQ, AUC0-last, λz, AUC0-inf, 탈락자 처리 규칙 A·B·C) + 엔진 검증 카드 ----
   XL <- GEO$ML; WL <- 6.05
   deck_text(tx("A4.rules_label"), c(XL, GEO$BODY_TOP, WL, 0.4), size = 16, bold = TRUE, color = PAL$ink2, label = "label_rules", gap_pt = 0)
   mp <- dcfg(NR, c("standard", "lambda_z", "min_points"), "lambda-z minimum points", num_fmt(0))
@@ -88,6 +88,9 @@ slide_A4 <- function() {
   np_ <- ev[, .(n = n_profiles[1]), by = dataset]; premise(all(ev[, uniqueN(n_profiles), by = dataset]$V1 == 1), "same profile count in every comparison of a data set")
   g$ntot <- dderived("profiles per engine comparison (Theoph + Indometh + simulated)", EV, "sum over datasets of n_profiles (one comparison each)", sum(np_$n), fint(sum(np_$n)))
   g$npair <- dderived("engine pairs compared per data set", EV, "uniqueN(comparison)", length(unique(ev$comparison)), as.character(length(unique(ev$comparison))))
+  eng <- unique(unlist(strsplit(unique(ev$comparison), " vs ", fixed = TRUE)))
+  premise(setequal(eng, c("this engine", "NonCompart", "PKNCA")), "the engines named on the card (this engine, NonCompart, PKNCA) are the engines in the comparison column")
+  g$neng <- dderived("engines compared (distinct names in the comparison column)", EV, "uniqueN(unlist(strsplit(comparison, ' vs ')))", length(eng), as.character(length(eng)))
   premise(lz_t == sum(np_$n) * length(unique(ev$comparison)), "compared windows = profiles x engine pairs")
   cy <- GEO$BODY_TOP + 0.42 + BH + 0.1
   deck_stat(g$lz, tx("A4.engine", g), c(XL, cy, WL, GEO$BODY_BOTTOM - cy), color = PAL$blue, bg = PAL$tint_blue, value_size = 32)

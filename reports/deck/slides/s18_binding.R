@@ -16,27 +16,28 @@ slide_S18 <- function() {
   premise(all(range(rows(IA, "mechanism=='Km' & is.finite(end_multiplier)")$end_multiplier) == c(0.01, 100)), "Km range ends in the result file equal the configured search range")
   deck_kicker(tx("S18.kicker")); deck_title(tx("S18.title", list(m = kmr, r = km_rng)))
 
-  # ---- 그림: Km 배율 대 참 AUC0-inf 비(두 모델, 선별 곡선), 범위 끝(200,000명), 도달 목표(빈 표식). 다른 기전은 표에 둔다 ----
+  # ---- 그림: Km 배율 대 참 AUC0-inf 비(두 모델, 선별 곡선), 도달 목표(빈 표식, 200,000명). 범위 끝 값은 제목·요점에(표식이 겹쳐 그림에서 뺐다). 다른 기전은 표에 둔다 ----
   lim <- unlist(.read("config/trial_design.yaml")$be$limits)
   km <- rbindlist(lapply(M, function(m) rows(SC(m, "Km"))))
-  ends <- rows(IA, "mechanism=='Km' & is.finite(end_auc_ratio)")[, .(model, x = end_multiplier, y = end_auc_ratio)] |> unique()
   rch <- rows(IA, "mechanism=='Km' & reachable==TRUE")[, .(model, x = multiplier, y = auc_ratio, target)]
   premise(nrow(rch) == 2 && all(abs(rch$target - 1.05) < 1e-9), "the only reachable Km target is 1.05 in both models")
   premise(all(km$auc_ratio_screen > lim[1] & km$auc_ratio_screen < lim[2]), "the Km curves stay inside the equivalence limits (figure)")
   rlab <- fill(L$fig$reach, list(t = fnum(rch$target[1], 2), m16 = s18_mult(rch[model == "k2016", x]), m20 = s18_mult(rch[model == "k2020", x])))
-  km[, mod := factor(model_lab()[model], levels = model_lab())]; ends[, mod := factor(model_lab()[model], levels = model_lab())]; rch[, mod := factor(model_lab()[model], levels = model_lab())]
+  km[, mod := factor(model_lab()[model], levels = model_lab())]; rch[, mod := factor(model_lab()[model], levels = model_lab())]
   setorder(km, model, direction, multiplier)
   FW <- 6.45; FH <- 2.9; XL <- c(0.0065, 155)
+  RL <- c(min(rch$x) * 0.42, max(rch$y) + 0.075)                   # 지시선 시작점(설명 글 오른쪽 끝): 표식의 왼쪽 위
   p <- ggplot() +
     annotate("rect", xmin = XL[1], xmax = XL[2], ymin = lim[1], ymax = lim[2], fill = PAL$tint_blue, alpha = 0.6) +
     geom_hline(yintercept = lim, linetype = "22", colour = PAL$ink2, linewidth = 0.5) +
     geom_hline(yintercept = 1, colour = PAL$muted, linewidth = 0.4) +
     geom_line(data = km, aes(multiplier, auc_ratio_screen, colour = mod, linetype = mod, group = interaction(model, direction)), linewidth = 1.1) +
-    geom_point(data = ends, aes(x, y, colour = mod, shape = mod), size = 2.8) +
     geom_point(data = rch, aes(x, y, colour = mod), shape = ifelse(rch$model == "k2016", 1, 2), size = 3.4, stroke = 1.1, show.legend = FALSE) +
-    annotate("text", x = max(rch$x) * 1.08, y = 1 - 0.018, label = rlab, hjust = 1, vjust = 1, size = 3.7, family = FONT, colour = PAL$ink) +
+    # 도달 목표 설명: 빈 표식 왼쪽 위에 두고 짧은 사선 지시선으로 표식을 가리킨다
+    annotate("segment", x = RL[1], y = RL[2], xend = min(rch$x) * 0.84, yend = max(rch$y) + 0.012, colour = PAL$ink2, linewidth = 0.4) +
+    annotate("text", x = RL[1] * 0.9, y = RL[2], label = rlab, hjust = 1, vjust = 0.5, size = 3.7, family = FONT, colour = PAL$ink) +
     annotate("text", x = 0.009, y = lim[2] - 0.012, label = L$fig$band, hjust = 0, vjust = 1, size = 3.7, family = FONT, colour = PAL$ink2) +
-    scale_colour_manual(values = unname(MODEL_COL)) + scale_linetype_manual(values = unname(MODEL_LT)) + scale_shape_manual(values = unname(MODEL_SHAPE)) +
+    scale_colour_manual(values = unname(MODEL_COL)) + scale_linetype_manual(values = unname(MODEL_LT)) +
     scale_x_log10(breaks = c(0.01, 0.1, 1, 10, 100), labels = function(x) paste0("×", formatC(x, format = "fg"))) +
     scale_y_continuous(breaks = c(lim[1], 1, lim[2]), labels = function(x) fnum(x, 2)) +
     coord_cartesian(xlim = XL, ylim = c(lim[1] - 0.05, lim[2] + 0.04), expand = FALSE) +

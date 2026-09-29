@@ -1,7 +1,7 @@
 # A5 부록: 견고성: 체중 범위와 아토피 모집단(보고서 부록 I 요약). 평가변수 선택의 근거가 아니다(근거는 시험 모집단뿐). [모의]
 # 덱에서 results/atopic/, results/weight_generalization/ 파일과 "아토피"라는 말을 쓰는 유일한 슬라이드다(check_deck 4: atopic_allowed_slides A5).
 # 수치는 보고서 부록 I의 사실 청크(MS_report.Rmd 189~211행, 1360~1370행, 734~738행)와 같은 파일·행 조건·열로 읽는다(검사 8 대조).
-# 그림: 균일 체중 구간(40~150 kg, 구간당 20,000명)의 세트 (i) 신뢰 비율(reliable_rsq_extrap_pct), 2016 모델(model a)과 2020 모델(model b).
+# 그림: 체중 구간(40~150 kg, 구간 안 균일 분포, 구간당 20,000명; 구간 폭은 같지 않다)의 세트 (i) 신뢰 비율(reliable_rsq_extrap_pct), 2016 모델(model a)과 2020 모델(model b).
 # weight_bands_B0_abcd.csv의 dev_range_note 열은 한글이다. 행 조건에는 영문 코드(model, band)만 쓴다.
 
 slide_A5 <- function() {
@@ -30,11 +30,11 @@ slide_A5 <- function() {
 
   # ---- 근거 아님 표시 ----
   wt <- f_wt_range()
-  CH <- 0.74
+  CH <- 0.84   # 두 줄 문구: 아래 여백이 위 여백과 비슷하게(검사 9 tight_bottom)
   deck_text(tx("A5.not_evidence", list(wt = wt)), c(GEO$ML, GEO$BODY_TOP, GEO$CW, CH), size = 16, bg = PAL$tint_orange, geom = "roundRect", label = "text_not_evidence", gap_pt = 0)
 
-  # ---- 왼쪽: 균일 체중 구간 그림 + 요점 ----
-  Y0 <- GEO$BODY_TOP + CH + 0.14; XL <- GEO$ML; WL <- 6.7
+  # ---- 왼쪽: 체중 구간 그림 + 요점 ----
+  Y0 <- GEO$BODY_TOP + CH + 0.12; XL <- GEO$ML; WL <- 6.9
   d <- copy(wb)[, .(model, band, y = reliable_rsq_extrap_pct)]
   d[, pk := c(a = "k2016", b = "k2020")[model]]; d[, mlab := factor(model_lab()[pk], levels = model_lab())]
   ord <- unique(d[order(lo_of(band)), band]); d[, x := match(band, ord)]
@@ -49,9 +49,9 @@ slide_A5 <- function() {
   xf <- match(fl$band, ord)
   p <- ggplot(d, aes(x = x, y = y, colour = mlab, shape = mlab, linetype = mlab)) +
     annotate("rect", xmin = min(st) - 0.5, xmax = max(st) + 0.5, ymin = -Inf, ymax = Inf, fill = PAL$tint_grey) +
-    annotate("text", x = mean(st), y = 61, label = fill(F$study, list(wt = wt)), family = FONT, size = 4.2, colour = PAL$ink2, vjust = 0) +
+    annotate("text", x = mean(st), y = 64, label = fill(F$study, list(wt = wt)), family = FONT, size = 12 / .pt, colour = PAL$ink2, vjust = 0) +
     annotate("segment", x = xf - 0.5, xend = xf - 0.5, y = 60, yend = 102, colour = PAL$muted, linewidth = 0.5, linetype = "dotted") +
-    annotate("text", x = xf - 0.42, y = 101, label = fill(F$extrap, list(k = k130)), family = FONT, size = 3.9, colour = PAL$ink2, hjust = 0, vjust = 1, lineheight = 0.95) +
+    annotate("text", x = xf - 0.42, y = 101, label = fill(F$extrap, list(k = k130)), family = FONT, size = 12 / .pt, colour = PAL$ink2, hjust = 0, vjust = 1, lineheight = 0.95) +   # 눈금 글자(12 pt)와 같은 크기
     geom_line(linewidth = 0.9) + geom_point(size = 3) +
     geom_text(data = lab, aes(label = fnum(y, 1)), vjust = ifelse(lab$pk == "k2016", 1.9, -1.0), size = 4.3, family = FONT, show.legend = FALSE) +
     scale_colour_manual(values = unname(MODEL_COL)) + scale_shape_manual(values = unname(MODEL_SHAPE)) + scale_linetype_manual(values = unname(MODEL_LT)) +
@@ -60,7 +60,7 @@ slide_A5 <- function() {
     labs(x = F$xlab, y = NULL, subtitle = F$ylab) + theme_deck(13) +
     theme(legend.position = "top", legend.justification = "left", legend.key.width = grid::unit(2.2, "lines"), legend.margin = margin(0, 0, 0, 0),
           legend.box.spacing = grid::unit(2, "pt"), panel.grid.major.x = element_blank(), plot.subtitle = element_text(colour = PAL$ink2, size = 13, margin = margin(0, 0, 2, 0)))
-  FH <- 2.5
+  FH <- 2.49
   deck_figure(p, "a5_reliability_by_weight_band", c(XL, Y0, WL, FH), src = WB)
   # 그림 값의 추적(끝 구간 값)
   hi <- dv(WB, sprintf("model=='a' & band=='%s'", ord[1]), "reliable_rsq_extrap_pct", 1, "%", "weight bands, 2016 model, reliable under set (i), lightest band")
@@ -86,6 +86,7 @@ slide_A5 <- function() {
   nr_ <- .read("config/nca_rules.yaml")$standard$reliability; cs_ <- .read("config/prereg_20260926.yaml")$section4$criteria_sets$ii
   premise(nr_$adj_r2_min == cs_$adj_r2_min && nr_$extrap_max_pct == cs_$extrap_max_pct && nr_$span_ratio_min == cs_$span_ratio_min, "engine reliability flag used for the dropout comparison equals criteria set (ii)")
   premise(setequal(unique(od$model), c("a", "b", "d")), "dropout comparison covers the three model variants (a, b, d)")
+  premise(length(unique(od$scenario)) > 1 && setequal(unique(od$arm), c("R", "T")), "dropout weight range spans several scenarios and both arms (bullet: model variants, scenarios, arms)")
   deck_bullets(tx("A5.bullets", list(brng = brng, hi = hi, lo = lo, wmed = wmed, thr = thr, wcov = wcov, dw = dw)),
                box = c(XL, YB, WL, GEO$BODY_BOTTOM - YB), size = 16, gap_pt = 4)
 

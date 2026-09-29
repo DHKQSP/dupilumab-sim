@@ -1,4 +1,4 @@
-# S21 견고성 요약표: 결론(AUC0-last + Cmax 공동 1차, AUC0-inf 이차)이 가정을 바꿔도 유지되는가. 다섯 행: 구조 모델 두 개, 곡선 모양(Km·Vmax, 양 군),
+# S21 견고성 요약표: 결론(AUC0-last + Cmax 공동 1차, AUC0-inf 2차)이 가정을 바꿔도 유지되는가. 다섯 행: 구조 모델 두 개, 곡선 모양(Km·Vmax, 양 군),
 # 분석법 LLOQ 0.02~0.5 mg/L, 비례 잔차 12%, 분석 모형(M0/M1/M2). 행마다 무엇을 계산했는지(모델, 칸, 시험 수)와 계산하지 않은 것을 적는다.
 # 시험 모집단(건강인 60~90 kg, 체중 층화 배정, B0)만.
 # 자료: results/oc_models/type1_models.csv(경계 1종 오류, 분석 모형별), results/curve_shape/curve_shape_B0.csv(곡선 모양, 2016 모델만, 대상자 20,000명씩),
@@ -33,6 +33,8 @@ slide_S21 <- function() {
   premise(all(km > lim[1] & km < lim[2]), "Km inversion stays inside the equivalence limits")
   premise(nrow(rows(LT, "config %in% c('G2_Aii') & resid=='fixed' & lo <= 5")) == 0, "AUC0-inf rule A (ii) + Cmax: Wilson lower bound above 5% in every LLOQ cell, both analysis models")
   premise(all(rows(LI, "model=='k2016' & resid=='fixed'")$coverage_lt80_pct < 0.1), "window coverage below 80% under 0.1% at every LLOQ (2016 model)")
+  premise(setequal(unique(rows(LT)$config), c("P2", "G2_Aii", "G2_B", "AUClast_only", "AUCinf_true_only")),
+          "LLOQ trials: AUC0-inf rule A only with set (ii) (no set (i) or rule C configuration; row 3)")
   premise(length(unique(rows(LT)$scenario)) == 3 && all(rows(LT)$n_trials == 5000) && !"pk_model" %in% names(rows(LT)), "LLOQ trials: 3 boundary cells, 5,000 trials, primary model only (file has no PK model column)")
   premise(row1(TRS, "variant=='resid12' & set=='iii'")$fail_pct > 20 && row1(TRS, "variant=='resid12' & set=='iv'")$fail_pct > 50, "with residual 12% many subjects still fail sets (iii) and (iv)")
   premise(nrow(rows(SR)) == 1 && rows(SR)$schedule == "D2" && !isTRUE(rows(SR)$recommend), "residual 12%: only D2 evaluated, not recommended")
@@ -52,7 +54,9 @@ slide_S21 <- function() {
   npm <- dcount(T1, "analysis_model=='M1' & config=='P2' & pk_model=='k2016'", "boundary cells per model")
   wcnt <- function(m) dcount(T1, sprintf("analysis_model=='M1' & config=='G2_Ai' & pk_model=='%s' & lo > 5", m), sprintf("M1 G2_Ai cells with Wilson lower bound above 5%%, %s", m))
   r1 <- list(npm = npm, n10 = f_reps("boundary"), n20 = f_reps("ext"), p16 = pmax("k2016"), p20 = pmax("k2020"), g16 = gcnt("k2016"), g20 = gcnt("k2020"),
-             w16 = wcnt("k2016"), w20 = wcnt("k2020"), nom = nom)
+             w16 = wcnt("k2016"), w20 = wcnt("k2020"), nom = nom, k16 = model_lab()[["k2016"]], k20 = model_lab()[["k2020"]])
+  premise(identical(r1$w16, r1$w20), "same number of M1 G2_Ai cells with Wilson lower bound above 5% in both models (row 1: 'each')")
+  r1$w <- r1$w16
   premise(identical(unique(rows(T1, "n_trials != 10000")[, paste(pk_model, scenario)]), "k2020 V2_up_080") && all(rows(T1, V2C)$n_trials == 20000) && all(rows(T1, sprintf("!(%s)", V2C))$n_trials == 10000),
           "only the 2020 V2 cell was extended (20,000 trials); all other cells 10,000 (rows 1 and 5)")
   premise(row1(T1, sprintf("analysis_model=='M1' & config=='P2' & %s", V2C))$pass_pct == max(rows(T1, "analysis_model=='M1' & config=='P2' & pk_model=='k2020'")$pass_pct), "the 2020 maximum is the V2 cell (row 1)")
@@ -99,7 +103,7 @@ slide_S21 <- function() {
                    c = vapply(1:5, function(i) fill(L$table$result[[i]], R[[i]]), ""), d = unlist(L$table$verdict), stringsAsFactors = FALSE, check.names = FALSE)
   names(df) <- tx("S21.table.head")
   TH <- 3.66
-  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, TH), widths = c(1.95, 3.45, 5.05, 1.78), size = 12, align_num = FALSE, label = "table_robust")
+  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, TH), widths = c(1.95, 3.2, 5.63, 1.45), size = 12, align_num = FALSE, label = "table_robust")
 
   # ---- 아래: 요점 ----
   BY <- GEO$BODY_TOP + TH + 0.3

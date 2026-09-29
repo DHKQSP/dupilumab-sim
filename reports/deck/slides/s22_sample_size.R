@@ -61,12 +61,12 @@ slide_S22 <- function() {
   nlab <- function(n) dint(TP, s22_w(cv_b, n), "n", "evaluable subjects per arm (grid column)")
   names(df) <- c(L$table$h_cv, vapply(ns, function(n) fill(if (n == n_arm) L$table$h_now else L$table$h_n, list(n = nlab(n))), ""),
                  fill(L$table$h_m0, list(n = nlab(n_arm))))
-  yt <- y0 + 0.42; TH <- 2.5
-  deck_table(df, box = c(GEO$ML, yt, tw, TH), widths = c(1.85, 1.05, 1.45, 1.05, 1.05, 1.15), size = 13, highlight = which(cvs %in% c(cv_b, cv_s)))
+  yt <- y0 + 0.42; TH <- 2.4
+  deck_table(df, box = c(GEO$ML, yt, tw, TH), widths = c(1.85, 1.05, 1.45, 1.05, 1.05, 1.15), size = 12, highlight = which(cvs %in% c(cv_b, cv_s)))
 
   # ---- 왼쪽 아래: 요점 ----
   nn_ <- function(cv, am, col = "n_evaluable_per_arm", it = "n") dint(NN, s22_wn(cv, am, tg), col, sprintf("%s %s CV %s GMR 0.95 target %s", it, am, cv, tg))
-  b <- list(tgt = f$tgt, cv_b = f$cv_b, cv_s = f$cv_s, cv_ok = f$cv_ok,
+  b <- list(tgt = f$tgt, n_arm = f$n_arm, cv_b = f$cv_b, cv_s = f$cv_s, cv_ok = f$cv_ok,
             n_b = nn_(cv_b, "M1"), n_s = nn_(cv_s, "M1"), nr_s = nn_(cv_s, "M1", "n_randomized_per_arm", "n randomized"), nr_b = nn_(cv_b, "M1", "n_randomized_per_arm", "n randomized"),
             cv16 = dv(SI, "input_model=='k2016'", "cv_auc_pct", 1, "%", "AUC0-last CV, 2016 model (%)"),
             cv20 = dv(SI, "input_model=='k2020'", "cv_auc_pct", 1, "%", "AUC0-last CV, 2020 model (%)"),
@@ -88,7 +88,7 @@ slide_S22 <- function() {
     geom_errorbar(aes(ymin = dlo, ymax = dhi), position = pd, width = 0.25, linewidth = 0.55) + geom_point(position = pd, size = 3) +
     facet_wrap(~am, nrow = 1) + scale_colour_manual(values = unname(MODEL_COL)) + scale_shape_manual(values = unname(MODEL_SHAPE)) +
     labs(x = L$fig$xlab, y = NULL, subtitle = fill(L$fig$ylab, list(n = f$n_arm))) + theme_deck(12) +
-    theme(panel.grid.major.x = element_blank(), legend.position = "top", legend.margin = margin(0, 0, 0, 0), plot.subtitle = element_text(colour = PAL$ink2, size = 12, lineheight = 1.1, margin = margin(0, 0, 3, 0)))
+    theme(panel.grid.major.x = element_blank(), legend.position = "top", legend.justification = "left", legend.margin = margin(0, 0, 0, 0), plot.title.position = "plot", plot.margin = margin(6, 12, 6, 9), plot.subtitle = element_text(colour = PAL$ink2, size = 12, lineheight = 1.1, margin = margin(0, 0, 3, 0)))
   xr <- GEO$ML + tw + 0.3; wr <- GEO$W - GEO$MR - xr
   hf <- 3.6
   deck_figure(p, "s22_analytic_vs_pk", c(xr, GEO$BODY_TOP, wr, hf), src = PK)

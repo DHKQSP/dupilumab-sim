@@ -24,6 +24,16 @@ s08_cov_min <- function() {
   dderived("window coverage (true AUC0-tlast / true AUC0-inf), smallest subject-level value over both models", TCV, sprintf("%s :: min(min)", w), x, sprintf("%s%%", fnum(floor(x * 10) / 10, 1)))
 }
 
+# 현행 B0에서 대상자당 절벽 안 채혈점 수의 최댓값(두 모델, 명목일과 허용창 반영, 1일 정의): pct_ge{k} > 0인 가장 큰 k
+s08_cliff_max <- function() {
+  CP <- "cliff/cliff_points.csv"; w <- "model %in% c('k2016','k2020') & weight=='base' & definition_day==1 & schedule=='current'"
+  r <- rows(CP, w); premise(nrow(r) == 4 && setequal(r$timing, c("nominal", "windowed")), "cliff points: two models x nominal and windowed timing (B0, trial weight range)")
+  k <- max(c(0L, which(c(any(r$pct_ge1 > 0), any(r$pct_ge2 > 0), any(r$pct_ge3 > 0)))))
+  premise(k == 1L && all(r$pct_ge2 == 0), "B0: no subject has two or more samples on the cliff (premise card: at most one)")
+  dderived("largest number of B0 samples on the cliff per subject, both models, nominal and windowed timing (1-day definition)", CP,
+           sprintf("%s :: largest k with pct_ge{k} > 0 in any row (pct_ge1 > 0, pct_ge2 == 0, pct_ge3 == 0)", w), k, fnum(k, 0))
+}
+
 slide_S08 <- function() {
   CS <- "cliff/cliff_summary.csv"; TPF <- "trialpop/tp_failure_by_set.csv"; TCV <- "trialpop/tp_coverage_individual.csv"; TCH <- "trialpop/tp_characteristics.csv"
   CGf <- "criteria/criteria_g2_type1.csv"; T1f <- "oc_models/type1_models.csv"
@@ -40,9 +50,12 @@ slide_S08 <- function() {
   premise(all(rows(CGf, "analysis_model=='M1' & config=='G2_A_i' & class=='exceeding'")$pass_pct > 5), "Wilson-exceeding cells are a subset of point-exceeding cells (caption: of which)")
   p2 <- rows(T1f, "analysis_model=='M1' & config=='P2'"); premise(nrow(p2) == 16 && sum(p2$class == "exceeding") == 1, "one exceeding P2 cell under M1 (caption)")
   pm <- p2[which.max(pass_pct)]; premise(pm$pk_model == "k2020" && pm$scenario == "V2_up_080", "the exceeding P2 cell under M1 is the 2020 model V2 up (notes)")
+  sets_ <- .read("config/prereg_20260926.yaml")$section4$criteria_sets
+  r2s <- vapply(c("i", "ii", "iii", "iv"), function(s_) as.numeric(sets_[[s_]]$adj_r2_min), 0)
+  premise(r2s[["i"]] == min(r2s) && is.null(sets_$i$span_ratio_min), "set (i) has the lowest adjusted R-squared and no span condition (caption: most lenient)")
 
   f <- list(
-    nom = f_nominal(), ns = s08_study_days("B0", "n"), last = s08_study_days("B0", "last"),
+    nom = f_nominal(), ns = s08_study_days("B0", "n"), last = s08_study_days("B0", "last"), cmax = s08_cliff_max(), r2iii = f_set("iii", "r2"),
     len = headline(drange(CS, CB, "len1_median", 2, "", "cliff length (1-day definition), median, two models")),
     iii = headline(drange(TPF, "set=='iii'", "fail_pct", 1, "%", "trial population, set (iii) failing, two models")),
     i = drange(TPF, "set=='i'", "fail_pct", 1, "%", "trial population, set (i) failing, two models"),
@@ -60,7 +73,7 @@ slide_S08 <- function() {
 
   # 도식: 왼쪽 전제 카드 -> 가운데 논거 세 줄(서로 병렬) -> 오른쪽 결론 카드. 화살표는 전제와 각 논거, 각 논거와 결론 사이
   y <- GEO$BODY_TOP + 0.05; bh <- GEO$BODY_BOTTOM - y - 0.04
-  swl <- 2.1; swr <- 2.5; aw <- 0.26; ag <- 0.05; slot <- aw + 2 * ag; ins <- 0.06          # 겹친 글상자는 카드 안쪽으로 ins만큼 들여 좌우 여백을 맞춘다
+  swl <- 2.1; swr <- 2.3; aw <- 0.22; ag <- 0.04; slot <- aw + 2 * ag; ins <- 0.06          # 겹친 글상자는 카드 안쪽으로 ins만큼 들여 좌우 여백을 맞춘다
   mx <- GEO$ML + swl + slot; mw <- GEO$CW - swl - swr - 2 * slot; xc <- mx + mw + slot
   T_ <- function(s_, k) tx(sprintf("S08.steps.%s.%s", s_, k), f)
   # 양쪽 카드: 라벨, 주장, 수치, 설명, 근거 슬라이드(아래)
@@ -69,7 +82,9 @@ slide_S08 <- function() {
   y1 <- y + 0.08; y2 <- y1 + 0.46
   side <- function(s_, x, sw, fillc, col) {
     s08_panel(c(x, y, sw, bh), fillc, "roundRect", sprintf("box_%s", s_)); wi <- sw - 2 * ins
-    hcl <- hh(s_, "claim", wi); hcap <- hh(s_, "caption", wi); hr <- hh(s_, "ref", wi); yr <- y + bh - hr - 0.04; y3 <- y2 + hcl + 0.02; y4 <- y3 + 0.5
+    hcl <- hh(s_, "claim", wi); hcap <- hh(s_, "caption", wi); hr <- hh(s_, "ref", wi); yr <- y + bh - hr - 0.04
+    # 수치와 설명은 주장 끝과 근거 슬라이드 사이 남는 높이의 가운데에 둔다(카드 안 빈 곳이 한쪽에 몰리지 않게)
+    slack <- max(0, (yr - 0.02) - (y2 + hcl + 0.02) - 0.5 - hcap); y3 <- y2 + hcl + 0.02 + slack / 2; y4 <- y3 + 0.5
     premise(y4 + hcap <= yr + 0.02, sprintf("S08 %s card: caption above the slide reference", s_))
     deck_text(T_(s_, "label"), c(xi_(x), y1, wi, 0.42), size = 18, bold = TRUE, color = col, label = sprintf("step_%s", s_))
     deck_text(T_(s_, "claim"), c(xi_(x), y2, wi, hcl), size = 16, label = sprintf("claim_%s", s_))
@@ -102,6 +117,7 @@ slide_S08 <- function() {
   deck_notes(tx("S08.notes", c(f, list(
     cst = drange(CS, CB, "c_start1_median", 2, "", "cliff start concentration (mg/L), median, two models"),
     len595 = dspan(CS, CB, "len1_p05", "len1_p95", 2, "", "cliff length, 5th to 95th percentile, two models"),
+    minpts = dcfg("nca_rules.yaml", c("standard", "lambda_z", "min_points"), "lambda-z minimum points", num_fmt(0)),
     cw = dcount(CGf, "analysis_model=='M1' & config=='G2_C_i' & class=='exceeding'", "M1 G2_C_i cells exceeding (Wilson lower bound above 5%)"),
     aii = dcount(CGf, "analysis_model=='M1' & config=='G2_A_ii' & pass_pct > 5", "M1 G2_A_ii cells above 5% (point)"),
     b = dcount(CGf, "analysis_model=='M1' & config=='G2_B' & pass_pct > 5", "M1 G2_B cells above 5% (point)"),

@@ -59,10 +59,10 @@ slide_S10 <- function() {
   deck_kicker(tx("S10.kicker")); deck_title(tx("S10.title", f))
 
   # ---- 그림 1: 절벽 위치 분포(두 모델), B0 채혈일 ----
-  XL <- GEO$ML; WL <- 6.2; FH1 <- 2.62
+  XL <- GEO$ML; WL <- 5.9; FH1 <- 2.62
   h <- copy(rows(CH)); premise(all(abs(h[, sum(pct), by = pk_model]$V1 - 100) < 1e-6), "LLOQ-day histogram sums to 100% per model")
   h[, model := factor(model_lab()[pk_model], levels = model_lab())]; h[, x := day_bin + 0.5]
-  b0 <- s10_days("B0"); XMIN <- 14; XMAX <- 72; vis <- b0[b0 >= XMIN & abs(b0 - round(b0)) < 1e-9]
+  b0 <- s10_days("B0"); XMIN <- 14; XMAX <- 74; vis <- b0[b0 >= XMIN & abs(b0 - round(b0)) < 1e-9]
   len <- drange(CS, "weight=='base'", "len1_median", 2, "", "median cliff length, 1-day definition, two models (60-90 kg)")
   int0 <- row1(CP, paste(NOM, "& model=='k2016' & schedule=='current'"))$min_interval_day
   lenv <- rows(CS, "model=='k2016' & weight=='base'")$len1_median
@@ -97,7 +97,8 @@ slide_S10 <- function() {
   lg[, cat := factor(cat, levels = rev(CAT))]
   p2 <- ggplot(lg, aes(x = sch, y = v, fill = cat)) +
     geom_col(width = 0.7, colour = "white", linewidth = 0.3) +
-    geom_text(data = cp, aes(x = sch, y = pct_ge1, label = fnum(pct_ge1, 1)), inherit.aes = FALSE, vjust = -0.4, size = 3.7, family = FONT, colour = PAL$ink) +
+    geom_label(data = cp, aes(x = sch, y = pct_ge1, label = fnum(pct_ge1, 1)), inherit.aes = FALSE, vjust = -0.25, size = 3.7, family = FONT, colour = PAL$ink,
+               fill = "white", label.size = 0, label.padding = grid::unit(0.06, "lines"), label.r = grid::unit(0, "lines")) +          # 흰 바탕: 100 격자선이 숫자를 가로지르지 않게
     facet_wrap(~model, nrow = 1) +
     scale_fill_manual(values = setNames(c("#2c4a6e", "#6d8db0", "#c6d4e4"), rev(CAT)), breaks = CAT) +          # 한 색상 계열(모델 색과 겹치지 않게)
     scale_y_continuous(limits = c(0, 100), breaks = c(0, 25, 50, 75, 100), expand = expansion(mult = c(0, 0.04))) +
@@ -107,10 +108,11 @@ slide_S10 <- function() {
   FY2 <- GEO$BODY_TOP + FH1 + 0.08
   deck_figure(p2, "s10_points_in_cliff", c(XL, FY2, WL, GEO$BODY_BOTTOM - FY2), src = CP)
 
-  # ---- 오른쪽 위: 요점(두 점 이상은 제목에; 절벽 안 채혈점 수는 명목일·허용창 반영을 밝힌다) ----
+  # ---- 오른쪽 위: 요점(제목의 두 점 이상 값도 요점 2에; 절벽 안 채혈점 수는 명목일·허용창 반영을 밝힌다) ----
   XR <- XL + WL + 0.3; WR <- GEO$W - GEO$MR - XR
   minpts <- dcfg("nca_rules.yaml", c("standard", "lambda_z", "min_points"), "lambda-z minimum points", num_fmt(0))
-  b <- list(p16 = dspan(CS, "model=='k2016' & weight=='base'", "lloq_studyday_p05", "lloq_studyday_p95", 1, "", "study day at LLOQ, 5th to 95th percentile, 2016 model"),
+  d1def <- dcfg("oc_design.yaml", c("cliff", "definition_days"), "cliff start: instantaneous half-life threshold, primary definition (days)", function(x) fnum(x[1], 0))
+  b <- list(ge2 = f$ge2, g2n = f$g2n, d1def = d1def, p16 = dspan(CS, "model=='k2016' & weight=='base'", "lloq_studyday_p05", "lloq_studyday_p95", 1, "", "study day at LLOQ, 5th to 95th percentile, 2016 model"),
             len = len, int = dint(CP, paste(NOM, "& model=='k2016' & schedule=='current'"), "min_interval_day", "minimum sampling interval of B0 in the cliff window (days)"),
             mi = dint(CSC, "schedule=='plus_39_46'", "min_interval_day_from_day22", "minimum interval after Day 22 with added samples (days)"),
             b0 = drange(CP, paste(NOM, "& schedule=='current'"), "pct_ge1", 1, "%", "one or more samples on the cliff, B0, two models"),
@@ -125,9 +127,9 @@ slide_S10 <- function() {
   TH <- 1.78; BH <- GEO$BODY_BOTTOM - GEO$BODY_TOP - TH - 0.12
   deck_bullets(tx("S10.bullets", b), box = c(XR, GEO$BODY_TOP, WR, BH), size = 16, gap_pt = 7)
 
-  # ---- 오른쪽 아래: 신뢰 충족률 변화 표(행 = D1~D4와 추가 연구일, 열 = 세트 x 모델; 단위 %p는 요점 3이 밝힌다) ----
-  cell <- function(m, s_, set) s10_signed(dv(RP, sprintf("variant=='%s' & schedule=='%s'", VAR[[m]], s_), sprintf("gain_%s_pp", set), 2, "",
-                                              sprintf("reliability change versus B0, set (%s), %s, %s", set, m, s_)))
+  # ---- 오른쪽 아래: 신뢰 충족률 변화 표(행 = D1~D4와 추가 연구일, 열 = 세트 x 모델; 단위 %p는 칸마다, 지표 이름은 바로 위 요점 4) ----
+  cell <- function(m, s_, set) paste0(s10_signed(dv(RP, sprintf("variant=='%s' & schedule=='%s'", VAR[[m]], s_), sprintf("gain_%s_pp", set), 2, "",
+                                              sprintf("reliability change versus B0, set (%s), %s, %s", set, m, s_))), "%p")          # 단위(%p)를 칸에 붙인다
   df <- data.frame(a = DS, b = vapply(DS, s10_added, ""),
                    c = vapply(DS, function(s_) cell("k2016", s_, "i"), ""), d = vapply(DS, function(s_) cell("k2020", s_, "i"), ""),
                    e = vapply(DS, function(s_) cell("k2016", s_, "ii"), ""), g = vapply(DS, function(s_) cell("k2020", s_, "ii"), ""), stringsAsFactors = FALSE)
@@ -145,7 +147,7 @@ slide_S10 <- function() {
   premise(all(lw[schedule == "B0", window_median] > lw[schedule == "D3", window_median]), "D3 gives a shorter median lambda-z window than B0 in both models (notes)")
   deck_notes(tx("S10.notes", list(
     wt = f_wt_range(), n = dint(CS, "model=='k2016' & weight=='base'", "n", "virtual subjects per model (cliff analysis)"), lloq = f_lloq(),
-    d1def = dcfg("oc_design.yaml", c("cliff", "definition_days"), "cliff start: instantaneous half-life threshold, primary definition (days)", function(x) fnum(x[1], 0)),
+    d1def = d1def,
     d2def = dcfg("oc_design.yaml", c("cliff", "definition_days"), "cliff start: sensitivity definition (days)", function(x) fnum(x[2], 0)),
     dyr = s10_daily_range(CP),
     m16 = dv(CS, "model=='k2016' & weight=='base'", "lloq_studyday_median", 1, "", "median study day at LLOQ, 2016 model"),
@@ -159,6 +161,8 @@ slide_S10 <- function() {
     g2n = f$g2n, g2w = f$ge2,
     dy2 = drange(CP, paste(NOM, "& schedule=='daily_29_57'"), "pct_ge2", 1, "%", "two or more samples on the cliff, daily sampling, nominal, two models"),
     dy3 = b$dly, dy3w = b$dy3w,
+    dy3d2 = drange(CP, "weight=='base' & timing=='nominal' & definition_day==2 & schedule=='daily_29_57'", "pct_ge3", 1, "%", "three or more samples on the cliff, daily sampling, nominal, 2-day definition, two models"),
+    dy3d2w = drange(CP, "weight=='base' & timing=='windowed' & definition_day==2 & schedule=='daily_29_57'", "pct_ge3", 1, "%", "three or more samples on the cliff, daily sampling, windowed, 2-day definition, two models"),
     g2d2 = dext(CP, "weight=='base' & timing=='nominal' & definition_day==2 & schedule!='daily_29_57'", "pct_ge2", max, 1, "%", "two or more samples on the cliff, fixed schedules, nominal, 2-day definition, max"),
     g2d2w = dext(CP, "weight=='base' & timing=='windowed' & definition_day==2 & schedule!='daily_29_57'", "pct_ge2", max, 2, "%", "two or more samples on the cliff, fixed schedules, windowed, 2-day definition, max"),
     minpts = minpts,

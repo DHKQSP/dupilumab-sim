@@ -1,4 +1,4 @@
-# S23 통계분석계획(SAP) 제안 요지: 1차(AUC0-last + Cmax, 주분석 M1(의뢰자 결정 전), M0 민감도), 이차(AUC0-inf, 기준 세트 (i), 두 분석군, adjusted R² 0.90 인원 병기),
+# S23 통계분석계획(SAP) 제안 요지: 1차(AUC0-last + Cmax, 주분석 M1(의뢰자 결정 전), M0 민감도), 2차(AUC0-inf, 기준 세트 (i), 두 분석군, adjusted R² 0.90 인원 병기),
 # 민감도(규칙 C 세트 (i), 항약물항체 상태별), FDA 요구 시 대응안(규칙 B 공동 1차). 카드 네 개(도식). [문헌+모의]
 # 출처: regulatory/sap_text_proposals_en.md 1~7절의 문안(수치는 같은 결과 파일에서 SAP 문서와 같은 행 조건으로 읽는다).
 # 주의: SAP 문안은 주분석 모형을 "[M0 or M1, to be selected by the sponsor]"로 두고 7절 상태가 "pending (sponsor)"다. 덱은 M1을 기준으로 하되 확인 대기로 적는다.
@@ -35,6 +35,8 @@ slide_S23 <- function() {
             r0 = drange(T1, s23_w("M0", "P2"), "pass_pct", 2, "%", "M0 P2 boundary type I error range"),
             c1 = dcount(T1, s23_w("M1", "P2", " & class=='conservative'"), "M1 P2 cells classified conservative"),
             e1 = dcount(T1, s23_w("M1", "P2", " & class=='exceeding'"), "M1 P2 cells classified exceeding"),
+            c0 = dcount(T1, s23_w("M0", "P2", " & class=='conservative'"), "M0 P2 cells classified conservative"),
+            n0 = dcount(T1, s23_w("M0", "P2", " & class=='nominal'"), "M0 P2 cells classified nominal"),
             r2i = f_set("i", "r2"), exi = f_set("i", "extrap"), r2iii = f_set("iii", "r2"), exiii = f_set("iii", "extrap"),
             fi = drange(TPF, "set=='i'", "fail_pct", 1, "%", "trial population, set (i) failing, two models"),
             fiii = drange(TPF, "set=='iii'", "fail_pct", 1, "%", "trial population, set (iii) failing, two models"),
@@ -45,18 +47,24 @@ slide_S23 <- function() {
             gbl = dcount(T1, s23_w("M1", "G2_B", " & lo > 5"), "M1 G2_B cells with Wilson lower bound above 5%"),
             ncell = dcount(T1, s23_w("M1", "G2_B"), "boundary cells per configuration (M1)"),
             nom = f_nominal())
+  premise(as.integer(f$c0) + as.integer(f$n0) == 16L && as.integer(f$c1) + as.integer(f$e1) == 16L, "every P2 boundary cell is conservative, nominal (M0) or exceeding (M1): the listed classes cover all 16 cells (primary card)")
+  AD0 <- "individual/individual_ada10_by_subgroup.csv"
+  premise(nrow(rows(AD0, "ada==1 & schedule=='B0'")) == 1 && nrow(rows("trials/schedule_decision_ada10.csv")) >= 1 && isTRUE(.read("config/trial_design.yaml")$ada_sensitivity$enabled) &&
+          !any(grepl("ada", c(unique(rows(T1)$config), names(unlist(.read("config/oc_design.yaml")))), ignore.case = TRUE)),
+          "an ADA-like subgroup sensitivity simulation exists (individual and schedule level), and no boundary operating-characteristic configuration includes ADA (sensitivity card)")
   deck_kicker(tx("S23.kicker")); deck_title(tx("S23.title", f))
 
-  # ---- 카드 네 개(2 x 2): 1차, 이차 / 민감도, 대응안 ----
+  # ---- 카드 네 개(2 x 2): 1차, 2차 / 민감도, 대응안 ----
   gap <- 0.22; cw <- (GEO$CW - gap) / 2; y1 <- GEO$BODY_TOP; hh <- 0.46
   chs <- c(2.6, GEO$BODY_BOTTOM - y1 - gap - 2.6)   # 위 줄(1차, 이차)이 문단이 많아 더 높다
   cards <- list(list(k = "primary", fill = PAL$tint_orange, col = PAL$orange), list(k = "secondary", fill = PAL$tint_blue, col = PAL$blue),
-                list(k = "sens", fill = PAL$tint_grey, col = PAL$ink), list(k = "fallback", fill = PAL$tint_grey, col = PAL$ink2))
+                list(k = "sens", fill = PAL$tint_grey, col = PAL$ink), list(k = "fallback", fill = PAL$tint_grey, col = PAL$ink))   # 두 회색 카드의 머리글은 같은 색
   for (i in seq_along(cards)) {
     cd <- cards[[i]]; rw <- (i - 1) %/% 2 + 1; x <- GEO$ML + ((i - 1) %% 2) * (cw + gap); y <- y1 + (rw - 1) * (chs[1] + gap); ch <- chs[rw]
     deck_text(" ", c(x, y, cw, ch), size = 16, bg = cd$fill, geom = "roundRect", label = sprintf("card_%s", cd$k))
-    deck_text(tx(sprintf("S23.cards.%s.head", cd$k), f), c(x + 0.12, y + 0.08, cw - 0.24, hh), size = 18, bold = TRUE, color = cd$col, label = sprintf("head_%s", cd$k))
-    deck_text(tx(sprintf("S23.cards.%s.body", cd$k), f), c(x + 0.12, y + 0.08 + hh, cw - 0.24, ch - hh - 0.14), size = 16, label = sprintf("body_%s", cd$k), gap_pt = 5)
+    # 머리글·본문 글상자는 카드 안쪽 0.02 in(글상자 기본 여백 0.1 in과 합쳐 글자는 카드 가장자리에서 0.12 in, 공용 카드 여백과 같음)
+    deck_text(tx(sprintf("S23.cards.%s.head", cd$k), f), c(x + 0.02, y + 0.08, cw - 0.04, hh), size = 18, bold = TRUE, color = cd$col, label = sprintf("head_%s", cd$k))
+    deck_text(tx(sprintf("S23.cards.%s.body", cd$k), f), c(x + 0.02, y + 0.08 + hh, cw - 0.04, ch - hh - 0.14), size = 16, label = sprintf("body_%s", cd$k), gap_pt = 5)
   }
 
   # ---- 노트 ----

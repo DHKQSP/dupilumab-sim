@@ -54,15 +54,19 @@ slide_S19 <- function() {
             bias = s19_signed(dv(DE, WD("M1"), "auclast_bias_pct", 2, "%", "2020 V2 AUC0-last bias M1")))
   deck_kicker(tx("S19.kicker", list(nom = nom))); deck_title(tx("S19.title", f))
 
-  # ---- 왼쪽: 같은 칸의 구성별 경계 1종 오류(M1, M0), 20,000회와 사전 고정 10,000회(P2) ----
-  CF <- c("P2", "P2_10k", "AUClast_only", "AUCinf_true_only", "G2_Ai", "G2_Aii", "G2_B", "G2_Ci", "G2_Cii")
-  d <- rows(T1, sprintf("%s & analysis_model %%in%% c('M0','M1')", W))
-  fd <- rbind(d[config %in% setdiff(CF, "P2_10k"), .(config, am = analysis_model, est = pass_pct, lo, hi)],
-              d[config == "P2", .(config = "P2_10k", am = analysis_model, est = pass_pct_10k, lo = lo_10k, hi = hi_10k)])
-  premise(nrow(fd) == 2 * length(CF), "figure rows: nine configurations x two analysis models")
+  # ---- 왼쪽: 같은 칸의 구성별 경계 1종 오류(M1, M0), 20,000회와 사전 고정 10,000회(P2), AUC0-inf + Cmax는 규칙·세트 아홉 가지 모두 ----
+  CT <- c("P2", "P2_10k", "AUClast_only", "AUCinf_true_only")                                   # type1_models.csv
+  CC <- c("G2_A_i", "G2_A_ii", "G2_A_iii", "G2_A_iv", "G2_B", "G2_C_i", "G2_C_ii", "G2_C_iii", "G2_C_iv")   # criteria_g2_type1.csv (세트 (i)~(iv))
+  CF <- c(CT, CC)
+  d <- rows(T1, sprintf("%s & analysis_model %%in%% c('M0','M1')", W)); dc <- rows(CG, sprintf("%s & analysis_model %%in%% c('M0','M1')", W))
+  fd <- rbind(d[config %in% setdiff(CT, "P2_10k"), .(config, am = analysis_model, est = pass_pct, lo, hi)],
+              d[config == "P2", .(config = "P2_10k", am = analysis_model, est = pass_pct_10k, lo = lo_10k, hi = hi_10k)],
+              dc[config %in% CC, .(config, am = analysis_model, est = pass_pct, lo, hi)])
+  premise(nrow(fd) == 2 * length(CF), "figure rows: thirteen configurations x two analysis models")
+  premise(all(dc$n_trials == 20000), "AUC0-inf + Cmax rows: 20,000 trials")
   n20 <- unique(d$n_trials); n10 <- unique(d$n_trials_10k); premise(length(n20) == 1 && length(n10) == 1, "one trial count per column")
   lab <- vapply(CF, function(k) fill(L$fig$cfg[[k]], list(n = fint(if (k == "P2_10k") n10 else n20))), "")
-  gap <- c(0, 0, 0.35, 0.35, 0.7, 0.7, 0.7, 0.7, 0.7)                     # 묶음 사이 간격: P2 | 단일 평가변수 | AUC0-inf + Cmax
+  gap <- c(0, 0, 0.3, 0.3, rep(0.6, length(CC)))                                  # 묶음 사이 간격: P2 | 단일 평가변수 | AUC0-inf + Cmax
   ypos <- setNames(length(CF) - seq_along(CF) + 1 - gap, CF)
   AML <- unlist(DK$txt$common$analysis_models[c("M1", "M0")])
   fd[, y := ypos[config] + ifelse(am == "M1", 0.17, -0.17)]
@@ -70,26 +74,31 @@ slide_S19 <- function() {
   # 오른쪽 수치 열: 행마다 M1(파랑), M0(주황) 점추정. 그림 안 숫자는 자료에서 바로 그린다
   xmax <- max(ceiling(max(fd$hi)), nom_num + 2); xc <- c(M1 = xmax + 0.95, M0 = xmax + 2.05)
   txt <- fd[, .(amf, x = xc[am], y = ypos[config], lab = fnum(est, 2))]
-  hdr <- data.table(amf = factor(AML, levels = AML), x = unname(xc[c("M1", "M0")]), y = max(ypos) + 0.75, lab = c("M1", "M0"))
-  FW <- 6.4; FH <- 2.85
+  hdr <- data.table(amf = factor(AML, levels = AML), x = unname(xc[c("M1", "M0")]), y = max(ypos) + 0.7, lab = c("M1", "M0"))
+  FW <- 6.4; FH <- 3.1
   p <- ggplot(fd, aes(x = est, y = y, colour = amf, shape = amf)) +
     annotate("rect", xmin = -Inf, xmax = Inf, ymin = min(ypos[c("P2", "P2_10k")]) - 0.45, ymax = max(ypos[c("P2", "P2_10k")]) + 0.45, fill = PAL$tint_blue, alpha = 0.8) +
     geom_vline(xintercept = nom_num, linetype = "22", colour = PAL$ink2, linewidth = 0.5) +
     geom_errorbarh(aes(xmin = lo, xmax = hi), height = 0, linewidth = 0.7) +
-    geom_point(size = 2.6) +
-    geom_text(data = txt, aes(x = x, y = y, label = lab), hjust = 1, size = 3.8, family = FONT, show.legend = FALSE, inherit.aes = FALSE, colour = ifelse(txt$amf == AML[1], PAL$blue, PAL$orange)) +
-    geom_text(data = hdr, aes(x = x, y = y, label = lab), hjust = 1, size = 3.8, family = FONT, fontface = "bold", show.legend = FALSE, inherit.aes = FALSE, colour = PAL$ink2) +
+    geom_point(size = 2.4) +
+    geom_text(data = txt, aes(x = x, y = y, label = lab), hjust = 1, size = 11 / .pt, family = FONT, show.legend = FALSE, inherit.aes = FALSE, colour = ifelse(txt$amf == AML[1], PAL$blue, PAL$orange)) +
+    geom_text(data = hdr, aes(x = x, y = y, label = lab), hjust = 1, size = 11 / .pt, family = FONT, fontface = "bold", show.legend = FALSE, inherit.aes = FALSE, colour = PAL$ink2) +
     scale_colour_manual(values = c(PAL$blue, PAL$orange)) + scale_shape_manual(values = c(16, 17)) +
     scale_y_continuous(breaks = unname(ypos), labels = unname(lab), expand = expansion(add = 0)) +
     scale_x_continuous(limits = c(0, max(xc) + 0.05), breaks = seq(0, xmax, by = 1), expand = expansion(add = c(0.1, 0.1))) +
     coord_cartesian(ylim = c(min(ypos) - 0.45, max(ypos) + 0.95), clip = "off") +
     labs(x = fill(L$fig$xlab, list(nom = nom)), y = NULL) + theme_deck(12) +
-    theme(legend.position = "top", legend.justification = "left", legend.margin = margin(0, 0, 0, 0), legend.box.spacing = grid::unit(2, "pt"),
-          axis.title.x = element_text(hjust = 1, margin = margin(4, 0, 0, 0)),
-          panel.grid.major.y = element_blank(), panel.grid.minor.x = element_blank(), axis.text.y = element_text(colour = PAL$ink, size = 12))
-  deck_figure(p, "s19_v2_cell", c(GEO$ML, GEO$BODY_TOP, FW, FH), src = T1)
+    # 범례는 위 네 행의 빈 왼쪽(점과 구간은 모두 4% 위)에 넣어 세로 자리를 아낀다
+    theme(legend.position = c(0.005, 1), legend.justification = c(0, 1), legend.direction = "vertical",
+          legend.background = element_blank(), legend.key.height = grid::unit(13, "pt"), legend.margin = margin(0, 0, 0, 0),
+          legend.text = element_text(size = 11, colour = PAL$ink2),
+          axis.title.x = element_text(hjust = 1, size = 11, margin = margin(3, 0, 0, 0)), axis.text.x = element_text(size = 11),
+          panel.grid.major.y = element_blank(), panel.grid.minor.x = element_blank(), axis.text.y = element_text(colour = PAL$ink, size = 11.5),
+          plot.margin = margin(4, 8, 4, 4))
+  premise(max(fd[config %in% CT, hi]) < max(xc) && min(fd[config %in% CT, lo]) > 3.5, "the four upper rows leave the left part of the panel free for the legend")
+  deck_figure(p, "s19_v2_cell", c(GEO$ML, GEO$BODY_TOP, FW, FH), src = c(T1, CG))
 
-  # ---- 왼쪽 아래: 같은 칸의 AUC0-inf 구성(세트별), 16칸 전체(점추정, Wilson 초과) ----
+  # ---- 왼쪽 아래: 같은 칸의 AUC0-inf 구성(분류와 편향 방향; 값은 그림), 16칸 전체(규칙별 점추정 칸 수와 Wilson 초과 칸 수) ----
   WG <- function(am) sprintf("%s & analysis_model=='%s'", W, am)
   GA <- c("G2_A_i", "G2_A_ii", "G2_A_iii", "G2_A_iv", "G2_B"); GC <- c("G2_C_ii", "G2_C_iii", "G2_C_iv")
   cg1 <- rows(CG, WG("M1"))
@@ -98,19 +107,14 @@ slide_S19 <- function() {
   premise(all(rows(CB, sprintf("%s & analysis_model=='M1' & config %%in%% c('A_i','A_ii','A_iii','A_iv','B')", W))$bias_dir == "away_from_1") &&
           all(rows(CB, sprintf("%s & analysis_model=='M1' & config %%in%% c('C_i','C_ii','C_iii','C_iv')", W))$bias_dir == "toward_1"),
           "NCA AUC0-inf biased away from 1 for rules A (all sets) and B, toward 1 for rule C (all sets), this cell, M1")
-  premise(cg1[config == "G2_C_iv"]$pass_pct == max(cg1[config %in% GC]$pass_pct), "C (iv) is the largest of rule C (ii) to (iv) in this cell")
+  premise(nrow(rows(CB, sprintf("%s & analysis_model=='M1' & config %%in%% c('A_i','A_ii','A_iii','A_iv','B','C_i','C_ii','C_iii','C_iv')", W))) == 9, "bias rows for all nine rule and set variants (M1)")
   cnt <- function(cf, rel = T1, col = "pass_pct") dcount(rel, sprintf("analysis_model=='M1' & config=='%s' & %s > 5", cf, col), sprintf("M1 %s boundary cells above 5%% (%s)", cf, if (col == "lo") "Wilson lower bound" else "point"))
-  rng_int <- function(k, item, rel, loc) { k <- as.integer(k); dderived(item, rel, loc, range(k), if (min(k) == max(k)) as.character(k[1]) else sprintf("%d~%d", min(k), max(k))) }
   nab <- vapply(c("G2_Ai", "G2_Aii", "G2_B"), cnt, ""); nabw <- vapply(c("G2_Ai", "G2_Aii", "G2_B"), cnt, "", col = "lo")
   b <- list(nom = nom, n = dcount(T1, "analysis_model=='M1' & config=='P2'", "boundary cells"),
-            ab = drange(CG, sprintf("%s & config %%in%% c(%s)", WG("M1"), paste(sprintf("'%s'", GA), collapse = ",")), "pass_pct", 2, "%", "AUC0-inf rules A (i) to (iv) and B + Cmax in the 2020 V2 cell, M1"),
-            ci = dv(CG, sprintf("%s & config=='G2_C_i'", WG("M1")), "pass_pct", 2, "%", "G2_C_i, 2020 V2 cell, M1"),
-            civ = dv(CG, sprintf("%s & config=='G2_C_iv'", WG("M1")), "pass_pct", 2, "%", "G2_C_iv, 2020 V2 cell, M1"),
-            nab = rng_int(nab, "M1 boundary cells above 5% (point), rules A (i), A (ii), B: range of the three counts", T1, "count of rows [analysis_model=='M1' & config in G2_Ai, G2_Aii, G2_B & pass_pct > 5] per config :: range"),
-            nabw = rng_int(nabw, "M1 boundary cells with Wilson lower bound above 5%, rules A (i), A (ii), B: range of the three counts", T1, "count of rows [analysis_model=='M1' & config in G2_Ai, G2_Aii, G2_B & lo > 5] per config :: range"),
+            nai = nab[["G2_Ai"]], naii = nab[["G2_Aii"]], nbB = nab[["G2_B"]], wai = nabw[["G2_Ai"]], waii = nabw[["G2_Aii"]], wbB = nabw[["G2_B"]],
             one = cnt("P2"))
   premise(b$one == "1", "one P2 cell above 5% under M1 (bullet)")
-  BY <- GEO$BODY_TOP + FH + 0.1
+  BY <- GEO$BODY_TOP + FH + 0.06
   deck_bullets(tx("S19.bullets", b), box = c(GEO$ML, BY, FW, GEO$BODY_BOTTOM - BY), size = 16)
 
   # ---- 오른쪽: 확대 경위, 기전, 같은 시험 안의 분해(M1, M0) ----
@@ -120,12 +124,12 @@ slide_S19 <- function() {
               m1k = ex_v("M1", "pass_pct", "P2 at the pre-specified 10,000 trials, 2020 V2 cell, M1"), m0k = ex_v("M0", "pass_pct", "P2 at the pre-specified 10,000 trials, 2020 V2 cell, M0"),
               m0ci = sprintf("%s~%s", sub("%$", "", ex_v("M0", "lo", "Wilson lower bound, P2 at 10,000 trials, M0")), ex_v("M0", "hi", "Wilson upper bound, P2 at 10,000 trials, M0")))
   premise(all(rows(T1, sprintf("%s & config=='P2'", W))$n_trials == 20000) && nrow(rows(T1, sprintf("%s & config=='P2'", W))) == 3, "all three analysis models are reported at 20,000 trials in this cell (card)")
-  EH <- 2.0
+  EH <- 1.74
   deck_text(tx("S19.ext", ext), c(XR, GEO$BODY_TOP, WR, EH), size = 16, label = "text_ext", bg = PAL$tint_blue, geom = "roundRect", gap_pt = 4)
   mech <- list(m20 = m20, m16 = dv(DE, WD("M0", "k2016"), "multiplier", 2, "", "V2 multiplier k2016"),
                tr = dv(DE, WD("M1"), "target", 2, "", "true AUC0-inf ratio targeted in the V2 cells"),
                p16 = dv(T1, WT("M1", "P2", "pk_model=='k2016' & scenario=='V2_up_080'"), "pass_pct", 2, "%", "P2, 2016 model V2 cell, M1"))
-  MY <- GEO$BODY_TOP + EH + 0.16; MH <- 1.12
+  MY <- GEO$BODY_TOP + EH + 0.22; MH <- 1.12
   deck_text(tx("S19.mech", mech), c(XR, MY, WR, MH), size = 16, label = "text_mech", bg = PAL$tint_grey, geom = "roundRect", gap_pt = 4)
   dec <- function(col, am, item) s19_signed(dv(DE, WD(am), col, 3, "", sprintf("%s, 2020 V2 cell, %s", item, am)))
   cols <- c(ref = "ref_minus_5_pp", last = "auclast_minus_ref_pp", cmax = "p2_minus_auclast_pp", p2 = "p2_minus_5_pp")
@@ -134,12 +138,12 @@ slide_S19 <- function() {
                    b = vapply(names(cols), function(k) dec(cols[[k]], "M1", itm[[k]]), ""),
                    c = vapply(names(cols), function(k) dec(cols[[k]], "M0", itm[[k]]), ""), stringsAsFactors = FALSE, check.names = FALSE)
   names(df) <- tx("S19.table.head")
-  TY <- MY + MH + 0.16
+  TY <- MY + MH + 0.22
   deck_table(df, box = c(XR, TY, WR, GEO$BODY_BOTTOM - TY), widths = c(3.3, 0.95, 0.95), size = 12, highlight = 2, label = "table_decomp")
 
   # ---- 노트 ----
   g2 <- function(cf, am) dv(CG, sprintf("%s & analysis_model=='%s' & config=='%s'", W, am, cf), "pass_pct", 2, "%", sprintf("%s, 2020 V2 cell, %s", cf, am))
-  nb <- function(ep) dv(SS, sprintf("%s & analysis_model=='M1' & endpoint=='%s'", W, ep), "bias_pct", 2, "%", sprintf("NCA %s bias, 2020 V2 cell, M1", ep))
+  nb <- function(cf) dv(CB, sprintf("%s & analysis_model=='M1' & config=='%s'", W, cf), "bias_pct", 2, "%", sprintf("NCA AUC0-inf GMR bias, %s, 2020 V2 cell, M1", cf))
   p2ci <- function(am) dci(DE, WD(am), "p2_pct", "lo", "hi", 2, "%", sprintf("2020 V2 cell P2 %s", am))
   p2k <- function(am) dci(T1, WT(am, "P2"), "pass_pct_10k", "lo_10k", "hi_10k", 2, "%", sprintf("P2 first 10,000 trials, 2020 V2 cell, %s", am))
   nts <- list(
@@ -160,16 +164,19 @@ slide_S19 <- function() {
     ci1 = g2("G2_C_i", "M1"), cii1 = g2("G2_C_ii", "M1"), ciii1 = g2("G2_C_iii", "M1"), civ1 = g2("G2_C_iv", "M1"),
     ai0 = g2("G2_A_i", "M0"), aii0 = g2("G2_A_ii", "M0"), aiii0 = g2("G2_A_iii", "M0"), aiv0 = g2("G2_A_iv", "M0"), bb0 = g2("G2_B", "M0"),
     ci0 = g2("G2_C_i", "M0"), cii0 = g2("G2_C_ii", "M0"), ciii0 = g2("G2_C_iii", "M0"), civ0 = g2("G2_C_iv", "M0"),
-    nba = nb("AUCinf_A"), nbai = nb("AUCinf_Ai"), nbb = nb("AUCinf_B"), nbc = nb("AUCinf_C"), nbci = nb("AUCinf_Ci"),
+    bai = nb("A_i"), baii = nb("A_ii"), baiii = nb("A_iii"), baiv = nb("A_iv"), bb = nb("B"), bci = nb("C_i"), bcii = nb("C_ii"), bciii = nb("C_iii"), bciv = nb("C_iv"),
     nai = nab[["G2_Ai"]], naii = nab[["G2_Aii"]], nbB = nab[["G2_B"]], wai = nabw[["G2_Ai"]], waii = nabw[["G2_Aii"]], wbB = nabw[["G2_B"]],
     nci = cnt("G2_Ci"), wci = cnt("G2_Ci", col = "lo"), ncii = dcount(CG, "analysis_model=='M1' & config=='G2_C_ii' & pass_pct > 5", "M1 rule C (ii) cells above 5% (point)"),
     ka16 = dv(T1, "pk_model=='k2016' & scenario=='ka_down_080' & analysis_model=='M1' & config=='AUCinf_true_only'", "pass_pct", 2, "%", "unbiased reference, 2016 ka down, M1"),
     ka20 = dv(T1, "pk_model=='k2020' & scenario=='ka_down_080' & analysis_model=='M1' & config=='AUCinf_true_only'", "pass_pct", 2, "%", "unbiased reference, 2020 ka down, M1"),
     kap2 = drange(T1, "scenario=='ka_down_080' & analysis_model=='M1' & config=='P2'", "pass_pct", 2, "%", "P2 in the ka down cells, M1"),
+    kpt = dcount(T1, "analysis_model=='M1' & config=='AUCinf_true_only' & pass_pct > 5", "M1 unbiased reference, boundary cells above 5% (point)"),
+    kaw = dcount(T1, "analysis_model=='M1' & config=='AUCinf_true_only' & lo > 5", "M1 unbiased reference, boundary cells with Wilson lower bound above 5%"),
     exp_c = s19_dtxt(EC, "grepl('V2', expectation)", "criterion", "registered expectation for the V2 cell (criterion)"),
     exp_ok = s19_dtxt(EC, "grepl('V2', expectation)", "consistent", "registered expectation consistent"))
   premise(nrow(rows(T1, "scenario=='ka_down_080' & analysis_model=='M1' & config=='P2' & pass_pct > 0")) == 0, "P2 passes in no trial in the ka down cells (notes)")
   premise(nrow(rows(T1, "analysis_model=='M1' & config=='G2_Ci' & pass_pct > 5 & pk_model=='k2020' & scenario=='V2_up_080'")) == 1 && row1(T1, WT("M1", "G2_Ci"))$class == "nominal", "the rule C (i) point-estimate cell above 5% is this cell and is nominal (notes)")
+  premise(all(rows(T1, "analysis_model=='M1' & config=='AUCinf_true_only' & lo > 5")$scenario == "ka_down_080"), "the unbiased-reference cells with Wilson lower bound above 5% are the ka down cells (notes)")
   premise(row1(T1, WT("M0", "P2"))$class_10k == "nominal" && row1(T1, WT("M1", "P2"))$class_10k == "exceeding", "10,000-trial classes: M0 nominal, M1 exceeding (notes)")
   deck_notes(tx("S19.notes", nts))
   deck_end()

@@ -16,12 +16,13 @@ s25_parse <- function(rel, where, col, rx, item) {
   premise(length(x) == 1 && is.finite(x), sprintf("one number matching %s in %s [%s] %s", rx, rel, where, col))
   dderived(item, rel, sprintf("%s :: %s, regex %s", where, col, rx), x, format(x))
 }
-# 곡선 모양 민감도 변형의 배율(config/scenarios.yaml)
+# 곡선 모양 민감도 변형의 배율(config/scenarios.yaml). 슬라이드 21과 같은 표기: 값이 둘이면 "a·×b"(두 점만 모의), 셋 이상이면 "a~×b"(범위 끝)
 s25_mult <- function(variants, par, item) {
   y <- .read("config/scenarios.yaml")$sensitivity_variants
-  x <- vapply(variants, function(v) as.numeric(y[[v]]$theta_multipliers[[par]]), 0)
+  x <- sort(vapply(variants, function(v) as.numeric(y[[v]]$theta_multipliers[[par]]), 0))
   premise(all(is.finite(x)), paste("multipliers of", paste(variants, collapse = ", ")))
-  dderived(item, "config/scenarios.yaml", sprintf("sensitivity_variants [%s] :: theta_multipliers.%s, min and max", paste(variants, collapse = ", "), par), range(x), if (min(x) == max(x)) format(min(x)) else sprintf("%s~%s", format(min(x)), format(max(x))))
+  p <- if (length(x) == 1L) format(x) else if (length(x) == 2L) sprintf("%s·×%s", format(x[1]), format(x[2])) else sprintf("%s~×%s", format(min(x)), format(max(x)))
+  dderived(item, "config/scenarios.yaml", sprintf("sensitivity_variants [%s] :: theta_multipliers.%s, %s", paste(variants, collapse = ", "), par, if (length(x) == 2L) "both values" else "min and max"), x, p)
 }
 
 slide_S25 <- function() {
@@ -49,6 +50,16 @@ slide_S25 <- function() {
   premise(all(g16[dose_mg == 600]$Cmax_ratio > 1) && all(g20[dose_mg == 600]$Cmax_ratio > 1), "600 mg Cmax over-predicted in both models (text: over-prediction)")
   premise(all(g16[dose_mg == 600, presentation] == "2 x 300 mg"), "600 mg given as two 300 mg injections")
   dose <- as.numeric(.read("config/trial_design.yaml")$dose_mg); premise(all(g16[dose_mg != 600, dose_mg] == dose), "the other study-presentation data sets are at the study dose")
+  # 시험 제형(300 mg) 재현: tmax(관측이 있는 자료) 일치, AUC0-last 모의/관측이 두 모델 모두 노출 gate(±tol%) 안
+  tol <- as.numeric(.read("config/design_clot2021.yaml")$gate$auclast_mean_tol_pct); premise(is.finite(tol), "exposure gate tolerance in config")
+  premise(all(abs(g16[dose_mg == dose, AUClast_ratio] - 1) <= tol / 100) && all(abs(g20[dose_mg == dose, AUClast_ratio] - 1) <= tol / 100), "study-dose AUC0-last within the exposure gate in both models (row 3: exposure reproduced)")
+  t3 <- g16[dose_mg == dose & !is.na(tmax_obs_median)]; t3b <- g20[dose_mg == dose & !is.na(tmax_obs_median)]
+  premise(nrow(t3) >= 1 && all(t3$tmax_obs_median == t3$tmax_sim_median) && all(t3b$tmax_obs_median == t3b$tmax_sim_median), "study-dose tmax reproduced in both models (row 3)")
+  # Km 역산: 시험군 Km을 바꿔도 참 AUC0-inf 비가 동등 한계에 닿지 않는다(행 1: AUC로 검출되지 않음)
+  lim <- as.numeric(.read("config/trial_design.yaml")$be$limits); kinv <- rows(INV, "mechanism=='Km'")
+  kx <- c(kinv[is.finite(end_auc_ratio), end_auc_ratio], kinv[reachable == TRUE, auc_ratio])
+  premise(length(kx) > 0 && min(kx) > lim[1] && max(kx) < lim[2] && !any(kinv[reachable == TRUE, target] <= lim[1] | kinv[reachable == TRUE, target] >= lim[2]), "Km differences never reach the equivalence limits (row 1: not detected by AUC)")
+  premise(isTRUE(cs[variant == "vmax050_both", stress_test]) && abs(cs[variant == "vmax050_both", AUClast_ratio_vs_obs544] - 1) > tol / 100, "the Vmax x0.5 stress test is outside the exposure gate (row 1: inconsistent with observed exposure)")
   qc <- row1(QC, "Activity=='Independent human QC of this report'"); premise(startsWith(qc$Result, "PENDING"), "independent human QC pending")
   ev <- rows(EV); premise(all(ev$pass) && setequal(unique(ev$comparison), c("this engine vs NonCompart", "PKNCA vs NonCompart", "this engine vs PKNCA")), "the NCA engine was compared with NonCompart and PKNCA only")
   premise(!any(grepl("phoenix|winnonlin", list.files(proj_path("results", "nca_engine")), ignore.case = TRUE)), "no Phoenix output in results/nca_engine")
@@ -66,7 +77,9 @@ slide_S25 <- function() {
     cov95 = dderived("smallest 95th-percentile coverage (100 - max 95th percentile of true extrapolation) over both models and non-stress curve-shape variants", CSH,
                      "stress_test==FALSE :: 100 - max(extrap_true_p95), with rationale/pillar1_coverage_B0.csv group=='all'", cov_min95, fnum(floor(cov_min95 * 10) / 10, 1)),
     im = local({ r <- rows(INV, "mechanism=='Km'"); x <- range(r$end_multiplier)
-      dderived("Km multipliers searched in the test arm (range ends)", INV, "mechanism=='Km' :: range(end_multiplier)", x, sprintf("%s~%s", format(x[1]), format(x[2]))) }),
+      dderived("Km multipliers searched in the test arm (range ends)", INV, "mechanism=='Km' :: range(end_multiplier)", x, sprintf("%s~×%s", format(x[1]), format(x[2]))) }),
+    sv = s25_mult(cs[stress_test == TRUE, variant], "Vmax", "Vmax multiplier of the stress test"),
+    gate = dcfg("design_clot2021.yaml", c("gate", "auclast_mean_tol_pct"), "exposure gate: AUClast mean within +/- tolerance (%)", num_fmt(0)),
     kr = local({ r <- rows(INV, "mechanism=='Km' & is.finite(end_auc_ratio)"); r2 <- rows(INV, "mechanism=='Km' & reachable==TRUE"); x <- range(c(r$end_auc_ratio, r2$auc_ratio))
       dderived("true AUC0-inf ratio range over Km x0.01 to x100 (range ends and reached rows)", INV, "mechanism=='Km' :: end_auc_ratio, auc_ratio", x, sprintf("%s~%s", fnum(x[1], 3), fnum(x[2], 3))) }),
     gc16 = drange(Q16, "gate_role=='gate'", "Cmax_ratio", 2, "", "Cmax sim/obs range, 2016"),
@@ -105,6 +118,7 @@ slide_S25 <- function() {
   H <- DK$txt$S25$table
   df <- data.frame(a = tx("S25.table.col1", f), b = tx("S25.table.col2", f), c = tx("S25.table.col3", f), check.names = FALSE, stringsAsFactors = FALSE)
   names(df) <- tx("S25.table.head")
+  if (nzchar(Sys.getenv("S25_DEBUG"))) { data.table::fwrite(df, Sys.getenv("S25_DEBUG")); writeLines(c(tx("S25.card_nca", f), "", tx("S25.card_qc", f)), paste0(Sys.getenv("S25_DEBUG"), ".cards")) }
   tw <- 8.4
   deck_text(tx("S25.left_label"), c(GEO$ML, GEO$BODY_TOP - 0.04, tw, 0.45), size = 16, bold = TRUE, color = PAL$ink2, label = "label_model")
   deck_table(df, box = c(GEO$ML, GEO$BODY_TOP + 0.43, tw, GEO$BODY_BOTTOM - GEO$BODY_TOP - 0.43), widths = c(2.05, 3.65, 2.7), size = 14, align_num = FALSE)
@@ -124,7 +138,6 @@ slide_S25 <- function() {
     kmed = drange(CSH, "stress_test==FALSE & grepl('^km', variant)", "extrap_true_median", 2, "%", "Km variants, median true extrapolation"),
     kp95 = drange(CSH, "stress_test==FALSE & grepl('^km', variant)", "extrap_true_p95", 2, "%", "Km variants, 95th percentile of true extrapolation"),
     vp95 = drange(CSH, "stress_test==FALSE & grepl('^vmax', variant)", "extrap_true_p95", 2, "%", "Vmax variants, 95th percentile of true extrapolation"),
-    sv = s25_mult(cs[stress_test == TRUE, variant], "Vmax", "Vmax multiplier of the stress test"),
     sp95 = dv(CSH, "variant=='vmax050_both'", "extrap_true_p95", 2, "%", "stress test, 95th percentile of true extrapolation"),
     slt = dv(CSH, "variant=='vmax050_both'", "coverage_lt80_pct", 3, "%", "stress test, window coverage below 80%"),
     tr = local({ r <- rows(INV, "mechanism=='Km' & reachable==TRUE"); premise(nrow(r) == 2 && all(abs(r$target - 1.05) < 1e-9) && setequal(r$model, c("k2016", "k2020")), "the only reachable Km target is the same in both models")
@@ -136,6 +149,8 @@ slide_S25 <- function() {
     tl1 = dv(ADA, "ada==1 & schedule=='B0'", "tlast_median", 1, "", "ADA-like subgroup, median tlast (day)"),
     tl0 = dv(ADA, "ada==0 & schedule=='B0'", "tlast_median", 1, "", "other subjects, median tlast (day)"),
     ng = dcount(Q16, "gate_role=='gate'", "study-presentation data sets"),
+    g300a = drange(Q16, sprintf("gate_role=='gate' & dose_mg==%s", dose), "AUClast_ratio", 2, "", "AUC0-last sim/obs, study-dose data sets, 2016"),
+    g300b = drange(Q20, sprintf("gate_role=='gate' & dose_mg==%s", dose), "AUClast_ratio", 2, "", "AUC0-last sim/obs, study-dose data sets, 2020"),
     v80 = s25_mult("vmax080_both", "Vmax", "Vmax multiplier of the non-stress variant outside the exposure check"),
     n_arm = f_n_arm()))))
   deck_end()

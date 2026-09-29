@@ -7,26 +7,26 @@ A4:
     - "**AUC0-last**: 실제 채혈 시각, linear-up log-down 사다리꼴"
     - "**λz (Best Fit)**: Cmax 뒤 마지막 {mp}점 이상 창 중 adjusted R² 최대(기울기 양수 제외, 차이 {tol} 미만이면 점이 많은 창)"
     - "**AUC0-inf** = AUCINF_obs = AUC0-last + Clast/λz"
-    - "**미달자 처리**(AUC0-inf를 검정할 때): 규칙 A는 제외, 규칙 B는 λz를 구할 수 있으면 모두 포함, 규칙 C는 AUC0-last 대입"
-  engine: "λz 선택 창 일치: 프로파일 {ntot}개(Theoph {nth}, Indometh {nin}, 모의 {nsim}) × 엔진 {npair}쌍(이 엔진, NonCompart, PKNCA). 파라미터 최대 상대 차이 {mx}"
+    - "**탈락자 처리**(AUC0-inf를 검정할 때): 규칙 A는 제외, 규칙 B는 λz를 구할 수 있으면 모두 포함, 규칙 C는 AUC0-last 대입"
+  engine: "λz 선택 창 일치: 프로파일 {ntot}개(Theoph {nth}, Indometh {nin}, 모의 {nsim}) × 엔진 {neng}개(이 엔진, NonCompart, PKNCA)의 {npair}쌍. 파라미터 최대 상대 차이 {mx}"
   sets_label: "λz 신뢰 기준 세트 (모두 λz 산출 가능 전제)"
   table:
-    head: ["세트", "adjusted R² ≥", "외삽 비율 ≤", "span ≥", "지위"]
+    head: ["세트", "adjusted R² ≥", "외삽 비율 ≤", "span ≥", "정의 시점"]
   none: "없음"
   span: "반감기 {x}배"
   status:
     i: "사후 추가"
     ii: "사전 명시(원래 정의)"
-    iii: "사전 등록 (v1.0.1)"
-    iv: "사전 등록 (v1.0.1)"
+    iii: "사전 등록(v1.0.1)"
+    iv: "사전 등록(v1.0.1)"
   phoenix:
-    - "**Phoenix 기본값: 기준 없음, 미충족은 표시(flag)만.** Rules 탭의 Lambda Z Acceptance Criteria(최소 adjusted R², 최대 외삽 %, 최소 span)는 사용자가 넣는 선택 항목이며, 넣지 않으면 적용되지 않는다(Certara Phoenix 8.2 NCA 문서)."
-    - "**공개 SAP 관행:** NCT04117607, NCT04441905는 adjusted R² ≥ {s1}, NCT04700163은 > {s3}(웹 검색 발췌로 확인)이며 span 요건은 NCT04117607만 있다. {r2i}은 관행 범위의 하한이다(사전 등록 4절)."
+    - "**Phoenix 기본값: 기준 없음.** Lambda Z Acceptance Criteria(adjusted R², 외삽 %, span)는 사용자 선택 항목이고, 넣어도 미충족 프로파일은 Not_Accepted로 표시(flag)만 하며 제외하지 않는다(Certara Phoenix 8.2 NCA 문서)."
+    - "**공개 SAP 관행:** NCT04117607, NCT04441905는 adjusted R² ≥ {s1}, NCT04700163은 > {s3}(웹 검색 발췌로 확인)이며 span 요건은 NCT04117607만 있다. {r2i}은 공개 SAP 값이 아니라 사전 등록 4절이 SAP 관행으로 적은 하한이므로 세트 (i) 미달 비율은 관행 범위의 하한으로 읽는다."
   notes: |
     NCA 엔진은 Phoenix WinNonlin 규칙을 재현하며 참조 구현 NonCompart {nc}, PKNCA {pk}과 비교해 검증했다(Theoph {nth}개, Indometh {nin}개, 모의 두필루맙 {nsim}개 프로파일, 모두 {ntot}개). 엔진 {npair}쌍(이 엔진 대 NonCompart, PKNCA 대 NonCompart, 이 엔진 대 PKNCA)의 λz 선택 창은 {lz} 일치했고 파라미터의 최대 상대 차이도 {mx}에 그쳤다(모든 비교 통과).
     BLQ 처리는 Phoenix가 자동으로 하지 않으므로 NCA 전에 적용한다. λz: 후보 창은 Cmax 뒤 양의 농도 마지막 {mp}점 이상, 가중치 없는 로그 선형 회귀, 기울기 양수 창 제외, adjusted R² 최대 창(차이 {tol} 미만이면 점이 많은 창). Cmax 뒤 양의 농도가 {mp}점 미만이면 λz 산출 불가다.
     표: 세트 (i)은 adjusted R² ≥ {r2i}, 외삽 비율(AUC0-inf 중 외삽한 면적의 비율) ≤ {ex}%이고 세트 (ii)는 여기에 span ≥ {sp2}를 더한다(span = λz 창 길이 / 반감기, 반감기 배수). 세트 (ii)가 원래 사전 명시한 정의이고 엔진의 기본 표시(flag)도 이것이다. 세트 (i)은 첫 결과 뒤 추가한 사후 정의로, 문서에서는 세트 (ii)와 함께 먼저 보고했다. 세트 (iii)(adjusted R² ≥ {r2iii})와 세트 (iv)(여기에 span ≥ {sp4})는 v1.0.1 사전 등록 4절에서 더했다(보고서 부록 D).
-    규칙 A, B, C는 AUC0-inf가 동등성 검정에 들어갈 때 미달자를 다루는 방식이며, 각각 SAP에 사전 명시할 수 있는 서로 다른 평가변수를 정의한다.
+    규칙 A, B, C는 AUC0-inf가 동등성 검정에 들어갈 때 탈락자(λz 신뢰 기준 미달로 AUC0-inf 분석에서 빠지는 대상자)를 다루는 방식이며, 각각 SAP에 사전 명시할 수 있는 서로 다른 평가변수를 정의한다.
     공개 SAP 근거(사전 등록 6절의 공개 SAP 목록): NCT04117607은 adjusted R² {s1} 이상과 span 요건(반감기 배수), tmax 뒤 최소 점 수를, NCT04441905는 adjusted R² {s2} 이상과 최소 점 수를, NCT04700163은 adjusted R² {s3} 초과를 요구한다(미충족이면 AUC0-inf와 다른 말단 파라미터를 요약과 통계 분석에서 뺀다). 앞의 두 건은 원문으로 확인했고, NCT04700163은 레지스트리 문서를 열 수 없어 웹 검색 발췌로 확인했다(사전 등록 4절 작성 시점에는 미확인, 보고서 3.4절). adjusted R² {r2i}은 사전 등록 4절이 SAP 관행으로 적은 값이며, 세트 (i)의 미달 비율은 관행 범위의 하한으로 보고한다(사전 등록 4절 보고 원칙).
-    Phoenix 사실의 출처는 Certara Phoenix 8.2 NCA 문서이며, 사전 등록 4절(facts_for_documents), 보고서 3.4절, FDA 질의응답 Q19에 같은 서술이 있다.
+    Phoenix 사실: Lambda Z Acceptance Criteria(최소 adjusted R², 최대 외삽 %, 최소 span)는 Rules 탭에서 사용자가 넣는 항목이고 넣지 않으면 적용되지 않는다. 넣으면 프로파일마다 Accepted/Not_Accepted로 표시할 뿐 제외하지 않는다. 출처는 Certara Phoenix 8.2 NCA 문서이며, 사전 등록 4절(facts_for_documents), 보고서 3.4절, FDA 질의응답 Q19에 같은 서술이 있다.
     관련 보고서: 3.4절, 4.1절, 부록 D, 부록 H(용어); FDA 질의응답 Q19.

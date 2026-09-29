@@ -3,6 +3,8 @@
 #   ci_runs_deck.csv(99~101, 결과보고 덱 작업; 실행 99는 환경 설정 실패, 실행 100에서 고침). 모두 GitHub Actions API, 2026-09-29 읽음.
 #   "실행 N부터 모두 성공"처럼 끝이 열린 주장은 하지 않는다: 성공 구간은 기록 파일의 범위(실행 92~98)로 적는다.
 # 재현: results/repro/repro_github_run.csv(field/value 문자열), repro_github_items.csv, repro_check.csv(로컬).
+#   재현 실행(커밋·시각은 파일에서)은 v1.0.1 사전 등록보다 앞선다: 항목은 v1.0 결과(운용 특성 모의 시험(M0), 경계 배율 탐색, 외삽 비율 중앙값)뿐이며
+#   v1.0.1 사전 등록 분석(M1, 기준 세트, 시험 모집단)은 재현 항목에 없다. 제목·카드는 이 범위로 적는다(premise로 검사).
 # 추적 규모: regulatory/tables/trace_summary.csv(scripts/60이 덱 행을 합치기 전에 쓰는 문서별 수; 덱은 regulatory/traceability.csv와
 #   manifest_sha256.csv를 인용하지 않는다: 그 둘은 덱을 만든 뒤 다시 쓰이므로 인용하면 덱이 낡은 것으로 판정된다).
 # 사전 명시·등록 이력: regulatory/tables/prespecification_register.csv(영문). 커밋 해시는 표 칸의 추적 문자열로만 쓴다.
@@ -76,6 +78,17 @@ slide_A6 <- function() {
   premise(as.numeric(rgf("n_items")) == nrow(ri) && rgf("n_pass_github") == rgf("n_items") && rgf("n_identical_to_local_8sig") == rgf("n_items") && rgf("conclusion") == "success",
           "clean-runner run: all items pass and are identical to the local values")
   premise(grepl("GitHub-hosted", rgf("runner")), "the reproducibility run used a GitHub-hosted runner")
+  premise(rgf("run_number") == "1" && rgf("run_attempt") == "1", "the reproducibility run is the first run of the repro workflow (card: first run)")
+  premise(nrow(rows("repro/repro_github_run.csv", "field=='run_id'")) == 1, "the reproducibility record holds a single clean-runner run (notes)")
+  # 범위: 항목은 v1.0 결과(운용 특성 모의 시험, 경계 배율 탐색, B0 외삽 비율 중앙값)이고, 실행은 v1.0.1 사전 등록(등록부 'pre-registered' 행)보다 앞선다
+  premise(all(grepl("^(a[0-9]_(oc_trials|P2_pass_rate)|b[0-9]_(true_AUCinf_ratio_Vmax|screening_consistency)|c1_extrap_true_median)", ri$item)) &&
+          all(c("a", "b", "c") %in% substr(ri$item, 1, 1)), "reproducibility items: operating-characteristic trials, boundary multiplier search (inversion), extrapolation median")
+  premise(identical(.read("config/oc_design.yaml")$trials$method, "pooled_t"), "operating-characteristic trials of the reproducibility items use the pooled t-test (M0)")
+  premise(identical(.read("config/repro_check.yaml")$oc_trials$model, "k2016"), "reproducibility operating-characteristic trials use the 2016 model (notes)")
+  t_run <- as.POSIXct(rgf("job_started_utc"), tz = "UTC", format = "%Y-%m-%dT%H:%M:%SZ")
+  preg <- rows(PR)[grepl("^pre-registered", Status)]
+  t_reg <- min(as.POSIXct(sub(" UTC.*", "", preg$`Date (evidence)`), tz = "UTC", format = "%Y-%m-%d %H:%M"))
+  premise(!is.na(t_run) && nrow(preg) > 0 && !is.na(t_reg) && t_run < t_reg, "the reproducibility run started before the first v1.0.1 pre-registration (no v1.0.1 pre-registered analysis among the items)")
   g <- list(
     pg = sprintf("%s/%s", a6_field("n_pass_github"), a6_field("n_items")),
     ni = a6_field("n_items", "GitHub reproducibility run: items (all pass, title)"),
@@ -83,6 +96,10 @@ slide_A6 <- function() {
     sig = dderived("significant digits in column name identical_to_local_8sig", RI, "column name identical_to_local_8sig", 8, "8"),
     nl = dcount(RC, "pass==TRUE", "reproducibility items passing locally"),
     run = a6_field("run_number"),
+    cm = a6_rx("commit", "^([0-9a-f]{7})", "GitHub reproducibility run: commit (short hash)"),
+    when = local({ x <- rgf("job_started_utc"); m <- regmatches(x, regexec("^([0-9]{4}-[0-9]{2}-[0-9]{2})T([0-9]{2}:[0-9]{2}):", x))[[1]]
+      premise(length(m) == 3, "repro_github_run.csv job_started_utc is an ISO time")
+      dderived("GitHub reproducibility run: job start (UTC, to the minute)", "repro/repro_github_run.csv", "field=='job_started_utc' :: date and hh:mm", x, paste(m[2], m[3])) }),
     os = a6_rx("runner", "^(ubuntu-[0-9.]+) ", "GitHub runner image", nobreak_hyphen = TRUE),
     rv = a6_rx("r_version", "^R version ([0-9.]+) ", "R version on the clean runner"),
     nt = a6_rx("tests", "^([0-9]+) tests", "automated tests in the clean-environment run"),
@@ -109,7 +126,7 @@ slide_A6 <- function() {
   deck_title(tx("A6.title", list(ni = g$ni, fx2 = f$fx2, last = f$last)), box = c(GEO$ML, GEO$TITLE_TOP, 9.7, GEO$TITLE_H))   # 두 절이 한 줄씩(쉼표 뒤에서 줄바꿈), 오른쪽 위 태그와 떨어지게
 
   # ---- 왼쪽 위: 자동 시험 실행 띠 그림(실행 1~71은 한 덩어리, 72부터 실행마다 한 칸) ----
-  XL <- GEO$ML; WL <- 7.6
+  XL <- GEO$ML; WL <- 7.0
   deck_text(tx("A6.ci_label"), c(XL, GEO$BODY_TOP, WL, 0.4), size = 16, bold = TRUE, color = PAL$ink2, label = "label_ci", gap_pt = 0)
   F <- L$fig
   CL <- c(success = F$success, failure = F$failure, cancelled = F$cancelled)
@@ -120,7 +137,7 @@ slide_A6 <- function() {
   blk <- data.table(xmin = 0.5, xmax = 0.5 + BW, lab = factor(CL[["failure"]], levels = CL))
   fr <- range(fl$run_number); r99 <- dfl$run_number
   ann <- data.table(x = c(0.5 + BW / 2, xr(mean(fr)), xr(r99)), y = 1.6,
-                    lab = c(fill(F$before, list(n = nrow(cb))), F$strict, F$setup))
+                    lab = c(fill(F$before, list(n = nrow(cb))), fill(F$strict, list(r = rng_fmt(fr[1], fr[2], 0))), fill(F$setup, list(r = r99))))
   brk <- c(f1$run_number, fr[1], fxr$run_number, lastr$run_number, max(cd$run_number))
   p <- ggplot() +
     geom_rect(data = blk, aes(xmin = xmin, xmax = xmax, ymin = 0.65, ymax = 1.35, fill = lab), colour = NA) +
@@ -130,12 +147,13 @@ slide_A6 <- function() {
     annotate("segment", x = 0.5, xend = 0.5 + BW, y = 1.45, yend = 1.45, colour = PAL$ink2, linewidth = 0.5) +
     geom_text(data = ann, aes(x = x, y = y, label = lab), family = FONT, size = 4.1, colour = PAL$ink, vjust = 0) +
     scale_fill_manual(values = setNames(c(PAL$blue, PAL$orange, PAL$muted), CL), drop = FALSE) +
-    scale_x_continuous(breaks = c(0.5 + BW / 2, xr(brk)), labels = c(fill(F$block, list(a = min(cb$run_number), b = n1)), brk), limits = c(0, xr(max(runs$run)) + 0.6), expand = expansion(0)) +
+    scale_x_continuous(breaks = c(0.5 + BW / 2, xr(brk)), labels = c(fill(F$block, list(a = min(cb$run_number), b = n1)), ifelse(brk == lastr$run_number, fill(F$pkg, list(n = lastr$run_number)), brk)),
+                       limits = c(0, xr(max(runs$run)) + 1.4), expand = expansion(0)) +   # 오른쪽 여유: '환경 설정 (99)' 문구가 잘리지 않게
     scale_y_continuous(limits = c(0.6, 2.0), expand = expansion(0)) +
-    labs(x = F$xlab, y = NULL) + theme_deck(13) +
+    labs(x = NULL, y = NULL) + theme_deck(13) +   # 축 제목 없음: 위 제목 줄이 '실행 번호'를 말한다
     theme(axis.text.y = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "top", legend.justification = "left",
           legend.margin = margin(0, 0, 0, 0), legend.box.spacing = grid::unit(2, "pt"), legend.key.size = grid::unit(0.9, "lines"))
-  FY <- GEO$BODY_TOP + 0.4; FH <- 1.4
+  FY <- GEO$BODY_TOP + 0.4; FH <- 1.36
   deck_figure(p, "a6_ci_runs", c(XL, FY, WL, FH), src = c(CB, CA, CV, CD))
   BY <- FY + FH + 0.02; BH <- 0.72
   deck_bullets(tx("A6.bullets", f), box = c(XL, BY, WL, BH), size = 16, gap_pt = 4)
@@ -161,13 +179,13 @@ slide_A6 <- function() {
   LY <- BY + BH + 0.06
   deck_text(tx("A6.reg_label", list(yr = yr)), c(XL, LY, WL, 0.4), size = 16, bold = TRUE, color = PAL$ink2, label = "label_reg", gap_pt = 0)
   TY <- LY + 0.4
-  deck_table(df, box = c(XL, TY, WL, GEO$BODY_BOTTOM - TY), widths = c(3.0, 2.3, 2.3), size = 12, label = "table_prereg")
+  deck_table(df, box = c(XL, TY, WL, GEO$BODY_BOTTOM - TY), widths = c(3.1, 2.25, 2.25), size = 12, label = "table_prereg")
 
   # ---- 오른쪽: 재현 워크플로 카드, 추적 규모 카드 ----
   XR <- XL + WL + 0.3; WR <- GEO$W - GEO$MR - XR
-  gap <- 0.16; CH1 <- 2.62
-  deck_stat(g$pg, tx("A6.card_repro", g), c(XR, GEO$BODY_TOP, WR, CH1), color = PAL$blue, bg = PAL$tint_blue)
-  deck_stat(tr_val, tr_lab, c(XR, GEO$BODY_TOP + CH1 + gap, WR, GEO$BODY_BOTTOM - GEO$BODY_TOP - CH1 - gap), color = PAL$ink2, bg = PAL$tint_grey)
+  gap <- 0.16; CH1 <- 2.94; VS <- 34
+  deck_stat(g$pg, tx("A6.card_repro", g), c(XR, GEO$BODY_TOP, WR, CH1), color = PAL$blue, bg = PAL$tint_blue, value_size = VS)
+  deck_stat(tr_val, tr_lab, c(XR, GEO$BODY_TOP + CH1 + gap, WR, GEO$BODY_BOTTOM - GEO$BODY_TOP - CH1 - gap), color = PAL$ink2, bg = PAL$tint_grey, value_size = VS)
 
   # ---- 노트 ----
   st <- rows(PR)
@@ -179,6 +197,7 @@ slide_A6 <- function() {
     nps = cntp("^pre-specified", "register rows pre-specified"), npr = cntp("^pre-registered", "register rows pre-registered"), nph = cntp("post hoc", "register rows post hoc"),
     noth = dderived("register rows with other statuses (changes, amendments, decisions)", PR, "count of rows not matching ^pre-specified, ^pre-registered or post hoc", nrow(st) - n_ps - n_pr - n_ph, as.character(nrow(st) - n_ps - n_pr - n_ph)),
     js = a6_field("job_duration_s", "GitHub reproducibility run: job duration (s)"),
+    reg1 = dderived("first v1.0.1 pre-registration (UTC)", PR, "min(Date (evidence)) over rows with Status ^pre-registered", format(t_reg, "%Y-%m-%d %H:%M"), format(t_reg, "%Y-%m-%d %H:%M")),
     rx = a6_rx("rxode2_version", "^([0-9.]+)$", "rxode2 version on the clean runner")))))
   deck_end()
 }

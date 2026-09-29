@@ -31,7 +31,7 @@ slide_S17 <- function() {
   lo <- dcfg("trial_design.yaml", c("be", "limits"), "lower equivalence limit", function(x) fnum(x[1], 2))
   hi <- dcfg("trial_design.yaml", c("be", "limits"), "upper equivalence limit", function(x) fnum(x[2], 2))
 
-  # ---- 제목: 편향 절댓값 최대(AUC0-last; 규칙 A (i)·(ii)·B; 규칙 A (iii)·(iv)) ----
+  # ---- 제목: 편향 절댓값 최대(AUC0-last; 규칙 A (i)·(ii)·B). 규칙 A (iii)·(iv)의 최대는 그림·표 밖이라 요점(하위 항목)에 둔다 ----
   nb <- dcount(SSf, wb("AUClast"), "boundary cells (both models), M1")
   f <- list(a = s17_maxabs(SSf, wb("AUClast"), "bias_pct", 2, "%", "AUC0-last: largest absolute bias of the geometric mean trial GMR vs the true AUC0-inf ratio, 16 boundary cells, M1"),
             b = s17_maxabs(SSf, sprintf("analysis_model=='M1' & endpoint %%in%% c('AUCinf_Ai','AUCinf_A','AUCinf_B') & %s", BND), "bias_pct", 2, "%",
@@ -51,7 +51,7 @@ slide_S17 <- function() {
   d[, y := as.numeric(ep) + ifelse(pk_model == "k2016", 0.2, -0.2) + (k - 1) * 0.085]
   d[, model := factor(model_lab()[pk_model], levels = model_lab())]
   xr <- range(d$tw); xl <- c(floor(xr[1]) - 0.5, ceiling(xr[2]) + 0.5)
-  FW <- 6.05; FH <- 3.05
+  FW <- 6.05; FH <- 2.72
   p <- ggplot(d, aes(x = tw, y = y, colour = model, shape = model)) +
     annotate("rect", xmin = 0, xmax = Inf, ymin = -Inf, ymax = Inf, fill = PAL$tint_orange, alpha = 0.7) +
     geom_vline(xintercept = 0, colour = PAL$ink2, linewidth = 0.5) +
@@ -75,13 +75,16 @@ slide_S17 <- function() {
   premise(all(vapply(c("AUCinf_Ai", "AUCinf_A", "AUCinf_B"), function(e) nrow(rows(SSf, sprintf("%s & bias_dir=='toward_1'", wb(e)))) > as.integer(nb) / 2, TRUE)),
           "NCA rules A (i), A (ii) and B are biased toward 1 in most boundary cells (M1)")
   tw_n <- function(ep, am = "M1") dcount(SSf, sprintf("%s & bias_dir=='toward_1'", wb(ep, am)), sprintf("cells biased toward 1 (Monte Carlo interval excludes 0), %s, %s", ep, am))
-  rab <- local({ k <- vapply(c("AUCinf_Ai", "AUCinf_A", "AUCinf_B"), function(e) nrow(rows(SSf, sprintf("%s & bias_dir=='toward_1'", wb(e)))), 1L)
-    dderived("cells biased toward 1, NCA rules A (i), A (ii), B, M1: range of the three counts", SSf, sprintf("count of rows [%s & bias_dir=='toward_1'] per endpoint in AUCinf_Ai, AUCinf_A, AUCinf_B :: range", wb("<endpoint>")),
-             range(k), if (min(k) == max(k)) as.character(k[1]) else sprintf("%d~%d", min(k), max(k))) })
+  # 기준 세트 (iii)·(iv)의 규칙 A: 같은 시험의 동등 쪽 편향 칸 수(M1, criteria_bias.csv)
+  tw_cb <- function(cf) dcount(CB, sprintf("analysis_model=='M1' & config=='%s' & bias_dir=='toward_1'", cf), sprintf("cells biased toward 1, rule A criteria set config %s, M1", cf))
+  premise(all(vapply(c("A_i", "A_ii", "B"), function(cf) nrow(rows(CB, sprintf("analysis_model=='M1' & config=='%s' & bias_dir=='toward_1'", cf))) ==
+                       nrow(rows(SSf, sprintf("%s & bias_dir=='toward_1'", wb(c(A_i = "AUCinf_Ai", A_ii = "AUCinf_A", B = "AUCinf_B")[[cf]])))), TRUE)),
+          "criteria_bias.csv and sd_se_models.csv agree on the toward-1 counts of rules A (i), A (ii), B (same trials, M1)")
   kci <- tw_n("AUCinf_Ci")
   premise(as.integer(kci) == 1L && nrow(rows(SSf, sprintf("%s & bias_dir=='toward_1'", wb("AUClast")))) == 1L, "rule C (i) and AUC0-last each have one cell biased toward 1 (M1)")
   BY <- GEO$BODY_TOP + FH + 0.08
-  deck_bullets(tx("S17.bullets", list(aw = aw, n = nb, v2 = s17_signed(v2), rab = rab, ci = kci)), box = c(GEO$ML, BY, FW, GEO$BODY_BOTTOM - BY), size = 16)
+  deck_bullets(tx("S17.bullets", list(aw = aw, n = nb, v2 = s17_signed(v2), k_ai = tw_n("AUCinf_Ai"), k_aii = tw_n("AUCinf_A"), k_b = tw_n("AUCinf_B"), ci = kci,
+                                       k_aiii = tw_cb("A_iii"), k_aiv = tw_cb("A_iv"), c = f$c)), box = c(GEO$ML, BY, FW, GEO$BODY_BOTTOM - BY), size = 16)
 
   # ---- 오른쪽: 표 제목, 시나리오별 기하평균비 표(M1) ----
   XR <- GEO$ML + FW + 0.3; WR <- GEO$W - GEO$MR - XR
@@ -95,13 +98,13 @@ slide_S17 <- function() {
   ntr <- dint(SSf, "analysis_model=='M1' & endpoint=='AUClast' & pk_model=='k2016' & scenario=='F_down_080'", "n_trials", "trials per boundary cell")
   npop <- dcfg("oc_design.yaml", c("estimand", "population", "n_subjects"), "common virtual subjects for the true ratio", function(x) fnum(as.numeric(x), 0, big = TRUE))
   f97 <- dcfg("prereg_20260926.yaml", c("section1", "scenarios", "products", "F097", "F"), "F multiplier of the F097 product scenario, test arm", function(x) fnum(as.numeric(x), 2))
-  CH <- 0.70
+  CH <- 0.69
   deck_text(tx("S17.caption", list(ntr = ntr, npop = npop)), c(XR, GEO$BODY_TOP, WR, CH), size = 16, label = "text_caption", color = PAL$ink2, gap_pt = 0)
   df <- data.frame(a = unlist(L$tab_ep[EP]), b = vapply(EP, tw_n, ""),
                    c = vapply(EP, gm, "", m = SC[[1]][1], sc = SC[[1]][2]), d = vapply(EP, gm, "", m = SC[[2]][1], sc = SC[[2]][2]), e = vapply(EP, gm, "", m = SC[[3]][1], sc = SC[[3]][2]),
                    stringsAsFactors = FALSE, check.names = FALSE)
   names(df) <- tx("S17.table.head", list(n = nb, t1 = tr(SC[[1]][1], SC[[1]][2]), t2 = tr(SC[[2]][1], SC[[2]][2]), t3 = tr(SC[[3]][1], SC[[3]][2]), f97 = f97))
-  TY <- GEO$BODY_TOP + CH + 0.04; TH <- 2.59
+  TY <- GEO$BODY_TOP + CH + 0.03; TH <- 2.59
   deck_table(df, box = c(XR, TY, WR, TH), widths = c(1.5, 0.93, 1.15, 1.15, 1.15), size = 12, highlight = 2, label = "table_gm")
 
   # ---- 오른쪽 아래: 미산출(판정 일치율) ----
@@ -112,7 +115,7 @@ slide_S17 <- function() {
     premise(length(unique(x)) == 1, "same trial count in both concordance files")
     for (r in CONC) dderived("trials per product scenario, concordance file", r, "schedule=='B0' :: unique(n_trials)", x[[r]], fint(x[[r]])); fint(x[[1]]) })
   agr <- drange("rationale/pillar2_products_B0.csv", "TRUE", "agree", 1, "%", "decision agreement AUC0-last vs NCA AUC0-inf rule A (ii), product scenarios, two models")
-  NY <- TY + TH + 0.10
+  NY <- TY + TH + 0.07
   deck_text(tx("S17.na", list(cor = cor, agr = agr, agr_b = agr_b)), c(XR, NY, WR, GEO$BODY_BOTTOM - NY), size = 16, label = "text_na", bg = PAL$tint_grey, geom = "roundRect", gap_pt = 4)
 
   # ---- 노트 ----

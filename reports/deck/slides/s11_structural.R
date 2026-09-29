@@ -30,6 +30,9 @@ slide_S11 <- function() {
   mono <- li[order(lloq), .(up = all(diff(reliable_no_span_pct) > 0)), by = .(model, resid)]
   premise(nrow(mono) == 4 && all(mono$up), "set (i) reliability rises with the LLOQ in both models under both residual variants (lower LLOQ, lower reliability)")
   premise(all(rows(LI, sprintf("abs(lloq - %s) < 1e-9", format(lqmin)))$d_rel_i_hi < 0), "set (i) reliability at the lowest LLOQ below the study LLOQ in all four cases (paired CI)")
+  premise(row1(LI, wl("k2020", "fixed", lqmin))$d_rel_ii_hi < 0, "set (ii), 2020 model, residual as estimated: reliability falls at the lowest LLOQ (paired CI below 0; bullet: set (ii) not consistent)")
+  ov <- li[model == "k2016", .(d = abs(diff(reliable_no_span_pct[order(resid)]))), by = lloq]$d
+  premise(max(ov) < 0.5, "2016 model: the two residual variants differ by less than 0.5 points at every LLOQ (figure note: lines nearly overlap)")
   r2 <- row1(LI, wl("k2016", "fixed", lqmin)); premise(r2$d_rel_ii_lo < 0 && r2$d_rel_ii_hi > 0 && !li[model == "k2016" & resid == "fixed"][order(lloq), all(diff(reliable_pct) > 0)],
                                                        "set (ii), 2016 model, residual as estimated: no decrease at the lowest LLOQ (CI includes 0) and not monotone")
   mk <- function(m, lq, col) row1(LK[[m]], sprintf("resid=='fixed' & abs(lloq - %s) < 1e-9", format(lq)))[[col]]
@@ -48,7 +51,7 @@ slide_S11 <- function() {
 
   # ---- 배치 ----
   WP <- (GEO$CW - 0.35) / 2; XL <- GEO$ML; XR <- XL + WP + 0.35
-  HH <- 0.42; FY <- GEO$BODY_TOP + HH + 0.02; FH <- 2.38; BY <- FY + FH + 0.08; BHt <- GEO$BODY_BOTTOM - BY
+  HH <- 0.42; FY <- GEO$BODY_TOP + HH + 0.02; FH <- 2.18; BY <- FY + FH + 0.08; BHt <- GEO$BODY_BOTTOM - BY
   s24 <- dv(TRS, "variant=='k2016' & set=='i'", "sigma_prop_pct", 1, "%", "proportional residual, 2016 model")
   s12 <- dv(TRS, "variant=='resid12' & set=='i'", "sigma_prop_pct", 1, "%", "proportional residual, sensitivity variant")
 
@@ -62,11 +65,12 @@ slide_S11 <- function() {
   spv <- function(s_) .read("config/prereg_20260926.yaml")$section4$criteria_sets[[s_]]$span_ratio_min
   premise(is.null(spv("i")) && is.null(spv("iii")) && !is.null(spv("ii")) && !is.null(spv("iv")), "sets (ii) and (iv) carry a span condition, (i) and (iii) do not (figure labels)")
   premise(g("resid12", "ii", "fail_hi") < g("k2016", "ii", "fail_lo"), "set (ii), also with a span condition, falls with the smaller residual (figure)")
-  # 두 잔차 수준은 같은 2016 모델이므로 모델 색(파랑/주황)을 쓰지 않고 파랑 계열 명암으로 구분한다. 음영은 잔차와 무관하게 그대로인 세트 (iv)
+  premise(max(tr[variant %in% c("k2016", "resid12") & set %in% c("ii", "iv"), fail_hi]) < 85, "bars and error bars of sets (ii) and (iv) stay below the span-condition labels at the top")
+  # 두 잔차 수준은 같은 2016 모델이므로 모델 색(파랑/주황)을 쓰지 않고 파랑 계열 명암으로 구분한다. 음영 = span 조건이 있는 세트 (ii), (iv)(같은 모양, 막대 위에 조건)
   p1 <- ggplot(d, aes(x = sx, y = fail_pct, fill = res)) + geom_blank() +
-    annotate("rect", xmin = 3.52, xmax = 4.48, ymin = 0, ymax = 100, fill = PAL$tint_grey) +
-    annotate("text", x = 4, y = 97, label = fill(L$fig$iv_note, list(v = fnum(spv("iv"), 0))), vjust = 1, size = 3.9, family = FONT, colour = PAL$ink2, fontface = "bold") +
-    annotate("text", x = 2, y = g("k2016", "ii", "fail_hi") + 16, label = fill(L$fig$iv_note, list(v = fnum(spv("ii"), 0))), vjust = 0, size = 3.7, family = FONT, colour = PAL$ink2) +
+    annotate("rect", xmin = c(1.52, 3.52), xmax = c(2.48, 4.48), ymin = 0, ymax = 100, fill = PAL$tint_grey) +                  # span 조건이 있는 세트 (ii), (iv)
+    annotate("text", x = c(2, 4), y = 97, label = vapply(c("ii", "iv"), function(s_) fill(L$fig$iv_note, list(v = fnum(spv(s_), 0))), ""), vjust = 1, size = 3.8,
+             family = FONT, colour = PAL$ink2, fontface = "bold") +
     geom_col(position = pd, width = 0.74, colour = "white", linewidth = 0.5) +
     geom_errorbar(aes(ymin = fail_lo, ymax = fail_hi), position = pd, width = 0.2, linewidth = 0.45, colour = PAL$ink2) +
     geom_text(aes(y = fail_hi, label = fnum(fail_pct, 1)), position = pd, vjust = -0.5, size = 3.8, family = FONT, colour = PAL$ink) +
@@ -108,6 +112,8 @@ slide_S11 <- function() {
   p2 <- ggplot(q, aes(x = lx, y = reliable_no_span_pct, colour = model_, shape = model_, linetype = rv, group = interaction(model_, rv))) +
     geom_vline(xintercept = log10(lq0), colour = PAL$ink2, linewidth = 0.5, linetype = "22") +
     annotate("text", x = log10(lq0) + 0.035, y = yl[2] + 1.3, label = fill(L$fig$study, list(v = fnum(lq0, 3))), hjust = 1, vjust = 0, size = 3.8, family = FONT, colour = PAL$ink2) +
+    annotate("text", x = log10(max(grid_)), y = min(q[model == "k2016" & lloq >= lq0, reliable_no_span_pct]) - 1.6, label = L$fig$overlap, hjust = 0, vjust = 1,
+             size = 3.6, family = FONT, colour = MODEL_COL[[1]]) +                                  # 2016 모델의 두 선이 겹쳐 점선이 보이지 않는 이유
     geom_line(data = q[resid == "fixed"], linewidth = 1.05) + geom_point(data = q[resid == "fixed"], size = 2.6) +
     geom_line(data = q[resid == "scaled"], linewidth = 0.6) + geom_point(data = q[resid == "scaled"], size = 1.7) +          # 비례 변형은 가늘게 위에
     geom_segment(data = el_, aes(x = lx0 - 0.03, xend = lx0 - 0.11, y = y, yend = yl_, colour = model_, linetype = rv), inherit.aes = FALSE, linewidth = 0.5) +
@@ -130,7 +136,8 @@ slide_S11 <- function() {
              sa = dcfg("params_variability.yaml", c("residual", "sigma_add", "value"), "additive residual SD (mg/L), both models", num_fmt(2)),
              f0 = mech("k2016", lq0, "flag_rsq_pct", 1, "adjusted R-squared below 0.80, 2016 model, study LLOQ (%)"),
              f1 = mech("k2016", lqmin, "flag_rsq_pct", 1, "adjusted R-squared below 0.80, 2016 model, lowest LLOQ (%)"),
-             ii16 = s11_nb(s11_signed(dci(LI, wl("k2016", "fixed", lqmin), "d_rel_ii_pp", "d_rel_ii_lo", "d_rel_ii_hi", 2, "%p", "set (ii) reliability change with paired 95% CI, lowest LLOQ vs study LLOQ, 2016 model, residual as estimated"))))
+             ii16 = s11_nb(s11_signed(dci(LI, wl("k2016", "fixed", lqmin), "d_rel_ii_pp", "d_rel_ii_lo", "d_rel_ii_hi", 2, "%p", "set (ii) reliability change with paired 95% CI, lowest LLOQ vs study LLOQ, 2016 model, residual as estimated"))),
+             ii20 = s11_nb(dv(LI, wl("k2020", "fixed", lqmin), "d_rel_ii_pp", 2, "%p", "set (ii) reliability change, lowest LLOQ, 2020 model, residual as estimated")))
   deck_bullets(tx("S11.bullets_right", br), box = c(XR, BY, WP, BHt), size = 16, gap_pt = 7, label = "body_right")
 
   # ---- 노트 ----
@@ -158,7 +165,7 @@ slide_S11 <- function() {
     i16a = rel("k2016", "fixed", lqmin), i16b = rel("k2016", "fixed", lq0), i16c = rel("k2016", "fixed", lqmax),
     i20a = rel("k2020", "fixed", lqmin), i20b = rel("k2020", "fixed", lq0), i20c = rel("k2020", "fixed", lqmax),
     ii16 = br$ii16,
-    ii20 = dv(LI, wl("k2020", "fixed", lqmin), "d_rel_ii_pp", 2, "%p", "set (ii) reliability change, lowest LLOQ, 2020 model, residual as estimated"),
+    ii20 = br$ii20,
     iis16 = dv(LI, wl("k2016", "scaled", lqmin), "d_rel_ii_pp", 2, "%p", "set (ii) reliability change, lowest LLOQ, 2016 model, residual scaled"),
     iis20 = dv(LI, wl("k2020", "scaled", lqmin), "d_rel_ii_pp", 2, "%p", "set (ii) reliability change, lowest LLOQ, 2020 model, residual scaled"),
     sa = br$sa, f0 = br$f0, f1 = br$f1,

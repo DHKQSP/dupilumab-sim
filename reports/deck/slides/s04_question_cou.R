@@ -37,18 +37,23 @@ slide_S04 <- function() {
   df <- data.frame(a = vapply(keys, function(k) tx(sprintf("S04.table.rows.%s", k), f)[1], ""),
                    b = vapply(keys, function(k) tx(sprintf("S04.table.rows.%s", k), f)[2], ""), check.names = FALSE, stringsAsFactors = FALSE)
   names(df) <- tx("S04.table.head")
-  tw <- 6.95
-  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, tw, GEO$BODY_BOTTOM - GEO$BODY_TOP), widths = c(1.9, 5.05), size = 14, align_num = FALSE)
+  # 표 너비: 오른쪽 카드의 가장 긴 줄(주분석 M1 ..., M0 함께 제시)이 한 줄에 들어가도록 오른쪽 열을 넓힌다
+  tw <- 6.6
+  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, tw, GEO$BODY_BOTTOM - GEO$BODY_TOP), widths = c(1.55, 5.05), size = 14, align_num = FALSE)
 
-  # 오른쪽: 근거 범위(시험 모집단) 카드와 답하지 않는 것
-  xr <- GEO$ML + tw + 0.25; wr <- GEO$CW - tw - 0.25; hs <- 2.50
+  # 오른쪽: 근거 범위(시험 모집단) 카드와 답하지 않는 것(카드 높이는 마지막 줄 아래 여백이 위 여백과 같도록)
+  xr <- GEO$ML + tw + 0.25; wr <- GEO$CW - tw - 0.25; hs <- 2.58
   deck_text(tx("S04.scope", f), c(xr, GEO$BODY_TOP, wr, hs), size = 16, bg = PAL$tint_blue, geom = "roundRect", label = "scope", gap_pt = 3)
-  yn <- GEO$BODY_TOP + hs + 0.14
+  yn <- GEO$BODY_TOP + hs + 0.10
   deck_text(tx("S04.not.head"), c(xr, yn, wr, 0.44), size = 18, bold = TRUE, label = "not_head")
-  deck_bullets(tx("S04.not.bullets"), c(xr, yn + 0.44, wr, GEO$BODY_BOTTOM - yn - 0.44), size = 16, gap_pt = 5)
+  deck_bullets(tx("S04.not.bullets"), c(xr, yn + 0.42, wr, GEO$BODY_BOTTOM - yn - 0.42), size = 16, gap_pt = 5)
 
   INV <- "oc/inversion_all.csv"
-  deck_notes(tx("S04.notes", c(f, list(km = s04_km(), km_lo = dext(INV, "mechanism=='Km'", "end_multiplier", min, 2, "", "smallest Km multiplier examined"),
+  ada <- function(k, item, fmt) dcfg("trial_design.yaml", c("ada_sensitivity", k), item, fmt)
+  deck_notes(tx("S04.notes", c(f, list(ada_f = ada("fraction", "ADA-like subgroup: share of subjects", function(x) paste0(fnum(100 * x, 0), "%")),
+                                        ada_d = ada("onset_day", "ADA-like subgroup: onset (days)", num_fmt(0)),
+                                        ada_k = ada("ke_multiplier", "ADA-like subgroup: ke multiplier", num_fmt(0)),
+                                        km = s04_km(), km_lo = dext(INV, "mechanism=='Km'", "end_multiplier", min, 2, "", "smallest Km multiplier examined"),
                                         km_hi = dext(INV, "mechanism=='Km'", "end_multiplier", max, 0, "", "largest Km multiplier examined")))))
   deck_end()
 }
