@@ -100,7 +100,7 @@ slide_S20 <- function() {
   df <- rbind(setNames(as.data.frame(as.list(crit), stringsAsFactors = FALSE), names(df)), df)
   names(df) <- tx("S20.table.head", thr)
   TH <- 2.46   # 렌더링 실측(빈 칸이 있는 기준 행은 조금 높다)
-  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, TH), widths = c(2.22, 1.6, 1.93, 2.0, 2.0, 1.93, 0.55), size = 12, highlight = 1, highlight_fill = PAL$tint_blue, label = "table_schedule")
+  deck_table(df, box = c(GEO$ML, GEO$BODY_TOP, GEO$CW, TH), widths = c(2.3, 1.6, 1.96, 2.0, 2.0, 1.9, 0.47), size = 12, highlight = 1, highlight_fill = PAL$tint_blue, label = "table_schedule")
   FY <- GEO$BODY_TOP + TH + 0.02; FTH <- 0.4
   deck_text(tx("S20.foot"), c(GEO$ML, FY, GEO$CW, FTH), size = 16, color = PAL$ink2, label = "text_table_note", gap_pt = 0)
 

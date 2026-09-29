@@ -121,7 +121,7 @@ slide_S25 <- function() {
   if (nzchar(Sys.getenv("S25_DEBUG"))) { data.table::fwrite(df, Sys.getenv("S25_DEBUG")); writeLines(c(tx("S25.card_nca", f), "", tx("S25.card_qc", f)), paste0(Sys.getenv("S25_DEBUG"), ".cards")) }
   tw <- 8.4
   deck_text(tx("S25.left_label"), c(GEO$ML, GEO$BODY_TOP - 0.04, tw, 0.45), size = 16, bold = TRUE, color = PAL$ink2, label = "label_model")
-  tsz <- 14; tws <- c(1.95, 3.35, 3.1); ty <- GEO$BODY_TOP + 0.43
+  tsz <- 13.5; tws <- c(1.95, 3.35, 3.1); ty <- GEO$BODY_TOP + 0.43
   deck_table(df, box = c(GEO$ML, ty, tw, GEO$BODY_BOTTOM - ty), widths = tws, size = tsz, align_num = FALSE)
   # 표의 렌더링 높이 추정(deck_table과 같은 줄 수 x 표 줄 높이 1.19 x 글자 크기 + 행마다 셀 여백 8 pt): 오른쪽 카드의 아래 끝을 표의 아래 선에 맞춘다
   twi <- tws / sum(tws) * tw
