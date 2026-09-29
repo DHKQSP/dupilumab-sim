@@ -1,14 +1,14 @@
 A5d:
-  kicker: "③ 판정 안정성"
-  title: "경계 조건에서 AUClast 대신 AUCinf로 판정하면\n1종 오류가 최대 {max}로 오른다"
+  kicker: "③ 판정 성능 · 가이드라인 기본 구성의 1종 오류 원인"
+  title: "AUCinf + Cmax의 1종 오류는 AUCinf가 1 쪽으로 치우친 만큼 커진다:\n표적 매개 소실 경계에서 최대 {max}"
   fig:
-    xlab: "경계 1종 오류 (동등으로 판정한 비율, %). 점선: 명목 {v}"
-    nom: "명목 {v}"
-    ka: "Cmax가 한계 밖: 두 구성 모두 0%"
+    xlab: "경계 1종 오류 (동등 판정 비율, %). 점선: 명목 {v}"
+    ka: "Cmax 한계 밖"
     cell: "{mech} → {tgt}"
     cfg:
-      last: "AUClast + Cmax"
-      inf: "AUCinf + Cmax (신뢰할 수 있는 AUCinf만)"
+      P2: "AUClast + Cmax"
+      G2A_iii: "AUCinf(A) + Cmax"
+      G2B: "AUCinf(B) + Cmax"
     mech:
       F_down: "흡수량 감소"
       F_up: "흡수량 증가"
@@ -18,16 +18,22 @@ A5d:
       Vmax_down: "표적 소실 감소"
       V2_up: "말초 분포 증가"
       ka_down: "흡수 속도 감소"
-  body:
-    - "AUCinf 구성은 경계 조건 {n}개 중 {k}개에서 점추정이 {nom}를 넘는다(최대 {max})."
-    - "AUClast 구성은 {z}개에서 {nom} 이하다(최대 {p2max}, 원인 분해 별첨 A5)."
-    - "기준 미달자를 빼지 않고 λz 산출 전원으로 판정해도 {kb}개에서 점추정이 {nom}를 넘는다(최대 {maxb})."
-  caption: "경계 조건: 시험약의 기전 하나를 바꿔 참 AUCinf 비를 동등 한계({tgt})에 맞춘 가상 제품. 조건마다 시험 {reps}회 이상, 분석 모형 M1(체중 층 포함)."
+    rel:
+      sub: "단일 지표의 경계 통과율(모의)과 관계식"
+      xlab: "b / SD (1 쪽 치우침 / 시험 간 표준편차)"
+      formula: "곡선: 1종 오류 ≈ Φ(b/SD - t)"
+      ep:
+        AUClast: "AUClast"
+        AUCinf_Aiii: "AUCinf(A)"
+        AUCinf_B: "AUCinf(B)"
+        AUCinf_true: "참 AUCinf"
+  body1: "AUCinf(A) + Cmax는 경계 {n}칸 중 {k}칸, λz 산출 전원(B)도 {kb}칸에서 {nom}를 넘는다(최대 {max}, {maxb})."
+  body2: "경계 통과율은 1 쪽 치우침 b를 표준편차(SD)로 나눈 값이 정한다(오른쪽: {nr}점 모두 곡선과 {dmax} 이내)."
+  caption: "경계 칸: 시험약의 기전 하나를 바꿔 참 AUCinf 비를 동등 한계({tgt})에 맞춘 가상 제품, 칸마다 시험 {reps}회 이상, 분석 모형 M1. (A) = 신뢰할 수 있는 AUCinf(adjusted R² ≥ {r2}, 외삽 ≤ {ex}%)만, (B) = λz 산출 전원. Φ = 표준정규 누적분포."
   notes: |
-    두 구성: AUClast + Cmax는 두 지표가 모두 동등 기준을 통과해야 동등이다. AUCinf + Cmax는 신뢰할 수 있는 AUCinf(adjusted R² ≥ {r2}, 외삽 ≤ {ex}%)를 얻은 대상자만으로 AUCinf를 판정하고 Cmax와 함께 통과해야 동등이다(규칙 A, 세트 (iii)).
-    최댓값: AUCinf 구성은 2016 모델 {i16}, 2020 모델 {i20}(모두 표적 매개 소실 칸). AUClast 구성의 {nom} 초과 한 조건은 2020 모델 말초 분포 증가 칸 {ci}이다(원인 분해는 별첨 A5).
-    기전: 시험약이 표적 매개 소실에서 다르면(표적 소실 증가 칸) 신뢰할 수 있는 AUCinf만으로 구한 비구획 AUCinf 기하평균비가 참 비보다 1 쪽으로 {bi16}(2016 모델), {bi20}(2020 모델) 치우치고, λz 산출 전원으로 구해도 {bb16}, {bb20} 치우친다(criteria_bias.csv, M1). 그래서 동등 한계에 있는 제품이 동등으로 판정된다.
-    칸 수 세부: {n}개 = 두 모델 x 기전·방향 조합. 흡수 속도 감소 두 칸은 참 Cmax 비가 동등 한계 밖이라 두 구성 모두 동등 판정이 없어 정보가 없다. AUCinf 구성의 {k}개는 점추정 기준이다(2016 모델 선형 소실 증가 칸 {ke}는 95% 구간이 5%를 포함). 확장 칸(2020 모델 말초 분포 증가)은 시험 {ext}회다.
-    AUClast 구성이 {nom} 아래인 이유 하나: 경계 조건은 참 AUCinf 비로 정의했는데, 비구획 AUClast 기하평균비는 {naw}개 조건에서 참 AUCinf 비보다 한계 바깥쪽에 있다(치우침 {aw}; p2_decomposition_models.csv, M1). 1 쪽으로 치우친 한 조건(2020 모델 말초 분포 증가, {tw})이 AUClast 구성의 유일한 {nom} 초과 조건이다. AUClast 구성의 낮은 1종 오류는 이 추정 대상 차이를 포함한 값이다.
-    분석 모형: M1(체중 층 포함)은 주분석 후보이며 의뢰자 결정 전이다. 현행 설계의 기본 분석은 합동 t 검정(M0)이다.
-    참조: 참 AUCinf 하나로(Cmax 없이) 판정하면 경계 1종 오류는 {ref}다. 체중 층을 넣지 않은 분석 모형(M0)에서는 AUCinf 구성 {i0}개, AUClast 구성 {p0}개 조건이 {nom}를 넘는다(별첨 A5).
+    구성: AUClast + Cmax는 두 지표가 모두 동등 기준을 통과해야 동등이다. AUCinf(A) + Cmax는 신뢰할 수 있는 AUCinf(adjusted R² ≥ {r2}, 외삽 ≤ {ex}%, 세트 (iii))를 얻은 대상자만으로 AUCinf를 판정하고(규칙 A), AUCinf(B) + Cmax는 λz를 산출한 대상자 모두로 판정한다(규칙 B). 값은 S7과 같은 파일(results/oc_curves/oc_curves_pass.csv)이며 저장된 요약(type1_models.csv, criteria_g2_type1.csv)과 칸마다 같다(scripts/65 대조).
+    최댓값: AUCinf(A) + Cmax는 2020 모델 {i20}, 2016 모델 {i16}(모두 표적 매개 소실 칸). AUClast + Cmax의 {nom} 초과 한 칸은 2020 모델 말초 분포 증가 칸 {ci}이다(시험 {ext}회; 원인 분해는 별첨 A5b).
+    관계식(오른쪽): 가까운 동등 한계 쪽 통과율 ≈ Φ(b/SD - t). b = 로그 기하평균비의 시험 평균이 참 AUCinf 비보다 1 쪽으로 치우친 양, SD = 시험 간 표준편차, t = {tq}(M1의 자유도로 구한 t 분위수). 치우침이 없으면 {nom}이다. 곡선은 모든 점의 t 중앙값으로 그렸고, 점마다의 예측(자기 t와 표준오차 중앙값)은 results/oc_curves/oc_bias_relation.csv에 있다. 이 표는 사전 등록 뒤 더한 기술 요약이며 문구 규칙에는 쓰지 않았다(D-065).
+    표적 소실 증가 칸: AUCinf(A)의 치우침은 2020 모델 {b20}(b/SD {s20}, 예측 {q20} 대 모의 {m20}), 2016 모델 {b16}(b/SD {s16}, 예측 {q16} 대 모의 {m16})이다. λz 산출 전원(B)도 {bb20}, {bb16} 치우친다. 참 AUCinf로 판정하면 {n}칸 모두 {tr}다(치우침 없음).
+    AUClast: 경계는 참 AUCinf 비로 정했으므로 AUClast 기하평균비는 대체로 한계 바깥쪽에 있고({naw}칸), 1 쪽에 있는 유일한 칸(2020 모델 말초 분포 증가, {bl})이 AUClast + Cmax의 유일한 {nom} 초과 칸이다.
+    칸 수는 점추정 기준이다(2016 모델 선형 소실 증가 칸 {ke}는 95% 구간이 {nom}를 포함). 흡수 속도 감소 두 칸은 참 Cmax 비가 한계 밖이라 어느 구성에서도 동등 판정이 없다. 체중 층이 없는 분석 모형(M0)에서는 AUCinf(A) + Cmax {i0}칸, AUClast + Cmax {p0}칸이 {nom}를 넘는다(별첨 A5b).

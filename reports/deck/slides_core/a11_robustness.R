@@ -53,8 +53,8 @@ a11_fig <- function(WB, ABN, AIP, L, ML, k130) {
     geom_text(data = lab, aes(x = 42, y = yfail, label = fail), inherit.aes = FALSE, hjust = 0, vjust = 1, size = PT(14), family = FONT, colour = PAL$orange, fontface = "bold", lineheight = 0.95) +
     facet_wrap(~ panel, nrow = 1, scales = "free_x") +
     scale_colour_manual(values = c(cov = PAL$blue, fail = PAL$orange), guide = "none") +
-    scale_shape_manual(values = CORE_MODEL_SHAPE, labels = unlist(ML[names(CORE_MODEL_SHAPE)]), name = NULL) +
-    scale_linetype_manual(values = CORE_MODEL_LT, labels = unlist(ML[names(CORE_MODEL_LT)]), name = NULL) +
+    scale_shape_manual(values = CORE_MODEL_SHAPE, breaks = names(CORE_MODEL_SHAPE), labels = unlist(ML[names(CORE_MODEL_SHAPE)]), name = NULL) +
+    scale_linetype_manual(values = CORE_MODEL_LT, breaks = names(CORE_MODEL_LT), labels = unlist(ML[names(CORE_MODEL_LT)]), name = NULL) +   # breaks: 범례 순서 주 모델(2020) 먼저, 이름과 짝
     scale_x_continuous(breaks = c(60, 90, 120, 150), expand = expansion(add = c(1, 0))) +
     scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 25), labels = function(v) paste0(v, "%"), expand = expansion(mult = c(0, 0.03))) +
     coord_cartesian(clip = "off") + labs(x = L$xlab, y = NULL) + theme_core(16) +

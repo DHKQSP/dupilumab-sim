@@ -14,7 +14,7 @@ a8_rng <- function(IA, where, item, cols = c("end_auc_ratio", "auc_ratio")) {
 }
 slide_A8 <- function() {
   IA <- "oc/inversion_all.csv"; SC <- function(m) sprintf("oc/inversion_scan_%s_Km.csv", m)
-  M <- c("k2016", "k2020"); MECH <- c("F", "ka", "ke", "Vmax", "V2", "Km")
+  M <- c("k2020", "k2016"); MECH <- c("F", "ka", "ke", "Vmax", "V2", "Km")
   deck_slide("A8", tag = "sim")
   L <- DK$txt$A8; ML <- DK$txt$common$models_short
 
@@ -51,8 +51,8 @@ slide_A8 <- function() {
     w <- sprintf("mechanism=='%s' & abs(target-%s)<1e-9 & reachable==TRUE", k, tg); r <- rows(IA, w)
     if (!nrow(r)) { dcount(IA, w, sprintf("%s: rows reaching target %s (none)", k, tg)); return(L$table$none) }
     premise(nrow(r) == 2 && setequal(r$model, M), sprintf("%s reaches %s in both models", k, tg))
-    sprintf("×%s / ×%s", dv(IA, sprintf("%s & model=='k2016'", w), "multiplier", 2, "", sprintf("%s multiplier reaching %s, k2016", k, tg)),
-            dv(IA, sprintf("%s & model=='k2020'", w), "multiplier", 2, "", sprintf("%s multiplier reaching %s, k2020", k, tg)))
+    sprintf("×%s / ×%s", dv(IA, sprintf("%s & model=='k2020'", w), "multiplier", 2, "", sprintf("%s multiplier reaching %s, k2020", k, tg)),   # 주 모델(2020) 먼저
+            dv(IA, sprintf("%s & model=='k2016'", w), "multiplier", 2, "", sprintf("%s multiplier reaching %s, k2016", k, tg)))
   }
   df <- data.frame(a = unlist(L$table$mech[MECH]), b = vapply(MECH, cell, "", tg = fnum(lim[1], 2)), c = vapply(MECH, cell, "", tg = fnum(lim[2], 2)), stringsAsFactors = FALSE, check.names = FALSE)
   names(df) <- tx("A8.table.head", list(lo = lo, hi = hi))
@@ -89,7 +89,7 @@ slide_A8 <- function() {
     theme(legend.position = "top", legend.justification = "left", legend.key.width = grid::unit(2.2, "lines"), legend.margin = margin(0, 0, 0, 0),
           legend.box.spacing = grid::unit(2, "pt"), panel.grid.minor = element_blank(),
           plot.subtitle = element_text(colour = PAL$ink2, size = 14, margin = margin(0, 0, 2, 0)), plot.margin = margin(4, 14, 4, 4))
-  deck_figure(p, "a8_km_inversion", c(GEO$ML, y0, FW, capy - 0.1 - y0), src = c(IA, SC("k2016"), SC("k2020")))
+  deck_figure(p, "a8_km_inversion", c(GEO$ML, y0, FW, capy - 0.1 - y0), src = c(IA, SC("k2020"), SC("k2016")))
 
   # ---- 노트 ----
   premise(length(vk) == 2 && all(vk == 0), "Km has no between-subject variability in either model (notes)")

@@ -1,4 +1,4 @@
-# S8 ② 보강(지시 §2, 그림 4-2): 케이스별 창 포착률(AUClast/AUCinf, 참값) 분포. 행 = 기본 두 모델, 곡선 모양(Vmax, Km; 두 군 모두), 정량한계, 비례 잔차,
+# 보강 A-②(v1.2: 본문 S8에서 별첨으로 옮김; 표시 이름 "보강 A-②"; 지시 §2, 그림 4-2): 케이스별 창 포착률(AUClast/AUCinf, 참값) 분포. 행 = 기본 두 모델, 곡선 모양(Vmax, Km; 두 군 모두), 정량한계, 비례 잔차,
 # 체중 층(results/core_deck/coverage_by_case.csv, scripts/63). 표시: 중앙값 점, 5~95백분위 막대, 최솟값 표식, EMA 80% 기준선, 기본 조건 최솟값 주석,
 # 문헌 두 점(비구획 평균비: Clot 2021 300 mg, FDA 리뷰 Table 4.2.c PKM12350 대조군; literature_numeric.csv). 제목 = 사전 등록 7b 규칙(title_rule.csv).
 # 케이스 이름의 수치(영문 label 열에서 정규식으로 읽고 추적 행을 남긴다)
@@ -28,6 +28,9 @@ slide_B2 <- function() {
   grp_of <- c(k2016_base = "base", k2020_base = "base", vmax080 = "vmax", vmax125 = "vmax", km05 = "km", km10 = "km", lloq002 = "lloq", lloq05 = "lloq",
               resid12 = "resid", wt60_75 = "wt", wt75_90 = "wt")
   d <- copy(rw)[, .(case, label, median, p05, p95, min)][, lab := mapply(lab_of, case, label)][, grp := grp_of[case]]
+  d <- rbind(d[case == "k2020_base"], d[case == "k2016_base"], d[!case %in% c("k2016_base", "k2020_base")])   # 기본 행: 주 모델(2020) 먼저(위)
+  premise(identical(d$case[1:2], c("k2020_base", "k2016_base")), "base rows: 2020 model first")
+  premise(all(rw[!case %in% c("k2016_base", "k2020_base"), model] == "k2016"), "every non-base case is a 2016 model variant (caption, notes)")
   premise(!anyNA(d$grp), "every case has a group")
   lit <- rbind(data.table(case = "lit_clot", v = row1(LN, "grepl('^Clot 2021', source) & dose_mg==300")$lit_mean_ratio, lab = L$rows$lit_clot),
                data.table(case = "lit_pkm", v = row1(LN, "grepl('PKM12350', source)")$lit_mean_ratio, lab = L$rows$lit_pkm))[, grp := "lit"]
@@ -79,6 +82,8 @@ slide_B2 <- function() {
     clot = dv(LN, "grepl('^Clot 2021', source) & dose_mg==300", "lit_mean_ratio", 1, "%", "Clot 2021 300 mg published NCA mean ratio", scale = 100),
     clots = dv(LN, "grepl('^Clot 2021', source) & dose_mg==300", "true_mean_ratio_k2016", 1, "%", "simulated true mean ratio, Clot 300 mg cohort, 2016", scale = 100),
     pkm = dv(LN, "grepl('PKM12350', source)", "lit_mean_ratio", 1, "%", "PKM12350 control arm published NCA mean ratio", scale = 100),
-    pkms = dv(LN, "grepl('PKM12350', source)", "true_mean_ratio_k2016", 1, "%", "simulated true mean ratio, PKM12350 cohort, 2016", scale = 100))))
+    pkms = dv(LN, "grepl('PKM12350', source)", "true_mean_ratio_k2016", 1, "%", "simulated true mean ratio, PKM12350 cohort, 2016", scale = 100),
+    clots20 = dv(LN, "grepl('^Clot 2021', source) & dose_mg==300", "true_mean_ratio_k2020", 1, "%", "simulated true mean ratio, Clot 300 mg cohort, 2020", scale = 100),
+    pkms20 = dv(LN, "grepl('PKM12350', source)", "true_mean_ratio_k2020", 1, "%", "simulated true mean ratio, PKM12350 cohort, 2020", scale = 100))))
   deck_end()
 }

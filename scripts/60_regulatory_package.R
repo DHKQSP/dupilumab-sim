@@ -55,7 +55,8 @@ if (file.exists(deck_tr_f)) {
   dtr <- dtr[, .(document = "deck_ko", section = sprintf("%s (slide %d)", section, slide_n), item, source_file, locator, value_raw, value_printed, source_sha256, source_commit)]
   n_deck <- nrow(dtr[!value_printed %in% c("(figure)", "(table)")]); tr <- rbind(tr, dtr, fill = TRUE)
 }
-# 핵심 덱(v1.1, reports/deck --deck core, D-063)도 같은 방식으로 합친다(document = deck_core_ko)
+# 핵심 덱(reports/deck --deck core, D-063, D-065)도 같은 방식으로 합친다(document = deck_core_ko). 판 표기는 문구 파일의 common.version에서 읽는다
+CORE_V <- yaml::read_yaml(proj_path("reports", "deck", "text", "ko_core", "00_common.yaml"))$common$version          # 예: "v1.2"
 core_tr_f <- proj_path("reports", "deck", "core_deck_traceability.csv"); n_core <- 0L
 if (file.exists(core_tr_f)) {
   ctr <- fread(core_tr_f, encoding = "UTF-8", colClasses = list(character = c("value_raw", "value_printed", "locator", "source_commit")))
@@ -97,7 +98,7 @@ readme <- c(
   "| `MS_report.docx` / `MS_report.html` | Modeling and Simulation Report (ICH M15 structure): question of interest, context of use, model risk, methods, credibility evidence, results, discussion, appendices A to H. |",
   "| `FDA_questions.docx` / `FDA_questions.html` | Anticipated FDA questions with evidence-based responses and pointers to the report. |",
   if (n_deck > 0) sprintf("| `../reports/deck/dupilumab_endpoint_results_v1.0.1.pptx` (and `.pdf`) | Internal results-review deck in Korean for clinical pharmacology and clinical development (not a submission document). Its %s printed values are in `traceability.csv` as document `deck_ko`, one section per slide. |", format(n_deck, big.mark = ",")) else NULL,
-  if (n_core > 0) sprintf("| `../reports/deck/dupilumab_AUCinf_core_deck_v1.1.pptx` (and `.pdf`) | Internal core deck in Korean (v1.1): the quantitative case against AUC0-inf as a primary endpoint in ten main slides with appendices; the earlier results deck is kept as the technical backup. Its %s printed values are in `traceability.csv` as document `deck_core_ko`. |", format(n_core, big.mark = ",")) else NULL,
+  if (n_core > 0) sprintf("| `../reports/deck/dupilumab_AUCinf_core_deck_%s.pptx` (and `.pdf`) | Internal core deck in Korean (%s): the quantitative case against AUC0-inf as a primary endpoint in eight main slides with appendices (the 2020 model is the deck's primary model); the earlier results deck is kept as the technical backup. Its %s printed values are in `traceability.csv` as document `deck_core_ko`. |", CORE_V, CORE_V, format(n_core, big.mark = ",")) else NULL,
   "| `sap_text_proposals_en.md` | Proposed statistical analysis plan text for the PK analyses (primary endpoints and analysis model options, AUC0-inf as secondary endpoint, fallback, ADA, BLQ and AUC rules, sample size), with the supporting numbers. |",
   "| `release_notes.md` | Changes in this version. |",
   "| `tables/assumptions_register.csv` | Assumptions, their impact and the actions required before submission. |",
@@ -169,10 +170,10 @@ rn <- c(
       sprintf("- Results-review deck (Korean, internal): `reports/deck/dupilumab_endpoint_results_v1.0.1.pptx` and PDF, %d slides (%d main, %d appendix), built by `reports/deck/build_deck.R` from the committed results; %s printed values traced (`traceability.csv`, document `deck_ko`)%s.",
               nrow(m_), sum(!grepl("^A", m_$id)), sum(grepl("^A", m_$id)), format(n_deck, big.mark = ","),
               if (is.null(ck_)) "" else sprintf("; automatic checks (numbers traced, no empty values, no dashes, no atopic results outside appendix A5, abbreviations, font sizes and limits, sources unchanged, agreement with the report and key numbers, rendered layout of the PDF without overflow or overlap): %d passed, %d failed", sum(ck_$status == "pass"), sum(ck_$status == "FAIL"))) } else NULL },
-  { cm <- proj_path("reports", "deck", "core_deck_meta.csv"); if (file.exists(cm)) { m_ <- fread(cm, encoding = "UTF-8"); cck <- proj_path("reports", "deck", "dupilumab_AUCinf_core_deck_v1.1_checks.csv")
+  { cm <- proj_path("reports", "deck", "core_deck_meta.csv"); if (file.exists(cm)) { m_ <- fread(cm, encoding = "UTF-8"); cck <- proj_path("reports", "deck", sprintf("dupilumab_AUCinf_core_deck_%s_checks.csv", CORE_V))
       ck_ <- if (file.exists(cck)) fread(cck) else NULL
-      sprintf("- Core deck v1.1 (Korean, internal; directive 2026-09-29, pre-registration `config/prereg_20260929.yaml` section7): `reports/deck/dupilumab_AUCinf_core_deck_v1.1.pptx` and PDF, %d slides (%d main including the cover, %d appendix), no new trial simulation; new summaries in `results/core_deck/` from `scripts/63_core_deck_inputs.R` (regenerated inputs matched the committed results); %s printed values traced (document `deck_core_ko`)%s.",
-              nrow(m_), sum(!grepl("^A", m_$id)), sum(grepl("^A", m_$id)), format(n_core, big.mark = ","),
+      sprintf("- Core deck %s (Korean, internal; directives 2026-09-29, pre-registrations `config/prereg_20260929.yaml` section7 and `config/prereg_20260929_oc.yaml` section8): `reports/deck/dupilumab_AUCinf_core_deck_%s.pptx` and PDF, %d slides (%d main including the cover, %d appendix); new summaries in `results/core_deck/` from `scripts/63_core_deck_inputs.R` (regenerated inputs matched the committed results) and decision performance by type I and type II error in `results/oc_curves/` from `scripts/64_oc_curves.R` (new trials for the non-boundary cells; trials 1 to 2,000 matched the stored pooled t-test rows) and `scripts/65_oc_curves_summary.R` (stored boundary and identical-product trials re-judged; 70 stored summaries reproduced exactly); %s printed values traced (document `deck_core_ko`)%s.",
+              CORE_V, CORE_V, nrow(m_), sum(!grepl("^[AB][0-9]", m_$id)), sum(grepl("^[AB][0-9]", m_$id)), format(n_core, big.mark = ","),
               if (is.null(ck_)) "" else sprintf("; automatic checks: %d passed, %d failed", sum(ck_$status == "pass"), sum(ck_$status == "FAIL"))) } else NULL },
   sprintf("- Analysis model (report Section 5.9). Boundary type I error of AUC0-last + Cmax in 16 cells: pooled t-test (M0) %s; ANOVA with the randomization weight stratum (M1) %s. Cells above 5%% (point estimate): %s.", cls("M0"), cls("M1"), ov_l),
   sprintf("- Expectations recorded before the results: %s.", paste(sprintf("%s (%s)", ex$expectation, ifelse(ex$consistent, "consistent", "not consistent")), collapse = "; ")),

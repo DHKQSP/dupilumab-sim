@@ -10,7 +10,7 @@ a3a_w <- function(m, s_) sprintf("pk_model=='%s' & set=='%s'", m, s_)
 slide_A3a <- function() {
   TPF <- "trialpop/tp_failure_by_set.csv"; TPR <- "trialpop/tp_failure_reasons.csv"; TRA <- "trialpop/tp_retained_per_arm.csv"; PR <- "config/prereg_20260926.yaml"
   deck_slide("A3a", tag = "litsim")
-  L <- DK$txt$A3a; ML <- DK$txt$common$models_short; MOD <- c("k2016", "k2020")
+  L <- DK$txt$A3a; ML <- DK$txt$common$models_short; MOD <- c("k2020", "k2016")   # 주 모델(2020) 먼저
   cs <- .read(PR)$section4$criteria_sets
 
   # ---- 전제: 표와 문장이 기대는 사실 ----
@@ -56,7 +56,7 @@ slide_A3a <- function() {
     c(setc, ML[[m]], fail, dv(TPF, w, "lz_pct", 1, "%", sprintf("lambda-z not estimable, %s", m)),
       dv(TPF, w, "est_fail_pct", 1, "%", sprintf("estimable lambda-z but failing, set (%s), %s", s_, m)), rs("r2"), rs("ex"), rs("sp"), ret)
   }
-  M <- do.call(rbind, lapply(a3a_SETS, function(s_) rbind(mk_row(s_, "k2016", 1), mk_row(s_, "k2020", 2))))
+  M <- do.call(rbind, lapply(a3a_SETS, function(s_) rbind(mk_row(s_, "k2020", 1), mk_row(s_, "k2016", 2))))
   df <- as.data.frame(M, stringsAsFactors = FALSE); names(df) <- tx("A3a.table.head", list(ex = f_set("i", "extrap"), n = f_n_arm()))
   WD <- c(2.1, 1.05, 1.95, 0.95, 1.05, 1.0, 0.95, 1.05, 1.75)
   TH <- deck_table_h(df, GEO$CW, WD, 14) + 0.04

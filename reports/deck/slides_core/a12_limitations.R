@@ -180,7 +180,7 @@ slide_A12 <- function() {
     s_mab = a12_txt("literature_precedents.yaml", c("ema_2012_mab", "status"), "status of the EMA 2012 monoclonal antibody guideline citation"),
     rdate = a12_txt("literature_core_deck.yaml", c("fda_bla761055_clinpharm", "review_date"), "FDA BLA 761055 review date"),
     nin = dcount(PV, "startsWith(check, 'input ')", "input files hashed in provenance.csv"),
-    nrep = dcount(PV, "equal == TRUE & grepl('subject', check)", "representative-subject checks in provenance.csv"),
+    nrep = dcount(PV, "equal == TRUE & grepl('subject [0-9]|representative subjects', check)", "representative-subject checks in provenance.csv (including the S4 cliff subject)"),
     grid = f_lloq_grid(),
     cov = drange(LIf, "model=='k2016' & resid=='fixed'", "coverage_lt80_pct", 2, "%", "LLOQ grid, share below 80% AUClast/AUCinf, 2016 model"),
     thr = dderived("AUClast/AUCinf threshold in column name coverage_lt80_pct (percent)", LIf, "column name coverage_lt80_pct", 80, "80"),

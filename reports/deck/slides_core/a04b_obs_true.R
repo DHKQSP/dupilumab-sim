@@ -1,21 +1,21 @@
 # 별첨 A4b ② 세부: 관측 대 참 비. 시험 모집단(건강인, 체중 층화 범위, 현행 채혈 B0), 모델당 20,000명.
-#  왼쪽 그림: 대상자 수준 분포(results/deck_inputs/coverage_hist.csv, 0.02 간격, 1.5 이상은 한 구간; 2016 모델, 2020 모델 나란히, 로그 세로축):
+#  왼쪽 그림: 대상자 수준 분포(results/deck_inputs/coverage_hist.csv, 0.02 간격, 1.5 이상은 한 구간; 2020 모델(주), 2016 모델(민감도) 나란히, 로그 세로축):
 #        AUClast/AUCinf(참값)(참 AUClast ÷ 참 AUCinf) 옅은 파랑 막대, 관측 AUClast ÷ 참 AUCinf 파랑 계단선(전체),
 #        NCA AUCinf ÷ 참 AUCinf 규칙 B(λz 산출 가능 전원) 주황 실선, 규칙 A 세트 (i)(기준 충족자만) 주황 점선. 빈 구간에서 선을 끊는다.
 #  오른쪽 표 두 개(모델마다, 위아래): results/trialpop/tp_coverage_individual.csv(대상자 수, 중앙값, 5~95백분위, 최대). 최솟값은 노트.
-#  세트 (iii)(신뢰할 수 있는 AUCinf)의 관측 대 참 비는 결과 파일에 없어 세트 (i)로 적는다(캡션, 노트). 외삽 비율 중앙값은 pillar1_coverage_B0.csv(S7과 같은 열).
+#  세트 (iii)(신뢰할 수 있는 AUCinf)의 관측 대 참 비는 결과 파일에 없어 세트 (i)로 적는다(캡션, 노트). 외삽 비율 중앙값은 pillar1_coverage_B0.csv(S6과 같은 열).
 # 전제와 분포 자료 처리는 결과보고 덱 S16(slides/s16_coverage.R)을 따른다.
 A4B_TCV <- "trialpop/tp_coverage_individual.csv"
-# 두 모델 값(2016, 2020 순서의 문자 벡터)
+# 두 모델 값(2020, 2016 순서의 문자 벡터; 주 모델 먼저)
 a4b_two <- function(met, col, d, what, big = FALSE)
-  vapply(c("k2016", "k2020"), function(m) { w <- sprintf("metric=='%s' & pk_model=='%s'", met, m); it <- sprintf("%s, %s, %s", what, col, m)
+  vapply(c("k2020", "k2016"), function(m) { w <- sprintf("metric=='%s' & pk_model=='%s'", met, m); it <- sprintf("%s, %s, %s", what, col, m)
     if (big) dint(A4B_TCV, w, col, it) else dv(A4B_TCV, w, col, d, "", it) }, "", USE.NAMES = FALSE)
 slide_A4b <- function() {
   TCV <- A4B_TCV; CH <- "deck_inputs/coverage_hist.csv"; P1 <- "rationale/pillar1_coverage_B0.csv"
   MW <- "window coverage (true AUC0-tlast / true AUC0-inf)"
   MET <- c(win = MW, last = "observed-to-true, AUClast (all subjects)", B = "observed-to-true, AUCinf rule B (lambda-z estimable)",
            A = "observed-to-true, AUCinf rule A (meeting set (i))")
-  K <- c("win", "last", "B", "A"); M <- c("k2016", "k2020")
+  K <- c("win", "last", "B", "A"); M <- c("k2020", "k2016")                  # 주 모델(2020) 먼저
   premise(all(MET %in% rows(TCV)$metric), "metric labels present in tp_coverage_individual.csv")
   premise(nrow(rows(TCV, "grepl('set \\\\(iii\\\\)', metric)")) == 0, "no set (iii) observed-to-true metric in the file (set (i) is shown; caption, notes)")
   wm <- function(k, m) sprintf("metric=='%s' & pk_model=='%s'", MET[[k]], m)
@@ -36,7 +36,8 @@ slide_A4b <- function() {
   bmax <- x[metric == MET[["B"]], .(pk_model, max)]
   premise(bmax[which.max(max), pk_model] == "k2016" && all(x[metric == MET[["A"]], max] < max(bmax$max)), "largest NCA-to-true ratio: rule B, 2016 model (title; rule A lower)")
   f <- list(med = drange(TCV, sprintf("metric=='%s'", MW), "median", 0, "%", "window coverage, median, two models", scale = 100),
-            mx = dv(TCV, wm("B", "k2016"), "max", 1, "", "largest NCA AUCinf (rule B) / true AUCinf, 2016 model (largest of both models, premise)"))
+            mx = dv(TCV, wm("B", "k2016"), "max", 1, "", "largest NCA AUCinf (rule B) / true AUCinf, 2016 model (largest of both models, premise)"),
+            mx20 = dv(TCV, wm("B", "k2020"), "max", 1, "", "largest NCA AUCinf (rule B) / true AUCinf, 2020 model"))
   y0 <- core_title(tx("A4b.title", f), tx("A4b.kicker"))
 
   # ---- 캡션(전체 폭, 아래) ----
@@ -65,9 +66,10 @@ slide_A4b <- function() {
 
   # ---- 왼쪽 그림: 분포(두 모델 나란히, 로그 세로축). 계단선은 비어 있는 구간에서 끊는다(0으로 이어 그리지 않음) ----
   premise(all(abs(h[, sum(pct), by = .(pk_model, metric)]$V1 - 100) < 1e-6), "histograms sum to 100% per model and metric")
-  premise(all(h[metric == "auclast", sum(n), by = pk_model]$V1 == vapply(M, function(m) row1(TCV, wm("last", m))$n, 1)), "AUClast histogram covers all subjects")
-  premise(all(h[metric == "aucinf_B", sum(n), by = pk_model]$V1 == vapply(M, function(m) row1(TCV, wm("B", m))$n, 1)) &&
-          all(h[metric == "aucinf_A", sum(n), by = pk_model]$V1 == vapply(M, function(m) row1(TCV, wm("A", m))$n, 1)), "NCA histograms cover the rule B and rule A (set (i)) subjects")
+  hn <- function(met) { x <- h[metric == met, sum(n), by = pk_model]; setNames(x$V1, x$pk_model)[M] }   # 모델 이름으로 맞춘다
+  premise(all(hn("auclast") == vapply(M, function(m) row1(TCV, wm("last", m))$n, 1)), "AUClast histogram covers all subjects")
+  premise(all(hn("aucinf_B") == vapply(M, function(m) row1(TCV, wm("B", m))$n, 1)) &&
+          all(hn("aucinf_A") == vapply(M, function(m) row1(TCV, wm("A", m))$n, 1)), "NCA histograms cover the rule B and rule A (set (i)) subjects")
   premise(all(h$n > 0), "histogram file lists only non-empty bins (empty bins are gaps)")
   ML <- DK$txt$common$models_short; F <- L$fig
   h[, mod := factor(unlist(ML[pk_model]), levels = unlist(ML))]

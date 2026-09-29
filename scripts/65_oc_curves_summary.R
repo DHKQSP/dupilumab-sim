@@ -5,7 +5,7 @@
 # 검사(다르면 중단): 경계 P2·F3B·G2_B(M1)를 type1_models.csv, G2_A_iii(M1)를 criteria_g2_type1.csv, 동일 제품 P2·F3B·G2_B(M1)를 power_models.csv와
 #   (시험 수, 통과 수) 정확히 대조. 새 칸의 시험 수가 section8 반복 수와 같은지.
 # 산출(results/oc_curves): oc_curves_pass.csv, oc_type1_summary.csv, oc_type2_summary.csv, oc_paired.csv, oc_decomposition.csv,
-#   oc_analytic_check.csv, oc_wording_rules.csv, oc_identity_checks.csv
+#   oc_analytic_check.csv, oc_wording_rules.csv, oc_identity_checks.csv, oc_bias_relation.csv(별첨 A5d 상자, 사전 등록 뒤 추가한 기술 요약)
 source("R/00_setup.R"); source_project()
 s8 <- read_cfg("prereg_20260929_oc.yaml")$section8; design <- read_cfg("trial_design.yaml"); oc <- read_cfg("oc_design.yaml")
 args <- commandArgs(trailingOnly = TRUE); partial <- "--partial" %in% args          # --partial <dir>: 시험이 덜 끝난 상태의 시험용(시험 수 검사 생략, 결과는 <dir>에, 실행 기록 없음)
@@ -41,7 +41,7 @@ CL <- lapply(setNames(MODELS, MODELS), cells_of)
 rd <- function(f, scen) { if (!file.exists(f)) stop("입력 없음: ", f); x <- fread(f)[scenario %in% scen & endpoint %in% EPN & model %in% c("M0", "M1")]; x }
 per_trial <- function(m) {
   cl <- CL[[m]]$cells; old <- cl[kind != "curve", code]; new <- cl[kind == "curve", code]
-  om <- proj_path("results", "oc_models"); ocv <- proj_path("results", "oc_curves")
+  om <- proj_path("results", "oc_models"); ocv <- if ("--input" %in% args) args[which(args == "--input") + 1L] else proj_path("results", "oc_curves")   # --input: 시험용 사본 폴더
   be <- rbind(rd(file.path(om, sprintf("oc_models_be_%s.csv.gz", m)), old), rd(file.path(om, sprintf("oc_models_crit_be_%s.csv.gz", m)), old),
               rd(file.path(ocv, sprintf("oc_curves_be_%s.csv.gz", m)), new), rd(file.path(ocv, sprintf("oc_curves_crit_be_%s.csv.gz", m)), new))
   for (f in c(sprintf("oc_models_ext_be_%s.csv.gz", m), sprintf("oc_models_ext_crit_be_%s.csv.gz", m))) if (file.exists(file.path(om, f))) be <- rbind(be, rd(file.path(om, f), old))
@@ -52,7 +52,8 @@ per_trial <- function(m) {
   w[, AUClast_only := AUClast][, AUCinf_Aiii_only := AUCinf_Aiii]
   nn <- dcast(be[endpoint %in% c("AUCinf_Aiii", "AUCinf_B", "AUClast")], trial + scenario + model ~ endpoint, value.var = c("n_R", "n_T"))
   ses <- be[endpoint %in% c("AUClast", "AUCinf_Aiii") & model == "M0", .(trial, scenario, endpoint, se, n_R, n_T)]
-  list(w = w[, pk_model := m][], n = nn[, pk_model := m][], se = ses[, pk_model := m][])
+  est <- be[model == AM & scenario %in% cl[kind == "boundary", code] & endpoint %in% c("AUClast", "AUCinf_Aiii", "AUCinf_B", "AUCinf_true"), .(trial, scenario, endpoint, est, se, n_R, n_T, pass)]
+  list(w = w[, pk_model := m][], n = nn[, pk_model := m][], se = ses[, pk_model := m][], est = est[, pk_model := m][])
 }
 PT <- lapply(setNames(MODELS, MODELS), per_trial)
 
@@ -159,6 +160,23 @@ ana_a <- rbindlist(lapply(MODELS, function(m) {
   a
 }))
 fwrite(ana_a, file.path(out_dir, "oc_analytic_check.csv"))
+
+# ---- 편향과 1종 오류의 관계(경계 16칸, 단일 지표; 별첨 A5d 상자. 사전 등록 뒤 더한 기술 요약이며 문구 규칙에 쓰지 않는다, D-065) ------------------
+# 가까운 한계 쪽 1종 오류 ≈ Φ(b/SD - t): b = 로그 기하평균비 평균이 참 AUCinf 비보다 1 쪽으로 치우친 양(로그), SD = 시험 간 표준편차, t = qt(0.95, n - 3)(M1).
+# 예측값은 가까운 한계만 쓴 정규 근사: Φ((평균 - log 0.80 - t x SE 중앙값)/SD)(참 비 < 1), Φ((log 1.25 - 평균 - t x SE 중앙값)/SD)(참 비 > 1).
+relation <- rbindlist(lapply(MODELS, function(m) {
+  e <- PT[[m]]$est; cl <- CL[[m]]$cells[kind == "boundary"]
+  s <- e[, .(n_trials = .N, mean_est = mean(est, na.rm = TRUE), sd_est = sd(est, na.rm = TRUE), se_median = median(se, na.rm = TRUE), df_median = median(n_R + n_T - 3, na.rm = TRUE),
+             sim_pass_pct = 100 * mean(pass %in% TRUE)), by = .(scenario, endpoint)]
+  s <- cl[, .(pk_model, scenario = code, mechanism, direction, target, auc_ratio)][s, on = "scenario"]
+  s[, sgn := fifelse(auc_ratio < 1, 1, -1)][, bias_log := sgn * (mean_est - log(auc_ratio))][, bias_pct := 100 * (exp(bias_log) - 1)][, b_over_sd := bias_log / sd_est]
+  s[, t_q := qt(1 - alpha_pct / 100, df_median)]
+  s[, pred_pass_pct := 100 * fifelse(auc_ratio < 1, pnorm((mean_est - log(lims[1]) - t_q * se_median) / sd_est), pnorm((log(lims[2]) - mean_est - t_q * se_median) / sd_est))]
+  s[, sgn := NULL][]
+}))
+fwrite(relation, file.path(out_dir, "oc_bias_relation.csv"))
+say(sprintf("bias relation: %d boundary cell x endpoint rows; |predicted - simulated| single-endpoint pass at most %.2f percentage points",
+            nrow(relation), relation[, max(abs(pred_pass_pct - sim_pass_pct))]))
 
 # ---- 문구 규칙(section8 wording) -------------------------------------------------------------------------------------
 per_m <- function(cf, m, what) {

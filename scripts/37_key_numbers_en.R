@@ -194,6 +194,36 @@ if (!is.null(tpf) && !is.null(tsc) && !is.null(tcv) && !is.null(trs)) {
       sprintf("- Window coverage (true AUC0-tlast / true AUCinf): median %s, smallest subject %s; observed-to-true ratio of AUClast (observed AUClast / true AUCinf): smallest subject %s, symmetric between arms (trialpop/tp_coverage_individual.csv).",
               r2(100 * tcv[grepl("^window", metric), median]), sprintf("%s%%", f1(floor(1000 * min(tcv[grepl("^window", metric), min])) / 10)), r2(tcv[grepl("AUClast \\(all", metric), min], f3, "")), "")
 }
+# 판정 성능: 1종·2종 오류(지시 2026-09-29 "S9 재설계", config/prereg_20260929_oc.yaml section8, scripts/65; 분석 모형 M1). 핵심 덱 v1.2 S2 카드 3, S7, 별첨 A5c~A5f의 값
+opf <- R("oc_curves", "oc_curves_pass.csv"); ot1 <- R("oc_curves", "oc_type1_summary.csv"); ot2 <- R("oc_curves", "oc_type2_summary.csv"); odc <- R("oc_curves", "oc_decomposition.csv")
+obr <- R("oc_curves", "oc_bias_relation.csv"); oan <- R("oc_curves", "oc_analytic_check.csv"); owr <- R("oc_curves", "oc_wording_rules.csv")
+if (!is.null(opf) && !is.null(ot1) && !is.null(ot2) && !is.null(odc) && !is.null(obr) && !is.null(oan) && !is.null(owr)) {
+  CN <- c(P2 = "AUClast + Cmax", F3A_iii = "AUClast + Cmax + AUCinf (rule A)", G2A_iii = "AUCinf (rule A) + Cmax", F3B = "AUClast + Cmax + AUCinf (rule B)", G2B = "AUCinf (rule B) + Cmax")
+  t1 <- function(cf, sc) ot1[config == cf & scope == sc]
+  t2i <- function(cf, m) 100 - opf[analysis_model == "M1" & code == "S00" & config == cf & pk_model == m, pass_pct]
+  nr <- function(cf, g) ot2[config == cf & t2group == g & scope == "both"]
+  dcx <- function(cf, m) odc[config == cf & pk_model == m & scenario == "S00"]
+  add("Decision performance by type I and type II error (analysis model M1; rule A = reliable AUCinf, adjusted R-squared at least 0.90 and extrapolation at most 20%; rule B = all lambda-z estimable)",
+      sprintf("- Largest boundary type I error over 16 cells: %s (oc_curves/oc_type1_summary.csv).",
+              paste(vapply(names(CN), function(cf) sprintf("%s %s%% (Model 1 %s%%, 2016 model %s%%; %d cells above 5%%)", CN[[cf]], f2(t1(cf, "both")$max_pct), f2(t1(cf, "k2020")$max_pct), f2(t1(cf, "k2016")$max_pct), t1(cf, "both")$n_gt5), ""), collapse = "; ")),
+      sprintf("- Type II error for the identical product: %s (oc_curves/oc_curves_pass.csv).",
+              paste(vapply(names(CN), function(cf) sprintf("%s %s%% (Model 1) and %s%% (2016 model)", CN[[cf]], f2(t2i(cf, "k2020")), f2(t2i(cf, "k2016"))), ""), collapse = "; ")),
+      sprintf("- Type II error at true ratios 0.95 and 1.05 (cells whose true Cmax ratio is within the limits), range over mechanisms and models: %s (oc_curves/oc_type2_summary.csv).",
+              paste(vapply(names(CN), function(cf) sprintf("%s %s%% to %s%%", CN[[cf]], f1(nr(cf, "near_095_105")$min_pct), f1(nr(cf, "near_095_105")$max_pct)), ""), collapse = "; ")),
+      sprintf("- Adding AUCinf (rule A) to AUClast + Cmax: largest type I reduction %s and %s points, largest type II increase %s and %s points (Model 1 and 2016 model; oc_curves/oc_wording_rules.csv).",
+              f1(owr[pk_model == "k2020", F3_t1_red_max]), f1(owr[pk_model == "k2016", F3_t1_red_max]), f1(owr[pk_model == "k2020", F3_t2_inc_max]), f1(owr[pk_model == "k2016", F3_t2_inc_max])),
+      sprintf("- Type II decomposition, identical product, AUCinf (rule A) + Cmax minus AUClast + Cmax: Model 1 %s = analysis-set reduction %s + AUCinf estimation %s points, 2016 model %s = %s + %s; median analysis count per arm AUClast %s, rule B %s and %s, rule A %s and %s (oc_curves/oc_decomposition.csv).",
+              f2(dcx("G2", "k2020")$total_pp), f2(dcx("G2", "k2020")$reduction_pp), f2(dcx("G2", "k2020")$estimation_pp), f2(dcx("G2", "k2016")$total_pp), f2(dcx("G2", "k2016")$reduction_pp), f2(dcx("G2", "k2016")$estimation_pp),
+              f1(dcx("G2", "k2020")$n_arm_AUClast), f1(dcx("G2", "k2020")$n_arm_B), f1(dcx("G2", "k2016")$n_arm_B), f1(dcx("G2", "k2020")$n_arm_Aiii), f1(dcx("G2", "k2016")$n_arm_Aiii)),
+      sprintf("- Bias toward 1 at the Vmax increased boundary cell, AUCinf rule B then rule A: Model 1 %s%% and %s%%, 2016 model %s%% and %s%%; single-endpoint boundary pass follows Phi(b/SD - t) within %s points over %d cell x endpoint rows (oc_curves/oc_bias_relation.csv).",
+              f2(obr[pk_model == "k2020" & scenario == "Vmax_up_080" & endpoint == "AUCinf_B", bias_pct]), f2(obr[pk_model == "k2020" & scenario == "Vmax_up_080" & endpoint == "AUCinf_Aiii", bias_pct]),
+              f2(obr[pk_model == "k2016" & scenario == "Vmax_up_080" & endpoint == "AUCinf_B", bias_pct]), f2(obr[pk_model == "k2016" & scenario == "Vmax_up_080" & endpoint == "AUCinf_Aiii", bias_pct]),
+              f2(max(abs(obr$pred_pass_pct - obr$sim_pass_pct))), nrow(obr)),
+      sprintf("- Analytic check, identical product (pooled t, single endpoint): CV 40%% with 117 and 75 per arm gives type II %s%% (AUClast) and %s%% (AUCinf); with the simulated CV and analysis counts %s (oc_curves/oc_analytic_check.csv).",
+              f2(oan[case == "directive" & endpoint == "AUClast" & pk_model == "k2020", type2_analytic_pct]), f2(oan[case == "directive" & endpoint == "AUCinf_Aiii" & pk_model == "k2020", type2_analytic_pct]),
+              paste(sprintf("%s %s%% versus simulated %s%%", ifelse(oan[case == "study"]$pk_model == "k2020", paste("Model 1", oan[case == "study"]$endpoint), paste("2016 model", oan[case == "study"]$endpoint)),
+                            f2(oan[case == "study"]$type2_analytic_pct), f2(oan[case == "study"]$sim_single_M1_pct)), collapse = ", ")), "")
+}
 acb <- R("atopic", "atopic_criteria_by_band.csv"); acf <- R("atopic", "atopic_coverage_failing.csv"); awt <- R("atopic", "atopic_weight_table.csv"); abi <- R("atopic", "atopic_trials_bias.csv"); aaf <- R("atopic", "atopic_trials_arm_failure.csv")
 if (!is.null(acb) && !is.null(acf) && !is.null(awt)) {
   b_ <- function(v, s_, b) f1(acb[variant == v & distribution == "primary" & band == b & set == s_, fail_pct])

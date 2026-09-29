@@ -63,13 +63,13 @@ slide_A6 <- function() {
   # ---- 왼쪽 그림: 평균 AUClast/AUCinf ----
   FL <- L$fig; ML <- DK$txt$common$models_short
   d <- rbindlist(lapply(names(W), function(k) { r <- row1(LN, W[[k]])
-    data.table(k = k, type = c("lit", "nca", "nca", "tv", "tv"), model = c(NA, "k2016", "k2020", "k2016", "k2020"),
-               v = 100 * c(r$lit_mean_ratio, r$nca_mean_ratio_k2016, r$nca_mean_ratio_k2020, r$true_mean_ratio_k2016, r$true_mean_ratio_k2020)) }))
+    data.table(k = k, type = c("lit", "nca", "nca", "tv", "tv"), model = c(NA, "k2020", "k2016", "k2020", "k2016"),               # 주 모델(2020) 먼저: 값 글자 '2020 / 2016'
+               v = 100 * c(r$lit_mean_ratio, r$nca_mean_ratio_k2020, r$nca_mean_ratio_k2016, r$true_mean_ratio_k2020, r$true_mean_ratio_k2016)) }))
   d <- rbind(d, data.table(k = "pkm", type = "litt", model = NA, v = tv_))              # PKM12350 시험군 공개 값(일치 판정 밖)
   dsrc("figure a6: published and simulated mean ratios", LN)
   # 세로 위치: 자료마다 머리글 한 줄 + 문헌(PKM12350은 대조군·시험군)·모의 비구획·모의 참값(두 모델은 위아래로 어긋나게)
   TY <- list(pkm = c(lit = 1, litt = 2, nca = 3, tv = 4), clot = c(lit = 1, nca = 2, tv = 3)); blk <- c(pkm = 0, clot = 5.3); OFF <- 0.25
-  d[, y := -(blk[k] + mapply(function(k_, t_) TY[[k_]][[t_]], k, type)) + ifelse(is.na(model), 0, ifelse(model == "k2016", OFF, -OFF))]
+  d[, y := -(blk[k] + mapply(function(k_, t_) TY[[k_]][[t_]], k, type)) + ifelse(is.na(model), 0, ifelse(model == "k2020", OFF, -OFF))]
   d[, shp := ifelse(is.na(model), "lit", model)][, ctype := ifelse(type == "litt", "lit", type)]
   lab <- d[, .(v = if (type[1] == "tv") min(v) else max(v), y = -(blk[k[1]] + TY[[k[1]]][[type[1]]]), lab = paste0(paste(fnum(v, 1), collapse = " / "), "%")), by = .(k, type)]
   lab[type == "litt", lab := fill(FL$litt_lab, list(v = lab))]
@@ -85,8 +85,8 @@ slide_A6 <- function() {
     geom_point(aes(v, y, shape = shp, colour = ctype), size = 3.4) +
     geom_text(data = lab, aes(v, y, label = lab, hjust = hj), size = PT(14), family = FONT, colour = PAL$ink) +
     geom_text(data = hd, aes(XL[1], y, label = lab), hjust = 0, size = PT(15), family = FONT, fontface = "bold", colour = PAL$ink) +
-    scale_shape_manual(values = c(lit = 15, k2016 = 16, k2020 = 17), labels = c(lit = FL$lit_shape, k2016 = ML$k2016, k2020 = ML$k2020), name = NULL,
-                       breaks = c("lit", "k2016", "k2020")) +
+    scale_shape_manual(values = c(lit = 15, CORE_MODEL_SHAPE), labels = c(lit = FL$lit_shape, k2020 = ML$k2020, k2016 = ML$k2016), name = NULL,
+                       breaks = c("lit", "k2020", "k2016")) +
     scale_colour_manual(values = c(lit = PAL$ink, nca = PAL$orange, tv = PAL$blue), labels = c(nca = FL$c_nca, tv = FL$c_tv), name = NULL, breaks = c("nca", "tv")) +
     guides(shape = guide_legend(order = 1, override.aes = list(colour = PAL$ink)), colour = guide_legend(order = 2, override.aes = list(shape = 15, size = 4.2))) +
     scale_x_continuous(breaks = seq(ceiling(XL[1] / 2) * 2, 100, 2), labels = function(v) paste0(v, "%")) +
@@ -100,7 +100,7 @@ slide_A6 <- function() {
   deck_figure(p1, "a6_ratio_literature", c(GEO$ML, y0, FW, capy - 0.1 - y0), src = LN)
 
   # ---- 오른쪽 그림: arm별 관측 평균 AUClast 대 모의 평균 ----
-  ar <- rbind(a16[, .(study, arm, obs = auclast_obs, sim = auclast_sim, model = "k2016")], a20[, .(study, arm, obs = auclast_obs, sim = auclast_sim, model = "k2020")])
+  ar <- rbind(a20[, .(study, arm, obs = auclast_obs, sim = auclast_sim, model = "k2020")], a16[, .(study, arm, obs = auclast_obs, sim = auclast_sim, model = "k2016")])
   premise(all(a16$auclast_obs == a20[match(paste(a16$study, a16$arm), paste(study, arm)), auclast_obs]), "same observed means in both model files")
   ar[, lab := sprintf("%s %s%s (%s)", study, FL$arm[[arm]], if (study == "PKM14161") FL$dev_mark else "", fnum(obs[1], 0)), by = .(study, arm)]   # 관측 평균은 행 이름에
   ord <- rev(unique(ar[order(study, -xtfrm(arm))]$lab))
@@ -109,9 +109,9 @@ slide_A6 <- function() {
   dsrc("figure a6: 300 mg arm means", c(A16, A20))
   p2 <- ggplot() +
     geom_segment(data = ob, aes(x = obs * (1 - tolv), xend = obs * (1 + tolv), y = lab, yend = lab), colour = PAL$tint_grey, linewidth = 9) +
-    geom_point(data = ar, aes(sim, as.numeric(lab) + ifelse(model == "k2016", 0.26, -0.26), shape = model), colour = PAL$blue, size = 3.4) +   # 두 모델 모의 표식은 위아래로 어긋나게
+    geom_point(data = ar, aes(sim, as.numeric(lab) + ifelse(model == "k2020", 0.26, -0.26), shape = model), colour = PAL$blue, size = 3.4) +   # 두 모델 모의 표식은 위아래로 어긋나게
     geom_point(data = ob, aes(obs, lab), shape = 22, size = 3.9, fill = PAL$ink, colour = "white", stroke = 0.8) +   # 관측 평균은 맨 위에(흰 테두리)
-    scale_shape_manual(values = c(k2016 = 16, k2020 = 17), labels = c(k2016 = ML$k2016, k2020 = ML$k2020), name = NULL) +
+    scale_shape_manual(values = CORE_MODEL_SHAPE, labels = c(k2020 = ML$k2020, k2016 = ML$k2016), name = NULL) +
     scale_x_continuous(limits = c(400, 720), breaks = seq(400, 700, 100), expand = expansion(0)) +
     scale_y_discrete(expand = expansion(add = c(0.6, 0.8))) +
     labs(x = FL$xlab2, y = NULL, subtitle = fill(FL$band2, list(tol = gt, src = src))) + theme_core(16) +
@@ -123,8 +123,8 @@ slide_A6 <- function() {
 
   # ---- 노트 ----
   v <- function(k, col, it) dv(LN, W[[k]], col, 1, "%", it, scale = 100)
-  dd <- function(k) { r <- row1(LN, W[[k]]); x <- 100 * (c(r$nca_mean_ratio_k2016, r$nca_mean_ratio_k2020) - r$lit_mean_ratio)
-    dderived(sprintf("%s: simulated NCA minus published mean ratio (points), 2016 and 2020", k), LN, sprintf("%s :: (nca_mean_ratio_k2016, nca_mean_ratio_k2020 - lit_mean_ratio) x 100", W[[k]]), x,
+  dd <- function(k) { r <- row1(LN, W[[k]]); x <- 100 * (c(r$nca_mean_ratio_k2020, r$nca_mean_ratio_k2016) - r$lit_mean_ratio)
+    dderived(sprintf("%s: simulated NCA minus published mean ratio (points), 2020 and 2016", k), LN, sprintf("%s :: (nca_mean_ratio_k2020, nca_mean_ratio_k2016 - lit_mean_ratio) x 100", W[[k]]), x,
              sprintf("%s / %s", fnum(x[1], 1), fnum(x[2], 1))) }
   W600 <- "source=='Clot 2021 Table 3' & dose_mg==600"; W200 <- "source=='Clot 2021 Table 3' & dose_mg==200"
   r600 <- row1(LN, W600); premise(all(c(r600$nca_mean_ratio_k2016, r600$nca_mean_ratio_k2020, r600$true_mean_ratio_k2016, r600$true_mean_ratio_k2020) < r600$lit_mean_ratio),

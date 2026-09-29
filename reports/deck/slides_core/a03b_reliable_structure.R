@@ -15,7 +15,7 @@ slide_A3b <- function() {
   TCH <- "trialpop/tp_characteristics.csv"; TSI <- "trialpop/tp_strata_individual.csv"; TSC <- "trialpop/tp_strata_composition.csv"
   LI <- "lloq/lloq_individual_table.csv"; LW <- "reliability/reliability_lz_window_by_schedule.csv"
   deck_slide("A3b", tag = "sim")
-  L <- DK$txt$A3b; ML <- DK$txt$common$models_short; MOD <- c("k2016", "k2020")
+  L <- DK$txt$A3b; ML <- DK$txt$common$models_short; MOD <- c("k2020", "k2016")   # 주 모델(2020) 먼저
   lq0 <- .read("config/assay.yaml")$lloq_mg_L$value; lqmin <- min(unlist(.read("config/assay.yaml")$lloq_sensitivity_mg_L))
   wl <- function(m, rv, lq) sprintf("model=='%s' & resid=='%s' & abs(lloq - %s) < 1e-9", m, rv, format(lq))
 
@@ -110,7 +110,7 @@ slide_A3b <- function() {
           panel.spacing.x = grid::unit(10, "pt"))
 
   # ---- 그림 오른쪽: arm 간 미달 차이(세트 (iii)) ----
-  a[, row := length(A3B_SC) + 1 - match(scenario, A3B_SC)][scenario == "S00", row := row + 0.45][, y := row + fifelse(pk_model == "k2016", 0.15, -0.15)]   # 동일 제품 행 아래에 간격
+  a[, row := length(A3B_SC) + 1 - match(scenario, A3B_SC)][scenario == "S00", row := row + 0.45][, y := row + fifelse(pk_model == "k2020", 0.15, -0.15)]   # 동일 제품 행 아래에 간격; 주 모델(2020)이 위
   a[, mod := factor(unlist(ML[pk_model]), levels = unlist(ML))]
   lab_y <- unique(a[, .(row, scenario, key = paste(mechanism, direction, sep = "_"))])[order(row)]
   lab_y[, lab := vapply(seq_len(.N), function(j) if (scenario[j] == "S00") FL$s00 else FL$mech[[key[j]]], "")]
@@ -128,11 +128,11 @@ slide_A3b <- function() {
     annotate("segment", x = xl[1], xend = xl[2], y = ys, yend = ys, colour = PAL$ink2, linewidth = 0.5) +
     geom_vline(xintercept = 0, colour = PAL$ink2, linewidth = 0.5) +
     geom_segment(aes(x = 0, xend = diff_mean, yend = y), colour = PAL$muted, linewidth = 0.8, show.legend = FALSE) +
-    geom_point(aes(shape = mod), colour = PAL$ink, size = 3.4) +
+    geom_point(aes(shape = mod, colour = mod), size = 3.4) +
     annotate("text", x = -0.6, y = yk, label = fill(FL$ka_note, list(c = f$cmx)), hjust = 1, size = PT(14), family = FONT, colour = PAL$ink2) +
     geom_text(data = vt, aes(x = xv, y = row, label = lab), inherit.aes = FALSE, hjust = 0, size = PT(15), family = FONT, colour = PAL$ink) +
     annotate("text", x = xv, y = max(a$row) + 0.8, label = FL$vhead, hjust = 0, size = PT(14), family = FONT, colour = PAL$ink2) +
-    scale_shape_manual(values = unname(CORE_MODEL_SHAPE), name = NULL) +
+    scale_shape_manual(values = unname(CORE_MODEL_SHAPE), name = NULL) + scale_colour_manual(values = unname(CORE_MODEL_COL), name = NULL) +
     scale_y_continuous(breaks = lab_y$row, labels = lab_y$lab, limits = c(0.5, ytop), expand = expansion(mult = 0)) +
     scale_x_continuous(limits = c(xl[1], xv + 7.2), breaks = xb, labels = function(v) ifelse(v > 0, sprintf("+%g", v), sprintf("%g", v)), expand = expansion(add = 0)) +
     coord_cartesian(clip = "off") +

@@ -1,0 +1,27 @@
+A5c:
+  kicker: "③ 판정 성능 · 운용특성 곡선 전체"
+  title: "AUCinf(A)를 더한 세 지표 구성은 모든 칸에서 통과가 가장 적고,\nAUCinf + Cmax는 표적 매개 소실 경계에서 1종 오류가 가장 크다"
+  fig:
+    xlab: "참 AUCinf 비 (시험약 / 대조약, 로그 눈금). 세로 점선: 동등 한계, 세로축: 동등 판정 확률"
+    cfg:
+      P2: "AUClast + Cmax"
+      F3A_iii: "+ AUCinf(A)"
+      F3B: "+ AUCinf(B)"
+      G2A_iii: "AUCinf(A) + Cmax"
+      G2B: "AUCinf(B) + Cmax"
+    mech:
+      F: "흡수량"
+      ke: "선형 소실"
+      Vmax: "표적 매개 소실"
+      V2: "말초 분포"
+      ka: "흡수 속도"
+  body: "AUCinf를 더하면(A·B) 곡선이 AUClast + Cmax 아래로 내려가고, AUCinf(B) + Cmax는 곡선이 넓다."
+  caption: "(A) = 신뢰할 수 있는 AUCinf(adjusted R² ≥ {r2}, 외삽 ≤ {ex}%)만, (B) = λz 산출 전원. 양 끝 점(동등 한계) = 1종 오류. 회색 띠 = 참 Cmax 비가 동등 한계 밖. 점이 없는 참 비 = 그 기전으로 도달 불가. 분석 모형 M1, 칸당 시험 {ro}~{rb}회(노트)."
+  notes: |
+    구성: AUClast + Cmax(제안), + AUCinf = AUClast + Cmax + AUCinf(세 지표), AUCinf + Cmax(가이드라인 기본). 규칙 A는 신뢰할 수 있는 AUCinf(adjusted R² ≥ {r2}, 외삽 ≤ {ex}%, 세트 (iii))를 얻은 대상자만, 규칙 B는 λz를 산출한 대상자 모두로 AUCinf를 판정한다. 모든 지표의 {ci}% 신뢰구간이 {lim}% 안이어야 동등이다.
+    AUCinf + Cmax의 경계 1종 오류 최대: 규칙 A {g2}(2020 모델 {g2_20}, 2016 모델 {g2_16}), 규칙 B 2020 모델 {g2b_20}, 2016 모델 {g2b_16}. 모두 표적 매개 소실 칸이다. 세 지표 규칙 B의 1종 오류 최대는 {f3b}다.
+    본문 수치: AUCinf를 더하면(규칙 A) 1종 오류 최대 {f3} 대 AUClast + Cmax {p2}, 동일 제품 2종 오류 {f3id} 대 {p2id}. 규칙 B의 AUCinf + Cmax는 동일 제품 2종 오류 {g2bid}로 작지만 경계 1종 오류가 최대 {g2b}다(곡선이 넓다 = 한계 안에서도 밖에서도 더 자주 통과).
+    동일 제품 2종 오류: AUCinf + Cmax 규칙 A {g2id}, 세 지표 규칙 B {f3bid}.
+    칸당 시험: 경계·동일 제품 {rb}회 이상, 참 비 {a}·{b} {rn}회, 그 밖 {ro}회.
+    도달할 수 없는 칸 {nur}개: 말초 분포 {v2u}(두 모델), 흡수 속도 {ka20}(2020 모델), {ka16}(2016 모델). 바꾼 기전 하나로는 그 참 비를 만들 수 없다. 흡수 속도 칸의 참 Cmax 비는 {kac}이고, 2020 모델 말초 분포 1.18 칸은 {v2c}로 한계 밖이다. 이 칸들은 곡선에는 두고 2종 오류 범위(S7 표)에서는 뺐다(사전 등록).
+    곡선의 점은 점추정이다. 95% 구간(Wilson)은 results/oc_curves/oc_curves_pass.csv의 lo, hi 열에 있다.

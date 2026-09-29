@@ -1,15 +1,15 @@
-# A5a ③ 세부(별첨): 경계 16칸 표. S9 점도표의 칸별 값. 두 표(2016 모델, 2020 모델; 표마다 8행, 14pt): 조건(S9 fig.mech 짧은 이름 → 목표 참 AUCinf 비),
+# A5a ③ 세부(별첨): 경계 16칸 표. 별첨 A5d 점도표의 칸별 값. 두 표(2020 모델(주 모델), 2016 모델(민감도 모델); 표마다 8행, 14pt): 조건(기전 짧은 이름 → 목표 참 AUCinf 비),
 # AUClast + Cmax(P2, results/oc_models/type1_models.csv)와 AUCinf + Cmax(규칙 A 세트 (iii), results/criteria/criteria_g2_type1.csv G2_A_iii)의 경계 1종 오류(M1),
 # Wilson 95% 분류 표시(▲ Wilson 초과: 하한 > 5%, ○ 명목: 구간이 5% 포함, 표시 없음: 보수적 = 상한 < 5%; 결과 파일 class 열, 전제로 lo/hi와 대조).
-# 시험 수: 칸마다 10,000회, 연장 칸(2020 모델 말초 분포 증가)은 20,000회(†). 본문: S9의 칸 수는 점추정 기준이고 Wilson 초과가 아닌 칸은 2016 선형 소실 증가(명목) 하나.
+# 시험 수: 칸마다 10,000회, 연장 칸(2020 모델 말초 분포 증가)은 20,000회(†). 본문: 별첨 A5d의 칸 수는 점추정 기준이고 Wilson 초과가 아닌 칸은 2016 선형 소실 증가(명목) 하나.
 # 자료 논리는 결과보고 덱 s15_mechanism.R, s14_rules.R.
-A5A_SC <- c("F_down_080", "F_up_125", "ke_up_080", "ke_down_125", "Vmax_up_080", "Vmax_down_125", "V2_up_080", "ka_down_080")   # S9 그림과 같은 위에서 아래 순서
+A5A_SC <- c("F_down_080", "F_up_125", "ke_up_080", "ke_down_125", "Vmax_up_080", "Vmax_down_125", "V2_up_080", "ka_down_080")   # 별첨 A5d 그림과 같은 위에서 아래 순서
 
 slide_A5a <- function() {
   T1 <- "oc_models/type1_models.csv"; CG <- "criteria/criteria_g2_type1.csv"
   WP <- "analysis_model=='M1' & config=='P2'"; WG <- "analysis_model=='M1' & config=='G2_A_iii'"
   deck_slide("A5a", tag = "sim")
-  L <- DK$txt$A5a; LS <- DK$txt$S9$fig                                   # 기전 이름·칸 이름 틀은 S9와 같은 문구(text/ko_core/s09.yaml fig)
+  L <- DK$txt$A5a; LS <- L$fig                                         # 기전 이름·칸 이름 틀(별첨 A5d 점도표와 같은 이름)
   ML <- DK$txt$common$models
 
   # ---- 전제 ----
@@ -63,12 +63,12 @@ slide_A5a <- function() {
   mech_top <- LS$mech[[paste(top$mechanism[1], top$direction[1], sep = "_")]]
   pn_ <- b[pass_pct > nomv & class != "exceeding"]
   premise(nrow(pn_) == 1 && pn_$pk_model == "k2016" && pn_$scenario == "ke_up_080" && pn_$class == "nominal", "AUCinf configuration: the only cell above 5% (point) that is not exceeding is the 2016 linear-elimination-up cell, nominal (body)")
-  bf <- list(nom = f$nom, mke = LS$mech[["ke_up"]], k = dcount(CG, paste(WG, "& pass_pct > 5"), "AUCinf (set iii) + Cmax cells above 5% (point), M1 (S9 count)"),
+  bf <- list(nom = f$nom, mke = LS$mech[["ke_up"]], k = dcount(CG, paste(WG, "& pass_pct > 5"), "AUCinf (set iii) + Cmax cells above 5% (point), M1 (A5d count)"),
              ke = dv(CG, sprintf("%s & pk_model=='k2016' & scenario=='ke_up_080'", WG), "pass_pct", 2, "%", "AUCinf (set iii) + Cmax, 2016 linear elimination up cell, M1"))
   by <- core_body(tx("A5a.body", bf), capy - 0.06)
   hh <- 0.39; th <- by - 0.10 - y0 - hh
   for (k in 1:2) {
-    pk <- c("k2016", "k2020")[k]; x <- GEO$ML + (k - 1) * (tw + gap)
+    pk <- names(ML)[k]; x <- GEO$ML + (k - 1) * (tw + gap)                # 주 모델(2020) 왼쪽, 민감도 모델(2016) 오른쪽
     deck_text(ML[[pk]], c(x, y0, tw, hh), size = 16, bold = TRUE, label = sprintf("label_%s", pk), gap_pt = 0)
     hl <- if (pk == pe_$pk_model) match(pe_$scenario, A5A_SC) else NULL             # AUClast 구성의 초과 칸(별첨 A5b에서 분해)
     deck_table(mk(pk), box = c(x, y0 + hh, tw, th), widths = c(2.3, 1.2, 2.45), size = 14, label = sprintf("table_%s", pk), highlight = hl, highlight_fill = PAL$tint_blue)

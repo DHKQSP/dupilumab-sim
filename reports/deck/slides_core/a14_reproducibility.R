@@ -31,9 +31,10 @@ slide_A14 <- function() {
   premise(all(grepl("^[0-9a-f]{64}$", pv$value[inp])), "input rows hold SHA-256 digests")
   RX <- list(cs = "grepl('^curve-shape .* regenerated vs curve_shape_B0', check)", nca = "grepl('regenerated B0 NCA equals stored', check)",
              sub = "grepl('true AUC at observed tlast|re-solved true concentration', check)",
-             sum = "grepl('vs (tp_coverage_individual|lloq_individual_table|individual_resid12|tp_failure_by_set)', check)")
+             sum = "grepl('vs (tp_coverage_individual|lloq_individual_table|individual_resid12|tp_failure_by_set)', check)",
+             cliff = "grepl('^k2020 cliff ', check)")
   cnt <- vapply(RX, function(w) nrow(rows(PV, w)), 1L)
-  premise(sum(cnt) == sum(!inp) && all(cnt > 0), "the identity checks split into curve-shape, representative-population NCA, representative subjects and stored summaries")
+  premise(sum(cnt) == sum(!inp) && all(cnt > 0), "the identity checks split into curve-shape, representative-population NCA, representative subjects, stored summaries and the 2020 cliff (7g)")
   pr <- .read(P29)$section7
   seed_of <- function(s_) { m <- regmatches(s_, regexec("master seed ([0-9]+)", s_))[[1]]; premise(length(m) == 2, "master seed in the prereg text"); as.numeric(m[2]) }
   sd_rep <- seed_of(pr$representative_subjects$regeneration); sd_cs <- seed_of(pr$case_coverage$cases[[3]]$source)
@@ -131,6 +132,7 @@ slide_A14 <- function() {
     ncol = { x <- nrow(rows(PV, RX$nca)) / 2; dderived("NCA columns compared per model", PV, sprintf("count of rows [%s] / 2 models", RX$nca), x, fnum(x, 0)) },
     nsub = dcount(PV, RX$sub, "representative-subject checks (true AUC at tlast, re-solved concentration)"),
     nsum = dcount(PV, RX$sum, "identity checks against stored summaries"),
+    ncl = dcount(PV, RX$cliff, "identity checks of the 2020-model cliff inputs (summary and representative subject)"),
     a = dint(CS, "cause=='no renv.lock in commit'", "n_runs", "runs failed: no renv.lock in commit"),
     b = dint(CS, "cause=='xml2 missing for testthat::JunitReporter'", "n_runs", "runs failed: xml2 missing for JunitReporter"),
     nl = dcount(RC, "pass==TRUE", "reproducibility items passing locally"),

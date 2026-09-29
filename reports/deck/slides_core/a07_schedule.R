@@ -5,7 +5,7 @@
 #  결정 규칙의 시점: 첫 일정 모의 뒤, 결과 보고 전(regulatory/tables/prespecification_register.csv). 그래서 '사전 규정'이라 부르지 않는다.
 #  (a)·(b)는 일정 판정 모의의 합동 t 검정(M0) 결과다(M1 재계산 없음). (c)·(d)와 세트 (iii)은 대상자 수준이라 분석 모형과 무관하다.
 #  시험 모집단(건강인, 두 구조 모델 base·struct2020)만. 채혈일: 연구일 = 투여 후 일 + 1.
-A7_V <- c(k2016 = "base", k2020 = "struct2020")
+A7_V <- c(k2020 = "struct2020", k2016 = "base")   # 주 모델(2020) 먼저: 표 칸과 노트의 "2020 / 2016" 순서
 A7_SCHED <- c("D1", "D2", "D3", "D4", "Bminus")
 a7_sd <- function(v) sprintf("trials/schedule_decision_%s.csv", v)
 a7_signed <- function(p) if (grepl("^-", p) || grepl("^0(\\.0+)?%?$", p)) p else paste0("+", p)
@@ -17,7 +17,7 @@ a7_diff <- function(s, what = c("added", "removed")) {
   dderived(sprintf("schedule %s: study days %s relative to B0", s, what), "config/trial_design.yaml",
            sprintf("%s :: schedules.%s.days + 1", if (what == "added") sprintf("setdiff(%s, B0)", s) else sprintf("setdiff(B0, %s)", s), s), a, paste(fnum(a, 0), collapse = ", "))
 }
-# 두 모델 값 "2016 / 2020"(행 조건은 결과보고 덱 S20과 같은 "schedule == 'X'")
+# 두 모델 값 "2020 / 2016"(행 조건은 결과보고 덱 S20과 같은 "schedule == 'X'")
 a7_pair <- function(s, col, d, item, scale = 1, signed = FALSE) {
   v <- vapply(names(A7_V), function(m) { p <- dv(a7_sd(A7_V[[m]]), sprintf("schedule == '%s'", s), col, d, "", sprintf("%s, schedule %s, %s", item, s, m), scale)
     if (signed) a7_signed(p) else p }, "")
@@ -54,6 +54,7 @@ slide_A7 <- function() {
   premise(identical(rows(a7_sd("base"))[order(schedule), added_visits_total], rows(a7_sd("struct2020"))[order(schedule), added_visits_total]), "added visits equal in both models")
   SDY <- .read("config/schedule_decision.yaml")
   premise(SDY$final_schedule == "B0", "final schedule decision is B0")
+  premise(SDY$governing_model == "kovalenko2016_blq" && grepl("primary model", SDY$rule_application), "the v1.0 decision record applied the rule to the then primary model, the 2016 model (notes)")
   # 민감도 변형: 규칙상 추가 채혈이 권고된 곳은 양 군 Vmax x0.8의 D3(기준 d 단독) 하나뿐이고, 판정 기록은 판단으로 B0를 유지했다(D-031, D-037)
   sdv <- sub("^schedule_decision_(.*)\\.csv$", "\\1", list.files(proj_path("results", "trials"), pattern = "^schedule_decision_.*\\.csv$"))
   rec <- rbindlist(lapply(sdv, function(v) { r <- rows(a7_sd(v), "recommend == TRUE"); if (nrow(r)) r[, .(v = v, schedule, crit_a, crit_b, crit_c, crit_d)] else NULL }))

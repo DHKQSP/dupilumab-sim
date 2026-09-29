@@ -2,7 +2,7 @@
 # 문구에는 숫자를 쓰지 않고 {이름} 자리표시자로 수치를 받는다(식별자·서지 제외: check.number_contexts).
 common:
   version: "v1.2"
-  order: [S1, S2, S3, S4, S5, S6, S7, S8, A1, A2, A3a, A3b, B1, A4a, A4b, B2, A5a, A5b, A5c, A5d, A6, A7, A8, A9, A10, A11, A12, A14]
+  order: [S1, S2, S3, S4, S5, S6, S7, S8, A1, A2, A3a, A3b, B1, A4a, A4b, B2, A5a, A5b, A5c, A5d, A5e, A5f, A6, A7, A8, A9, A10, A11, A12, A14]
   appendix_start: A1
   # 본문 슬라이드 설계 한도(lib/deck_lib.R DECK_PROFILES$core: 본문 3줄, 주 시각 요소 60%, 제목 2줄)를 적용하는 슬라이드
   main_limits: [S2, S3, S4, S5, S6, S7, S8]
@@ -92,7 +92,9 @@ check:
     - "(?<![0-9.])[12]종 오류"
     - "①|②|③"
     - "Phoenix [0-9.]+"
-    - "(?<![0-9.])A[0-9]{1,2}[ab]?"
+    - "(?<![0-9.])A[0-9]{1,2}[a-f]?"
+    - "(?<![0-9.])1 쪽"
+    - "규칙 4[abc]"
   atopic_terms: ["아토피", "atopic", "환자 모집단", "patient population"]
   atopic_sources: ["results/atopic/", "results/weight_generalization/"]
   atopic_allowed_slides: [A11]

@@ -22,6 +22,14 @@ slide_A9 <- function() {
   premise(all(at[cv <= cv_ok]$analytic_pct >= tg) && all(at[cv > cv_ok]$analytic_pct < tg) && cv_b <= cv_ok && cv_s > cv_ok,
           "power at the protocol n reaches the target up to cv_ok, including the protocol CV, and not at the sensitivity CV (body, cards)")
   premise(all(rows(PK, "analysis_model != 'M2' & auc_ratio > 0.85 & auc_ratio < 0.92")$diff_pp < 0), "at a true GMR of 0.90 the analytic power is above the PK-model trials in every comparison (caption: optimistic)")
+  # v1.2: 주 모델은 2020 모델이지만 표본 수 표는 사전 등록(section3)의 주 입력인 2016 모델 입력 그대로 둔다(결과 변경 없음). 2020 모델 입력 값은 캡션(차이)과 노트에 적는다.
+  premise(grepl("nca_base_20000.rds (primary, 2016 model)", pr$inputs_from_simulation$source, fixed = TRUE), "the sample-size pre-registration names the 2016 model inputs as primary (caption)")
+  nnall <- rows(NN, "gmr==0.95 & analysis_model=='M1'"); premise(all(nnall$n_evaluable_per_arm == nnall$k2016_fixed_equal), "the n-needed column is the 2016 model input with Cmax CV fixed and Cmax GMR equal (notes)")
+  g20 <- rows(TP, "input_model=='k2020' & gmr==0.95 & analysis_model=='M1'"); mg <- merge(g[, .(cv, n, a16 = analytic_pct)], g20[, .(cv, n, a20 = analytic_pct)], by = c("cv", "n"))
+  premise(nrow(mg) == nrow(g), "2020 model input power exists for every displayed cell")
+  d20x <- max(abs(mg$a20 - mg$a16)); d20p <- fnum(d20x, 2); premise(as.numeric(d20p) >= d20x, "printed bound of the input-model difference is not below the largest difference")
+  d20 <- dderived("largest absolute difference in analytic power between 2020 and 2016 model inputs over the displayed grid (GMR 0.95, M1; points)", TP,
+                  "gmr==0.95 & analysis_model=='M1' :: max(abs(analytic_pct[input_model=='k2020'] - analytic_pct[input_model=='k2016'])) by cv, n", d20x, d20p)
 
   f <- list(n_rand = f_n_rand(), n_arm = f_n_arm(),
             p_b = dv(TP, a9_w(cv_b, n_arm), "analytic_pct", 1, "%", sprintf("P2 power n 117 CV %s GMR 0.95 M1", cv_b)))
@@ -30,12 +38,10 @@ slide_A9 <- function() {
   # ---- 아래: 캡션(전체 폭) ----
   cap <- tx("A9.caption", list(
     g = drange(TP, "input_model=='k2016' & gmr==0.95 & analysis_model=='M1'", "gmr", 2, "", "true GMR of the power table"),
-    mc_in = dcount(MC, "analytic_in_ci == TRUE", "grid cells with the analytic power inside the Wilson interval of the statistical simulation"),
-    mc_n = dcount(MC, "TRUE", "grid cells simulated"),
     cv16 = dv(SI, "input_model=='k2016'", "cv_auc_pct", 1, "%", "AUClast CV, 2016 model (%)"), cv20 = dv(SI, "input_model=='k2020'", "cv_auc_pct", 1, "%", "AUClast CV, 2020 model (%)"),
     li = dcfg("design_clot2021.yaml", c("variability_checks", "li2020", "cv_pct_range"), "Li 2020 Table 3, 300 mg arms, SD/mean range (%)", function(x) rng_fmt(x[1], x[2], 0)),
     coh = dv(LS, "startsWith(variant, 'Cohen')", "AUClast_logcv", 0, "%", "Cohen 2022 implied AUClast CV (%)"),
-    cvc = dv(SI, "input_model=='k2016'", "cv_cmax_pct", 1, "%", "Cmax CV, 2016 model (%)")))
+    cvc = dv(SI, "input_model=='k2016'", "cv_cmax_pct", 1, "%", "Cmax CV, 2016 model (%)"), d20 = d20))
   premise(any(grepl("^held at the simulated value", unlist(pr))), "Cmax CV held at the simulated value (caption)")
   premise(any(grepl("^equal to the AUClast GMR \\(primary, conservative\\)", unlist(pr))), "true Cmax ratio equal to the AUClast ratio, primary conservative assumption (caption)")
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
@@ -90,7 +96,14 @@ slide_A9 <- function() {
     n_b0 = dint(NN, a9_wn(cv_b, "M0", tg), "n_evaluable_per_arm", "n evaluable M0 protocol CV target"), n_s0 = dint(NN, a9_wn(cv_s, "M0", tg), "n_evaluable_per_arm", "n evaluable M0 sensitivity CV target"),
     cv16 = dv(SI, "input_model=='k2016'", "cv_auc_pct", 1, "%", "AUClast CV, 2016 model (%)"), cvc = dv(SI, "input_model=='k2016'", "cv_cmax_pct", 1, "%", "Cmax CV, 2016 model (%)"),
     rho = dv(SI, "input_model=='k2016'", "rho_total", 2, "", "correlation of log AUClast and log Cmax, 2016 model"),
+    cv20 = dv(SI, "input_model=='k2020'", "cv_auc_pct", 1, "%", "AUClast CV, 2020 model (%)"), cvc20 = dv(SI, "input_model=='k2020'", "cv_cmax_pct", 1, "%", "Cmax CV, 2020 model (%)"),
+    rho20 = dv(SI, "input_model=='k2020'", "rho_total", 2, "", "correlation of log AUClast and log Cmax, 2020 model"), d20 = d20,
+    p_b20 = dv(TP, sub("k2016", "k2020", a9_w(cv_b, n_arm), fixed = TRUE), "analytic_pct", 1, "%", sprintf("P2 power n 117 CV %s GMR 0.95 M1, 2020 model inputs", cv_b)),
+    ne_b20 = dint(NN, a9_wn(cv_b, "M1", tg), "k2020_fixed_equal", sprintf("n evaluable M1 CV %s GMR 0.95 target %s, 2020 model inputs", cv_b, tg)),
+    ne_s20 = dint(NN, a9_wn(cv_s, "M1", tg), "k2020_fixed_equal", sprintf("n evaluable M1 CV %s GMR 0.95 target %s, 2020 model inputs", cv_s, tg)),
     mc_tr = s_unique(MC, "TRUE", "n_trials", "trials per grid cell (statistical simulation)"),
+    mc_in = dcount(MC, "analytic_in_ci == TRUE", "grid cells with the analytic power inside the Wilson interval of the statistical simulation"),
+    mc_n = dcount(MC, "TRUE", "grid cells simulated"),
     mc_max = local({ x <- max(abs(rows(MC)$diff_pp)); dderived("largest absolute difference, analytic versus statistical simulation (points)", MC, "max(abs(diff_pp))", x, fnum(x, 2)) }),
     g90 = drange(PK, "analysis_model != 'M2' & auc_ratio > 0.85 & auc_ratio < 0.92", "auc_ratio", 2, "", "true GMR of the PK-model check band 0.85 to 0.92"), rng90 = pk_rng(0.85, 0.92),
     g95 = drange(PK, "analysis_model != 'M2' & auc_ratio > 0.93 & auc_ratio < 1.01", "auc_ratio", 2, "", "true GMRs of the PK-model check band 0.93 to 1.01"), amax = pk_abs(0.93, 1.01)))))

@@ -66,7 +66,7 @@ slide_A1 <- function() {
           all(unlist(dv_st[id == "clot300_nonasian_pooled", .(k2016, k2020)]) == "partial"), "development data: pooled non-Asian partly for both models, Japanese rows for the 2020 model (caption)")
   dsrc("development-data status of the validation data sets (hollow markers)", "config/design_clot2021.yaml")
   d[, lab := vapply(seq_len(.N), function(i) if (gate_role[i] == "gate") fill(L$gate_lab, list(dose = fnum(dose_mg[i], 0), ds = L$ds[[id[i]]])) else L$ds[[id[i]]], "")]
-  w <- dcast(d, id + gate_role + row + lab ~ pk, value.var = "ratio")[, vtxt := sprintf("%s / %s", fnum(k2016, 2), fnum(k2020, 2))]
+  w <- dcast(d, id + gate_role + row + lab ~ pk, value.var = "ratio")[, vtxt := sprintf("%s / %s", fnum(k2020, 2), fnum(k2016, 2))]   # 주 모델(2020) 먼저
   XL <- c(0.78, 1.20); XV <- 1.225
   premise(min(d$ratio) > XL[1] && max(d$ratio) < XL[2], "every ratio inside the plotted range")
   d200 <- unique(q16[gate_role == "external", dose_mg])
@@ -138,7 +138,7 @@ slide_A1 <- function() {
   deck_figure(p, "a1_qualification", c(GEO$ML, y0, FW, capy - 0.12 - y0), src = c(Q16, Q20))
 
   # ---- 노트: 기준, 자료별 값, 200 mg, Cmax, 단일 arm, 완전 외부 재판정, 문헌 평균비 ----
-  pr2 <- function(id_, item) sprintf("%s / %s", dv(Q16, sprintf("id=='%s'", id_), "AUClast_ratio", 2, "", paste(item, "2016 model")), dv(Q20, sprintf("id=='%s'", id_), "AUClast_ratio", 2, "", paste(item, "2020 model")))
+  pr2 <- function(id_, item) { a20 <- dv(Q20, sprintf("id=='%s'", id_), "AUClast_ratio", 2, "", paste(item, "2020 model")); a16 <- dv(Q16, sprintf("id=='%s'", id_), "AUClast_ratio", 2, "", paste(item, "2016 model")); sprintf("%s / %s", a20, a16) }   # 주 모델(2020) 먼저
   qg <- q16[gate_role == "gate"]; cid <- qg[which.max(Cmax_ratio), id]
   premise(sum(c(qg$Cmax_ratio, q20[gate_role == "gate", Cmax_ratio]) <= 1) <= 1, "Cmax over-predicted in all but at most one study-presentation cohort over both models (notes: mostly over-predicted)")
   premise(sum(q20[gate_role == "gate", Cmax_ratio] < 1) == 1 && all(q16[gate_role == "gate", Cmax_ratio] > 1), "2020 model: exactly one study-presentation Cmax ratio below 1, none in the 2016 model (notes)")
@@ -156,7 +156,7 @@ slide_A1 <- function() {
   premise(all(c(r600$true_mean_ratio_k2016, r600$true_mean_ratio_k2020, r600$nca_mean_ratio_k2016, r600$nca_mean_ratio_k2020) < r600$lit_mean_ratio),
           "600 mg: simulated true and NCA mean ratios below the published NCA ratio in both models (notes: conservative direction)")
   lv <- function(k, col, item) dv(LN, W[[k]], col, 1, "%", item, scale = 100)
-  two <- function(k, stem, item) sprintf("%s / %s", lv(k, paste0(stem, "_k2016"), paste(item, "2016 model")), lv(k, paste0(stem, "_k2020"), paste(item, "2020 model")))
+  two <- function(k, stem, item) { a20 <- lv(k, paste0(stem, "_k2020"), paste(item, "2020 model")); a16 <- lv(k, paste0(stem, "_k2016"), paste(item, "2016 model")); sprintf("%s / %s", a20, a16) }
   wmin <- function(rel, m) { r <- rows(rel, "study=='PKM12350'"); g <- r[, .(pass = all(within_15)), by = weight_mean][order(weight_mean)]
     x <- min(g$weight_mean[g$pass]); premise(any(g$pass) && all(g$pass[g$weight_mean >= x]), sprintf("%s: PKM12350 arms within 15%% from one assumed weight upward", m))
     dderived(sprintf("lowest assumed mean weight with both PKM12350 arms within 15%%, %s (kg)", m), rel, "study=='PKM12350' :: min(weight_mean) with all(within_15)", x, fnum(x, 0)) }

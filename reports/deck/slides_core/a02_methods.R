@@ -58,50 +58,71 @@ slide_A2 <- function() {
   premise(grepl("기하평균비", oc$estimand$quantity) && grepl("적분", oc$estimand$auc) && grepl("공통 난수", oc$estimand$population$paired_crn), "truth: geometric mean ratio of model-integral values on common-random-number subjects (caption)")
   premise(grepl("이분법", oc$inversion$method) && identical(as.numeric(unlist(oc$boundary_targets)), as.numeric(unlist(.read("config/trial_design.yaml")$be$limits))), "boundary cells: multiplier found by bisection so that the true AUCinf ratio equals an equivalence limit (caption)")
   mth <- list(nt = dcfg("oc_design.yaml", c("estimand", "population", "n_subjects"), "common-random-number subjects of the true ratio", function(x) fnum(as.numeric(x), 0, big = TRUE)), reps = f_reps("boundary"))
-  capy <- core_caption(c(tx("A2.caption", g), tx("A2.method", mth)), GEO$BODY_BOTTOM, size = 14)
-
-  # ---- 왼쪽: NCA 규칙 요점(3개 + AUCinf 하위 요점) ----
-  XL <- GEO$ML; WL <- 6.1; XR <- XL + WL + 0.3; WR <- GEO$W - GEO$MR - XR; LH <- 0.40
-  mp <- dcfg(NR, c("standard", "lambda_z", "min_points"), "lambda-z minimum points", num_fmt(0))
-  tol <- dcfg(NR, c("standard", "lambda_z", "tie_tolerance"), "lambda-z adjusted R-squared tie tolerance", num_fmt(4))
-  z0 <- dderived("BLQ before the first quantifiable value is set to zero", file.path("config", NR), "standard.blq.pre_first_quant == 'zero'", nr$blq$pre_first_quant, "0")
-  deck_text(tx("A2.rules_label"), c(XL, y0, WL, LH), size = 16, bold = TRUE, color = PAL$ink2, label = "label_rules", gap_pt = 0)
-  rl <- tx("A2.rules", list(mp = mp, tol = tol, z = z0))
-  rh <- est_height(vapply(rl, function(s) sub("^- ", "", s), ""), WL, SZ$body, gap_pt = 5, indent = 0.3) + 0.06
-  deck_bullets(rl, box = c(XL, y0 + LH + 0.02, WL, rh), size = SZ$body, gap_pt = 5, label = "body_rules")
-
-  # ---- 오른쪽 위: 기준 세트 표(등록 상태 포함; 외삽 한도는 네 세트 공통이라 머리말에) ----
-  deck_text(tx("A2.sets_label", list(ex = f_set("i", "extrap"))), c(XR, y0, WR, LH), size = 16, bold = TRUE, color = PAL$ink2, label = "label_sets", gap_pt = 0)
-  sets <- c("i", "ii", "iii", "iv")
-  spn <- function(s_) if (s_ %in% c("ii", "iv")) fill(L$span, list(x = f_set(s_, "span"))) else L$none   # span 요건은 세트 (ii), (iv)만(전제)
-  use <- function(s_) if (s_ == "iv") fill(L$use$iv, list(ex = f_set("iv", "extrap"))) else L$use[[s_]]
-  premise(!is.null(cs$i), "set (i) is part of the registered criteria sets (table: defined post hoc, then registered)")
-  df <- data.frame(a = unlist(L$set_names[sets]), b = vapply(sets, function(s_) fill(L$ge, list(x = f_set(s_, "r2"))), ""),
-                   d = vapply(sets, spn, ""), s = unlist(L$status[sets]), e = vapply(sets, use, ""), stringsAsFactors = FALSE, check.names = FALSE)
-  names(df) <- tx("A2.table.head")
-  TW_ <- c(0.5, 1.03, 1.0, 1.39, 1.91); TY <- y0 + LH + 0.02
-  TH <- deck_table_h(df, WR, TW_, size = 14) + 0.18                  # 렌더링 표 높이(추정보다 조금 크다)
-  deck_table(df, box = c(XR, TY, WR, TH), widths = TW_, size = 14, label = "table_sets", highlight = 3, group_end = 4)   # 행 사이 선 없이 아래 굵은 선(표 끝 표시)
-
-  # ---- 오른쪽 아래: 공개 SAP 세 건(사전 등록 6절 문장에서 읽는다) ----
+  # ---- 공개 SAP 세 건(사전 등록 6절 문장에서 읽는다; 캡션 첫 줄) ----
   sap <- core_sap("NCT04117607", "at least", "public SAP NCT04117607: adjusted R-squared at least")
   s2 <- core_sap("NCT04441905", "at least", "public SAP NCT04441905: adjusted R-squared at least")
   s3 <- core_sap("NCT04700163", "above", "public SAP NCT04700163: adjusted R-squared above")
   premise(s2 == sap && s3 == sap && as.numeric(sap) == cs$iii$adj_r2_min, "three public SAPs use the set (iii) threshold value")
   psx <- .read("config/prereg_20260926.yaml")$section6$s2_1_failure_by_set$public_saps
-  premise(grepl("NCT04117607 \\([^)]*; verified\\)", psx) && grepl("NCT04441905 \\([^)]*; verified\\)", psx) && grepl("NCT04700163 \\(.*web-search excerpt", psx) &&
-          grepl("otherwise AUC\\(INF\\) and other terminal parameters excluded", psx), "SAP verification status and the NCT04700163 exclusion rule (table)")
-  sp4 <- dderived("public SAP NCT04117607: span at least (half-lives)", "config/prereg_20260926.yaml", "section6.s2_1_failure_by_set.public_saps :: regex 'NCT04117607 \\(adjusted R-squared at least ([0-9.]+), span at least ([0-9.]+) half-lives' group 2",
-                  sp$span, fnum(sp$span, 0))
-  # ---- 아래 전체 폭: Phoenix 사실과 공개 SAP 세 건(회색 상자) ----
-  S <- L$sap
-  ph <- tx("A2.phoenix", list(s1 = fill(S$ge, list(x = sap)), sp = sp4, s2 = fill(S$ge, list(x = s2)), s3 = fill(S$gt, list(x = s3))))
-  phh <- est_height(ph, GEO$CW, SZ$body, gap_pt = 4, card = TRUE) + 0.10
-  PY <- max(y0 + LH + 0.02 + rh, TY + TH) + 0.10
-  premise(PY + phh <= capy - 0.08, "Phoenix and SAP box fits between the columns and the caption")
-  deck_text(ph, c(GEO$ML, PY, GEO$CW, phh), size = SZ$body, label = "body_phoenix", bg = PAL$tint_grey, geom = "roundRect", gap_pt = 4)
+  premise(grepl("NCT04117607 \\([^)]*; verified\\)", psx) && grepl("NCT04441905 \\([^)]*; verified\\)", psx) && grepl("NCT04700163 \\(.*web-search excerpt", psx),
+          "SAP verification status (caption)")
 
-  deck_notes(tx("A2.notes", c(f, g, mth, list(mp = mp, tol = tol, z = z0, ex = f_set("i", "extrap"), sp2 = f_set("ii", "span"), sp4 = f_set("iv", "span"),
+  # ---- 판정 구성·오류 정의(S7, 별첨 A5c; config/prereg_20260929_oc.yaml section8) ----
+  s8 <- .read("config/prereg_20260929_oc.yaml")$section8; cf8 <- s8$configurations
+  premise(identical(unlist(cf8$P2$endpoints), c("AUClast", "Cmax")) && identical(unlist(cf8$F3A_iii$endpoints), c("AUClast", "Cmax", "AUCinf_Aiii")) &&
+            identical(unlist(cf8$G2A_iii$endpoints), c("AUCinf_Aiii", "Cmax")) && identical(unlist(cf8$F3B$endpoints), c("AUClast", "Cmax", "AUCinf_B")) &&
+            identical(unlist(cf8$G2B$endpoints), c("AUCinf_B", "Cmax")), "configurations P2, F3 (A iii), G2 (A iii), F3-B, G2-B as in prereg_20260929_oc section8 (table)")
+  premise(grepl("^proposal", cf8$P2$label) && grepl("^guideline default", cf8$G2A_iii$label) && grepl("^sensitivity", cf8$F3B$label) && grepl("^sensitivity", cf8$G2B$label) &&
+            grepl("all lambda-z estimable", cf8$F3B$label), "roles: P2 proposal, G2 guideline default, -B sensitivity with all lambda-z estimable subjects (table)")
+  premise(identical(s8$analysis_model, "M1") && grepl("adjusted R-squared >= 0.90 and extrapolation <= 20%", s8$endpoint_sources$AUCinf_Aiii), "analysis model M1; AUCinf_Aiii = set (iii) (label, table header)")
+  premise(grepl("boundary cells", s8$statistics$type1) && grepl("^100 - pass percentage", s8$statistics$type2) && grepl("true Cmax ratio .* also within 0.80-1.25", s8$statistics$type2_cells_rule),
+          "type I = pass at boundary cells; type II = 100 - pass at equivalent cells whose true Cmax ratio is also within the limits (definitions)")
+  bt <- as.numeric(unlist(oc$boundary_targets)); premise(length(bt) == 2 && all(bt == as.numeric(unlist(.read("config/trial_design.yaml")$be$limits))), "boundary targets equal the equivalence limits")
+  lim_v <- as.numeric(unlist(.read("config/trial_design.yaml")$be$limits))
+  dfn <- list(lo = dderived("lower boundary target (true AUCinf ratio)", "config/oc_design.yaml", "boundary_targets :: first element", bt[1], fnum(bt[1], 2)),
+              hi = dderived("upper boundary target (true AUCinf ratio)", "config/oc_design.yaml", "boundary_targets :: second element", bt[2], fnum(bt[2], 2)),
+              ci = f_ci_level(), nt = mth$nt,
+              lim = dderived("equivalence limits in percent (definition text)", "config/trial_design.yaml", "be.limits :: x 100, printed as a range", 100 * lim_v, rng_fmt(100 * lim_v[1], 100 * lim_v[2], 2)))
+  capy <- core_caption(tx("A2.caption", g), GEO$BODY_BOTTOM, size = 14)                  # 공개 SAP 세 건은 노트와 S5(본문 한 줄)
+
+  # ---- 왼쪽: 비구획 분석 규칙 표(Phoenix 수용 기준 행 포함), 그 아래 오류 정의(14pt) ----
+  XL <- GEO$ML; WL <- 6.1; XR <- XL + WL + 0.3; WR <- GEO$W - GEO$MR - XR; LH <- 0.40
+  mp <- dcfg(NR, c("standard", "lambda_z", "min_points"), "lambda-z minimum points", num_fmt(0))
+  tol <- dcfg(NR, c("standard", "lambda_z", "tie_tolerance"), "lambda-z adjusted R-squared tie tolerance", num_fmt(4))
+  z0 <- dderived("BLQ before the first quantifiable value is set to zero", file.path("config", NR), "standard.blq.pre_first_quant == 'zero'", nr$blq$pre_first_quant, "0")
+  deck_text(tx("A2.rules_label"), c(XL, y0, WL, LH), size = 16, bold = TRUE, color = PAL$ink2, label = "label_rules", gap_pt = 0)
+  RL <- L$rules_tab; rl <- data.frame(a = unlist(RL$item), b = vapply(RL$rule, function(z) fill(z, list(mp = mp, tol = tol, z = z0)), ""), stringsAsFactors = FALSE)
+  names(rl) <- unlist(RL$head); RW <- c(1.55, 4.55)
+  RHh <- deck_table_h(rl, WL, RW, size = 14)                         # 틀 = 추정 높이(틀이 크면 LibreOffice가 행을 늘린다)
+  deck_table(rl, box = c(XL, y0 + LH + 0.02, WL, RHh), widths = RW, size = 14, label = "table_rules", group_end = nrow(rl), align_cols = c("left", "left"))
+  CY <- y0 + LH + 0.02 + RHh + 0.12                                   # 규칙 표 아래: 판정 구성 표
+
+  # ---- 오른쪽 위: 기준 세트 표(등록 상태 포함; 외삽 한도는 네 세트 공통이라 머리말에) ----
+  deck_text(tx("A2.sets_label", list(ex = f_set("i", "extrap"))), c(XR, y0, WR, LH), size = 16, bold = TRUE, color = PAL$ink2, label = "label_sets", gap_pt = 0)
+  sets <- c("i", "ii", "iii", "iv")
+  crit <- function(s_) { x <- fill(L$ge, list(x = f_set(s_, "r2"))); if (s_ %in% c("ii", "iv")) paste0(x, fill(L$span, list(x = f_set(s_, "span")))) else x }   # span 요건은 세트 (ii), (iv)만(전제)
+  premise(!is.null(cs$i), "set (i) is part of the registered criteria sets (table: defined post hoc, then registered)")
+  df <- data.frame(a = unlist(L$set_names[sets]), b = vapply(sets, crit, ""), s = unlist(L$status[sets]), e = unlist(L$use[sets]), stringsAsFactors = FALSE, check.names = FALSE)
+  names(df) <- tx("A2.table.head")
+  TW_ <- c(0.5, 1.72, 1.39, 2.22); TY <- y0 + LH + 0.02
+  TH <- deck_table_h(df, WR, TW_, size = 14)
+  deck_table(df, box = c(XR, TY, WR, TH), widths = TW_, size = 14, label = "table_sets", highlight = 3, group_end = 4)   # 행 사이 선 없이 아래 굵은 선(표 끝 표시)
+
+  # ---- 왼쪽 아래: 판정 구성 표(P2, F3, G2) ----
+  deck_text(tx("A2.cfg_label"), c(XL, CY, WL, LH), size = 16, bold = TRUE, color = PAL$ink2, label = "label_cfg", gap_pt = 0)
+  CT <- L$cfg; dc <- data.frame(a = unlist(CT$name), b = unlist(CT$ep), c = unlist(CT$use), stringsAsFactors = FALSE)
+  names(dc) <- unlist(CT$head); CW_ <- c(0.9, 2.9, 2.3)
+  CH <- deck_table_h(dc, WL, CW_, size = 14)
+  premise(CY + LH + 0.02 + CH <= capy - 0.08, "configuration table fits above the caption")
+  deck_table(dc, box = c(XL, CY + LH + 0.02, WL, CH), widths = CW_, size = 14, label = "table_cfg", header_fill = PAL$tint_grey, group_end = nrow(dc), highlight = 1, highlight_fill = PAL$tint_blue)
+  # ---- 오른쪽 아래: 오류 정의(14pt, 회색 상자) ----
+  DY <- TY + TH + 0.14
+  dt_ <- tx("A2.defs", dfn); dh <- est_height(dt_, WR, 14, gap_pt = 3, card = TRUE) + 0.12
+  premise(DY + dh <= capy - 0.08, "error definitions fit above the caption")
+  deck_text(dt_, c(XR, DY, WR, dh), size = 14, label = "caption_defs", bg = PAL$tint_grey, geom = "roundRect", gap_pt = 3)
+  dsrc("decision configurations and error definitions", "config/prereg_20260929_oc.yaml", "(table)")
+
+  deck_notes(tx("A2.notes", c(f, g, mth, dfn[c("lo", "hi", "ci", "lim")], list(mp = mp, tol = tol, z = z0, ex = f_set("i", "extrap"), sp2 = f_set("ii", "span"), sp4 = f_set("iv", "span"),
     s1 = sap, s2 = s2, s3 = s3,
     nc = dderived("NonCompart version (renv.lock)", SE, "Software=='NonCompart' :: Version", row1(SE, "Software=='NonCompart'")$Version, row1(SE, "Software=='NonCompart'")$Version),
     pk = dderived("PKNCA version (renv.lock)", SE, "Software=='PKNCA' :: Version", row1(SE, "Software=='PKNCA'")$Version, row1(SE, "Software=='PKNCA'")$Version),

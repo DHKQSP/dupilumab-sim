@@ -22,7 +22,7 @@ slide_A10 <- function() {
   premise(identical(unlist(OC$F3A$endpoints), c("AUClast", "Cmax", "AUCinf_A")) && grepl("span ratio < 2", .read("config/oc_design.yaml")$aucinf_rules$A, fixed = TRUE), "F3A = AUClast + Cmax + AUCinf rule A with the set (ii) flags")
   premise(nrow(rows(T1, w1("F3A", " & pass_pct > 5"))) == 0, "F3A has no cell above 5% under M1")
   premise(all(fc$cost_ii_pp > fc$cost_iii_pp) && all(rows(TC, "set=='ii'")$true_aucinf_gmr_hi < 1), "rule A loses more joint passes than rule B and drops lower-exposure subjects (set ii, both models)")
-  premise(!any(grepl("^F3", unique(rows(CG)$config))) && setequal(grep("^F3", unique(rows(T1)$config), value = TRUE), c("F3A", "F3B", "F3C")), "no three-endpoint configuration with rule A set (iii) was computed (caption: not computed)")
+  premise(nrow(rows("oc_curves/oc_type1_summary.csv", "config=='F3A_iii' & scope=='both'")) == 1, "three-endpoint configuration with rule A set (iii) computed in the v1.2 operating characteristics (notes)")
   premise(.read("config/trial_design.yaml")$be$method == "pooled_t", "fallback cost trials analysed with the pooled t-test (M0)")
   LPr <- .read("config/literature_precedents.yaml")
   premise(LPr$ema_2012_mab$primary_endpoint_single_dose == "AUC0-inf" && LPr$ema_2012_mab$subcutaneous_co_primary == "Cmax" && LPr$ema_2012_mab$status == "search excerpt",
@@ -55,7 +55,7 @@ slide_A10 <- function() {
   wy <- list(p2m = dv(T1, w1("P2", " & pk_model=='k2020' & scenario=='V2_up_080'"), "pass_pct", 2, "%", "AUClast + Cmax, 2020 V2 cell, M1"),
              bias = dv(DEf, "pk_model=='k2020' & mechanism=='V2' & analysis_model=='M1'", "auclast_bias_pct", 2, "%", "AUClast GMR bias toward 1 against the true AUCinf ratio, 2020 V2 cell, M1"),
              efl = drange(TPF, "set=='iii'", "est_fail_pct", 0, "%", "subjects with an estimable lambda-z but failing set (iii), two models"))
-  cap <- tx("A10.caption", c(wy, list(nom = f$nom, n = f$n, n_arm = f_n_arm(), r2i = f_set("i", "r2"), exi = f_set("i", "extrap"), sp2 = f_set("ii", "span"), fcr = fcr, pd = pdiff,
+  cap <- tx("A10.caption", c(wy, list(nom = f$nom, n = f$n, n_arm = f_n_arm(), r2i = f_set("i", "r2"), exi = f_set("i", "extrap"), sp2 = f_set("ii", "span"), fcr = fcr,
                                 ey = dcfg("literature_precedents.yaml", c("ema_2012_mab", "year"), "EMA mAb biosimilar guideline year", num_fmt(0)))))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
 
@@ -87,7 +87,15 @@ slide_A10 <- function() {
   # ---- 설명 상자: 대응안을 기본으로 두지 않는 이유, AUCinf + Cmax만은 권하지 않음(표의 주황 행) ----
   cf_k <- local({ k <- c(nrow(rows(CG, w1("G2_A_iii", " & pass_pct > 5"))), nrow(rows(T1, w1("G2_B", " & pass_pct > 5"))), nrow(rows(T1, w1("G2_Ai", " & pass_pct > 5"))))
     dderived("AUCinf + Cmax cells above 5% (point), M1, rule A set (iii), rule B, rule A set (i): range", CG, "analysis_model=='M1' & config in (G2_A_iii [criteria file], G2_B, G2_Ai [type1_models]) & pass_pct > 5 :: range of row counts", k, rng_fmt(min(k), max(k), 0)) })
-  why <- tx("A10.why", c(wy, list(k = cf_k, n = f$n, nom = f$nom))); wyy <- y0 + 0.02; wh <- ty - 0.14 - wyy
+  # 대응안의 2종 오류 비용(v1.2, 지시 2026-09-29 "S9 재설계" §5: A10은 F3-B 대응안 유지, 2종 오류 비용 추가): S7과 같은 시험(results/oc_curves, M1)
+  PF <- "oc_curves/oc_curves_pass.csv"; PDc <- "oc_curves/oc_paired.csv"
+  t2i <- function(cf) { r <- rows(PF, sprintf("code=='S00' & analysis_model=='M1' & config=='%s'", cf)); x <- range(100 - r$pass_pct)
+    dderived(sprintf("type II error, identical product, %s, M1, range over two models", cf), PF, sprintf("code=='S00' & analysis_model=='M1' & config=='%s' :: range(100 - pass_pct)", cf), x, rng_fmt(x[1], x[2], 1, "%")) }
+  W2 <- "comparison=='F3B - P2' & (kind=='identity' | (cmax_in_limits & (abs(target - 0.95) < 1e-9 | abs(target - 1.05) < 1e-9 | abs(target - 0.90) < 1e-9 | abs(target - 1.11) < 1e-9)))"
+  i2 <- rows(PDc, W2); premise(nrow(i2) > 0 && max(-i2$diff_pass_pp) < max(-rows(PDc, sub("F3B", "F3A_iii", W2))$diff_pass_pp), "fallback (rule B) type II increase smaller than with set (iii) AUCinf (why box)")
+  f3binc <- dderived("largest type II error increase, F3B vs P2, type II cells, both models, M1 (percentage points)", PDc, paste(W2, ":: max(-diff_pass_pp)"), max(-i2$diff_pass_pp), paste0(fnum(max(-i2$diff_pass_pp), 1), "%p"))
+  t2c <- list(f3bid = t2i("F3B"), p2id = t2i("P2"), f3aid = t2i("F3A_iii"), f3binc = f3binc)
+  why <- tx("A10.why", c(wy, t2c, list(k = cf_k, n = f$n, nom = f$nom))); wyy <- y0 + 0.02; wh <- ty - 0.14 - wyy
   deck_text(why, c(GEO$ML, wyy, GEO$CW, wh), size = 16, bg = PAL$tint_grey, geom = "roundRect", label = "caption_why", gap_pt = 4)
   deck_visual(c(GEO$ML, wyy, GEO$CW, wh))
 
@@ -118,6 +126,7 @@ slide_A10 <- function() {
     ntr = dint(TR, "pk_model=='k2016' & set=='iii'", "n_trials", "simulated trials (retained per arm)"), n_arm = f_n_arm(),
     p2m = wy$p2m, bias = wy$bias, efl = wy$efl, nom = f$nom, fb = f$fb, sp2 = f_set("ii", "span"),
     bci = dci(DEf, "pk_model=='k2020' & mechanism=='V2' & analysis_model=='M1'", "auclast_bias_pct", "auclast_bias_lo_pct", "auclast_bias_hi_pct", 2, "%", "AUClast GMR bias with 95% interval, 2020 V2 cell, M1"),
-    p2x = dcount(T1, w1("P2", " & pass_pct > 5"), "AUClast + Cmax cells above 5% (point), M1")))))
+    p2x = dcount(T1, w1("P2", " & pass_pct > 5"), "AUClast + Cmax cells above 5% (point), M1"),
+    f3a3 = dv("oc_curves/oc_type1_summary.csv", "config=='F3A_iii' & scope=='both'", "max_pct", 1, "%", "largest boundary type I error over 16 cells, F3A_iii, M1")), t2c)))
   deck_end()
 }
