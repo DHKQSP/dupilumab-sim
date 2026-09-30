@@ -1,0 +1,25 @@
+config,scope,n_cells,max_pct,max_cell,n_gt5,n_wilson_gt5,min_pct
+P2,both,16,5.625,k2020 V2_up_080,1,1,0
+F3A_iii,both,16,2.52,k2020 F_down_080,0,0,0
+G2A_iii,both,16,17.47,k2016 Vmax_up_080,10,9,0
+F3B,both,16,3.95,k2020 F_down_080,0,0,0
+G2B,both,16,16.03,k2016 Vmax_up_080,10,8,0
+G2_true,both,16,5.17,k2020 Vmax_up_080,5,0,0
+AUClast_only,both,16,5.645,k2020 V2_up_080,3,2,2.54
+AUCinf_Aiii_only,both,16,44.67,k2020 ka_down_080,12,11,2.155
+P2,k2020,8,5.625,k2020 V2_up_080,1,1,0
+F3A_iii,k2020,8,2.52,k2020 F_down_080,0,0,0
+G2A_iii,k2020,8,14.08,k2020 Vmax_up_080,4,4,0
+F3B,k2020,8,3.95,k2020 F_down_080,0,0,0
+G2B,k2020,8,12.48,k2020 Vmax_up_080,5,4,0
+G2_true,k2020,8,5.17,k2020 Vmax_up_080,2,0,0
+AUClast_only,k2020,8,5.645,k2020 V2_up_080,2,2,2.96
+AUCinf_Aiii_only,k2020,8,44.67,k2020 ka_down_080,5,5,2.155
+P2,k2016,8,4.33,k2016 V2_up_080,0,0,0
+F3A_iii,k2016,8,2.44,k2016 F_down_080,0,0,0
+G2A_iii,k2016,8,17.47,k2016 Vmax_up_080,6,5,0
+F3B,k2016,8,3.83,k2016 F_down_080,0,0,0
+G2B,k2016,8,16.03,k2016 Vmax_up_080,5,4,0
+G2_true,k2016,8,5.07,k2016 ke_up_080,3,0,0
+AUClast_only,k2016,8,5.13,k2016 ka_down_080,1,0,2.54
+AUCinf_Aiii_only,k2016,8,33.28,k2016 ka_down_080,7,6,4.89
