@@ -1,0 +1,11 @@
+- One or more packages recorded in the lockfile are not installed.
+- Use `renv::status()` for more details.
+run log: /home/user/dupilumab-sim/logs/oc_curves_k2020_20260930T000255.log
+k2020: 28 cells (10 with 5000 trials, 18 with 2000 trials), trials 1-5000, cores 3, output /home/user/dupilumab-sim/results/oc_curves/oc_curves_be_k2020.csv.gz 
+check: trial 2000 gives identical results for the 0.95/1.05 cells with the full and the reduced scenario list (360 rows) 
+trials 2501-3000 done in 4.448538 mins (5000 scenario-trials) 
+trials 3001-3500 done in 4.48375 mins (5000 scenario-trials) 
+trials 3501-4000 done in 4.384146 mins (5000 scenario-trials) 
+trials 4001-4500 done in 4.440104 mins (5000 scenario-trials) 
+trials 4501-5000 done in 4.412744 mins (5000 scenario-trials) 
+done: M0 matched 0 stored oc_trials_be rows; output /home/user/dupilumab-sim/results/oc_curves/oc_curves_be_k2020.csv.gz 
