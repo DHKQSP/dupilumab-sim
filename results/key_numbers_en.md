@@ -1,6 +1,6 @@
 # Key numbers (dupilumab biosimilar Phase 1 PK simulation)
 
-Generated 2026-09-29. Each line names its source file under results/.
+Generated 2026-09-30. Each line names its source file under results/.
 
 ## NCA engine (Phoenix WinNonlin-compatible)
 
@@ -96,6 +96,16 @@ Generated 2026-09-29. Each line names its source file under results/.
 - Test minus reference, failing set (i), boundary scenarios (percentage points): Vmax increased to 0.80 7.29 to 11.03, absorption rate decreased to 0.80 10.26 to 12.29, bioavailability decreased to 0.80 2.21 to 3.54, peripheral volume increased to 0.80 -4.06 to -3.49 (trialpop/tp_arm_difference.csv).
 - Failing minus retained, true AUCinf geometric mean ratio: set (ii) 0.842 to 0.847, set (iii) 0.895 to 0.928, set (iv) 0.909 to 0.934 (trialpop/tp_characteristics.csv).
 - Window coverage (true AUC0-tlast / true AUCinf): median 99.3% to 99.4%, smallest subject 84.3%; observed-to-true ratio of AUClast (observed AUClast / true AUCinf): smallest subject 0.598 to 0.742, symmetric between arms (trialpop/tp_coverage_individual.csv).
+
+## Decision performance by type I and type II error (analysis model M1; rule A = reliable AUCinf, adjusted R-squared at least 0.90 and extrapolation at most 20%; rule B = all lambda-z estimable)
+
+- Largest boundary type I error over 16 cells: AUClast + Cmax 5.63% (Model 1 5.63%, 2016 model 4.33%; 1 cells above 5%); AUClast + Cmax + AUCinf (rule A) 2.52% (Model 1 2.52%, 2016 model 2.44%; 0 cells above 5%); AUCinf (rule A) + Cmax 17.47% (Model 1 14.08%, 2016 model 17.47%; 10 cells above 5%); AUClast + Cmax + AUCinf (rule B) 3.95% (Model 1 3.95%, 2016 model 3.83%; 0 cells above 5%); AUCinf (rule B) + Cmax 16.03% (Model 1 12.48%, 2016 model 16.03%; 10 cells above 5%) (oc_curves/oc_type1_summary.csv).
+- Type II error for the identical product: AUClast + Cmax 0.85% (Model 1) and 0.35% (2016 model); AUClast + Cmax + AUCinf (rule A) 4.45% (Model 1) and 3.45% (2016 model); AUCinf (rule A) + Cmax 4.19% (Model 1) and 3.30% (2016 model); AUClast + Cmax + AUCinf (rule B) 0.92% (Model 1) and 0.36% (2016 model); AUCinf (rule B) + Cmax 0.52% (Model 1) and 0.17% (2016 model) (oc_curves/oc_curves_pass.csv).
+- Type II error at true ratios 0.95 and 1.05 (cells whose true Cmax ratio is within the limits), range over mechanisms and models: AUClast + Cmax 2.6% to 64.7%; AUClast + Cmax + AUCinf (rule A) 9.3% to 65.3%; AUCinf (rule A) + Cmax 8.0% to 65.3%; AUClast + Cmax + AUCinf (rule B) 3.2% to 64.7%; AUCinf (rule B) + Cmax 1.6% to 64.7% (oc_curves/oc_type2_summary.csv).
+- Adding AUCinf (rule A) to AUClast + Cmax: largest type I reduction 4.1 and 2.1 points, largest type II increase 22.1 and 30.2 points (Model 1 and 2016 model; oc_curves/oc_wording_rules.csv).
+- Type II decomposition, identical product, AUCinf (rule A) + Cmax minus AUClast + Cmax: Model 1 3.34 = analysis-set reduction 3.67 + AUCinf estimation -0.33 points, 2016 model 2.95 = 3.13 + -0.18; median analysis count per arm AUClast 117.0, rule B 116.5 and 115.5, rule A 77.5 and 72.0 (oc_curves/oc_decomposition.csv).
+- Bias toward 1 at the Vmax increased boundary cell, AUCinf rule B then rule A: Model 1 2.60% and 3.64%, 2016 model 3.27% and 4.47%; single-endpoint boundary pass follows Phi(b/SD - t) within 0.74 points over 64 cell x endpoint rows (oc_curves/oc_bias_relation.csv).
+- Analytic check, identical product (pooled t, single endpoint): CV 40% with 117 and 75 per arm gives type II 0.55% (AUClast) and 5.85% (AUCinf); with the simulated CV and analysis counts Model 1 AUClast 1.21% versus simulated 0.84%, Model 1 AUCinf_Aiii 4.95% versus simulated 4.18%, 2016 model AUClast 0.53% versus simulated 0.33%, 2016 model AUCinf_Aiii 3.70% versus simulated 3.30% (oc_curves/oc_analytic_check.csv).
 
 ## Robustness check only (report Appendix I, not evidence): adult atopic dermatitis body weight (lognormal mean 78 kg, SD 19 kg, 40 to 180 kg; placeholder), 20,000 patients per model variant, B0, 300 mg
 

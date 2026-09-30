@@ -94,7 +94,11 @@ slide_A10 <- function() {
   W2 <- "comparison=='F3B - P2' & (kind=='identity' | (cmax_in_limits & (abs(target - 0.95) < 1e-9 | abs(target - 1.05) < 1e-9 | abs(target - 0.90) < 1e-9 | abs(target - 1.11) < 1e-9)))"
   i2 <- rows(PDc, W2); premise(nrow(i2) > 0 && max(-i2$diff_pass_pp) < max(-rows(PDc, sub("F3B", "F3A_iii", W2))$diff_pass_pp), "fallback (rule B) type II increase smaller than with set (iii) AUCinf (why box)")
   f3binc <- dderived("largest type II error increase, F3B vs P2, type II cells, both models, M1 (percentage points)", PDc, paste(W2, ":: max(-diff_pass_pp)"), max(-i2$diff_pass_pp), paste0(fnum(max(-i2$diff_pass_pp), 1), "%p"))
-  t2c <- list(f3bid = t2i("F3B"), p2id = t2i("P2"), f3aid = t2i("F3A_iii"), f3binc = f3binc)
+  t2c <- list(f3bid = t2i("F3B"), p2id = t2i("P2"), f3aid = t2i("F3A_iii"), f3binc = f3binc,
+              c = dderived("type II group (b)-(c) range, lower target", "config/prereg_20260929_oc.yaml", "section8.statistics.type2 :: (c) lower", 0.90, "0.90"),
+              d = dderived("type II group (b)-(c) range, upper target", "config/prereg_20260929_oc.yaml", "section8.statistics.type2 :: (c) upper", 1.11, "1.11"),
+              f3ball = { W3 <- "comparison=='F3B - P2' & kind=='curve' & cmax_in_limits"; x <- max(-rows(PDc, W3)$diff_pass_pp)
+                dderived("largest type II error increase, F3B vs P2, all non-boundary cells with the true Cmax ratio inside the limits (0.85-1.18), M1 (points)", PDc, paste(W3, ":: max(-diff_pass_pp)"), x, paste0(fnum(x, 1), "%p")) })
   why <- tx("A10.why", c(wy, t2c, list(k = cf_k, n = f$n, nom = f$nom))); wyy <- y0 + 0.02; wh <- ty - 0.14 - wyy
   deck_text(why, c(GEO$ML, wyy, GEO$CW, wh), size = 16, bg = PAL$tint_grey, geom = "roundRect", label = "caption_why", gap_pt = 4)
   deck_visual(c(GEO$ML, wyy, GEO$CW, wh))

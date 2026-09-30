@@ -23,8 +23,8 @@ slide_S2 <- function() {
     dderived(sprintf("type II error, identical product, %s, M1, range over two models", cf), PF, sprintf("code=='S00' & analysis_model=='M1' & config=='%s' :: range(100 - pass_pct)", cf), x, rng_fmt(x[1], x[2], 1, "%")) }
   t2id20 <- function(cf) { w <- sprintf("code=='S00' & analysis_model=='M1' & config=='%s' & pk_model=='k2020'", cf); x <- 100 - row1(PF, w)$pass_pct
     dderived(sprintf("type II error, identical product, %s, M1, 2020 model", cf), PF, paste(w, ":: 100 - pass_pct"), x, paste0(fnum(x, 1), "%")) }
-  g1 <- dv(OT1, "config=='G2A_iii' & scope=='k2020'", "max_pct", 1, "%", "largest boundary type I error, G2A_iii, 2020 model, M1")      # 부제도 큰 숫자와 같은 주 모델(2020) 값
-  p1 <- dv(OT1, "config=='P2' & scope=='k2020'", "max_pct", 1, "%", "largest boundary type I error, P2, 2020 model, M1")
+  g1 <- dv(OT1, "config=='G2A_iii' & scope=='both'", "max_pct", 1, "%", "largest boundary type I error over 16 cells, G2A_iii, M1")   # 부제 = S7 표의 값(본문 수치만; 검토 m1)
+  p1 <- dv(OT1, "config=='P2' & scope=='both'", "max_pct", 1, "%", "largest boundary type I error over 16 cells, P2, M1")
   g1r <- drange(OT1, "config=='G2A_iii' & scope!='both'", "max_pct", 1, "%", "largest boundary type I error per model, AUCinf (set iii) + Cmax, M1, range over two models")
 
   # ---- 카드 3개(주 시각 요소) ----

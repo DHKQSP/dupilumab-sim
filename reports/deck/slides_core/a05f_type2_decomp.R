@@ -50,6 +50,10 @@ slide_A5f <- function() {
   deck_visual(c(GEO$ML, y0 + ht + 0.04, GEO$CW, th))
 
   # ---- 노트 ----
+  AC <- "oc_curves/oc_analytic_check.csv"
+  premise(all(rows("oc_models/sd_se_models.csv", "scenario=='S00' & analysis_model=='M1' & endpoint=='AUCinf_B'")[order(pk_model)]$sd_log_gmr <
+              rows("oc_models/sd_se_models.csv", "scenario=='S00' & analysis_model=='M1' & endpoint=='AUClast'")[order(pk_model)]$sd_log_gmr), "identical product: AUCinf rule B varies less between trials than AUClast, both models (body line 2)")
+  ac <- function(m, cs, ep, col, d_, u) dv(AC, sprintf("pk_model=='%s' & case=='%s' & endpoint=='%s'", m, cs, ep), col, d_, u, sprintf("analytic check %s %s %s %s", cs, ep, m, col))
   f3 <- function(col) { r <- rows(DC, "config=='F3'"); x <- range(r[[col]])
     dderived(sprintf("three endpoints (F3) decomposition %s, all type II cells, range (percentage points)", col), DC, sprintf("config=='F3' :: range(%s)", col), x, rng_fmt(x[1], x[2], 1)) }
   deck_notes(tx("A5f.notes", c(f, list(
@@ -61,6 +65,18 @@ slide_A5f <- function() {
     rn = dcfg("prereg_20260929_oc.yaml", c("section8", "reps", "near_one", "trials"), "trials per cell, true ratio 0.95 and 1.05", function(x) fnum(as.numeric(x), 0, TRUE)),
     ro = dcfg("prereg_20260929_oc.yaml", c("section8", "reps", "other", "trials"), "trials per cell, true ratio 0.85, 0.90, 1.11 and 1.18", function(x) fnum(as.numeric(x), 0, TRUE)),
     rid = dint(DC, "config=='G2' & scenario=='S00' & pk_model=='k2020'", "n_trials", "trials, identical product"),
+    sdb20 = dv("oc_models/sd_se_models.csv", "pk_model=='k2020' & scenario=='S00' & endpoint=='AUCinf_B' & analysis_model=='M1'", "sd_log_gmr", 4, "", "between-trial SD of log GMR, AUCinf rule B, identical product, 2020"),
+    sdl20 = dv("oc_models/sd_se_models.csv", "pk_model=='k2020' & scenario=='S00' & endpoint=='AUClast' & analysis_model=='M1'", "sd_log_gmr", 4, "", "between-trial SD of log GMR, AUClast, identical product, 2020"),
+    sdb16 = dv("oc_models/sd_se_models.csv", "pk_model=='k2016' & scenario=='S00' & endpoint=='AUCinf_B' & analysis_model=='M1'", "sd_log_gmr", 4, "", "between-trial SD of log GMR, AUCinf rule B, identical product, 2016"),
+    sdl16 = dv("oc_models/sd_se_models.csv", "pk_model=='k2016' & scenario=='S00' & endpoint=='AUClast' & analysis_model=='M1'", "sd_log_gmr", 4, "", "between-trial SD of log GMR, AUClast, identical product, 2016"),
+    an20 = ac("k2020", "study", "AUCinf_Aiii", "type2_analytic_pct", 2, "%"), an16 = ac("k2016", "study", "AUCinf_Aiii", "type2_analytic_pct", 2, "%"),
+    cv20 = ac("k2020", "study", "AUCinf_Aiii", "cv_pct", 1, "%"), cv16 = ac("k2016", "study", "AUCinf_Aiii", "cv_pct", 1, "%"),
+    na20 = ac("k2020", "study", "AUCinf_Aiii", "n_arm", 1, ""), na16 = ac("k2016", "study", "AUCinf_Aiii", "n_arm", 0, ""),
+    sm20 = ac("k2020", "study", "AUCinf_Aiii", "sim_single_M1_pct", 2, "%"), sm16 = ac("k2016", "study", "AUCinf_Aiii", "sim_single_M1_pct", 2, "%"),
+    cl20 = ac("k2020", "study", "AUClast", "cv_pct", 1, "%"), cl16 = ac("k2016", "study", "AUClast", "cv_pct", 1, "%"),
+    al20 = ac("k2020", "study", "AUClast", "type2_analytic_pct", 2, "%"), al16 = ac("k2016", "study", "AUClast", "type2_analytic_pct", 2, "%"),
+    sl20 = ac("k2020", "study", "AUClast", "sim_single_M1_pct", 2, "%"), sl16 = ac("k2016", "study", "AUClast", "sim_single_M1_pct", 2, "%"),
+    and = ac("k2020", "directive", "AUCinf_Aiii", "type2_analytic_pct", 2, "%"), cvd = ac("k2020", "directive", "AUCinf_Aiii", "cv_pct", 0, "%"), nd = ac("k2020", "directive", "AUCinf_Aiii", "n_arm", 0, ""),
     n20n = ncell("k2020", "near"), n20m = ncell("k2020", "mid"), n16n = ncell("k2016", "near"), n16m = ncell("k2016", "mid")), tt)))
   deck_end()
 }

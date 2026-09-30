@@ -3,16 +3,18 @@ A5f:
   title: "AUCinf + Cmax의 2종 오류 증가는 AUCinf 추정이 아니라\n분석 대상자 감소(arm당 {nl}명 → {na}명)에서 생긴다"
   tab:
     title: "2종 오류 증가(%p) = 분석 세트 축소 몫(A - B) + AUCinf 추정 몫(B - AUClast)"
-    head: ["칸", "증가 합계", "분석 세트 축소 몫", "AUCinf 추정 몫", "AUCinf(A) 대상자/군"]
+    head: ["칸", "증가 합계", "분석 세트 축소 몫", "AUCinf 추정 몫", "arm당 인원(A)"]
     rows:
       identity: "{m} 동일 제품"
       near: "{m} 참 비 {a}·{b}"
       mid: "{m} 참 비 {c}·{d}"
   body1: "분석 세트 축소 몫은 모든 칸에서 양수이고, 증가가 있는 칸에서는 그 대부분이다."
-  body2: "AUCinf 추정 몫은 대체로 음수다: 1 쪽 치우침이 한계 안 통과를 늘린다(경계에서는 1종 오류, 별첨 A5d)."
-  caption: "(A) = 신뢰할 수 있는 AUCinf(adjusted R² ≥ {r2}, 외삽 ≤ {ex}%)만, (B) = λz 산출 전원. 증가 = (AUCinf(A) + Cmax의 2종 오류) - (AUClast + Cmax의 2종 오류), 두 몫은 같은 시험의 쌍대 차이다. 칸 묶음은 범위(참 Cmax 비가 한계 밖인 칸 제외). 분석 모형 M1."
+  body2: "AUCinf 추정 몫은 대체로 음수다: 한계 쪽 칸은 1 쪽 치우침, 동일 제품은 AUCinf(B)의 작은 변동 때문이다(노트)."
+  caption: "(A) = 신뢰할 수 있는 AUCinf(adjusted R² ≥ {r2}, 외삽 ≤ {ex}%)만, (B) = λz 산출 전원. 증가 = (AUCinf(A) + Cmax의 2종 오류) - (AUClast + Cmax의 2종 오류), 두 몫은 같은 시험의 쌍대 차이다. 칸 묶음은 범위(참 Cmax 비가 한계 밖인 칸 제외). 1 쪽 = 동등 판정 쪽. 분석 모형 M1."
   notes: |
     분해(사전 등록 section8 statistics.decomposition): 증가 합계 = AUCinf(A) + Cmax의 2종 오류 - AUClast + Cmax의 2종 오류 = [AUCinf(B) + Cmax - AUClast + Cmax](AUCinf 추정 몫: λz 산출 전원으로 AUCinf를 쓸 때의 잡음과 치우침) + [AUCinf(A) + Cmax - AUCinf(B) + Cmax](분석 세트 축소 몫). results/oc_curves/oc_decomposition.csv. 각 몫의 95% 구간도 같은 파일에 있다.
     분석 대상자(arm당 중앙값, 동일 제품): AUClast {nl}명, AUCinf(B) {nb}명, AUCinf(A) {na}명. 분석 세트 축소 몫의 95% 구간 하한은 모든 칸에서 {rlo}%p 이상이다. AUCinf 추정 몫은 {emin}~{emax}%p다.
     세 지표(AUClast + Cmax + AUCinf(A))도 같은 분해를 했다: 증가 합계 {f3t}%p, 분석 세트 축소 {f3r}%p, AUCinf 추정 {f3e}%p(모든 2종 오류 칸의 범위). 세 지표에서는 AUCinf 추정 몫이 거의 없고 증가는 거의 모두 분석 세트 축소 몫이다.
     칸 수(참 Cmax 비가 한계 안인 칸): 참 비 {a}·{b} 2020 모델 {n20n}칸, 2016 모델 {n16n}칸, 참 비 {c}·{d} 2020 모델 {n20m}칸, 2016 모델 {n16m}칸. 칸당 시험: 동일 제품 {rid}회, 참 비 {a}·{b} {rn}회, 그 밖 {ro}회.
+    동일 제품에서 AUCinf 추정 몫이 음수인 이유: 동일 제품에는 1 쪽 치우침이 있을 수 없고, λz 산출 전원 AUCinf(B)의 시험 간 표준편차가 AUClast보다 작다({sdb20} 대 {sdl20}, 2020 모델; {sdb16} 대 {sdl16}, 2016 모델; results/oc_models/sd_se_models.csv, M1).
+    간이 계산 대조(사전 등록, results/oc_curves/oc_analytic_check.csv): 동일 제품, 단일 지표, 합동 t 검정 식에 모의의 변동계수와 arm당 인원을 넣으면 AUCinf(A)의 2종 오류는 {an20}(2020 모델, 변동계수 {cv20}, arm당 {na20}명), {an16}(2016 모델, {cv16}, {na16}명)이고 모의(M1)는 {sm20}, {sm16}이다. AUClast는 변동계수 {cl20}, {cl16}로 비슷하지만 arm당 {nl}명이라 {al20}, {al16}(모의 {sl20}, {sl16})다. 두 지표의 변동이 비슷하므로 2종 오류 차이는 인원 차이에서 온다. 검토자 간이 계산(변동계수 {cvd}, arm당 {nd}명)을 같은 식에 넣으면 {and}이다.

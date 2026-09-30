@@ -6,9 +6,9 @@ slide_A5d <- function() {
   PF <- "oc_curves/oc_curves_pass.csv"; BR <- "oc_curves/oc_bias_relation.csv"; PD <- "oc_models/p2_decomposition_models.csv"; T1 <- "oc_models/type1_models.csv"
   deck_slide("A5d", tag = "sim")
   L <- DK$txt$A5d$fig; ML <- DK$txt$common$models_short; MS <- names(ML)
-  CF <- c("P2", "G2A_iii", "G2B")
-  d <- rows(PF, "analysis_model=='M1' & kind=='boundary' & config %in% c('P2','G2A_iii','G2B')")
-  premise(nrow(d) == 16 * 3, "16 boundary cells x three configurations")
+  CF <- c("P2", "G2A_iii")                                             # 점도표는 v1.1 S9와 같은 두 구성(규칙 B는 본문 1줄과 별첨 A5c)
+  d <- rows(PF, "analysis_model=='M1' & kind=='boundary' & config %in% c('P2','G2A_iii')")
+  premise(nrow(d) == 16 * 2, "16 boundary cells x two configurations")
   nom <- f_nominal(); nomv <- 100 * (1 - .read("config/trial_design.yaml")$be$ci_level) / 2
   premise(abs(nomv - 5) < 1e-9, "nominal level 5% (the 'pass_pct > 5' filters)")
   W <- function(cf) sprintf("analysis_model=='M1' & kind=='boundary' & config=='%s'", cf)
@@ -24,6 +24,7 @@ slide_A5d <- function() {
   # ---- 관계식 자료(전제: 예측과 모의가 가깝다, 참 AUCinf는 치우침이 없다) ----
   br <- rows(BR, "TRUE"); premise(nrow(br) == 16 * 4, "64 boundary cell x single-endpoint rows")
   dmax <- max(abs(br$pred_pass_pct - br$sim_pass_pct)); premise(dmax < 1.5, "normal approximation within 1.5 percentage points of the simulated pass in every row (body line 2)")
+  dcur <- max(abs(100 * pnorm(br$b_over_sd - median(br$t_q)) - br$sim_pass_pct))   # 그린 곡선(모든 점의 t 중앙값, SE = SD)과의 최대 차이(검토 M4)
   premise(all(abs(br[endpoint == "AUCinf_true", b_over_sd]) < 0.05), "true AUCinf: no bias at any boundary cell (figure)")
   premise(all(br[endpoint == "AUCinf_Aiii" & scenario == "Vmax_up_080", b_over_sd] > 0.5), "AUCinf rule A at the Vmax up cell: bias above half a standard deviation in both models (title)")
   y0 <- core_title(tx("A5d.title", f), tx("A5d.kicker"))
@@ -31,7 +32,7 @@ slide_A5d <- function() {
   # ---- 왼쪽: 점도표 ----
   SC <- c("F_down_080", "F_up_125", "ke_up_080", "ke_down_125", "Vmax_up_080", "Vmax_down_125", "V2_up_080", "ka_down_080")
   premise(setequal(unique(d$code), SC), "eight boundary scenarios per model")
-  d[, row := length(SC) + 1 - match(code, SC)][, y := row + c(P2 = 0.25, G2A_iii = 0, G2B = -0.25)[config]]
+  d[, row := length(SC) + 1 - match(code, SC)][, y := row + c(P2 = 0.18, G2A_iii = -0.18)[config]]
   d[, mod := factor(unlist(ML[pk_model]), levels = unlist(ML))][, cfgf := factor(config, levels = CF, labels = unlist(L$cfg[CF]))]
   lab_y <- unique(d[, .(row, mechanism, direction, target)])[order(row)]
   premise(nrow(lab_y) == length(SC), "one label per row (same in both models)")
@@ -49,13 +50,12 @@ slide_A5d <- function() {
     geom_label(data = ka, aes(x = nomv + 0.4, y = row + 0.02, label = L$ka), inherit.aes = FALSE, hjust = 0, size = PT(14), family = FONT, colour = PAL$ink2,
                fill = "white", label.size = 0, label.padding = grid::unit(0.05, "lines")) +
     facet_wrap(~ mod, nrow = 1) +
-    scale_colour_manual(values = setNames(c(PAL$blue, PAL$orange, PAL$orange), labs3), name = NULL) +
-    scale_fill_manual(values = setNames(c(PAL$blue, PAL$orange, "white"), labs3), name = NULL) +
-    scale_shape_manual(values = setNames(c(22, 23, 23), labs3), name = NULL) +
+    scale_colour_manual(values = setNames(c(PAL$blue, PAL$orange), labs3), name = NULL) +
+    scale_fill_manual(values = setNames(c(PAL$blue, PAL$orange), labs3), name = NULL) +
+    scale_shape_manual(values = setNames(c(22, 23), labs3), name = NULL) +
     scale_y_continuous(breaks = lab_y$row, labels = lab_y$lab, limits = c(0.5, length(SC) + 0.5), expand = expansion(mult = 0)) +
     scale_x_continuous(limits = c(0, xmax), breaks = seq(0, xmax, 10), expand = expansion(add = c(0.3, 0))) +
     labs(x = fill(L$xlab, list(v = nom)), y = NULL) + theme_core(16) +
-    guides(colour = guide_legend(nrow = 2), shape = guide_legend(nrow = 2), fill = guide_legend(nrow = 2)) +
     theme(panel.grid.major.y = element_blank(), panel.grid.minor = element_blank(), legend.position = "top", legend.justification = "left",
           legend.margin = margin(0, 0, 0, 0), axis.text.y = element_text(size = 14, colour = PAL$ink), panel.spacing.x = grid::unit(16, "pt"))
 
@@ -86,7 +86,8 @@ slide_A5d <- function() {
   # ---- 본문·캡션 ----
   body <- c(tx("A5d.body1", f),
             tx("A5d.body2", list(nr = dcount(BR, "TRUE", "boundary cell x single-endpoint rows"),
-                                 dmax = dderived("largest |predicted - simulated| single-endpoint boundary pass (percentage points)", BR, "all rows :: max(abs(pred_pass_pct - sim_pass_pct))", dmax, paste0(fnum(dmax, 1), "%p")))))
+                                 dmax = dderived("largest |predicted - simulated| single-endpoint boundary pass, rounded up (percentage points)", BR, "all rows :: max(abs(pred_pass_pct - sim_pass_pct)), rounded up", dmax, paste0(fnum(cl(dmax, 1), 1), "%p")),
+                                 dcur = dderived("largest |drawn curve - simulated| single-endpoint boundary pass, rounded up (percentage points)", BR, "all rows :: max(abs(100 pnorm(b_over_sd - median(t_q)) - sim_pass_pct)), rounded up", dcur, paste0(fnum(cl(dcur, 1), 1), "%p")))))
   bt <- unlist(.read("config/oc_design.yaml")$boundary_targets)
   cap <- tx("A5d.caption", list(tgt = dderived("boundary true AUCinf ratios (both)", "config/oc_design.yaml", "boundary_targets :: both values", bt, paste(fnum(bt, 2), collapse = ", ")),
                                reps = f_reps("boundary"), r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap"), ci = f_ci_level()))

@@ -132,3 +132,19 @@ core_shaded_panels <- function(model, L) {
   }
   patchwork::wrap_plots(lapply(1:3, mk), nrow = 1)
 }
+
+# 사전 등록 규칙 4c 칸의 세부(칸, G2 - P2 통과율 차이와 95% 구간, 같은 기전·방향의 경계 1종 오류): S7 노트와 별첨 A5c 노트(config/prereg_20260929_oc.yaml section8 rule_4c)
+core_c4det <- function(tmpl, mech_names) {
+  C4 <- "oc_curves/oc_rule4c_cells.csv"; PF <- "oc_curves/oc_curves_pass.csv"; c4 <- rows(C4, "TRUE")
+  if (!nrow(c4)) return("")
+  paste(vapply(seq_len(nrow(c4)), function(i) { r <- c4[i]; bc <- sub("_[0-9]+$", "_080", r$scenario)
+    premise(r$target < 1, "rule 4c cells lie below 1, so the same-direction boundary cell is the 0.80 cell")
+    w <- sprintf("pk_model=='%s' & scenario=='%s'", r$pk_model, r$scenario); wb <- sprintf("analysis_model=='M1' & kind=='boundary' & pk_model=='%s' & code=='%s'", r$pk_model, bc)
+    fill(tmpl, list(m = DK$txt$common$models_short[[r$pk_model]], mech = mech_names[[r$mechanism]],
+      t = dv(C4, w, "target", 2, "", "rule 4c cell, true AUCinf ratio"),
+      d = dv(C4, w, "diff_pass_pp", 1, "", "rule 4c cell, G2 minus P2 pass (points)"),
+      lo = dv(C4, w, "lo", 1, "", "rule 4c cell, lower 95% limit (points)"),
+      hi = dv(C4, w, "hi", 1, "", "rule 4c cell, upper 95% limit (points)"),
+      g1 = dv(PF, paste(wb, "& config=='G2A_iii'"), "pass_pct", 1, "%", "same-mechanism boundary type I error, G2A_iii"),
+      p1 = dv(PF, paste(wb, "& config=='P2'"), "pass_pct", 1, "%", "same-mechanism boundary type I error, P2"))) }, ""), collapse = ";")
+}

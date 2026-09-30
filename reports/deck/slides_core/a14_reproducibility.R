@@ -127,7 +127,7 @@ slide_A14 <- function() {
   core_body(body, capy - 0.08, gap_pt = 6)
 
   run63 <- if (clean63) tx("A14.run_clean", list(cm63 = cm63)) else tx("A14.run_dirty", list(cm63 = cm63, unc = paste(unc, collapse = ", ")))
-  deck_notes(tx("A14.notes", c(f1, f2, f3, fb, list(noc = noc, 
+  deck_notes(tx("A14.notes", c(f1, f2, f3, fb, list(noc = noc, n2k = dcfg("prereg_20260929_oc.yaml", c("section8", "reps", "other", "trials"), "trials checked against the stored M0 rows (the 2,000-trial cells)", function(x) fnum(as.numeric(x), 0, TRUE)), 
     cm63 = cm63, run63 = run63,
     nnca = dcount(PV, RX$nca, "regenerated representative-population NCA column checks (two models)"),
     ncol = { x <- nrow(rows(PV, RX$nca)) / 2; dderived("NCA columns compared per model", PV, sprintf("count of rows [%s] / 2 models", RX$nca), x, fnum(x, 0)) },

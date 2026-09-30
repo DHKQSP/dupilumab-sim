@@ -1,6 +1,6 @@
 A5b:
   kicker: "별첨 A5b · ③ 세부: 분석 모형과 AUClast + Cmax의 점추정 {nom} 초과 한 칸"
-  title: "신뢰할 수 있는 AUCinf + Cmax(규칙 A (iii))는 M0·M1 모두 {k}칸,\nAUClast + Cmax는 {n}칸 중 {one}칸(AUClast 편향)만 점추정이 {nom}를 넘는다"   # \n: 줄 나눔 자리(core_title)
+  title: "신뢰할 수 있는 AUCinf + Cmax(규칙 A (iii))는 M0·M1 모두 {k}칸,\nAUClast + Cmax는 {n}칸 중 {one}칸(추정 대상 차이)만 점추정이 {nom}를 넘는다"   # \n: 줄 나눔 자리(core_title)
   head_a: "(a) 경계 {n}칸 중 점추정 {nom} 초과 칸 수 · 최대"
   head_b: "(b) AUClast + Cmax 한 칸의 분해"
   table:
@@ -21,7 +21,7 @@ A5b:
       ref: "참 AUCinf로 판정\n(편향 없는 기준)"
       last: "AUClast 단독"
       p2: "AUClast + Cmax"
-    d_last: "AUClast 편향 효과 {d}%p"
+    d_last: "추정 대상 차이 효과 {d}%p"
     d_cmax: "Cmax 추가 효과 {d}%p"
     ci: "95% 구간 {lo}~{hi}"
   body:

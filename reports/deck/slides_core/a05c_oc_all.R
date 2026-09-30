@@ -61,7 +61,7 @@ slide_A5c <- function() {
   rn <- dcfg("prereg_20260929_oc.yaml", c("section8", "reps", "near_one", "trials"), "trials per cell, true ratio 0.95 and 1.05", function(x) fnum(as.numeric(x), 0, TRUE))
   ro <- dcfg("prereg_20260929_oc.yaml", c("section8", "reps", "other", "trials"), "trials per cell, true ratio 0.85, 0.90, 1.11 and 1.18", function(x) fnum(as.numeric(x), 0, TRUE))
   nr <- as.numeric(unlist(.read("config/prereg_20260929_oc.yaml")$section8$reps$near_one$targets))
-  cap <- tx("A5c.caption", list(r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap"), rb = f_reps("boundary"), ro = ro))
+  cap <- tx("A5c.caption", list(r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap"), rx = dint(PF, "analysis_model=='M1' & config=='P2' & pk_model=='k2020' & code=='V2_up_080'", "n_trials", "trials in the extended cell"), ro = ro))
   ab <- list(a = dderived("near-one targets, lower (true AUCinf ratio)", "config/prereg_20260929_oc.yaml", "section8.reps.near_one.targets :: first", nr[1], fnum(nr[1], 2)),
              b = dderived("near-one targets, upper (true AUCinf ratio)", "config/prereg_20260929_oc.yaml", "section8.reps.near_one.targets :: second", nr[2], fnum(nr[2], 2)))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
@@ -83,17 +83,7 @@ slide_A5c <- function() {
     c4a = dderived("rule 4c range, lower", "config/prereg_20260929_oc.yaml", "section8.wording.rule_4c :: lower end", 0.90, "0.90"),
     c4b = dderived("rule 4c range, upper", "config/prereg_20260929_oc.yaml", "section8.wording.rule_4c :: upper end", 0.95, "0.95"),
     n4c = dcount("oc_curves/oc_rule4c_cells.csv", "TRUE", "rule 4c cells (G2 passes more often than P2 at true ratio 0.90-0.95, paired interval above 0)"),
-    c4det = { c4 <- rows("oc_curves/oc_rule4c_cells.csv", "TRUE")
-      if (!nrow(c4)) "" else paste(vapply(seq_len(nrow(c4)), function(i) { r <- c4[i]; bc <- sub("_[0-9]+$", "_080", r$scenario)
-        premise(r$target < 1, "rule 4c cells lie below 1, so the same-direction boundary cell is the 0.80 cell")
-        w <- sprintf("pk_model=='%s' & scenario=='%s'", r$pk_model, r$scenario); wb <- sprintf("analysis_model=='M1' & kind=='boundary' & pk_model=='%s' & code=='%s'", r$pk_model, bc)
-        fill(L$fig$c4cell, list(m = DK$txt$common$models_short[[r$pk_model]], mech = L$fig$mech[[r$mechanism]],
-          t = dv("oc_curves/oc_rule4c_cells.csv", w, "target", 2, "", "rule 4c cell, true AUCinf ratio"),
-          d = dv("oc_curves/oc_rule4c_cells.csv", w, "diff_pass_pp", 1, "", "rule 4c cell, G2 minus P2 pass (points)"),
-          lo = dv("oc_curves/oc_rule4c_cells.csv", w, "lo", 1, "", "rule 4c cell, lower 95% limit (points)"),
-          hi = dv("oc_curves/oc_rule4c_cells.csv", w, "hi", 1, "", "rule 4c cell, upper 95% limit (points)"),
-          g1 = dv(PF, paste(wb, "& config=='G2A_iii'"), "pass_pct", 1, "%", "same-mechanism boundary type I error, G2A_iii"),
-          p1 = dv(PF, paste(wb, "& config=='P2'"), "pass_pct", 1, "%", "same-mechanism boundary type I error, P2"))) }, ""), collapse = ";") },
+    c4det = core_c4det(L$fig$c4cell, L$fig$mech),
     r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap"), ci = f_ci_level(), lim = { lim_v <- as.numeric(unlist(.read("config/trial_design.yaml")$be$limits))
       dderived("equivalence limits in percent (definition text)", "config/trial_design.yaml", "be.limits :: x 100, printed as a range", 100 * lim_v, rng_fmt(100 * lim_v[1], 100 * lim_v[2], 2)) }, rb = f_reps("boundary"), rn = rn, ro = ro, a = ab$a, b = ab$b)))
   deck_end()

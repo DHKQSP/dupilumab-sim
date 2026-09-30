@@ -53,9 +53,10 @@ slide_S7 <- function() {
   premise(length(unique(mxc)) == 1 && grepl(" ka_up_", mxc[1]), "near-one type II maximum is the same absorption-rate cell for all three configurations (table note)")
   kac <- rows(PF, sprintf("config=='P2' & analysis_model=='M1' & code=='%s'", sub("^\\S+ ", "", mxc[1])))
   premise(all(kac$cmax_in_limits), "that cell's true Cmax ratio is inside the limits (it stays in the type II cells by the pre-registered rule)")
-  tnote <- fill(L$tab$note, list(cr = drange(PF, sprintf("config=='P2' & analysis_model=='M1' & code=='%s'", kac$code[1]), "cmax_ratio", 2, "", "true Cmax ratio of the near-one maximum cell, two models"),
+  tnote <- fill(paste(L$tab$note, L$tab$note2), list(cr = drange(PF, sprintf("config=='P2' & analysis_model=='M1' & code=='%s'", kac$code[1]), "cmax_ratio", 2, "", "true Cmax ratio of the near-one maximum cell, two models"),
                                  t = dderived("target of the near-one maximum cell", PF, sprintf("config=='P2' & analysis_model=='M1' & code=='%s' :: target", kac$code[1]), kac$target[1], fnum(kac$target[1], 2))))
-  tab <- data.table(a = unlist(L$tab$rows[CF]), b = vapply(CF, t1v, ""), c = vapply(CF, t2id, ""), d = paste0(vapply(CF, t2nr, ""), L$tab$dagger))
+  p2mx <- row1(T1, "config=='P2' & scope=='both'"); premise(p2mx$max_cell == "k2020 V2_up_080" && p2mx$n_gt5 == 1, "the only AUClast + Cmax cell above 5% is the 2020 V2 cell (table note)")
+  tab <- data.table(a = unlist(L$tab$rows[CF]), b = paste0(vapply(CF, t1v, ""), ifelse(CF == "P2", L$tab$ddagger, "")), c = vapply(CF, t2id, ""), d = paste0(vapply(CF, t2nr, ""), L$tab$dagger))
   setnames(tab, vapply(unlist(L$tab$head), function(h) fill(h, c(ab, list(n = n16))), ""))
   # ---- 본문(규칙) ----
   red <- { r <- rows(PD, "comparison=='F3A_iii - P2' & kind=='boundary'"); x <- max(-r$diff_pass_pp)
@@ -78,13 +79,14 @@ slide_S7 <- function() {
   cap <- tx("S7.caption", list(r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap"), ro = ro))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
   by <- core_body(body, capy - 0.06)
-  fw <- GEO$CW * 0.58; tw <- GEO$CW - fw - 0.25
+  fw <- GEO$CW * 0.55; tw <- GEO$CW - fw - 0.25
   deck_figure(p, "s7_oc_k2020_vmax", c(GEO$ML, y0, fw, by - 0.08 - y0), src = c(PF))
-  th <- deck_table_h(tab, tw, c(1.72, 0.92, 1.05, 1.20), 14) + 0.04
+  th <- deck_table_h(tab, tw, c(1.62, 0.88, 1.02, 1.48), 14) + 0.04
   ty <- y0 + 0.42
   deck_text(fill(L$tab$title, list(n = n16)), c(GEO$ML + fw + 0.25, y0, tw, 0.38), size = 14, bold = TRUE, color = PAL$ink2, label = "caption_tabtitle")
-  deck_table(tab, c(GEO$ML + fw + 0.25, ty, tw, th), widths = c(1.72, 0.92, 1.05, 1.20), size = 14, highlight = 1, highlight_fill = PAL$tint_blue, label = "table_oc")
+  deck_table(tab, c(GEO$ML + fw + 0.25, ty, tw, th), widths = c(1.62, 0.88, 1.02, 1.48), size = 14, highlight = 1, highlight_fill = PAL$tint_blue, label = "table_oc")
   nh <- est_height(tnote, tw, 14, 0) + 0.04
+  if (ty + th + 0.08 + nh > by - 0.08) message(sprintf("S7 layout: y0 %.2f ty %.2f th %.2f nh %.2f by %.2f capy %.2f", y0, ty, th, nh, by, capy)); premise(ty + th + 0.08 + nh <= by - 0.08, "table notes end above the body text")
   deck_text(tnote, c(GEO$ML + fw + 0.25, ty + th + 0.08, tw, nh), size = 14, color = PAL$ink2, label = "caption_tabnote")
   deck_visual(c(GEO$ML, y0, GEO$CW, by - 0.08 - y0))
 
@@ -95,6 +97,7 @@ slide_S7 <- function() {
     ruleT = L$yn[[as.character(allr("rule_T"))]], r4a = L$yn[[as.character(allr("rule_4a_keep_type2"))]], r4b = L$yn[[as.character(allr("rule_4b_small_cost"))]],
     rpr = L$yn[[as.character(allr("rule_protect_almost_none"))]],
     p2max = t1v("P2"), g2bmax = t1v("G2B"), f3bmax = t1v("F3B"),
+    c4det = core_c4det(DK$txt$A5c$fig$c4cell, DK$txt$A5c$fig$mech),
     n4c = dderived("cells at true ratio 0.90-0.95 where G2 passes more often than P2 (paired interval above 0)", "oc_curves/oc_rule4c_cells.csv", "count of rows", nrow(c4), fnum(nrow(c4), 0)),
     r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap"), rb = f_reps("boundary"), rn = rn, ro = ro, a = ab$a, b = ab$b,
     rx = dint("oc_models/type1_models.csv", "analysis_model=='M1' & config=='P2' & pk_model=='k2020' & scenario=='V2_up_080'", "n_trials", "trials in the extended cell"),
