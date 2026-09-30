@@ -120,13 +120,14 @@ slide_A14 <- function() {
 
   # ---- 본문(사전 등록, 시드, renv.lock)과 캡션 ----
   fb <- list(regd = f1$regd, seed = f1$seed, rv = a14_ver("R", "R version (renv.lock)"), rx = a14_ver("rxode2", "rxode2 version (renv.lock)"))
+  noc <- dcount("oc_curves/oc_identity_checks.csv", "equal == TRUE", "stored summaries reproduced by re-judging the stored trials (scripts/65)")
   capy <- core_caption(tx("A14.caption", list()), GEO$BODY_BOTTOM, size = 14)
   body <- tx("A14.body", fb); bh <- core_body_h(body, gap_pt = 6)
   premise(cy + ch + 0.12 <= capy - 0.08 - bh, "body fits between the cards and the caption")
   core_body(body, capy - 0.08, gap_pt = 6)
 
   run63 <- if (clean63) tx("A14.run_clean", list(cm63 = cm63)) else tx("A14.run_dirty", list(cm63 = cm63, unc = paste(unc, collapse = ", ")))
-  deck_notes(tx("A14.notes", c(f1, f2, f3, fb, list(
+  deck_notes(tx("A14.notes", c(f1, f2, f3, fb, list(noc = noc, 
     cm63 = cm63, run63 = run63,
     nnca = dcount(PV, RX$nca, "regenerated representative-population NCA column checks (two models)"),
     ncol = { x <- nrow(rows(PV, RX$nca)) / 2; dderived("NCA columns compared per model", PV, sprintf("count of rows [%s] / 2 models", RX$nca), x, fnum(x, 0)) },

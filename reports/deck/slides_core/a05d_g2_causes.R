@@ -89,7 +89,7 @@ slide_A5d <- function() {
                                  dmax = dderived("largest |predicted - simulated| single-endpoint boundary pass (percentage points)", BR, "all rows :: max(abs(pred_pass_pct - sim_pass_pct))", dmax, paste0(fnum(dmax, 1), "%p")))))
   bt <- unlist(.read("config/oc_design.yaml")$boundary_targets)
   cap <- tx("A5d.caption", list(tgt = dderived("boundary true AUCinf ratios (both)", "config/oc_design.yaml", "boundary_targets :: both values", bt, paste(fnum(bt, 2), collapse = ", ")),
-                               reps = f_reps("boundary"), r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap")))
+                               reps = f_reps("boundary"), r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap"), ci = f_ci_level()))
   capy <- core_caption(cap, GEO$BODY_BOTTOM, size = 14)
   by <- core_body(body, capy - 0.06)
   fw <- GEO$CW * 0.56; gap <- 0.25

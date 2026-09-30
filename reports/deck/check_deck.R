@@ -7,6 +7,8 @@
 #  7 추적 완결: 추적 행의 출처 파일이 있고 SHA-256이 현재 파일과 같다.
 #  8 대조: 같은 파일·같은 행 조건·같은 열의 M&S 보고서 추적 행과 원값이 같고, 소수 자릿수가 같으면 인쇄값도 같다.
 #          key_numbers_en.md에서 같은 파일을 인용한 줄의 숫자와 비교한다. 핵심 수치(headline)는 보고서나 key numbers에서 반드시 확인되어야 한다.
+#          불일치 상대가 이 덱 자신의 이전 게시 행(regulatory/traceability.csv의 document = 이 덱)이면 "동결 전 예정 항목"(pass, 상세에 PENDING FREEZE)으로 둔다:
+#          추적표는 동결 때 scripts/60으로 한 번에 다시 만든다(사용자 지시 2026-09-29 "작업 방식 조정" §1).
 #  9 렌더링 배치: render_deck.py로 만든 PDF의 글줄 위치를 pptx 도형 상자와 대조한다(check_render.py: 넘침, 겹침, 가장자리 여백).
 # 사용법: Rscript reports/deck/check_deck.R [pptx] [--deck results|core] [--lang ko] [--pdf 경로(기본: pptx와 같은 이름)]
 #  core: 6에 글자 하한(제목 28, 킥커 16, 본문 18, 표·캡션 14pt)과 본문 슬라이드 설계 한도(본문 3줄, 주 시각 요소 60%, 제목 2줄)를 더한다.
@@ -14,8 +16,8 @@ source("R/00_setup.R"); suppressPackageStartupMessages({ library(data.table); li
 args <- commandArgs(trailingOnly = TRUE); lang <- if ("--lang" %in% args) args[match("--lang", args) + 1] else "ko"
 deck <- if ("--deck" %in% args) args[match("--deck", args) + 1] else "results"
 # 덱 종류별 설정(lib/deck_lib.R의 DECK_PROFILES와 같은 이름·하한). font: 글자 크기 하한(1/100 pt)
-DP <- list(results = list(text_suffix = "", base = "dupilumab_endpoint_results_v1.0.1", trace = "deck_traceability.csv", meta = "deck_meta.csv", bullets = 5L, table_rows = 6L),
-           core = list(text_suffix = "_core", base = "dupilumab_AUCinf_core_deck_v1.2", trace = "core_deck_traceability.csv", meta = "core_deck_meta.csv", bullets = 3L, table_rows = 8L,
+DP <- list(results = list(text_suffix = "", base = "dupilumab_endpoint_results_v1.0.1", trace = "deck_traceability.csv", meta = "deck_meta.csv", bullets = 5L, table_rows = 6L, doc = "deck_ko"),
+           core = list(text_suffix = "_core", base = "dupilumab_AUCinf_core_deck_v1.2", doc = "deck_core_ko", trace = "core_deck_traceability.csv", meta = "core_deck_meta.csv", bullets = 3L, table_rows = 8L,
                        font = list(title = 2800L, kicker = 1600L, caption = 1400L, table = 1400L, body = 1800L), body_lines = 3L, fig_share = 0.60, title_lines = 2L))[[deck]]
 if (is.null(DP)) stop("unknown --deck ", deck)
 pptx <- if (length(args) && !startsWith(args[1], "--")) args[1] else proj_path("reports", "deck", sprintf("%s%s.pptx", DP$base, if (lang == "ko") "" else paste0("_", lang)))
@@ -135,12 +137,15 @@ norm_p <- function(p) { p <- gsub("~", " to ", p); p <- gsub("%", "", p); gsub("
 dec <- function(p) { m <- regmatches(p, gregexpr("[0-9]+\\.([0-9]+)", p))[[1]]; if (length(m)) max(nchar(sub("^[0-9]+\\.", "", m))) else 0L }
 mm <- merge(dt[, .(section, item, source_file, locator, raw_d = value_raw, p_d = value_printed)], rt[, .(source_file, locator, raw_r = value_raw, p_r = value_printed, doc_r = document)],
             by = c("source_file", "locator"), allow.cartesian = TRUE)
-nr <- 0L; np <- 0L
+nr <- 0L; np <- 0L; npf <- 0L
+pend <- function(r, msg) { npf <<- npf + 1L; add("8 report cross-check", r$section, "pass", paste("PENDING FREEZE (previous publish of this deck in regulatory/traceability.csv; scripts/60 at freeze):", msg)) }
 if (nrow(mm)) for (k in seq_len(nrow(mm))) { r <- mm[k]
-  if (!identical(r$raw_d, r$raw_r)) { add("8 report cross-check", r$section, "FAIL", sprintf("%s [%s]: raw %s vs report %s", r$source_file, r$locator, r$raw_d, r$raw_r)); next }
+  if (!identical(r$raw_d, r$raw_r)) { msg <- sprintf("%s [%s]: raw %s vs report %s", r$source_file, r$locator, r$raw_d, r$raw_r)
+    if (identical(r$doc_r, DP$doc)) pend(r, msg) else add("8 report cross-check", r$section, "FAIL", msg); next }
   nr <- nr + 1L
-  if (dec(r$p_d) == dec(r$p_r) && !identical(num_tokens(r$p_d), num_tokens(r$p_r))) add("8 report cross-check", r$section, "FAIL", sprintf("%s: printed '%s' vs report '%s'", r$item, r$p_d, r$p_r)) else np <- np + 1L }
-add("8 report cross-check", "all", "pass", sprintf("%d deck values share file, filter and column with a report value; %d identical raw values; %d printed values consistent", nrow(mm), nr, np))
+  if (dec(r$p_d) == dec(r$p_r) && !identical(num_tokens(r$p_d), num_tokens(r$p_r))) { msg <- sprintf("%s: printed '%s' vs report '%s'", r$item, r$p_d, r$p_r)
+    if (identical(r$doc_r, DP$doc)) pend(r, msg) else add("8 report cross-check", r$section, "FAIL", msg) } else np <- np + 1L }
+add("8 report cross-check", "all", "pass", sprintf("%d deck values share file, filter and column with a report value; %d identical raw values; %d printed values consistent; %d pending freeze", nrow(mm), nr, np, npf))
 kn <- readLines(proj_path("results", "key_numbers_en.md"), encoding = "UTF-8", warn = FALSE)
 kn_num <- list(); for (l in kn) { cit <- regmatches(l, gregexpr("[A-Za-z0-9_]+/[A-Za-z0-9_]+\\.csv", l))[[1]]; for (c_ in basename(cit)) kn_num[[c_]] <- unique(c(kn_num[[c_]], num_tokens(sub("\\([^()]*\\.csv[^()]*\\)\\.?$", "", l)))) }
 kn_state <- function(p, f) { b <- basename(f); if (is.null(kn_num[[b]])) return("file not cited"); tk <- sub("^-", "", num_tokens(p)); kk <- sub("^-", "", kn_num[[b]])

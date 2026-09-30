@@ -37,11 +37,11 @@ A2:
     head: ["구성", "평가변수", "쓰임"]
     name: ["P2", "F3", "G2"]
     ep: ["AUClast + Cmax", "AUClast + Cmax + AUCinf", "AUCinf + Cmax"]
-    use: ["제안", "AUCinf를 더한 대응안", "가이드라인 기본"]
+    use: ["제안", "세 지표(S7)", "가이드라인 기본"]
   defs:
     - "**1종 오류**: 참 AUCinf 비가 동등 한계({lo} 또는 {hi})인 가상 제품을 동등으로 판정할 확률."
     - "**2종 오류**: 동등한 제품(참 AUCinf 비와 참 Cmax 비가 모두 {lo}~{hi} 안)을 동등으로 판정하지 못할 확률."
-    - "동등 = 분석 모형 M1(체중 층 포함)에서 모든 평가변수의 {ci}% 신뢰구간이 {lim}% 안(S7, 별첨 A5c). F3-B·G2-B(민감도)는 AUCinf를 λz 산출 전원(규칙 B)으로."
+    - "동등 = 분석 모형 M1(체중 층 포함)에서 모든 평가변수의 {ci}% 신뢰구간이 {lim}% 안(S7, 별첨 A5c). F3-B(대응안, 별첨 A10)·G2-B는 AUCinf를 λz 산출 전원(규칙 B)으로."
   caption:
     - "엔진 검증: NonCompart·PKNCA와 프로필 {ntot}개 쌍별 비교, λz 구간 {lz} 일치, 최대 상대 차이 {mx}(Phoenix 출력과는 미대조)."
   notes: |

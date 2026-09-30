@@ -41,6 +41,9 @@ slide_A5e <- function() {
 
   # ---- 본문 ----
   premise(all(br[endpoint == "AUCinf_Aiii" & mechanism %in% c("F", "Vmax"), bias_pct] > 0), "AUCinf rule A biased toward 1 at every F and Vmax boundary cell (body line 2)")
+  wb <- dcast(br[endpoint %in% c("AUCinf_B", "AUCinf_Aiii")], pk_model + scenario + mechanism ~ endpoint, value.var = "bias_pct")
+  premise(all(wb[mechanism %in% c("F", "Vmax"), AUCinf_B > 0 & AUCinf_Aiii > AUCinf_B]), "F and Vmax cells: rule B biased toward 1 and rule A more so (title, body line 2)")
+  premise(all(wb[mechanism == "ke" | (mechanism == "V2" & pk_model == "k2020"), AUCinf_Aiii < AUCinf_B]), "ke cells and the 2020 V2 cell: exclusion moves AUCinf away from 1 (body line 2)")
   premise(all(rows("oc_curves/oc_curves_pass.csv", "analysis_model=='M1' & kind=='boundary' & config=='G2A_iii' & mechanism %in% c('F','Vmax')")$pass_pct > 5),
           "AUCinf (A) + Cmax type I above 5% at every F and Vmax boundary cell (body line 2)")
   body <- c(tx("A5e.body1", f), tx("A5e.body2", list(nom = f_nominal())))

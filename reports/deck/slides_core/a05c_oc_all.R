@@ -80,6 +80,20 @@ slide_A5c <- function() {
     ka16 = { x <- sort(urs[mechanism == "ka" & pk_model == "k2016", target]); dderived("unreachable ka targets, 2016 model", UR, "mechanism=='ka' & pk_model=='k2016' :: target", x, paste(fnum(x, 2), collapse = ", ")) },
     kac = drange(PF, "analysis_model=='M1' & config=='P2' & mechanism=='ka'", "cmax_ratio", 2, "", "true Cmax ratio, ka cells, both models"),
     v2c = dv(PF, "analysis_model=='M1' & config=='P2' & pk_model=='k2020' & code=='V2_down_118'", "cmax_ratio", 2, "", "true Cmax ratio, 2020 model V2 cell at 1.18"),
+    c4a = dderived("rule 4c range, lower", "config/prereg_20260929_oc.yaml", "section8.wording.rule_4c :: lower end", 0.90, "0.90"),
+    c4b = dderived("rule 4c range, upper", "config/prereg_20260929_oc.yaml", "section8.wording.rule_4c :: upper end", 0.95, "0.95"),
+    n4c = dcount("oc_curves/oc_rule4c_cells.csv", "TRUE", "rule 4c cells (G2 passes more often than P2 at true ratio 0.90-0.95, paired interval above 0)"),
+    c4det = { c4 <- rows("oc_curves/oc_rule4c_cells.csv", "TRUE")
+      if (!nrow(c4)) "" else paste(vapply(seq_len(nrow(c4)), function(i) { r <- c4[i]; bc <- sub("_[0-9]+$", "_080", r$scenario)
+        premise(r$target < 1, "rule 4c cells lie below 1, so the same-direction boundary cell is the 0.80 cell")
+        w <- sprintf("pk_model=='%s' & scenario=='%s'", r$pk_model, r$scenario); wb <- sprintf("analysis_model=='M1' & kind=='boundary' & pk_model=='%s' & code=='%s'", r$pk_model, bc)
+        fill(L$fig$c4cell, list(m = DK$txt$common$models_short[[r$pk_model]], mech = L$fig$mech[[r$mechanism]],
+          t = dv("oc_curves/oc_rule4c_cells.csv", w, "target", 2, "", "rule 4c cell, true AUCinf ratio"),
+          d = dv("oc_curves/oc_rule4c_cells.csv", w, "diff_pass_pp", 1, "", "rule 4c cell, G2 minus P2 pass (points)"),
+          lo = dv("oc_curves/oc_rule4c_cells.csv", w, "lo", 1, "", "rule 4c cell, lower 95% limit (points)"),
+          hi = dv("oc_curves/oc_rule4c_cells.csv", w, "hi", 1, "", "rule 4c cell, upper 95% limit (points)"),
+          g1 = dv(PF, paste(wb, "& config=='G2A_iii'"), "pass_pct", 1, "%", "same-mechanism boundary type I error, G2A_iii"),
+          p1 = dv(PF, paste(wb, "& config=='P2'"), "pass_pct", 1, "%", "same-mechanism boundary type I error, P2"))) }, ""), collapse = ";") },
     r2 = f_set("iii", "r2"), ex = f_set("iii", "extrap"), ci = f_ci_level(), lim = { lim_v <- as.numeric(unlist(.read("config/trial_design.yaml")$be$limits))
       dderived("equivalence limits in percent (definition text)", "config/trial_design.yaml", "be.limits :: x 100, printed as a range", 100 * lim_v, rng_fmt(100 * lim_v[1], 100 * lim_v[2], 2)) }, rb = f_reps("boundary"), rn = rn, ro = ro, a = ab$a, b = ab$b)))
   deck_end()

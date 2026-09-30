@@ -39,6 +39,6 @@ slide_S8 <- function() {
     f3t1 = dv(OT1, "config=='F3A_iii' & scope=='both'", "max_pct", 1, "%", "largest boundary type I error over 16 cells, F3A_iii, M1"),
     p2t1 = dv(OT1, "config=='P2' & scope=='both'", "max_pct", 1, "%", "largest boundary type I error over 16 cells, P2, M1"),
     g2t1 = dv(OT1, "config=='G2A_iii' & scope=='both'", "max_pct", 1, "%", "largest boundary type I error over 16 cells, G2A_iii, M1"),
-    f3id = t2i("F3A_iii"), p2id = t2i("P2"), g2id = t2i("G2A_iii")))))
+    f3id = t2i("F3A_iii"), p2id = t2i("P2"), g2id = t2i("G2A_iii"), f3bid = t2i("F3B")))))
   deck_end()
 }

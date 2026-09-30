@@ -9,8 +9,9 @@ slide_S7 <- function() {
   allr <- function(k) all(W[[k]])
   L <- DK$txt$S7
   # ---- 제목(규칙) ----
-  tt <- c(if (allr("rule_T")) L$title$prefix, paste0(if (allr("rule_4b_small_cost")) L$title$f3_small else L$title$f3_cost, ", ",
-                                                     if (allr("rule_4a_keep_type2") && allr("rule_G2_type1")) L$title$g2_both else if (allr("rule_G2_type1")) L$title$g2_type1 else L$title$g2_none))
+  g2c <- if (allr("rule_4a_keep_type2") && allr("rule_G2_type1")) "g2_both" else if (allr("rule_G2_type1")) "g2_type1" else "g2_none"
+  f3c <- if (allr("rule_4b_small_cost")) L$title$f3_small else if (g2c %in% c("g2_both", "g2_type1")) L$title$f3_cost_ellipsis else L$title$f3_cost   # "A하면 X가, B하면 Y가 는다"(2줄 제한)
+  tt <- c(if (allr("rule_T")) L$title$prefix, paste0(f3c, ", ", L$title[[g2c]]))
   y0 <- core_title(paste(tt, collapse = "\n"), tx("S7.kicker"))
 
   # ---- 왼쪽: 운용특성 곡선(2020 모델, Vmax) ----
@@ -62,7 +63,14 @@ slide_S7 <- function() {
   inc_id <- { r <- rows(PD, "comparison=='F3A_iii - P2' & scenario=='S00'"); x <- range(-r$diff_pass_pp)
     dderived("type II error increase by adding AUCinf (F3A_iii vs P2), identical product, two models (percentage points)", PD, "comparison=='F3A_iii - P2' & scenario=='S00' :: range(-diff_pass_pp)", x, rng_fmt(x[1], x[2], 1, "%p")) }
   inc_max <- { x <- max(W$F3_t2_inc_max); dderived("largest type II error increase by adding AUCinf over the type II cells (F3A_iii vs P2), both models (percentage points)", WR, "TRUE :: max(F3_t2_inc_max)", x, paste0(fnum(x, 0), "%p")) }
-  b1 <- if (allr("rule_4b_small_cost")) fill(L$body$f3_small, list(x = red, y = inc_id)) else if (allr("rule_protect_almost_none")) fill(L$body$f3_none, list(x = red, y = inc_id, z = inc_max)) else fill(L$body$f3_some, list(x = red, y = inc_id, z = inc_max))
+  # 1종 오류가 줄어드는 칸(사용자 지시 2026-09-29: 말초 분포 극단 칸 외에도 여러 칸이면 본문에 밝힌다): 감소 >= 보호 규칙 기준(1.0%p) 칸 수와 그중 P2가 이미 명목 이하인 칸 수
+  thp_v <- 1.0; thp <- dderived("wording rule protect threshold (percentage points)", "config/prereg_20260929_oc.yaml", "section8.wording.rule_protect :: threshold in the text", thp_v, "1.0%p")
+  rb1 <- merge(rows(PD, "comparison=='F3A_iii - P2' & kind=='boundary'")[, .(pk_model, scenario, red = -diff_pass_pp)],
+               rows(PF, "analysis_model=='M1' & kind=='boundary' & config=='P2'")[, .(pk_model, scenario = code, p2 = pass_pct)], by = c("pk_model", "scenario"))
+  premise(nrow(rb1) == 16, "16 boundary cells with paired reductions")
+  k1 <- dderived("boundary cells where adding AUCinf (F3A_iii) lowers type I error by at least 1.0 point, both models, M1", PD, "comparison=='F3A_iii - P2' & kind=='boundary' :: count(-diff_pass_pp >= 1.0)", sum(rb1$red >= thp_v), fnum(sum(rb1$red >= thp_v), 0))
+  k2 <- dderived("of those, cells where AUClast + Cmax is already at or below 5%, M1", PF, "P2 boundary cells with F3A_iii reduction >= 1.0 point :: count(pass_pct <= 5)", sum(rb1$red >= thp_v & rb1$p2 <= 5), fnum(sum(rb1$red >= thp_v & rb1$p2 <= 5), 0))
+  b1 <- if (allr("rule_4b_small_cost")) fill(L$body$f3_small, list(x = red, y = inc_id)) else if (allr("rule_protect_almost_none")) fill(L$body$f3_none, list(x = red, y = inc_id, z = inc_max)) else fill(L$body$f3_some, list(x = red, y = inc_id, z = inc_max, k1 = k1, k2 = k2, thp = thp, nom = f_nominal()))
   b2 <- if (allr("rule_4a_keep_type2") && allr("rule_G2B_type1")) L$body$g2_both else if (allr("rule_G2B_type1")) L$body$g2_type1 else L$body$g2_none
   body <- c(b1, b2)
   rn <- dcfg("prereg_20260929_oc.yaml", c("section8", "reps", "near_one", "trials"), "trials per cell, true ratio 0.95 and 1.05", function(x) fnum(as.numeric(x), 0, TRUE))
@@ -82,7 +90,8 @@ slide_S7 <- function() {
 
   # ---- 노트 ----
   c4 <- rows("oc_curves/oc_rule4c_cells.csv", "TRUE")
-  deck_notes(tx("S7.notes", list(
+  premise(rb1[which.max(red), pk_model] == "k2020" && rb1[which.max(red), scenario] == "V2_up_080" && rb1[p2 > 5, .N] == 1 && rb1[p2 > 5, scenario] == "V2_up_080", "largest reduction is the 2020 V2 cell, the only P2 cell above 5% (notes)")
+  deck_notes(tx("S7.notes", list(x = red, z = inc_max, nom = f_nominal(),
     ruleT = L$yn[[as.character(allr("rule_T"))]], r4a = L$yn[[as.character(allr("rule_4a_keep_type2"))]], r4b = L$yn[[as.character(allr("rule_4b_small_cost"))]],
     rpr = L$yn[[as.character(allr("rule_protect_almost_none"))]],
     p2max = t1v("P2"), g2bmax = t1v("G2B"), f3bmax = t1v("F3B"),
@@ -93,7 +102,7 @@ slide_S7 <- function() {
     d = dderived("type II group (c), upper target", "config/prereg_20260929_oc.yaml", "section8.statistics.type2 :: (c) upper", 1.11, "1.11"),
     thT = dderived("wording rule T threshold: P2 type I maximum (%)", "config/prereg_20260929_oc.yaml", "section8.wording.rule_T :: threshold in the text", 6.0, "6.0%"),
     th4 = dderived("wording rules 4a and 4b threshold (percentage points)", "config/prereg_20260929_oc.yaml", "section8.wording.rule_4a and rule_4b :: threshold in the text", 2.0, "2.0%p"),
-    thp = dderived("wording rule protect threshold (percentage points)", "config/prereg_20260929_oc.yaml", "section8.wording.rule_protect :: threshold in the text", 1.0, "1.0%p"),
+    thp = thp,
     c4a = dderived("rule 4c range, lower", "config/prereg_20260929_oc.yaml", "section8.wording.rule_4c :: lower end", 0.90, "0.90"),
     c4b = dderived("rule 4c range, upper", "config/prereg_20260929_oc.yaml", "section8.wording.rule_4c :: upper end", 0.95, "0.95"))))
   deck_end()

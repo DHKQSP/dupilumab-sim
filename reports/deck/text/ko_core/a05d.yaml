@@ -1,5 +1,5 @@
 A5d:
-  kicker: "③ 판정 성능 · 가이드라인 기본 구성의 1종 오류 원인"
+  kicker: "별첨 A5d · ③ 세부: 가이드라인 기본 구성의 1종 오류 원인"
   title: "AUCinf + Cmax의 1종 오류는 AUCinf가 1 쪽으로 치우친 만큼 커진다:\n표적 매개 소실 경계에서 최대 {max}"
   fig:
     xlab: "경계 1종 오류 (동등 판정 비율, %). 점선: 명목 {v}"
@@ -27,9 +27,9 @@ A5d:
         AUCinf_Aiii: "AUCinf(A)"
         AUCinf_B: "AUCinf(B)"
         AUCinf_true: "참 AUCinf"
-  body1: "AUCinf(A) + Cmax는 경계 {n}칸 중 {k}칸, λz 산출 전원(B)도 {kb}칸에서 {nom}를 넘는다(최대 {max}, {maxb})."
+  body1: "AUCinf(A) + Cmax는 경계 {n}칸 중 {k}칸, λz 산출 전원(B)도 {kb}칸에서 점추정이 {nom}를 넘는다(최대 {max}, {maxb})."
   body2: "경계 통과율은 1 쪽 치우침 b를 표준편차(SD)로 나눈 값이 정한다(오른쪽: {nr}점 모두 곡선과 {dmax} 이내)."
-  caption: "경계 칸: 시험약의 기전 하나를 바꿔 참 AUCinf 비를 동등 한계({tgt})에 맞춘 가상 제품, 칸마다 시험 {reps}회 이상, 분석 모형 M1. (A) = 신뢰할 수 있는 AUCinf(adjusted R² ≥ {r2}, 외삽 ≤ {ex}%)만, (B) = λz 산출 전원. Φ = 표준정규 누적분포."
+  caption: "경계 칸: 시험약의 기전 하나를 바꿔 참 AUCinf 비를 동등 한계({tgt})에 맞춘 가상 제품, 칸마다 시험 {reps}회 이상, 분석 모형 M1. (A) = 신뢰할 수 있는 AUCinf(adjusted R² ≥ {r2}, 외삽 ≤ {ex}%)만, (B) = λz 산출 전원. Φ = 표준정규 누적분포, t = {ci}% 신뢰구간의 t 분위수, SD = 시험 간 표준편차(시험 내 표준오차와 거의 같아 SD로 나눴다)."
   notes: |
     구성: AUClast + Cmax는 두 지표가 모두 동등 기준을 통과해야 동등이다. AUCinf(A) + Cmax는 신뢰할 수 있는 AUCinf(adjusted R² ≥ {r2}, 외삽 ≤ {ex}%, 세트 (iii))를 얻은 대상자만으로 AUCinf를 판정하고(규칙 A), AUCinf(B) + Cmax는 λz를 산출한 대상자 모두로 판정한다(규칙 B). 값은 S7과 같은 파일(results/oc_curves/oc_curves_pass.csv)이며 저장된 요약(type1_models.csv, criteria_g2_type1.csv)과 칸마다 같다(scripts/65 대조).
     최댓값: AUCinf(A) + Cmax는 2020 모델 {i20}, 2016 모델 {i16}(모두 표적 매개 소실 칸). AUClast + Cmax의 {nom} 초과 한 칸은 2020 모델 말초 분포 증가 칸 {ci}이다(시험 {ext}회; 원인 분해는 별첨 A5b).
