@@ -17,6 +17,8 @@ S2,"type II error, identical product, G2A_iii, M1, 2020 model",results/oc_curves
 S2,"type II error, identical product, P2, M1, 2020 model",results/oc_curves/oc_curves_pass.csv,0.9%,consistent after rounding
 S2,"type II error, identical product, G2A_iii, M1, range over two models",results/oc_curves/oc_curves_pass.csv,3.3~4.2%,consistent after rounding
 S2,"type II error, identical product, P2, M1, range over two models",results/oc_curves/oc_curves_pass.csv,0.4~0.9%,consistent after rounding
+S2,"type II error, identical product, G2B, M1, range over two models",results/oc_curves/oc_curves_pass.csv,0.2~0.5%,consistent after rounding
+S2,"largest boundary type I error over 16 cells, G2B, M1",results/oc_curves/oc_type1_summary.csv,16.0%,consistent after rounding
 S2,"type II error, identical product, G2A_iii, M1, 2020 model",results/oc_curves/oc_curves_pass.csv,4.2%,consistent after rounding
 S2,"type II error, identical product, P2, M1, 2020 model",results/oc_curves/oc_curves_pass.csv,0.9%,consistent after rounding
 S2,"largest boundary type I error, P2, 2016 model, M1",results/oc_curves/oc_type1_summary.csv,4.3%,consistent after rounding
@@ -123,9 +125,16 @@ S6,"share with NCA below true, reliable subjects, 2016",results/core_deck/extrap
 S6,body weight inclusion range (kg),config/trial_design.yaml,60~90,file not cited
 S6,"95th percentile NCA extrapolated share, 2020",results/rationale/pillar1_coverage_B0.csv,11.9%,not in key numbers
 S6,"95th percentile true extrapolated share, 2020",results/rationale/pillar1_coverage_B0.csv,3.5%,consistent after rounding
+S7,"boundary cells, both models",results/oc_curves/oc_curves_pass.csv,16,not in key numbers
+S7,nominal type I error per one-sided test (%) = (1 - be.ci_level) / 2,config/trial_design.yaml,5%,file not cited
+S7,"AUClast + Cmax boundary cells at or below 5%, M1",results/oc_curves/oc_curves_pass.csv,15,not in key numbers
+S7,"AUClast + Cmax boundary cells above 5%, M1",results/oc_curves/oc_curves_pass.csv,1,consistent after rounding
+S7,"largest boundary type I error over 16 cells, P2, M1",results/oc_curves/oc_type1_summary.csv,5.6%,consistent after rounding
 S7,"near-one targets, lower (true AUCinf ratio)",config/prereg_20260929_oc.yaml,0.95,file not cited
 S7,"near-one targets, upper (true AUCinf ratio)",config/prereg_20260929_oc.yaml,1.05,file not cited
 S7,"boundary cells, both models",results/oc_curves/oc_curves_pass.csv,16,not in key numbers
+S7,"type II error, identical product, F3B, M1, 2020 model",results/oc_curves/oc_curves_pass.csv,0.92%,matched
+S7,"largest boundary type I error over 16 cells, F3B, M1 (two decimals, as A10)",results/oc_curves/oc_type1_summary.csv,3.95%,matched
 S7,"true Cmax ratio of the near-one maximum cell, two models",results/oc_curves/oc_curves_pass.csv,1.19~1.21,not in key numbers
 S7,target of the near-one maximum cell,results/oc_curves/oc_curves_pass.csv,1.05,not in key numbers
 S7,"largest boundary type I error over 16 cells, P2, M1",results/oc_curves/oc_type1_summary.csv,5.6%,consistent after rounding
@@ -144,6 +153,7 @@ S7,wording rule protect threshold (percentage points),config/prereg_20260929_oc.
 S7,"boundary cells where adding AUCinf (F3A_iii) lowers type I error by at least 1.0 point, both models, M1",results/oc_curves/oc_paired.csv,10,file not cited
 S7,"of those, cells where AUClast + Cmax is already at or below 5%, M1",results/oc_curves/oc_curves_pass.csv,9,not in key numbers
 S7,nominal type I error per one-sided test (%) = (1 - be.ci_level) / 2,config/trial_design.yaml,5%,file not cited
+S7,criteria set (iii) adj_r2_min,config/prereg_20260926.yaml,0.90,file not cited
 S7,"trials per cell, true ratio 0.95 and 1.05",config/prereg_20260929_oc.yaml,"5,000",file not cited
 S7,"trials per cell, true ratio 0.85, 0.90, 1.11 and 1.18",config/prereg_20260929_oc.yaml,"2,000",file not cited
 S7,criteria set (iii) adj_r2_min,config/prereg_20260926.yaml,0.90,file not cited
@@ -184,6 +194,7 @@ S8,criteria set (iii) extrap_max_pct,config/prereg_20260926.yaml,20,file not cit
 S8,"largest boundary type I error over 16 cells, F3A_iii, M1",results/oc_curves/oc_type1_summary.csv,2.5%,consistent after rounding
 S8,"largest boundary type I error over 16 cells, P2, M1",results/oc_curves/oc_type1_summary.csv,5.6%,consistent after rounding
 S8,"largest boundary type I error over 16 cells, G2A_iii, M1",results/oc_curves/oc_type1_summary.csv,17.5%,consistent after rounding
+S8,"largest boundary type I error over 16 cells, G2B, M1",results/oc_curves/oc_type1_summary.csv,16.0%,consistent after rounding
 S8,"type II error, identical product, F3A_iii, M1, range over two models",results/oc_curves/oc_curves_pass.csv,3.5~4.5%,consistent after rounding
 S8,"type II error, identical product, P2, M1, range over two models",results/oc_curves/oc_curves_pass.csv,0.4~0.9%,consistent after rounding
 S8,"type II error, identical product, G2A_iii, M1, range over two models",results/oc_curves/oc_curves_pass.csv,3.3~4.2%,consistent after rounding
@@ -1279,6 +1290,7 @@ A10,"G2_B largest boundary type I error, M1",results/oc_models/type1_models.csv,
 A10,"G2_Ai largest boundary type I error, M1",results/oc_models/type1_models.csv,20.27%,not in key numbers
 A10,"AUCinf + Cmax cells above 5% (point), M1, rule A set (iii), rule B, rule A set (i): range",results/criteria/criteria_g2_type1.csv,10,not in key numbers
 A10,"largest type II error increase, F3B vs P2, type II cells, both models, M1 (percentage points)",results/oc_curves/oc_paired.csv,4.8%p,file not cited
+A10,"type II error increase by adding AUCinf (F3A_iii vs P2), identical product, two models (percentage points)",results/oc_curves/oc_paired.csv,3.1~3.6%p,file not cited
 A10,"type II error, identical product, F3B, M1, range over two models",results/oc_curves/oc_curves_pass.csv,0.4~0.9%,consistent after rounding
 A10,"type II error, identical product, P2, M1, range over two models",results/oc_curves/oc_curves_pass.csv,0.4~0.9%,consistent after rounding
 A10,"type II error, identical product, F3A_iii, M1, range over two models",results/oc_curves/oc_curves_pass.csv,3.5~4.5%,consistent after rounding

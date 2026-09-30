@@ -51,7 +51,8 @@ slide_S2 <- function() {
 
   deck_notes(tx("S2.notes", c(f, list(cmin = cmin, cmed = cmed, t_inf = t_inf, t_last = t_last, nom = nom, g1 = g1, p1 = p1,
     c3 = DK$txt$S2$c3note[[if (r4a) "type2" else "type1"]],
-    g2id = t2id("G2A_iii"), p2id = t2id("P2"),
+    g2id = t2id("G2A_iii"), p2id = t2id("P2"), g2bid = t2id("G2B"),
+    g2bt1 = dv(OT1, "config=='G2B' & scope=='both'", "max_pct", 1, "%", "largest boundary type I error over 16 cells, G2B, M1"),
     g2id20 = t2id20("G2A_iii"), p2id20 = t2id20("P2"),
     g1r = g1r,
     p1_16 = dv(OT1, "config=='P2' & scope=='k2016'", "max_pct", 1, "%", "largest boundary type I error, P2, 2016 model, M1"),

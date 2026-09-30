@@ -1,12 +1,12 @@
 check,slide,status,detail
 1 numbers traced,S1,pass,2 traced values
-1 numbers traced,S2,pass,28 traced values
+1 numbers traced,S2,pass,30 traced values
 1 numbers traced,S3,pass,12 traced values
 1 numbers traced,S4,pass,20 traced values
 1 numbers traced,S5,pass,27 traced values
 1 numbers traced,S6,pass,35 traced values
-1 numbers traced,S7,pass,52 traced values
-1 numbers traced,S8,pass,13 traced values
+1 numbers traced,S7,pass,60 traced values
+1 numbers traced,S8,pass,14 traced values
 1 numbers traced,A1,pass,62 traced values
 1 numbers traced,A2,pass,32 traced values
 1 numbers traced,A3a,pass,96 traced values
@@ -25,7 +25,7 @@ check,slide,status,detail
 1 numbers traced,A7,pass,111 traced values
 1 numbers traced,A8,pass,53 traced values
 1 numbers traced,A9,pass,92 traced values
-1 numbers traced,A10,pass,76 traced values
+1 numbers traced,A10,pass,77 traced values
 1 numbers traced,A11,pass,84 traced values
 1 numbers traced,A12,pass,74 traced values
 1 numbers traced,A14,pass,38 traced values
@@ -154,9 +154,9 @@ check,slide,status,detail
 6 limits,S6,pass,"bullets 0, table rows 0"
 6 main-slide design,S6,pass,"body lines 1, main visual 71% of the body area, title lines 2"
 6 limits,S7,pass,"bullets 0, table rows 3"
-6 main-slide design,S7,pass,"body lines 3, main visual 62% of the body area, title lines 2"
+6 main-slide design,S7,pass,"body lines 3, main visual 67% of the body area, title lines 2"
 6 limits,S8,pass,"bullets 0, table rows 0"
-6 main-slide design,S8,pass,"body lines 1, main visual 84% of the body area, title lines 2"
+6 main-slide design,S8,pass,"body lines 2, main visual 77% of the body area, title lines 2"
 6 limits,A1,pass,"bullets 0, table rows 0"
 6 limits,A2,pass,"bullets 0, table rows 5"
 6 limits,A3a,pass,"bullets 2, table rows 8"
@@ -179,7 +179,7 @@ check,slide,status,detail
 6 limits,A11,pass,"bullets 0, table rows 5"
 6 limits,A12,pass,"bullets 0, table rows 8"
 6 limits,A14,pass,"bullets 0, table rows 0"
-7 trace sources,all,pass,"114 source files, 1585 trace rows"
+7 trace sources,all,pass,"114 source files, 1597 trace rows"
 8 report cross-check,A14,pass,"PENDING FREEZE (previous publish of this deck in regulatory/traceability.csv; scripts/60 at freeze): results/core_deck/provenance.csv [count of rows [!startsWith(check, 'input ')]]: raw 39 vs report 36"
 8 report cross-check,A12,pass,PENDING FREEZE (previous publish of this deck in regulatory/traceability.csv; scripts/60 at freeze): results/core_deck/provenance.csv [count of rows [equal == TRUE]]: raw 39 vs report 36
 8 report cross-check,A12,pass,PENDING FREEZE (previous publish of this deck in regulatory/traceability.csv; scripts/60 at freeze): results/core_deck/provenance.csv [count of rows [equal == TRUE]]: raw 39 vs report 36
@@ -189,8 +189,8 @@ check,slide,status,detail
 8 report cross-check,A12,pass,"PENDING FREEZE (previous publish of this deck in regulatory/traceability.csv; scripts/60 at freeze): results/core_deck/provenance.csv [count of rows [startsWith(check, 'input ')]]: raw 11 vs report 9"
 8 report cross-check,A14,pass,"PENDING FREEZE (previous publish of this deck in regulatory/traceability.csv; scripts/60 at freeze): results/core_deck/provenance.csv [count of rows [startsWith(check, 'input ')]]: raw 11 vs report 9"
 8 report cross-check,A14,pass,"PENDING FREEZE (previous publish of this deck in regulatory/traceability.csv; scripts/60 at freeze): results/core_deck/provenance.csv [count of rows [startsWith(check, 'input ')]]: raw 11 vs report 9"
-8 report cross-check,all,pass,"6093 deck values share file, filter and column with a report value; 6084 identical raw values; 6084 printed values consistent; 9 pending freeze"
-8 key numbers cross-check,all,pass,consistent after rounding: 103; file not cited: 753; matched: 190; not in key numbers: 469
+8 report cross-check,all,pass,"6137 deck values share file, filter and column with a report value; 6128 identical raw values; 6128 printed values consistent; 9 pending freeze"
+8 key numbers cross-check,all,pass,consistent after rounding: 108; file not cited: 756; matched: 192; not in key numbers: 471
 8 headline,S2,pass,33~39% (report: TRUE; key numbers: consistent after rounding)
 8 headline,S2,pass,4.2% (report: TRUE; key numbers: consistent after rounding)
 8 headline,S2,pass,0.9% (report: TRUE; key numbers: consistent after rounding)

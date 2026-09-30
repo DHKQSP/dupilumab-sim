@@ -80,7 +80,7 @@ slide_A10 <- function() {
   # 높이: 표 추정 높이를 먼저 구해 카드에 나머지를 준다
   TWD <- c(3.9, 1.35, 0.95, 1.45, 2.2, 2.38)
   th <- deck_table_h(df, GEO$CW, TWD, 14, pad = 2) + 0.04
-  ty <- capy - 0.10 - th
+  ty <- capy - 0.06 - th
   deck_table(df, box = c(GEO$ML, ty, GEO$CW, th), widths = TWD, size = 14, highlight = 4:6, label = "table_configs", pad = 2)   # 셀 위아래 여백 2pt: 카드 세 개 + 표 + 캡션을 한 장에
   dsrc("configuration table", c(T1, CG, TR, TC, FC), "(table)")
 
@@ -94,12 +94,14 @@ slide_A10 <- function() {
   W2 <- "comparison=='F3B - P2' & (kind=='identity' | (cmax_in_limits & (abs(target - 0.95) < 1e-9 | abs(target - 1.05) < 1e-9 | abs(target - 0.90) < 1e-9 | abs(target - 1.11) < 1e-9)))"
   i2 <- rows(PDc, W2); premise(nrow(i2) > 0 && max(-i2$diff_pass_pp) < max(-rows(PDc, sub("F3B", "F3A_iii", W2))$diff_pass_pp), "fallback (rule B) type II increase smaller than with set (iii) AUCinf (why box)")
   f3binc <- dderived("largest type II error increase, F3B vs P2, type II cells, both models, M1 (percentage points)", PDc, paste(W2, ":: max(-diff_pass_pp)"), max(-i2$diff_pass_pp), paste0(fnum(max(-i2$diff_pass_pp), 1), "%p"))
-  t2c <- list(f3bid = t2i("F3B"), p2id = t2i("P2"), f3aid = t2i("F3A_iii"), f3binc = f3binc,
+  f3ainc <- { r <- rows(PDc, "comparison=='F3A_iii - P2' & scenario=='S00'"); x <- range(-r$diff_pass_pp); premise(nrow(r) == 2 && all(x > 0), "set (iii) three-endpoint increase, identical product, both models (why box)")
+    dderived("type II error increase by adding AUCinf (F3A_iii vs P2), identical product, two models (percentage points)", PDc, "comparison=='F3A_iii - P2' & scenario=='S00' :: range(-diff_pass_pp)", x, rng_fmt(x[1], x[2], 1, "%p")) }
+  t2c <- list(f3bid = t2i("F3B"), p2id = t2i("P2"), f3aid = t2i("F3A_iii"), f3binc = f3binc, f3ainc = f3ainc,
               c = dderived("type II group (b)-(c) range, lower target", "config/prereg_20260929_oc.yaml", "section8.statistics.type2 :: (c) lower", 0.90, "0.90"),
               d = dderived("type II group (b)-(c) range, upper target", "config/prereg_20260929_oc.yaml", "section8.statistics.type2 :: (c) upper", 1.11, "1.11"),
               f3ball = { W3 <- "comparison=='F3B - P2' & kind=='curve' & cmax_in_limits"; x <- max(-rows(PDc, W3)$diff_pass_pp)
                 dderived("largest type II error increase, F3B vs P2, all non-boundary cells with the true Cmax ratio inside the limits (0.85-1.18), M1 (points)", PDc, paste(W3, ":: max(-diff_pass_pp)"), x, paste0(fnum(x, 1), "%p")) })
-  why <- tx("A10.why", c(wy, t2c, list(k = cf_k, n = f$n, nom = f$nom))); wyy <- y0 + 0.02; wh <- ty - 0.14 - wyy
+  why <- tx("A10.why", c(wy, t2c, list(k = cf_k, n = f$n, nom = f$nom))); wyy <- y0 + 0.02; wh <- ty - 0.10 - wyy
   deck_text(why, c(GEO$ML, wyy, GEO$CW, wh), size = 16, bg = PAL$tint_grey, geom = "roundRect", label = "caption_why", gap_pt = 4)
   deck_visual(c(GEO$ML, wyy, GEO$CW, wh))
 
