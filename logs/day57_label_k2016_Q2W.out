@@ -1,0 +1,4 @@
+- One or more packages recorded in the lockfile are not installed.
+- Use `renv::status()` for more details.
+run log: /home/user/dupilumab-sim/logs/day57_label_k2016_Q2W_20261002T010111.log
+k2016 Q2W: n 10000, median 9.09 weeks, NA 0, trough ratio median 1.0000, in 37.69969 secs 
