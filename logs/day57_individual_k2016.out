@@ -1,0 +1,35 @@
+- One or more packages recorded in the lockfile are not installed.
+- Use `renv::status()` for more details.
+run log: /home/user/dupilumab-sim/logs/day57_individual_k2016_20261002T005453.log
+[====|====|====|====|====|====|====|====|====|====] 0:00:08 
+
+   el     n n_above    pct           lo          hi n_disagree_direct pk_model
+1: 49 20000    2153 10.765 10.342965632 11.20210344                 0    k2016
+2: 56 20000     602  3.010  2.782075646  3.25597190                 0    k2016
+3: 57 20000     494  2.470  2.263849458  2.69440549                 0    k2016
+4: 63 20000     136  0.680  0.575193669  0.80374877                 0    k2016
+5: 70 20000      26  0.130  0.088734541  0.19041913                 0    k2016
+6: 84 20000       2  0.010  0.002742404  0.03645736                 0    k2016
+   study_day
+1:        50
+2:        57
+3:        58
+4:        64
+5:        71
+6:        85
+   pk_model     n n_never      p50      p90      p95      p99     max
+1:    k2016 20000       0 38.46476 50.36744 54.23891 62.47149 97.0143
+                                             item   stored      new identical
+1:  per-subject t_lloq, max abs difference (days)       NA  0.00000      TRUE
+2:    per-subject tmax, max abs difference (days)       NA  0.00000      TRUE
+3:                   LLOQ reach study day, median 38.46476 38.46476     FALSE
+4:           LLOQ reach study day, 5th percentile 27.19521 27.19521     FALSE
+5:          LLOQ reach study day, 95th percentile 54.23891 54.23891     FALSE
+6: share reaching the LLOQ after study Day 58 (%)  2.47000  2.47000     FALSE
+   pk_model          diff agree_csv_precision
+1:    k2016            NA                TRUE
+2:    k2016            NA                TRUE
+3:    k2016 -2.842171e-14                TRUE
+4:    k2016 -3.197442e-14                TRUE
+5:    k2016 -2.131628e-14                TRUE
+6:    k2016 -4.440892e-16                TRUE

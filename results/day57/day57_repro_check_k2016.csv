@@ -1,0 +1,7 @@
+item,stored,new,identical,pk_model,diff,agree_csv_precision
+"per-subject t_lloq, max abs difference (days)",,0,TRUE,k2016,,TRUE
+"per-subject tmax, max abs difference (days)",,0,TRUE,k2016,,TRUE
+"LLOQ reach study day, median",38.4647596937202,38.4647596937202,FALSE,k2016,-2.8421709430404e-14,TRUE
+"LLOQ reach study day, 5th percentile",27.1952125885761,27.1952125885761,FALSE,k2016,-3.19744231092045e-14,TRUE
+"LLOQ reach study day, 95th percentile",54.2389099403096,54.2389099403096,FALSE,k2016,-2.1316282072803e-14,TRUE
+share reaching the LLOQ after study Day 58 (%),2.47,2.47,FALSE,k2016,-4.44089209850063e-16,TRUE
