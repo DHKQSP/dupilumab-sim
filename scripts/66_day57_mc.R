@@ -5,11 +5,12 @@
 #   individual <k2016|k2020>              1절 + A: 절벽 분석(scripts/34)과 같은 호출·시드로 20,000명을 다시 만들고 저장 결과와 대조, 시점별 정량한계 위 비율
 #   trials <k2016|k2020> [from] [to]      3절: 시험 from..to(기본 1..10,000), 250회 묶음 파일(이미 있는 묶음은 건너뜀 = 이어서 실행)
 #   label <k2016|k2020> <Q2W|QW>          4절: 아토피 가정 체중, 600 mg 부하 뒤 300 mg Q2W 또는 QW를 day 364까지, 마지막 투여 뒤 정량한계 미만까지 시간
+#   trials57 <k2016|k2020> [from] [to]    추가 C(사후 추가): 3절 같은 시험·시드로 Day 57(경과 56일)과 Day 58 참 농도만 다시 풀어 arm별 개수(Day 58은 저장값과 대조)
 #   summary                               모든 요약 표와 한국어 요약(results/day57/)
 # 사용법: nice -n 19 Rscript scripts/66_day57_mc.R <mode> ...
 source("R/00_setup.R"); source_project()
 args <- commandArgs(trailingOnly = TRUE)
-if (!length(args) || !args[1] %in% c("individual", "trials", "label", "summary")) stop("사용법: Rscript scripts/66_day57_mc.R <individual|trials|label|summary> ...")
+if (!length(args) || !args[1] %in% c("individual", "trials", "trials57", "label", "summary")) stop("사용법: Rscript scripts/66_day57_mc.R <individual|trials|trials57|label|summary> ...")
 mode <- args[1]
 PR <- read_cfg("prereg_20261002_day57.yaml"); design <- read_cfg("trial_design.yaml"); oc <- read_cfg("oc_design.yaml"); cf <- oc$cliff
 out_dir <- proj_path(PR$output_dir); dir.create(file.path(out_dir, "trials"), showWarnings = FALSE, recursive = TRUE)
@@ -106,6 +107,42 @@ if (mode == "trials") {
   append_run_log(lf, "done")
 }
 
+# ---------------------------------------------------------------- 추가 C: Day 57 시험 수준(사후 추가) ----------------------------------------------------------------
+# 3절은 arm별 개수만 저장했다(대상자별 농도 없음). 같은 시드로 같은 대상자를 다시 만들고 참 농도만 푼다(잔차 난수는 뽑지 않음 → 3절의 잔차 흐름과 무관).
+if (mode == "trials57") {
+  model <- args[2]; stopifnot(model %in% names(VAR))
+  AC <- PR$addendum_C_day57_trial_level; stopifnot(as.integer(AC$added_timepoint_study_day) == 57L)
+  NT <- as.integer(PR$section3_trial_level$n_trials); stopifnot(NT == 10000L)
+  from <- if (length(args) >= 3) as.integer(args[3]) else 1L; to <- if (length(args) >= 4) as.integer(args[4]) else NT
+  stopifnot(from >= 1, to <= NT, to >= from)
+  rv <- params_of(model); p <- rv$p; wt <- rv$wt_spec; n_arm <- as.integer(design$n_per_arm); stopifnot(n_arm == 117L)
+  st <- strata_from_weight_spec(wt, as.numeric(design$stratification$split_kg$value))
+  EL57 <- c(56, 57)                                                    # Day 57(추가), Day 58(저장값 대조)
+  od <- proj_path(AC$output_dir); dir.create(od, showWarnings = FALSE, recursive = TRUE)
+  lf <- start_run_log(sprintf("day57_trials57_%s_%d_%d", model, from, to), master_seed = MS, run_mode = "final", extra = list(model = model, from = from, to = to, post_hoc = TRUE))
+  B <- 250L
+  for (b0 in seq((from - 1) %/% B * B + 1, to, by = B)) {
+    js <- max(b0, from):min(b0 + B - 1, to)
+    f <- file.path(od, sprintf("day57_trials57_%s_%05d_%05d.csv.gz", model, min(js), max(js)))
+    if (file.exists(f)) { cat("skip", basename(f), "\n"); next }
+    t0 <- Sys.time()
+    subj <- rbindlist(lapply(js, function(j) {                         # 3절과 같은 호출 순서·시드(잔차 표는 만들지 않음)
+      s <- with_seed(derive_seed(MS, "trial3", model, j, "subj"), make_subjects(2 * n_arm, p, wt, design$weight$sex_ratio_male$value, p$ada$fraction))
+      s <- with_seed(derive_seed(MS, "trial3", model, j, "alloc"), assign_arms_stratified(s, st$breaks, st$labels))
+      s[, `:=`(trial = j, uid = (j - 1L) * (2L * n_arm) + id)]
+    }))
+    ip <- individual_params(p, copy(subj)[, id := uid])
+    sol <- solve_model(ip, CJ(id = ip$id, time = EL57), design$dose_mg, model_id = p$model_id)
+    d <- merge(sol[, .(uid = id, planned = time, C)], subj[, .(uid, trial, arm)], by = "uid")
+    res <- d[, .(n = .N, n_true = sum(C >= LLOQ)), by = .(trial, arm, study_day = planned + 1)]
+    stopifnot(all(res$n == n_arm), nrow(res) == length(js) * 2L * length(EL57))
+    tmp <- file.path(dirname(f), paste0("tmp_", basename(f))); fwrite(res[, pk_model := model], tmp); file.rename(tmp, f)
+    msg <- sprintf("%s trials %d-%d (Day 57, 58) written in %s", model, min(js), max(js), format(Sys.time() - t0)); cat(msg, "\n"); append_run_log(lf, msg)
+    rm(subj, ip, sol, d); gc(FALSE)
+  }
+  append_run_log(lf, "done")
+}
+
 # ---------------------------------------------------------------- 4절 ----------------------------------------------------------------
 if (mode == "label") {
   model <- args[2]; reg <- args[3]; stopifnot(model %in% names(VAR), reg %in% c("Q2W", "QW"))
@@ -163,6 +200,28 @@ if (mode == "summary") {
     rbind(smry(a$n_true, "per arm", "true"), smry(a$n_obs, "per arm", "observed"), smry(tr$t_true, "per trial (234)", "true"), smry(tr$t_obs, "per trial (234)", "observed"))[, `:=`(pk_model = m, study_day = dy)] }))))
   setcolorder(TS, c("pk_model", "study_day", "unit", "measure"))
   fwrite(TS, file.path(out_dir, "day57_trials_summary.csv"))
+  # 추가 C(사후 추가): Day 57 arm당 정량 가능 인원, Day 58 저장값 대조, 검토자 이항 근사와 비교
+  AC <- PR$addendum_C_day57_trial_level
+  T57F <- list.files(proj_path(AC$output_dir), pattern = "^day57_trials57_.*\\.csv\\.gz$", full.names = TRUE)
+  T57 <- if (length(T57F)) rbindlist(lapply(T57F, fread)) else NULL
+  if (!is.null(T57)) {
+    stopifnot(all(T57[, uniqueN(trial), by = pk_model]$V1 == as.integer(PR$section3_trial_level$n_trials)), setequal(unique(T57$pk_model), PK),
+              nrow(T57) == uniqueN(T57[, .(pk_model, trial, arm, study_day)]))
+    cmp <- merge(T57[study_day == 58, .(pk_model, trial, arm, n_new = n_true)], TR[study_day == 58, .(pk_model, trial, arm, n_old = n_true)], by = c("pk_model", "trial", "arm"))
+    CK <- cmp[, .(n_arms = .N, n_mismatch = sum(n_new != n_old), max_abs_diff = max(abs(n_new - n_old))), by = pk_model]
+    stopifnot(all(CK$n_arms == 2L * as.integer(PR$section3_trial_level$n_trials)))
+    fwrite(CK, file.path(out_dir, "day57_trials_day57_check.csv"))
+    T57S <- rbindlist(lapply(PK, function(m) { a <- T57[pk_model == m & study_day == 57]; tr <- a[, .(t_true = sum(n_true)), by = trial]
+      rbind(smry(a$n_true, "per arm", "true"), smry(tr$t_true, "per trial (234)", "true"))[, `:=`(pk_model = m, study_day = 57L)] }))
+    setcolorder(T57S, c("pk_model", "study_day", "unit", "measure")); fwrite(T57S, file.path(out_dir, "day57_trials_day57_summary.csv"))
+    RVW <- rbindlist(lapply(PK, function(m) { a <- T57S[pk_model == m & unit == "per arm"]; r <- AC$reviewer_binomial_per_arm[[m]]
+      p57 <- SH[pk_model == m & study_day == 57]$pct / 100; stopifnot(length(p57) == 1)
+      data.table(pk_model = m, sim_median = a$median, sim_p95 = a$p95, reviewer_median = as.numeric(r$median), reviewer_p95 = as.numeric(r$p95),
+                 diff_median = a$median - as.numeric(r$median), diff_p95 = a$p95 - as.numeric(r$p95),
+                 section1_day57_share = p57, binom_median = qbinom(0.5, 117, p57), binom_p95 = qbinom(0.95, 117, p57), binom_mean = 117 * p57, sim_mean = a$mean) }))
+    fwrite(RVW, file.path(out_dir, "day57_trials_day57_vs_reviewer.csv"))
+    print(CK); print(T57S); print(RVW)
+  }
   # 4절
   LB <- rbindlist(lapply(PK, function(m) rbindlist(lapply(c("Q2W", "QW"), function(r) fread(file.path(out_dir, sprintf("day57_label_subjects_%s_%s.csv.gz", m, r)))))))
   lab <- PR$section4_label$label; LW <- c(Q2W = as.numeric(lab$q2w_300mg_weeks), QW = as.numeric(lab$qw_300mg_weeks))
@@ -191,6 +250,16 @@ if (mode == "summary") {
     L <- c(L, sprintf("- %s Day %d: arm당 중앙값 %s명(95번째 백분위수 %s명, 최대 %s명), 시험 전체(234명) 중앙값 %s명(95번째 %s명); 1명 이상인 arm %s%%",
                       ML[[m]], dy, f1(a[unit == "per arm"]$median, 0), f1(a[unit == "per arm"]$p95, 0), f1(a[unit == "per arm"]$max, 0),
                       f1(a[unit != "per arm"]$median, 0), f1(a[unit != "per arm"]$p95, 0), f1(a[unit == "per arm"]$share_ge1_pct, 1))) }
+  if (!is.null(T57)) {
+    fx <- function(x) if (x == round(x)) f1(x, 0) else f1(x, 2)
+    L <- c(L, "", "## 추가 C. Day 57 시험 수준(사후 추가, 2026-10-02; 3절과 같은 시험·시드, 참 농도 기준)", "",
+           "- 3절은 arm별 개수(Day 58, 64, 71, 85)만 저장해 Day 57은 같은 시드로 같은 대상자를 다시 만들어 계산했다(잔차 난수는 뽑지 않음).")
+    for (m in PK) { a <- T57S[pk_model == m]; ck <- CK[pk_model == m]; r <- RVW[pk_model == m]
+      L <- c(L, sprintf("- %s Day 57: arm당 중앙값 %s명(95번째 백분위수 %s명), 1명 이상인 arm %s%%, 시험 전체(234명) 중앙값 %s명. 검토자 이항 근사(중앙값 %s명, 95번째 %s명)와 차이 %s명, %s명(참고: 1절 Day 57 비율 %s%%의 이항 분위수 %s명, %s명).",
+                        ML[[m]], fx(a[unit == "per arm"]$median), fx(a[unit == "per arm"]$p95), f1(a[unit == "per arm"]$share_ge1_pct, 1), fx(a[unit != "per arm"]$median),
+                        fx(r$reviewer_median), fx(r$reviewer_p95), fx(r$diff_median), fx(r$diff_p95), f1(100 * r$section1_day57_share, 2), fx(r$binom_median), fx(r$binom_p95)),
+             sprintf("  - 대조: Day 58 arm별 개수가 저장된 3절 값과 %s(arm %s개 중 불일치 %d개).", if (ck$n_mismatch == 0) "모두 같다" else "다르다", f1(ck$n_arms, 0), ck$n_mismatch)) }
+  }
   L <- c(L, "", "## 4절 라벨 비교(아토피 가정 체중, 600 mg 부하 뒤 day 364까지 반복 투여, 질환 공변량 없음)", "")
   for (i in seq_len(nrow(LS))) { r <- LS[i]
     L <- c(L, sprintf("- %s %s: 마지막 투여 뒤 정량한계(78 ng/mL) 미만까지 중앙값 %s주(사분위 %s~%s주) 대 라벨 %s주, 차이 %s%% → %s",
