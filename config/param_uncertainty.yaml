@@ -1,0 +1,51 @@
+# 파라미터 불확실성 입력(사전 등록 config/prereg_20261002_day57.yaml section2, D-066): 논문의 추정값과 상대 표준오차(RSE).
+# 상태: 미입력. 이 저장소에는 RSE가 기록된 적이 없고(D-012: 지시서가 RSE·분산-공분산을 주지 않음), 분석 환경에서는 논문을 열 수 없다
+# (2026-10-02: NCBI, Europe PMC, Wiley, ResearchGate, Semantic Scholar, Crossref, doi.org, archive.org 모두 네트워크 정책으로 차단).
+# 채우는 법: 각 항목에 rse(비율, 예: 12.3% → 0.123)를 넣는다. 논문이 RSE를 보고하지 않은 항목은 not_reported: true로 적는다(그 항목은 고정).
+# 고정으로 보고된 항목(fixed: true)은 바꾸지 않는다. 추정값(estimate)은 모델 config와 같아야 하며 scripts/67이 대조한다.
+# 입력을 채운 뒤 이 파일을 커밋하고 나서 scripts/67을 실행한다(동결 규칙).
+status: pending
+models:
+  k2016:
+    source: "Kovalenko 2016 CPT Pharmacometrics Syst Pharmacol 5:617, Table 2, 'BLQ data included' column"
+    theta:
+      Vc:       {estimate: 2.74,   rse: null, paper_name: V2}
+      ke:       {estimate: 0.0459, rse: null}
+      k12:      {estimate: 0.0652, rse: null, paper_name: k23}
+      k21:      {estimate: 0.129,  rse: null, paper_name: k32}
+      ka:       {estimate: 0.254,  rse: null}
+      Vmax:     {estimate: 0.968,  rse: null}
+      F:        {estimate: 0.607,  rse: null}
+      theta_WT: {estimate: 0.705,  rse: null, paper_name: "weight exponent on V2"}
+      Km:       {estimate: 0.01,   fixed: true}
+    omega2:                                       # variances (omega^2)
+      Vc:   {estimate: 0.0225, rse: null}
+      ke:   {estimate: 0.131,  rse: null}
+      ka:   {estimate: 0.251,  rse: null}
+      Vmax: {estimate: 0.0428, rse: null}
+    sigma:
+      prop: {estimate: 0.242, rse: null}
+      add:  {estimate: 0.03,  fixed: true}
+  k2020:
+    source: "Kovalenko 2020 Clin Pharmacol Drug Dev 9:756, Table 1 Model 1 and Supplementary Table 2 (Model 1)"
+    theta:
+      Vc:       {estimate: 2.48,   rse: null}
+      ke:       {estimate: 0.0534, rse: null}
+      k12:      {estimate: 0.213,  rse: null, paper_name: kcp}
+      Mpc:      {estimate: 0.686,  rse: null, paper_name: Mpc, note: "k21 = k12 / Mpc (0.213 / 0.686 = 0.310)"}
+      ka:       {estimate: 0.256,  rse: null}
+      MTT:      {estimate: 0.105,  rse: null}
+      Vmax:     {estimate: 1.07,   rse: null, paper_name: Vm}
+      F:        {estimate: 0.643,  rse: null}
+      theta_WT: {estimate: 0.711,  rse: null, paper_name: "weight exponent on Vc"}
+      Km:       {estimate: 0.01,   fixed: true}
+      n_transit: {estimate: 3,     fixed: true}
+    omega_sd:                                     # the supplement reports log-normal SDs; omega^2 = SD^2
+      Vc:   {estimate: 0.192, rse: null}
+      ke:   {estimate: 0.285, rse: null}
+      ka:   {estimate: 0.474, rse: null}
+      Vmax: {estimate: 0.236, rse: null}
+      MTT:  {estimate: 0.525, rse: null}
+    sigma:
+      prop: {estimate: 0.150, rse: null}
+      add:  {estimate: 0.03,  fixed: true}
