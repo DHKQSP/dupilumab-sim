@@ -1,0 +1,115 @@
+- One or more packages recorded in the lockfile are not installed.
+- Use `renv::status()` for more details.
+   pk_model n_trials
+1:    k2016    10000
+2:    k2020    10000
+   pk_model n_arms n_mismatch max_abs_diff
+1:    k2016  20000          0            0
+2:    k2020  20000          0            0
+   pk_model study_day            unit measure     n median p95     mean
+1:    k2020        57         per arm    true 20000      6  11  6.30625
+2:    k2020        57 per trial (234)    true 10000     12  19 12.61250
+3:    k2016        57         per arm    true 20000      3   7  3.65440
+4:    k2016        57 per trial (234)    true 10000      7  12  7.30880
+   share_ge1_pct max
+1:        99.865  18
+2:       100.000  27
+3:        97.530  13
+4:        99.920  19
+   pk_model sim_median sim_p95 reviewer_median reviewer_p95 diff_median
+1:    k2020          6      11               6           11           0
+2:    k2016          3       7               3            7           0
+   diff_p95 section1_day57_share binom_median binom_p95 binom_mean sim_mean
+1:        0              0.05435            6        11    6.35895  6.30625
+2:        0              0.03010            3         7    3.52170  3.65440
+   el     n n_above   pct          lo         hi n_disagree_direct pk_model
+1: 57 20000     919 4.595 4.313440322 4.89399847                 0    k2020
+2: 63 20000     290 1.450 1.293406512 1.62524019                 0    k2020
+3: 70 20000      64 0.320 0.250695519 0.40838518                 0    k2020
+4: 84 20000       2 0.010 0.002742404 0.03645736                 0    k2020
+5: 57 20000     494 2.470 2.263849458 2.69440549                 0    k2016
+6: 63 20000     136 0.680 0.575193669 0.80374877                 0    k2016
+7: 70 20000      26 0.130 0.088734541 0.19041913                 0    k2016
+8: 84 20000       2 0.010 0.002742404 0.03645736                 0    k2016
+   study_day
+1:        58
+2:        64
+3:        71
+4:        85
+5:        58
+6:        64
+7:        71
+8:        85
+   pk_model     n n_never      p50      p90      p95      p99      max
+1:    k2020 20000       0 40.76854 53.26078 57.57938 65.76190 88.15561
+2:    k2016 20000       0 38.46476 50.36744 54.23891 62.47149 97.01430
+                                              item   stored      new identical
+ 1:  per-subject t_lloq, max abs difference (days)       NA  0.00000      TRUE
+ 2:    per-subject tmax, max abs difference (days)       NA  0.00000      TRUE
+ 3:                   LLOQ reach study day, median 40.76854 40.76854     FALSE
+ 4:           LLOQ reach study day, 5th percentile 28.72552 28.72552      TRUE
+ 5:          LLOQ reach study day, 95th percentile 57.57938 57.57938     FALSE
+ 6: share reaching the LLOQ after study Day 58 (%)  4.59500  4.59500      TRUE
+ 7:  per-subject t_lloq, max abs difference (days)       NA  0.00000      TRUE
+ 8:    per-subject tmax, max abs difference (days)       NA  0.00000      TRUE
+ 9:                   LLOQ reach study day, median 38.46476 38.46476     FALSE
+10:           LLOQ reach study day, 5th percentile 27.19521 27.19521     FALSE
+11:          LLOQ reach study day, 95th percentile 54.23891 54.23891     FALSE
+12: share reaching the LLOQ after study Day 58 (%)  2.47000  2.47000     FALSE
+    pk_model          diff agree_csv_precision
+ 1:    k2020            NA                TRUE
+ 2:    k2020            NA                TRUE
+ 3:    k2020 -2.842171e-14                TRUE
+ 4:    k2020  0.000000e+00                TRUE
+ 5:    k2020  3.552714e-14                TRUE
+ 6:    k2020  0.000000e+00                TRUE
+ 7:    k2016            NA                TRUE
+ 8:    k2016            NA                TRUE
+ 9:    k2016 -2.842171e-14                TRUE
+10:    k2016 -3.197442e-14                TRUE
+11:    k2016 -2.131628e-14                TRUE
+12:    k2016 -4.440892e-16                TRUE
+    pk_model study_day            unit measure     n median p95     mean
+ 1:    k2020        58         per arm    true 20000      5   9  5.29190
+ 2:    k2020        58 per trial (234)    true 10000     10  16 10.58380
+ 3:    k2020        64         per arm    true 20000      2   4  1.72720
+ 4:    k2020        64 per trial (234)    true 10000      3   7  3.45440
+ 5:    k2020        71         per arm    true 20000      0   2  0.42455
+ 6:    k2020        71 per trial (234)    true 10000      1   3  0.84910
+ 7:    k2020        85         per arm    true 20000      0   0  0.02190
+ 8:    k2020        85 per trial (234)    true 10000      0   0  0.04380
+ 9:    k2016        58         per arm    true 20000      3   6  3.02505
+10:    k2016        58 per trial (234)    true 10000      6  10  6.05010
+11:    k2016        64         per arm    true 20000      1   3  0.92490
+12:    k2016        64 per trial (234)    true 10000      2   4  1.84980
+13:    k2016        71         per arm    true 20000      0   1  0.21050
+14:    k2016        71 per trial (234)    true 10000      0   2  0.42100
+15:    k2016        85         per arm    true 20000      0   0  0.00900
+16:    k2016        85 per trial (234)    true 10000      0   0  0.01800
+    share_ge1_pct max
+ 1:        99.555  17
+ 2:       100.000  26
+ 3:        82.100   8
+ 4:        96.820  12
+ 5:        34.715   4
+ 6:        57.130   6
+ 7:         2.170   2
+ 8:         4.260   2
+ 9:        95.470  12
+10:        99.780  17
+11:        60.625   7
+12:        84.780   8
+13:        18.865   4
+14:        34.190   5
+15:         0.895   2
+16:         1.790   2
+   pk_model regimen     n n_never median_weeks p25_weeks p75_weeks
+1:    k2020     Q2W 10000       0     9.068753  7.484837  11.09595
+2:    k2020      QW 10000       0    11.862171  9.782875  14.42217
+3:    k2016     Q2W 10000       0     9.087959  7.249512  11.45420
+4:    k2016      QW 10000       3    12.255751  9.771217  15.50969
+   trough_ratio_median label_weeks  diff_pct interpretation
+1:            1.000003          10 -9.312474   within_20pct
+2:            1.000003          13 -8.752532   within_20pct
+3:            1.000007          10 -9.120408   within_20pct
+4:            1.000007          13 -5.724990   within_20pct

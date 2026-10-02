@@ -1,0 +1,5 @@
+pk_model,study_day,unit,measure,n,median,p95,mean,share_ge1_pct,max
+k2020,57,per arm,true,20000,6,11,6.30625,99.865,18
+k2020,57,per trial (234),true,10000,12,19,12.6125,100,27
+k2016,57,per arm,true,20000,3,7,3.6544,97.53,13
+k2016,57,per trial (234),true,10000,7,12,7.3088,99.92,19

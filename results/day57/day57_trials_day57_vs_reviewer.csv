@@ -1,0 +1,3 @@
+pk_model,sim_median,sim_p95,reviewer_median,reviewer_p95,diff_median,diff_p95,section1_day57_share,binom_median,binom_p95,binom_mean,sim_mean
+k2020,6,11,6,11,0,0,0.05435,6,11,6.35895,6.30625
+k2016,3,7,3,7,0,0,0.0301,3,7,3.5217,3.6544
