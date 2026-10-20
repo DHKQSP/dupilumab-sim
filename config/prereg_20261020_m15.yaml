@@ -235,6 +235,11 @@ samplesize:
     source_weights: "var_logWT_source = mean over 2,000 simulated studies (study mean weight ~ Uniform(70, 86) kg) of the within-study variance of log weight (SD 10 kg, default bounds, 100 subjects each; derive_seed(20261020, 'assurance_source_weight'))"
     evaluated_at: "every randomized n 80 to 160 (evaluable 0.9 n), true GMR 0.95 and 1.00, M0 and M1, each PK model, population, dose, schedule and boundary"
     draws: 10000
+    cell_shift_post_hoc:                                   # 사후 분석(계획서 13.4절 1): 2026-10-20 등록, 본 실행 중, 계산 전 커밋
+      registered: "2026-10-20, during the full run and before its computation in the post stage; plan section 13.4 item 1"
+      reason: "the registered assurance uses the Li 2020 300 mg CVs for every dose and schedule, so it carries no model effect of dose or schedule on variability; noticed when the preview of figure 6 showed 200 mg assurance above the model-CV power"
+      method: "sigma2_cell = sigma2 - beta_AUC,ref^2 (var_logWT_source - var_logWT_enrolled) + [ln(1 + CV_model,cell^2) - ln(1 + CV_model,ref^2)], ref = same PK model and population at 300 mg and the confirmed schedule; same draws, grid and interpolation as the registered assurance; equal to the registered value in the reference cells (checked)"
+      output: "results/m15/samplesize/power_analytic.csv columns assurance_cv_cellshift_pct, share_draws_clamped_cellshift, cv_draw_cellshift_p50; figure 6"
   assurance_parameters: {status: pending, method: "scripts/67 param_set (log-normal from RSE, independent); 1,000 sets x 2,000 subjects; CV, rho and log-weight slopes re-estimated per set; mean power", input: config/param_uncertainty.yaml}
   syneos: {auclast_cv_pct: 43, n_evaluable_per_arm: 117, n_randomized_per_arm: 130, cmax_sd_rule: "both rules side by side: ratio rule (model ratio_sd_cmax_auc x the AUC0-last SD) and fixed rule (model Cmax SD; the rule of the stored protocol figures, D-055)",
            source: "CV 43%: config/prereg_20260926.yaml base_cv_pct (Syneos proposal); 117 evaluable of 130 randomized: config/trial_design.yaml (directive of 2026-09-23, attributed to Syneos by the directive)"}

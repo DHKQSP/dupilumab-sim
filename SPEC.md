@@ -507,6 +507,6 @@ Km 근거: Kovalenko 2016에서 0.01 미만은 목적함수가 둔감했으므�
 - [4] `mech`: 시험군만 F, ka, ke, Vmax x 0.80~1.20(5%), 75 kg 경계, 1,000회; 유도 참 GMR은 `scripts/71_m15_populations.R truth`(20,000명, AUC0-inf, Cmax, 조밀 AUC0-last 참값, 부분 AUC 참값). 50% 교차(부트스트랩 구간). 보충(mechsupp): k2020 300 mg B0 ke·Vmax·ka x 0.60, 0.70, 1.30, 1.40, 1.50.
 - [5] AUROC: 양성 ±5·10·15%, 음성 항등, AUC0-inf는 M1 |log GMR|, 부분 AUC(0~14, 14~28, 28~56일)는 |log 산술 평균비|(0 유지), 민감도 log(pAUC + 0.078)의 M1과 λz 외삽; 시험 단위 군집 부트스트랩 구간.
 - [6] `scripts/72_m15_individual.R run`: 모델·집단·용량마다 20,000명, 조밀 채혈 참값 대비 편향(중앙 % 오차)·정밀도(RMSE), 관측 Tlast 참값(적분 오차만), %외삽 분포, λz 성공률(%외삽 < 20), Day 64/71 정량 몫. `legacy`(기존 엔진 대조), `verify_pauc`(PKNCA 대조).
-- [7] `scripts/74_m15_samplesize.R`: 모의 검정력, 분석식 검정력(R/samplesize.R 변경 없음), CV 불확실성 assurance(Li 2020 6군 df 96, 보정 계수, 등록 집단으로 이동), Syneos 가정(CV 43%, 117명) 대조(Cmax 비 규칙과 고정 규칙 나란히), 85·90% 필요 표본 수.
+- [7] `scripts/74_m15_samplesize.R`: 모의 검정력, 분석식 검정력(R/samplesize.R 변경 없음), CV 불확실성 assurance(Li 2020 6군 df 96, 보정 계수, 등록 집단으로 이동), Syneos 가정(CV 43%, 117명) 대조(Cmax 비 규칙과 고정 규칙 나란히), 85·90% 필요 표본 수. 사후(계획서 13.4절 1): 기준 칸(300 mg, 확정 일정)에서 칸으로 모델 로그 분산 차이만큼 옮긴 assurance(assurance_cv_cellshift_pct; 기준 칸에서 등록 값과 같음).
 - [8] `scripts/71_m15_populations.R weight`: 백분위(5/25/50/75/95) 체중의 전형 대상자 비(75 kg 대비), 같은 η 개인 짝 비 90% 구간, 개인차 예측구간, F·ke·Vmax 정규화 민감도 계수.
 - [9]·[10] `scripts/75_m15_summary.R`(결과 뒤 작성): 그림 7개, 요약 표 1개, 핵심 결론 5줄 이내(전제 점검), 가정 목록 CSV.

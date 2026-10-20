@@ -66,18 +66,27 @@ VS <- with_seed(derive_seed(MS, "assurance_source_weight"), {
     w[male] <- m15_q_weight(u[male], list(dist = "truncnorm", mean = m0, sd = 10, lo = -Inf, hi = Inf), BMv[1], BMv[2])
     w[!male] <- m15_q_weight(u[!male], list(dist = "truncnorm", mean = m0, sd = 10, lo = -Inf, hi = Inf), BFv[1], BFv[2])
     var(log(w)) }, 1)) })
+# 사후 분석(계획서 13.4절 1, 등록 후 계산 전 커밋): 등록 assurance는 모든 용량·일정에 Li 2020 300 mg CV를 쓰므로, 기준 칸(같은 PK 모델·집단, 300 mg, 확정 일정)에서
+#   옮긴 로그 분산에 모델의 칸 대 기준 로그 분산 차이를 더한 값도 보고한다. 기준 칸에서는 등록 값과 같아야 한다(아래 점검).
+REFC <- SSI[dose_mg == as.numeric(CFG$doses_mg$primary) & schedule == "B0", .(pk_model, population, ref_cv = cv_auc_pct, ref_beta = beta_auc)]
+stopifnot(!anyDuplicated(REFC[, .(pk_model, population)]))
 n_needed <- function(cv, g, inp, am, rule, wm, target) { for (ne in 20:600) if (pw(ne, cv, g, inp, am, rule, wm) >= target / 100) return(ne); NA_integer_ }
 ANL <- parallel::mclapply(seq_len(nrow(cells)), function(i) {
   c_ <- cells[i]; inp <- list(sd_cmax = c_$sd_cmax, ratio_sd_cmax_auc = c_$ratio_sd_cmax_auc, rho_total = c_$rho_total, beta_auc = c_$beta_auc, beta_cmax = c_$beta_cmax)
   wm <- c_[, .(p_stratum2, mean_lwt, var_between, var_within, var_total)]
   s2t <- draws - c_$beta_auc^2 * (VS - c_$var_total)                  # 등록 집단으로 옮긴 로그 분산
   cv_draw <- 100 * sqrt(exp(pmax(s2t, 1e-6)) - 1); clamp <- mean(cv_draw < min(CVG) | cv_draw > max(CVG))
+  rf <- REFC[pk_model == c_$pk_model & population == c_$population]; stopifnot(nrow(rf) == 1)
+  s2c <- draws - rf$ref_beta^2 * (VS - c_$var_total) + (log(1 + (c_$cv_auc_pct / 100)^2) - log(1 + (rf$ref_cv / 100)^2))   # 사후: 칸으로 옮긴 로그 분산
+  cv_draw_c <- 100 * sqrt(exp(pmax(s2c, 1e-6)) - 1); clamp_c <- mean(cv_draw_c < min(CVG) | cv_draw_c > max(CVG))
   rbindlist(lapply(NGRID, function(nr) rbindlist(lapply(GA, function(g) rbindlist(lapply(AM, function(am) {
     ne <- EVAL * nr
     pm <- pw(ne, c_$cv_auc_pct, g, inp, am, "fixed", wm)
     curve <- vapply(CVG, function(cv) pw(ne, cv, g, inp, am, "ratio", wm), 1)
     asr <- mean(approx(CVG, curve, xout = pmin(pmax(cv_draw, min(CVG)), max(CVG)))$y)
-    data.table(n_rand = nr, n_eval = ne, true_gmr = g, model = am, power_model_cv_pct = 100 * pm, assurance_cv_pct = 100 * asr,
+    asr_c <- mean(approx(CVG, curve, xout = pmin(pmax(cv_draw_c, min(CVG)), max(CVG)))$y)
+    data.table(n_rand = nr, n_eval = ne, true_gmr = g, model = am, power_model_cv_pct = 100 * pm, assurance_cv_pct = 100 * asr, assurance_cv_cellshift_pct = 100 * asr_c,
+               share_draws_clamped_cellshift = clamp_c, cv_draw_cellshift_p50 = median(cv_draw_c),
                n_eval_85 = n_needed(c_$cv_auc_pct, g, inp, am, "fixed", wm, 85), n_eval_90 = n_needed(c_$cv_auc_pct, g, inp, am, "fixed", wm, 90),
                power_cv43_pct = 100 * pw(ne, as.numeric(SSC$syneos$auclast_cv_pct), g, inp, am, "ratio", wm), share_draws_clamped = clamp,
                cv_draw_trial_p50 = median(cv_draw))
@@ -86,6 +95,7 @@ ANL <- parallel::mclapply(seq_len(nrow(cells)), function(i) {
 bad <- vapply(ANL, function(x) is.null(x) || inherits(x, "try-error"), TRUE); if (length(ANL) != nrow(cells) || any(bad)) stop("분석식 검정력 실패 또는 작업자 결과 없음: ", paste(which(bad), collapse = ","))
 AN <- rbindlist(ANL); AN[, `:=`(n_rand_85 = ceiling(n_eval_85 / EVAL), n_rand_90 = ceiling(n_eval_90 / EVAL))]   # 필요 표본 수는 모델 CV(칸마다, n과 무관)
 stopifnot(uniqueN(AN[, .(pk_model, population, dose_mg, schedule, boundary)]) == nrow(cells))
+stopifnot(AN[dose_mg == as.numeric(CFG$doses_mg$primary) & schedule == "B0", isTRUE(all.equal(assurance_cv_cellshift_pct, assurance_cv_pct, tolerance = 1e-10))])   # 기준 칸에서 사후 값 = 등록 값
 setcolorder(AN, c("pk_model", "population", "dose_mg", "schedule", "boundary", "model", "n_rand", "n_eval", "true_gmr"))
 fwrite(AN, file.path(od, "power_analytic.csv"))
 fwrite(data.table(df = DF, pooled_log_var = S2, pooled_cv_pct = 100 * sqrt(exp(S2) - 1), calibration = CAL, calibration_n_sets = CAL_N, var_logwt_source = VS,

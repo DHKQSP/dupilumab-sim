@@ -347,13 +347,17 @@ if (mode == "figures") {
   PAN[, panel := sprintf("%s, %d mg", c(S1 = "Global", S2 = "Korean")[population], dose_mg)]
   PL <- rbind(PSIM[, .(pk_model, panel, n_rand, true_gmr, what = "Simulated (Wilson 95% CI)", value = power_pct, lo, hi)],
               PAN[, .(pk_model, panel, n_rand, true_gmr, what = "Analytic, model CV", value = power_model_cv_pct, lo = NA_real_, hi = NA_real_)],
-              PAN[, .(pk_model, panel, n_rand, true_gmr, what = "Assurance over CV uncertainty", value = assurance_cv_pct, lo = NA_real_, hi = NA_real_)])
+              PAN[, .(pk_model, panel, n_rand, true_gmr, what = "Assurance, Li 2020 300 mg CV (registered)", value = assurance_cv_pct, lo = NA_real_, hi = NA_real_)],
+              PAN[, .(pk_model, panel, n_rand, true_gmr, what = "Assurance, CV shifted to the cell (post hoc)", value = assurance_cv_cellshift_pct, lo = NA_real_, hi = NA_real_)])
+  WH <- c("Analytic, model CV", "Assurance, Li 2020 300 mg CV (registered)", "Assurance, CV shifted to the cell (post hoc)", "Simulated (Wilson 95% CI)")
+  stopifnot(all(PL$what %in% WH)); PL[, what := factor(what, WH)]
   RL <- CJ(pk_model = c("k2020", "k2016"), true_gmr = sort(unique(PL$true_gmr)), sorted = FALSE)[, gl := sprintf("%s\nTrue GMR %.2f", c(k2020 = "Model 1", k2016 = "Kovalenko 2016")[pk_model], true_gmr)]
   PL <- merge(PL, RL, by = c("pk_model", "true_gmr")); PL[, gl := factor(gl, RL$gl)]
-  g6 <- ggplot(PL, aes(n_rand, value / 100, colour = what)) + geom_errorbar(aes(ymin = lo / 100, ymax = hi / 100), width = 2, na.rm = TRUE) + geom_line() + geom_point(size = 1.2) +
-    facet_grid(gl ~ panel) + scale_y_continuous(labels = scales::percent) + scale_colour_manual(values = COLS3, name = NULL) + geom_vline(xintercept = NBASE, linetype = 3, colour = VIZ$muted) +
+  g6 <- ggplot(PL, aes(n_rand, value / 100, colour = what, linetype = what)) + geom_errorbar(aes(ymin = lo / 100, ymax = hi / 100), width = 2, na.rm = TRUE) + geom_line() + geom_point(size = 1.2) +
+    facet_grid(gl ~ panel) + scale_y_continuous(labels = scales::percent) + scale_colour_manual(values = c(VIZ$s1, VIZ$s2, VIZ$s2, VIZ$s3), name = NULL) +
+    scale_linetype_manual(values = c("solid", "solid", "22", "solid"), name = NULL) + guides(colour = guide_legend(nrow = 2)) + geom_vline(xintercept = NBASE, linetype = 3, colour = VIZ$muted) +
     labs(x = "Randomized subjects per arm (10% withdrawal)", y = "Probability of concluding similarity", title = "Power and assurance against sample size",
-         subtitle = "Confirmed schedule, 75 kg boundary, stratified analysis; dotted line = 130 per arm; assurance draws its CV from the Li 2020 300 mg arms at both doses") + theme_dupi()
+         subtitle = "Confirmed schedule, 75 kg boundary, stratified analysis; dotted line = 130 per arm; the registered assurance draws its CV from the Li 2020 300 mg arms at both doses") + theme_dupi()
   save_fig(g6, "fig6_power_n", 13, 11, PL)
   # fig7: [8] forest plot(300 mg, 두 모델, S1·S2)
   WR <- fread(file.path(RD, "weight", "weight_ratio.csv"))[population %in% c("S1", "S2") & dose_mg == as.numeric(CFG$doses_mg$primary)]

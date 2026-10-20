@@ -528,6 +528,10 @@ Any change after registration is recorded in the decision log with the reason an
 4. Post-run correction. The Wilson 95% CI of the lambda_z success rate among subjects with a computable lambda_z (section 8.4) was missing from the sampling-evaluation table; it was added from the stored subject-level results without re-simulation.
 5. Figures. Korean-labelled companion figures are not produced; the Korean summary text is the internal companion.
 
+### 13.4 Post hoc analyses
+
+1. Assurance with the CV shifted to each cell (registered on 2026-10-20 during the full run, before its computation in the post stage). The assurance of section 8.5 item 3 draws its CV from the Li 2020 300 mg arms for every dose and schedule, so it carries no model effect of dose or schedule on variability. This was noticed when a preview of figure 6, made from the Model 1 results available at the time, showed the 200 mg assurance above the power at the model CV. The post hoc variant adds the model difference in log variance between the cell and a reference cell (same PK model and population, 300 mg, confirmed schedule): sigma^2_cell = sigma^2 - beta_AUC,ref^2 x (var_logWT_source - var_logWT_enrolled) + [ln(1 + CV_model,cell^2) - ln(1 + CV_model,ref^2)]. It uses the same draws, grid and interpolation, and equals the registered assurance in the reference cells (checked in the script). The registered assurance is reported unchanged, and the summary table, which uses the reference cell, is not affected.
+
 ## 14. Software and quality control
 
 Software: R 4.3.3; rxode2 5.1.7; data.table 1.14.10; ggplot2 3.4.4 and patchwork 1.2.0 (figures); the project NCA engine; PKNCA 0.12.1 (verification of the partial AUC only). No new package is added; AUROC and the Tango interval are computed in base R.
