@@ -434,3 +434,13 @@ m15_weight_moments <- function(wt, bk) {
 
 # ---------------------------------------------------------------- 요약 보조 ----------------------------------------------------------------
 m15_wilson <- function(x, n, conf = 0.95) { w <- wilson_ci(x, n, conf); list(pct = w$est, lo = w$lo, hi = w$hi) }
+
+# 조건부 표시(계획서 6.2절 Action): 주 모델이 고정 체중 가정에서 재현 실패 규칙을 충족했으면 이후 결과 파일마다 같은 문구 열을 붙인다
+m15_conditional_label <- function(rd, primary) {
+  f <- file.path(rd, "validation", "validation_rule.csv"); if (!file.exists(f)) return("")
+  r <- data.table::fread(f); r <- r[r$pk_model == primary & r$wmode == "primary"]
+  if (isTRUE(r$failure[1])) "Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2)." else ""
+}
+m15_fwrite_cond <- function(tab, path, cond) {                       # 호출자 표는 바꾸지 않는다(복사본에 열 추가)
+  tab <- data.table::copy(data.table::as.data.table(tab)); if (nzchar(cond)) tab[, conditionality := cond]; data.table::fwrite(tab, path)
+}

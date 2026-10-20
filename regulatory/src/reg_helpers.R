@@ -117,7 +117,7 @@ reg_trace_write <- function(path) {
 # English-output check: no Korean, no en-dash, em-dash or U+2212 in a generated text file
 check_english <- function(path) {
   x <- readLines(path, encoding = "UTF-8", warn = FALSE)
-  bad <- grep("[–—−]|[가-힣]", x, value = TRUE)
+  bad <- grep("[–—−]|[가-힣ᄀ-ᇿ㄰-㆏ꥠ-꥿ힰ-퟿]", x, value = TRUE)   # 한글 음절과 자모
   if (length(bad)) stop("non-English or dash characters in ", path, ": ", paste(substr(head(bad, 3), 1, 160), collapse = " || "), call. = FALSE)
   invisible(TRUE)
 }

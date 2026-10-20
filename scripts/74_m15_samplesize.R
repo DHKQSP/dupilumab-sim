@@ -11,6 +11,7 @@ POPS <- CFG$populations; INCL <- CFG$inclusion; RHO <- as.numeric(POPS$weight_he
 NGRID <- as.integer(unlist(CFG$n_randomized_per_arm)); EVAL <- 1 - as.numeric(CFG$dropout$p)
 od <- proj_path(CFG$output_dir, "samplesize"); dir.create(od, showWarnings = FALSE, recursive = TRUE)
 lf <- start_run_log("m15_samplesize", master_seed = MS, run_mode = "final", extra = list(cores = cores))
+COND <- m15_conditional_label(proj_path(CFG$output_dir), CFG$models$primary)   # 조건부 표시(계획서 6.2절)를 표마다 열로
 GA <- c(0.95, 1.00); AM <- c("M0", "M1")
 
 # ---------------------------------------------------------------- 1. 모의 검정력(8.1절) ----------------------------------------------------------------
@@ -28,7 +29,7 @@ PS <- rbindlist(lapply(ocd, function(dd) {
 }))
 if (nrow(PS)) {
   PS[, c("power_pct", "lo", "hi") := { w <- wilson_ci(n_pass, n_trials); list(w$est, w$lo, w$hi) }]
-  setcolorder(PS, c("pk_model", "population", "dose_mg", "boundary", "schedule", "model", "n_rand", "true_gmr")); fwrite(PS, file.path(od, "power_sim.csv"))
+  setcolorder(PS, c("pk_model", "population", "dose_mg", "boundary", "schedule", "model", "n_rand", "true_gmr")); m15_fwrite_cond(PS, file.path(od, "power_sim.csv"), COND)
 }
 
 # ---------------------------------------------------------------- 2. 체중 모멘트(경계별, 등록 체중 200,000명) ----------------------------------------------------------------
@@ -38,7 +39,7 @@ WM <- rbindlist(lapply(c("S1", "S2"), function(pv) {
   rbindlist(lapply(BND[population == pv, boundary], function(b) { bk <- BND[population == pv & boundary == b, boundary_kg]
     cbind(data.table(population = pv, boundary = b, boundary_kg = bk), m15_weight_moments(s$WT, bk)) }))
 }))
-fwrite(WM, file.path(od, "weight_moments.csv"))
+m15_fwrite_cond(WM, file.path(od, "weight_moments.csv"), COND)
 
 # ---------------------------------------------------------------- 3. 분석식 검정력과 CV 불확실성 assurance ----------------------------------------------------------------
 SSI <- fread(proj_path(CFG$output_dir, "individual", "ss_inputs_m15.csv"))
@@ -97,10 +98,10 @@ AN <- rbindlist(ANL); AN[, `:=`(n_rand_85 = ceiling(n_eval_85 / EVAL), n_rand_90
 stopifnot(uniqueN(AN[, .(pk_model, population, dose_mg, schedule, boundary)]) == nrow(cells))
 stopifnot(AN[dose_mg == as.numeric(CFG$doses_mg$primary) & schedule == "B0", isTRUE(all.equal(assurance_cv_cellshift_pct, assurance_cv_pct, tolerance = 1e-10))])   # 기준 칸에서 사후 값 = 등록 값
 setcolorder(AN, c("pk_model", "population", "dose_mg", "schedule", "boundary", "model", "n_rand", "n_eval", "true_gmr"))
-fwrite(AN, file.path(od, "power_analytic.csv"))
-fwrite(data.table(df = DF, pooled_log_var = S2, pooled_cv_pct = 100 * sqrt(exp(S2) - 1), calibration = CAL, calibration_n_sets = CAL_N, var_logwt_source = VS,
+m15_fwrite_cond(AN, file.path(od, "power_analytic.csv"), COND)
+m15_fwrite_cond(data.table(df = DF, pooled_log_var = S2, pooled_cv_pct = 100 * sqrt(exp(S2) - 1), calibration = CAL, calibration_n_sets = CAL_N, var_logwt_source = VS,
                   cv_draw_raw_p05 = 100 * sqrt(exp(quantile(draws_raw, 0.05, names = FALSE)) - 1), cv_draw_calibrated_p50 = 100 * sqrt(exp(median(draws)) - 1),
-                  cv_draw_raw_p95 = 100 * sqrt(exp(quantile(draws_raw, 0.95, names = FALSE)) - 1), n_draws = length(draws)), file.path(od, "assurance_cv_inputs.csv"))
+                  cv_draw_raw_p95 = 100 * sqrt(exp(quantile(draws_raw, 0.95, names = FALSE)) - 1), n_draws = length(draws)), file.path(od, "assurance_cv_inputs.csv"), COND)
 
 # ---------------------------------------------------------------- 4. 프로토콜 가정 대조와 필요 표본 수 ----------------------------------------------------------------
 # [1]에서 재현된 CV: 관측 합동 CV(Li 2020 6군)와 같은 군의 모델 예측 CV(70 반복 중앙값을 같은 자유도로 합동)
@@ -112,7 +113,7 @@ SY <- rbindlist(lapply(seq_len(nrow(prim)), function(i) {
   wm <- c_[, .(p_stratum2, mean_lwt, var_between, var_within, var_total)]
   s2_tr <- CAL * S2 - c_$beta_auc^2 * (VS - c_$var_total)
   srcs <- data.table(cv_source = c("protocol assumption (Syneos)", "Li 2020 observed pooled", "Li 2020 observed pooled, calibrated and transported to the enrolled population",
-                                   "model prediction for the Li 2020 arms", "model, enrolled S1 population"),
+                                   "model prediction for the Li 2020 arms", "model, enrolled global population"),
                      cv_pct = c(as.numeric(SSC$syneos$auclast_cv_pct), 100 * sqrt(exp(S2) - 1), 100 * sqrt(exp(s2_tr) - 1), REPCV[pk_model == c_$pk_model, cv_model_li_pct], c_$cv_auc_pct))
   rbindlist(lapply(seq_len(nrow(srcs)), function(k) rbindlist(lapply(GA, function(g) rbindlist(lapply(AM, function(am) rbindlist(lapply(c("ratio", "fixed"), function(rl) {
     cv <- srcs$cv_pct[k]                                                 # ratio: Cmax SD = 비 x AUC0-last SD; fixed: 모델 Cmax SD(저장된 프로토콜 수치의 규칙, D-055)
@@ -121,6 +122,6 @@ SY <- rbindlist(lapply(seq_len(nrow(prim)), function(i) {
                n_eval_85 = n_needed(cv, g, inp, am, rl, wm, 85), n_eval_90 = n_needed(cv, g, inp, am, rl, wm, 90))
   }))))))))[, `:=`(pk_model = c_$pk_model, n_rand_85 = ceiling(n_eval_85 / EVAL), n_rand_90 = ceiling(n_eval_90 / EVAL))]
 }))
-setcolorder(SY, c("pk_model", "cv_source", "cv_pct", "true_gmr", "model", "cmax_rule")); fwrite(SY, file.path(od, "syneos_comparison.csv"))
+setcolorder(SY, c("pk_model", "cv_source", "cv_pct", "true_gmr", "model", "cmax_rule")); m15_fwrite_cond(SY, file.path(od, "syneos_comparison.csv"), COND)
 print(SY[model == "M1"]); print(AN[pk_model == CFG$models$primary & population == "S1" & dose_mg == 300 & schedule == "B0" & boundary == "fixed75" & model == "M1"])
 append_run_log(lf, "done")

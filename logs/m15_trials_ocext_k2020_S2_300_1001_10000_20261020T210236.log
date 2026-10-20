@@ -1,0 +1,182 @@
+run_name: m15_trials_ocext_k2020_S2_300_1001_10000
+started_utc: 2026-10-20 21:02:36
+run_mode: final
+master_seed: 20261020
+seed_rule_version: 1
+git_sha: 3987d67ad0750e0eba608ea1ea9873db466f7adb
+git_code_clean: TRUE
+R_version: R version 4.3.3 (2024-02-29)
+rxode2: 5.1.7
+BEmaster: not installed
+config_sha256:
+  assay.yaml: 13bb4e6e5a604962f3e30a9f31dffb53fcfcaa71272e41d6a12413c1cec26604
+  crossval_reference.yaml: 4a8ee97a00c6c0ecc2c42373c8d21099adbfc833d3b6e4b1abfbf714653549de
+  design_clot2021.yaml: 4b3ddc374dfbf3f451d3fe3d6a865645b0b5d93b0ea7eea9a3f24cd8d2f05da5
+  gate_decision.yaml: fec8e5a4376e78560e2945be2c69db22e63e6b6731a2413101efa1ac58cb1838
+  literature_core_deck.yaml: ed067a30878b498ed7f584d96695f25a6abb14944cb426992c8036b09acb3a80
+  literature_precedents.yaml: 44c48b27ac1afbe90f1e23f55480f148dfa34e03a4dca31a81d29096a0537e67
+  nca_rules.yaml: 0f53d9e003bf1df504df24201f06301cabe423babd1078def5c5a4b3b2c1db94
+  oc_design.yaml: 629011b264fbc4c3f03f8a3989bac1f2711d49959f3268f5e8f758c80f93ea0a
+  param_uncertainty.yaml: baa74b9c41f188019290c0e294d5ad4954f6528b30a4ac11232f68af1846570c
+  params_k2020_model1.yaml: b6e3816238f158ab76cda1edfc4ce9ae49b53fdd4836de8be36bd64664dca96f
+  params_typical.yaml: 0661b248227771273d5c58c86c61f35ef655fdeecebe3f188868fd61cff4b801
+  params_variability.yaml: b849a4cc3acc6d47f9833392ac4f47ebacc6ad9fa79fcc5848628fd4b5aa99a9
+  population_atopic.yaml: a5e5356587a4727996496d247df2f1b007adb6fe7e7a9f98ce81388040495abb
+  prereg_20260926.yaml: dc2c9f1bd4d62e13ad9f5f551dcf97eb7ee1359ba13aaa3af8efc063dfc6303e
+  prereg_20260929_oc.yaml: 1956b6d4556ba2e1f092b2f8e71c185ed0ec0196337bc66e2a89247ee941801b
+  prereg_20260929.yaml: 7da31a299058aa2f7b56584460808cefa80b30d627f205611c2bc6445f9c2613
+  prereg_20261002_day57.yaml: ffcda7253952791feb6dd5411d338f47a36716b319667a0820e51a8ee6d27b23
+  prereg_20261020_m15.yaml: 92e74df06c71ccc1b2bbba96e637e1996e0420b76e9115666f44deb70ad89289
+  repro_check.yaml: a5e8401417d3dd780a21876356e654a5c6b270f9d50eb47de942105cb34d2756
+  repro_request.yaml: 0e85501d9e970a1b51dfa4f347f196c7fbd38b3908c4e629ce54451938094eb3
+  scenarios.yaml: 7243c4f34f21614eccae4c143ba05b8a9eb9183a76770cfce7153ef30a5dc17c
+  schedule_decision.yaml: de62d815c54d33e4016ed7fdb535ede38ae9c0a6350ef8e7e0a26cb5dd9572b2
+  trial_design.yaml: 553eceab74155a3497fef1ab587f3b8d2be1319704e17ae1f0e177601726e84f
+extra:
+  mode: ocext
+  model: k2020
+  population: S2
+  dose: 300
+  from: 1001
+  to: 10000
+  cores: 4
+  boundaries: 75.0,66.1
+  seed_collisions_resolved: 1106 drop;5033 eps;5812 drop;7222 eps;7667 drop;7939 jitter;8309 jitter
+session_info:
+  R version 4.3.3 (2024-02-29)
+  Platform: x86_64-pc-linux-gnu (64-bit)
+  Running under: Ubuntu 24.04.4 LTS
+  
+  Matrix products: default
+  BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+  LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0
+  
+  locale:
+   [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       
+   [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   
+   [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          
+  [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   
+  
+  time zone: Etc/UTC
+  tzcode source: system (glibc)
+  
+  attached base packages:
+  [1] stats     graphics  grDevices datasets  utils     methods   base     
+  
+  other attached packages:
+  [1] digest_0.6.34      data.table_1.14.10 yaml_2.3.8        
+  
+  loaded via a namespace (and not attached):
+   [1] gtable_0.3.4       dplyr_1.1.4        compiler_4.3.3     renv_1.2.4        
+   [5] crayon_1.5.2       tidyselect_1.2.0   Rcpp_1.1.2         scales_1.3.0      
+   [9] fastmap_1.1.1      ggplot2_3.4.4      R6_2.5.1           generics_0.1.3    
+  [13] knitr_1.45         backports_1.4.1    checkmate_2.3.1    tibble_3.2.1      
+  [17] munsell_0.5.0      pillar_1.9.0       rlang_1.1.3        utf8_1.2.4        
+  [21] cachem_1.0.8       xfun_0.41          sys_3.4.2          RcppParallel_6.2.1
+  [25] memoise_2.0.1      cli_3.6.2          magrittr_2.0.3     grid_4.3.3        
+  [29] rxode2ll_2.0.18    lotri_1.0.5        lifecycle_1.0.4    dparser_1.3.1-13  
+  [33] vctrs_0.6.5        glue_1.7.0         rxode2_5.1.7       PreciseSums_0.7   
+  [37] fansi_1.0.5        colorspace_2.1-0   tools_4.3.3        pkgconfig_2.0.3   
+[21:02:44] ocext k2020 S2 300 trials 1001-1050 written in 7.822464 secs
+[21:02:52] ocext k2020 S2 300 trials 1051-1100 written in 7.865036 secs
+[21:03:00] ocext k2020 S2 300 trials 1101-1150 written in 7.974232 secs
+[21:03:08] ocext k2020 S2 300 trials 1151-1200 written in 7.584223 secs
+[21:03:15] ocext k2020 S2 300 trials 1201-1250 written in 7.833267 secs
+[21:03:23] ocext k2020 S2 300 trials 1251-1300 written in 8.092463 secs
+[21:03:31] ocext k2020 S2 300 trials 1301-1350 written in 7.978603 secs
+[21:03:40] ocext k2020 S2 300 trials 1351-1400 written in 8.191445 secs
+[21:03:48] ocext k2020 S2 300 trials 1401-1450 written in 7.990415 secs
+[21:03:55] ocext k2020 S2 300 trials 1451-1500 written in 7.805441 secs
+[21:04:03] ocext k2020 S2 300 trials 1501-1550 written in 7.580031 secs
+[21:04:11] ocext k2020 S2 300 trials 1551-1600 written in 8.040682 secs
+[21:04:19] ocext k2020 S2 300 trials 1601-1650 written in 7.887953 secs
+[21:04:27] ocext k2020 S2 300 trials 1651-1700 written in 8.123977 secs
+[21:04:37] ocext k2020 S2 300 trials 1701-1750 written in 9.842041 secs
+[21:04:45] ocext k2020 S2 300 trials 1751-1800 written in 8.097373 secs
+[21:04:53] ocext k2020 S2 300 trials 1801-1850 written in 8.071085 secs
+[21:05:01] ocext k2020 S2 300 trials 1851-1900 written in 8.016612 secs
+[21:05:09] ocext k2020 S2 300 trials 1901-1950 written in 8.20332 secs
+[21:05:17] ocext k2020 S2 300 trials 1951-2000 written in 8.181561 secs
+[21:05:26] ocext k2020 S2 300 trials 2001-2050 written in 8.27118 secs
+[21:05:34] ocext k2020 S2 300 trials 2051-2100 written in 7.795341 secs
+[21:05:44] ocext k2020 S2 300 trials 2101-2150 written in 10.49778 secs
+[21:05:54] ocext k2020 S2 300 trials 2151-2200 written in 10.42702 secs
+[21:06:03] ocext k2020 S2 300 trials 2201-2250 written in 8.139198 secs
+[21:06:10] ocext k2020 S2 300 trials 2251-2300 written in 7.445615 secs
+[21:06:18] ocext k2020 S2 300 trials 2301-2350 written in 8.360224 secs
+[21:06:27] ocext k2020 S2 300 trials 2351-2400 written in 8.140483 secs
+[21:06:34] ocext k2020 S2 300 trials 2401-2450 written in 7.868863 secs
+[21:06:42] ocext k2020 S2 300 trials 2451-2500 written in 7.858923 secs
+[21:06:50] ocext k2020 S2 300 trials 2501-2550 written in 8.018081 secs
+[21:06:59] ocext k2020 S2 300 trials 2551-2600 written in 8.81297 secs
+[21:07:08] ocext k2020 S2 300 trials 2601-2650 written in 8.384112 secs
+[21:07:16] ocext k2020 S2 300 trials 2651-2700 written in 8.237326 secs
+[21:07:25] ocext k2020 S2 300 trials 2701-2750 written in 8.960963 secs
+[21:07:32] ocext k2020 S2 300 trials 2751-2800 written in 7.773793 secs
+[21:07:41] ocext k2020 S2 300 trials 2801-2850 written in 8.025394 secs
+[21:07:48] ocext k2020 S2 300 trials 2851-2900 written in 7.929848 secs
+[21:07:56] ocext k2020 S2 300 trials 2901-2950 written in 8.019109 secs
+[21:08:05] ocext k2020 S2 300 trials 2951-3000 written in 8.066037 secs
+[21:08:13] ocext k2020 S2 300 trials 3001-3050 written in 8.419973 secs
+[21:08:22] ocext k2020 S2 300 trials 3051-3100 written in 8.590301 secs
+[21:08:30] ocext k2020 S2 300 trials 3101-3150 written in 8.17015 secs
+[21:08:39] ocext k2020 S2 300 trials 3151-3200 written in 9.173911 secs
+[21:08:48] ocext k2020 S2 300 trials 3201-3250 written in 8.952221 secs
+[21:08:56] ocext k2020 S2 300 trials 3251-3300 written in 8.014893 secs
+[21:09:04] ocext k2020 S2 300 trials 3301-3350 written in 7.71436 secs
+[21:09:12] ocext k2020 S2 300 trials 3351-3400 written in 8.551768 secs
+[21:09:20] ocext k2020 S2 300 trials 3401-3450 written in 8.256967 secs
+[21:09:28] ocext k2020 S2 300 trials 3451-3500 written in 7.972992 secs
+[21:09:36] ocext k2020 S2 300 trials 3501-3550 written in 7.800593 secs
+[21:09:45] ocext k2020 S2 300 trials 3551-3600 written in 8.858485 secs
+[21:09:53] ocext k2020 S2 300 trials 3601-3650 written in 8.392905 secs
+[21:10:01] ocext k2020 S2 300 trials 3651-3700 written in 7.891725 secs
+[21:10:09] ocext k2020 S2 300 trials 3701-3750 written in 7.870071 secs
+[21:10:17] ocext k2020 S2 300 trials 3751-3800 written in 7.784139 secs
+[21:10:25] ocext k2020 S2 300 trials 3801-3850 written in 7.637946 secs
+[21:10:33] ocext k2020 S2 300 trials 3851-3900 written in 8.745643 secs
+[21:10:41] ocext k2020 S2 300 trials 3901-3950 written in 8.010317 secs
+[21:10:50] ocext k2020 S2 300 trials 3951-4000 written in 8.184835 secs
+[21:10:57] ocext k2020 S2 300 trials 4001-4050 written in 7.904205 secs
+[21:11:05] ocext k2020 S2 300 trials 4051-4100 written in 8.008968 secs
+[21:11:14] ocext k2020 S2 300 trials 4101-4150 written in 8.068996 secs
+[21:11:22] ocext k2020 S2 300 trials 4151-4200 written in 8.009731 secs
+[21:11:29] ocext k2020 S2 300 trials 4201-4250 written in 7.890156 secs
+[21:11:37] ocext k2020 S2 300 trials 4251-4300 written in 7.912921 secs
+[21:11:46] ocext k2020 S2 300 trials 4301-4350 written in 8.220246 secs
+[21:11:54] ocext k2020 S2 300 trials 4351-4400 written in 8.306472 secs
+[21:12:02] ocext k2020 S2 300 trials 4401-4450 written in 7.816942 secs
+[21:12:10] ocext k2020 S2 300 trials 4451-4500 written in 7.927487 secs
+[21:12:18] ocext k2020 S2 300 trials 4501-4550 written in 7.939401 secs
+[21:12:26] ocext k2020 S2 300 trials 4551-4600 written in 8.127663 secs
+[21:12:34] ocext k2020 S2 300 trials 4601-4650 written in 8.496146 secs
+[21:12:42] ocext k2020 S2 300 trials 4651-4700 written in 8.178745 secs
+[21:12:50] ocext k2020 S2 300 trials 4701-4750 written in 7.748637 secs
+[21:12:58] ocext k2020 S2 300 trials 4751-4800 written in 7.850261 secs
+[21:13:05] ocext k2020 S2 300 trials 4801-4850 written in 7.329873 secs
+[21:13:13] ocext k2020 S2 300 trials 4851-4900 written in 7.932788 secs
+[21:13:21] ocext k2020 S2 300 trials 4901-4950 written in 7.924127 secs
+[21:13:29] ocext k2020 S2 300 trials 4951-5000 written in 7.880458 secs
+[21:13:37] ocext k2020 S2 300 trials 5001-5050 written in 8.170118 secs
+[21:13:45] ocext k2020 S2 300 trials 5051-5100 written in 7.667657 secs
+[21:13:53] ocext k2020 S2 300 trials 5101-5150 written in 7.877903 secs
+[21:14:01] ocext k2020 S2 300 trials 5151-5200 written in 7.847013 secs
+[21:14:08] ocext k2020 S2 300 trials 5201-5250 written in 7.649655 secs
+[21:14:16] ocext k2020 S2 300 trials 5251-5300 written in 7.584178 secs
+[21:14:24] ocext k2020 S2 300 trials 5301-5350 written in 7.672765 secs
+[21:14:32] ocext k2020 S2 300 trials 5351-5400 written in 8.020811 secs
+[21:14:40] ocext k2020 S2 300 trials 5401-5450 written in 7.966554 secs
+[21:14:47] ocext k2020 S2 300 trials 5451-5500 written in 7.768637 secs
+[21:14:55] ocext k2020 S2 300 trials 5501-5550 written in 7.771845 secs
+[21:15:03] ocext k2020 S2 300 trials 5551-5600 written in 8.203319 secs
+[21:15:11] ocext k2020 S2 300 trials 5601-5650 written in 7.839777 secs
+[21:15:19] ocext k2020 S2 300 trials 5651-5700 written in 8.28937 secs
+[21:15:27] ocext k2020 S2 300 trials 5701-5750 written in 7.639899 secs
+[21:15:35] ocext k2020 S2 300 trials 5751-5800 written in 8.195743 secs
+[21:15:43] ocext k2020 S2 300 trials 5801-5850 written in 7.998273 secs
+[21:15:51] ocext k2020 S2 300 trials 5851-5900 written in 8.017873 secs
+[21:16:01] ocext k2020 S2 300 trials 5901-5950 written in 10.09516 secs
+[21:16:11] ocext k2020 S2 300 trials 5951-6000 written in 10.06677 secs
+[21:16:20] ocext k2020 S2 300 trials 6001-6050 written in 8.54959 secs
+[21:16:33] ocext k2020 S2 300 trials 6051-6100 written in 12.57846 secs
+[21:16:49] ocext k2020 S2 300 trials 6101-6150 written in 16.02521 secs

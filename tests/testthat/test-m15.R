@@ -227,3 +227,16 @@ test_that("가중 Mann-Whitney 재표집 AUROC는 재표집 자료에 직접 계
   expect_equal(m15_auroc_draws_w(pos, neg, idx), m15_auroc_draws(pos, neg, idx), tolerance = 1e-12)
   expect_equal(m15_auroc_draws_w(pos[, 1, drop = FALSE], neg, list(seq_len(nt))), m15_auroc(pos[, 1], neg)$auroc, tolerance = 1e-12)
 })
+
+test_that("conditional label and writer: label only after a primary failure, caller table unchanged", {
+  td <- tempfile("m15cond"); dir.create(file.path(td, "validation"), recursive = TRUE)
+  expect_identical(m15_conditional_label(td, "k2020"), "")
+  data.table::fwrite(data.table::data.table(pk_model = c("k2020", "k2020", "k2016"), wmode = c("primary", "wunc", "primary"), failure = c(TRUE, FALSE, FALSE)),
+                     file.path(td, "validation", "validation_rule.csv"))
+  lab <- m15_conditional_label(td, "k2020"); expect_match(lab, "^Conditional on a primary model")
+  expect_identical(m15_conditional_label(td, "k2016"), "")
+  x <- data.table::data.table(a = 1:3); f <- file.path(td, "x.csv")
+  m15_fwrite_cond(x, f, lab); expect_identical(names(x), "a")
+  y <- data.table::fread(f); expect_identical(names(y), c("a", "conditionality")); expect_true(all(y$conditionality == lab))
+  m15_fwrite_cond(x, f, ""); expect_identical(names(data.table::fread(f)), "a")
+})

@@ -129,7 +129,8 @@ if (mode == "weight") {
   RTm <- merge(map, RT, by = "WT", allow.cartesian = TRUE); SCm <- merge(map, SC, by = "WT", allow.cartesian = TRUE)
   setcolorder(RTm, c("pk_model", "dose_mg", "population", "prob", "WT", "metric")); setcolorder(SCm, c("pk_model", "dose_mg", "population", "prob", "WT", "param"))
   setorder(RTm, pk_model, dose_mg, population, prob, metric); setorder(SCm, pk_model, dose_mg, population, prob, param)
-  fwrite(RTm, file.path(od, "weight_ratio.csv")); fwrite(SCm, file.path(od, "sensitivity_coefficients.csv"))
+  COND <- m15_conditional_label(proj_path(CFG$output_dir), CFG$models$primary)   # 조건부 표시(계획서 6.2절)
+  m15_fwrite_cond(RTm, file.path(od, "weight_ratio.csv"), COND); m15_fwrite_cond(SCm, file.path(od, "sensitivity_coefficients.csv"), COND)
   print(RTm[population %in% c("S1", "S2") & prob %in% c(0.05, 0.95)]); print(SCm[population %in% c("S1", "S2") & prob %in% c(0.05, 0.95)])
   append_run_log(lf, sprintf("done in %s", format(Sys.time() - t0)))
 }

@@ -9,7 +9,7 @@ Prepared under the principles of the International Council for Harmonisation of 
 | Plan identifier | Model analysis plan 2026-10-20, version 1 |
 | Version history | 1, 2026-10-20, first registration |
 | Status | Registered by the git commit that first adds this file together with its configuration file. Any later change is a deviation (section 13). |
-| Author | Drafted with an AI coding assistant for the sponsor's modelling team |
+| Author | Drafted with an artificial intelligence (AI) coding assistant for the sponsor's modelling team |
 | Independent reviewer | Not yet assigned (pending before any regulatory use) |
 | Approver | Not yet assigned (pending before any regulatory use) |
 | Audience | Sponsor-internal pre-registration, written so that it can be shared with the US Food and Drug Administration (FDA) as the model analysis plan. Codes used in the configuration and result files are listed in Appendix B; internal traceability is in Appendix C. |
@@ -150,7 +150,7 @@ Model predictions are still produced for these arms, so that observed values can
    - the concentration-scaling truth;
    - the extrapolated partial AUC against numerical integration.
 2. Partial AUC verification on simulated data: the partial AUC function is compared with PKNCA 0.12.1 `pk.calc.aucint` (method lin up/log down, auc.type AUClast). The comparison uses 1,000 simulated profiles per schedule with visit-window jitter and residual error, after the standard BLQ rules. Agreement must be within a relative difference of 1e-8 where PKNCA returns a value. Where PKNCA returns no value (an interval that starts at or after Tlast), the function must return 0, and the count is reported (`results/m15/individual/pauc_pknca_check.csv`).
-3. Legacy check of the individual-level engine. With the legacy trial population (normal 75 kg, SD 9 kg, truncated to 60 to 90 kg) and the confirmed schedule, three quantities must agree with the stored results within 3 SE of the difference: the share of subjects with a computable terminal elimination rate constant (lambda_z), and the median and 95th percentile of the extrapolated percentage. The stored results are `results/individual/individual_base.csv` (Kovalenko 2016) and `individual_struct2020.csv` (Model 1). The SE of the difference is sqrt(SE_new^2 + SE_stored^2), with SE_stored taken equal to SE_new because the stored runs used the same number of subjects, and SE_new from a 200-resample subject bootstrap. The new engine uses a different random-number layout, so bitwise agreement is not expected.
+3. Legacy check of the individual-level engine. With the legacy trial population (normal 75 kg, SD 9 kg, truncated to 60 to 90 kg) and the confirmed schedule, three quantities must agree with the stored results within 3 standard errors (SE) of the difference: the share of subjects with a computable terminal elimination rate constant (lambda_z), and the median and 95th percentile of the extrapolated percentage. The stored results are `results/individual/individual_base.csv` (Kovalenko 2016) and `individual_struct2020.csv` (Model 1). The SE of the difference is sqrt(SE_new^2 + SE_stored^2), with SE_stored taken equal to SE_new because the stored runs used the same number of subjects, and SE_new from a 200-resample subject bootstrap. The new engine uses a different random-number layout, so bitwise agreement is not expected.
 4. Identity check: for every simulated study, the pass result of section 8.1 at true GMR 1.00 with the 75 kg boundary must equal the pass result of the identity version of section 8.2. This is checked for both analysis models, all schedules and the pass counts at every sample size.
 5. Analytic cross-check: the simulated pass probability at a true GMR of 1.00 and 0.95 (confirmed schedule, 75 kg boundary, 130 randomized per arm) is compared with the analytic joint power of `R/samplesize.R` at the CV of section 8.4.
 
@@ -219,7 +219,7 @@ The 200 mg results are labelled "limited by the known AUC0-last under-prediction
 | Population sampler | Kolmogorov-Smirnov test against the truncated normal; correlation | p above 0.001; within 0.02 of 0.513 | Stop; fix before any run |
 | Legacy check | difference against stored results | within 3 SE of the difference | Full trial runs do not start; cause reported |
 | Identity check | per-study pass agreement | no mismatch | Full trial runs do not start; cause reported |
-| Analytic cross-check (pilot) | simulated against analytic power | within max(3 MC SE, 2.5 percentage points) | Full trial runs do not start; cause reported; any correction is a deviation |
+| Analytic cross-check (pilot) | simulated against analytic power | within max(3 Monte Carlo (MC) SE, 2.5 percentage points) | Full trial runs do not start; cause reported; any correction is a deviation |
 | Monotonicity (pilot) | decrease between adjacent g values moving toward 1.00 | no more than 2 MC SE | As above |
 | Applicability | enrolled weight outside the development-data range | reported | Labelled as extrapolation |
 
@@ -321,7 +321,7 @@ Partial AUC rule: linear-up/log-down integration on actual times after the stand
 Statistic, at 130 randomized subjects per arm:
 
 - AUC0-inf: the absolute estimated log GMR from the stratified analysis;
-- partial AUCs: |log(arithmetic mean pAUC_test / arithmetic mean pAUC_reference)|, with zeros kept.
+- partial AUCs: |log(arithmetic mean partial AUC (pAUC)_test / arithmetic mean pAUC_reference)|, with zeros kept.
 
 Sensitivities for the partial AUCs:
 
@@ -464,7 +464,7 @@ Every run writes a log (`R/logging.R`) with the seed rule, the git commit, the l
 | B07 | Km fixed, without between-subject variability | 0.01 mg/L in both models | As published | Earlier sensitivity (register B07) | None |
 | B08 | No parameter uncertainty layer | Published point estimates | No RSE or covariance recorded | Not evaluated | Supply RSE or covariance |
 | B09 | Residual error model, down to the LLOQ | As published (proportional 15.0% and 24.2%, additive 0.03 mg/L) | As published | Not evaluated here | None |
-| B10 | Immunogenicity | Not modelled | No ADA model in the published PK models | Not evaluated here | None |
+| B10 | Immunogenicity | Not modelled | No anti-drug antibody (ADA) model in the published PK models | Not evaluated here | None |
 | B11 | Automated lambda_z selection without manual review | Phoenix best-fit rules | Standard NCA practice | AUC0-last and Cmax unaffected | Pre-specify in the statistical analysis plan |
 | B12 | Same presentation for both products; 200 mg presentation modelled as the 300 mg model | Model parameters unchanged | Study design; no presentation-specific absorption | Section 6.3 limitation | Label 200 mg results as limited |
 | B13 | Population: healthy adults (replaced) | BMI 18 to 32 criterion not applied as a filter | BMI changes no result (section 7.1) | Share outside 18 to 32 reported | None |
@@ -501,7 +501,7 @@ Any change after registration is recorded in the decision log with the reason an
 
 1. The arm-level comparisons of the earlier qualification of both models were known when the failure rule of section 6.2 was written, including the Model 1 misses on PKM12350 and R668-HV-1108 (section 4.1).
 2. Development runs of the section 6.2 code, whose verdicts were seen:
-   - 20 replicates at 12:25 and 12:38 UTC on 2026-10-20, under two earlier rule versions. The first version had nine arms and a GMR rule. The second, revised between these two runs, had eight arms, external-arm and Cmax rules, and the pooled group excluded.
+   - 20 replicates at 12:25 and 12:38 Coordinated Universal Time (UTC) on 2026-10-20, under two earlier rule versions. The first version had nine arms and a GMR rule. The second, revised between these two runs, had eight arms, external-arm and Cmax rules, and the pooled group excluded.
    - 60 replicates at 12:46 UTC under the five-unit rule as proposed by the statistical review, with the uncertain-mean weight assumption deciding.
    - 40 replicates in a scratch copy of the repository at 13:00 UTC, under the same rule, while testing the code; its verdict lines were seen.
    - 60 replicates in the scratch copy at 13:10 UTC under the registered rule, to test the revised code; only the structure of the output tables was inspected.
@@ -522,11 +522,23 @@ Any change after registration is recorded in the decision log with the reason an
    - it matches bootstrap indices to study numbers;
    - it reads empty fields as missing;
    - it reports the test-arm zero share and the interpretability flag on AUROC differences;
-   - it labels the summary table CSV as conditional;
+   - it labels the summary table comma-separated values (CSV) file as conditional;
    - it reports the required sample size for every cell.
 3. Run order. The full run follows the order in `scripts/run_m15.sh` (Model 1 operating characteristic and mechanism runs, the supplementary runs, Kovalenko 2016 runs at 300 mg, the consumer-risk extension, the weight-shape sensitivity, Kovalenko 2016 mechanism runs at 200 mg), which differs from the order listed in the configuration file. Results do not depend on the order, because every study has its own seeds.
 4. Post-run correction. The Wilson 95% CI of the lambda_z success rate among subjects with a computable lambda_z (section 8.4) was missing from the sampling-evaluation table; it was added from the stored subject-level results without re-simulation.
 5. Figures. Korean-labelled companion figures are not produced; the Korean summary text is the internal companion.
+6. Post-run verification (before the post stage). A multi-agent verification of the preview outputs recomputed 157 reported numbers independently from the raw files (operating characteristics, Tango intervals, crossings, AUROC, calibration, assurance, weight ratios, bias): all matched. It led to changes in reporting and output handling only; no computed value changed:
+   - the completeness check now requires every cell to hold every study;
+   - the paired-difference table carries the randomized n per arm. Paired differences are reported at 130 randomized per arm and true GMRs of 0.80, 0.95, 1.00 and 1.25 only, which section 8.1 did not state;
+   - in differences between 50% crossings, a lower-side resample that does not reach 50% is censored at minus infinity (it was 0), so a bound that falls on censored resamples is reported as not determinable instead of as a finite value;
+   - AUROC rows report the test-arm zero share of the positive versions, and the identity-version column is named as such;
+   - the pilot report counts studies, not study-version rows, with a missing estimate;
+   - the figure 5 subtitle gives the subject counts from the data (the AUC0-inf boxes use the reliable-terminal-phase subset);
+   - every result table written by the summary, sample-size and weight steps carries a conditionality column, and a notice file covers the other result folders;
+   - the summary table shows the protocol comparison under both Cmax rules with the sample sizes, plain labels instead of internal codes, and an abbreviation line; the key conclusions have an abbreviation line, and the last clause of conclusion 5 also requires the registered design-difference reading;
+   - the English text check covers every English output; the Hangul check also covers Jamo;
+   - in `results/m15/individual/bias_precision.csv`, the endpoint codes AUCinf_ruleA and AUCinf_computable denote the sets coded AUCinf_A and AUCinf_B in Appendix B.
+7. Editorial. Abbreviations that this plan used without expansion (SE, MC, pAUC, ADA, AI, UTC, CSV, QC, ASCII, BLA) are now expanded at first use and listed in Appendix A.
 
 ### 13.4 Post hoc analyses
 
@@ -542,7 +554,7 @@ New code:
 - `scripts/70_m15_validation.R` to `scripts/75_m15_summary.R`;
 - tests in `tests/testthat/test-m15.R`.
 
-An independent human QC of `R/m15.R` against sections 7 and 8 has not been performed before registration; it is pending before any regulatory use, and the unit tests of section 6.1 are the verification in the meantime. English outputs, including this plan, are checked for Hangul, en dash, em dash and the minus sign U+2212 with the project check (`regulatory/src/reg_helpers.R` check_english), and the plan is also checked to contain only ASCII characters (unit test).
+An independent human quality control (QC) of `R/m15.R` against sections 7 and 8 has not been performed before registration; it is pending before any regulatory use, and the unit tests of section 6.1 are the verification in the meantime. English outputs, including this plan, are checked for Hangul, en dash, em dash and the minus sign U+2212 with the project check (`regulatory/src/reg_helpers.R` check_english), and the plan is also checked to contain only American Standard Code for Information Interchange (ASCII) characters (unit test).
 
 ## 15. References
 
@@ -551,7 +563,7 @@ An independent human QC of `R/m15.R` against sections 7 and 8 has not been perfo
 3. Kovalenko P, et al. Base and covariate population pharmacokinetic analyses of dupilumab using phase 3 data. Clin Pharmacol Drug Dev 2020;9(6):756-767.
 4. Li Z, et al. Pharmacokinetics, pharmacodynamics, safety, and tolerability of dupilumab in healthy adult subjects. Clin Pharmacol Drug Dev 2020;9(6):742-755.
 5. Clot PA, et al. Pharmacokinetics of dupilumab in Chinese and Japanese healthy subjects. Int Immunopharmacol 2021;99:107985.
-6. FDA. BLA 761055 (dupilumab) Clinical Pharmacology Review, 2016 (Table 4.2.c, p.27).
+6. FDA. Biologics License Application (BLA) 761055 (dupilumab) Clinical Pharmacology Review, 2016 (Table 4.2.c, p.27).
 7. Wilson EB. Probable inference, the law of succession, and statistical inference. J Am Stat Assoc 1927;22:209-212.
 8. DeLong ER, DeLong DM, Clarke-Pearson DL. Comparing the areas under two or more correlated receiver operating characteristic curves: a nonparametric approach. Biometrics 1988;44:837-845.
 9. Tango T. Equivalence test and confidence interval for the difference in proportions for the paired-sample design. Stat Med 1998;17:891-908.
@@ -560,7 +572,7 @@ An independent human QC of `R/m15.R` against sections 7 and 8 has not been perfo
 
 ## Appendix A. Abbreviations
 
-ADA, anti-drug antibodies; AUC, area under the concentration-time curve; AUC0-inf, from time zero to infinity; AUC0-last, from time zero to the last quantifiable concentration; AUC0-t, to the last measurable time, as reported in the FDA review; AUC_%Extrap_obs, percentage of AUC0-inf extrapolated beyond Tlast; AUCINF_obs, AUC0-inf from the observed last concentration; AUROC, area under the receiver operating characteristic curve; BLQ, below the limit of quantification; BMI, body mass index; CDF, cumulative distribution function; CI, confidence interval; Clast, last quantifiable concentration; Cmax, maximum concentration; CV, coefficient of variation; df, degrees of freedom; EASI, Eczema Area and Severity Index; F, bioavailability; FDA, US Food and Drug Administration; GM, geometric mean; GMR, geometric mean ratio; HT, height; ICH, International Council for Harmonisation of Technical Requirements for Pharmaceuticals for Human Use; IIV, inter-individual variability; ka, absorption rate constant; ke, linear elimination rate constant; Km, Michaelis-Menten constant; KNHANES, Korea National Health and Nutrition Examination Survey; lambda_z, terminal elimination rate constant; LLOQ, lower limit of quantification; LSODA, Livermore Solver for Ordinary Differential Equations with automatic method switching; MC, Monte Carlo; MCAR, missing completely at random; MM, Michaelis-Menten; MTT, mean transit time; N, number of evaluable subjects; NCA, non-compartmental analysis; OC, operating characteristic; ODE, ordinary differential equation; pAUC, partial AUC; PI, prediction interval; PK, pharmacokinetic(s); RMSE, root mean square error; RSE, relative standard error; SC, subcutaneous; SD, standard deviation; SE, standard error; Tlast, time of the last quantifiable concentration; Vc, central volume of distribution; Vmax, maximum MM elimination rate; WT, body weight.
+ADA, anti-drug antibodies; AI, artificial intelligence; ASCII, American Standard Code for Information Interchange; AUC, area under the concentration-time curve; AUC0-inf, from time zero to infinity; AUC0-last, from time zero to the last quantifiable concentration; AUC0-t, to the last measurable time, as reported in the FDA review; AUC_%Extrap_obs, percentage of AUC0-inf extrapolated beyond Tlast; AUCINF_obs, AUC0-inf from the observed last concentration; AUROC, area under the receiver operating characteristic curve; BLA, Biologics License Application; BLQ, below the limit of quantification; BMI, body mass index; CDF, cumulative distribution function; CI, confidence interval; Clast, last quantifiable concentration; Cmax, maximum concentration; CSV, comma-separated values; CV, coefficient of variation; df, degrees of freedom; EASI, Eczema Area and Severity Index; F, bioavailability; FDA, US Food and Drug Administration; GM, geometric mean; GMR, geometric mean ratio; HT, height; ICH, International Council for Harmonisation of Technical Requirements for Pharmaceuticals for Human Use; IIV, inter-individual variability; ka, absorption rate constant; ke, linear elimination rate constant; Km, Michaelis-Menten constant; KNHANES, Korea National Health and Nutrition Examination Survey; lambda_z, terminal elimination rate constant; LLOQ, lower limit of quantification; LSODA, Livermore Solver for Ordinary Differential Equations with automatic method switching; MC, Monte Carlo; MCAR, missing completely at random; MM, Michaelis-Menten; MTT, mean transit time; N, number of evaluable subjects; NCA, non-compartmental analysis; OC, operating characteristic; ODE, ordinary differential equation; pAUC, partial AUC; PI, prediction interval; PK, pharmacokinetic(s); QC, quality control; RMSE, root mean square error; RSE, relative standard error; SC, subcutaneous; SD, standard deviation; SE, standard error; Tlast, time of the last quantifiable concentration; UTC, Coordinated Universal Time; Vc, central volume of distribution; Vmax, maximum MM elimination rate; WT, body weight.
 
 ## Appendix B. Code key (configuration and result files)
 

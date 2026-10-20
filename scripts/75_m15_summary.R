@@ -18,12 +18,14 @@ RD <- proj_path(CFG$output_dir); SD <- file.path(RD, "summary"); FD <- file.path
 dir.create(SD, showWarnings = FALSE, recursive = TRUE); dir.create(FD, showWarnings = FALSE, recursive = TRUE)
 NBASE <- as.integer(CFG$mechanisms$base_n_randomized_per_arm); B_BOOT <- 2000L
 PRIMARY <- CFG$models$primary
+COND <- m15_conditional_label(RD, PRIMARY)                          # 조건부 표시(계획서 6.2절): 결과 표마다 열로, 그림마다 설명으로
 combo_lab <- function(dd) { p <- strsplit(basename(dd), "_")[[1]]; list(pk_model = p[1], population = paste(p[2:(length(p) - 1)], collapse = "_"), dose_mg = as.numeric(p[length(p)])) }
 read_dir <- function(dd, pat) { f <- list.files(dd, pattern = pat, full.names = TRUE); if (!length(f)) return(NULL); rbindlist(lapply(f, fread), fill = TRUE) }
 # 완전성 점검: 키마다 한 행, 등록된 시험 번호가 빠짐없이(중복·누락이면 중단; 묶음 파일을 지우고 그 범위만 다시 실행)
 check_trials <- function(x, keys, expect, what) {
   if (anyDuplicated(x, by = c("trial", keys))) stop(what, ": 중복 행(같은 시험이 두 번)")
   got <- sort(unique(x$trial)); if (!identical(as.integer(got), as.integer(expect))) stop(what, sprintf(": 시험 %d개(기대 %d개), 누락 예: %s", length(got), length(expect), paste(head(setdiff(expect, got), 5), collapse = ",")))
+  cn <- x[, .N, by = keys]; if (any(cn$N != length(expect))) stop(what, sprintf(": 칸 %d개에서 시험 수가 %d개가 아님", sum(cn$N != length(expect)), length(expect)))   # 칸마다 모든 시험
   invisible(TRUE)
 }
 NT_MAIN <- as.integer(CFG$oc$n_trials); NT_EXT <- as.integer(CFG$oc$extension$n_trials)
@@ -39,7 +41,7 @@ if (mode == "pilot") {
     a <- oc[model == "M1", .(item = "studies with the stratum term dropped (M1, AUC0-last)", value = sum(m1_dropped > 0), n_studies = uniqueN(trial)), by = .(boundary, schedule, n_rand)]
     ec <- grep("^est_", names(me), value = TRUE)
     b <- rbindlist(lapply(ec, function(cc) me[, .(item = sprintf("studies with %s missing at 130 per arm (fewer than 2 analysable subjects in an arm)", sub("^est_", "", cc)),
-                                                value = sum(!is.finite(get(cc))), n_studies = uniqueN(trial)), by = .(schedule)]))[, `:=`(boundary = "fixed75", n_rand = NBASE)]
+                                                value = uniqueN(trial[!is.finite(get(cc))]), n_studies = uniqueN(trial)), by = .(schedule)]))   # 판 하나라도 결측인 시험 수[, `:=`(boundary = "fixed75", n_rand = NBASE)]
     rbind(a, b, fill = TRUE)[, combo := z[1]]
   }), fill = TRUE)
   pl <- readLines(file.path(RD, "run_progress.log")); rs <- grep("pilot restarted", pl); if (length(rs)) pl <- pl[(max(rs) + 1):length(pl)]   # 시드 수정 뒤 예비 실행만(D-068 이탈 1)
@@ -67,7 +69,7 @@ if (mode == "tables") {
   OCP[, c("pass_pct", "pass_lo", "pass_hi") := wil(n_pass, n_trials)]
   OCP[, c("auc_only_pct", "auc_only_lo", "auc_only_hi") := wil(n_pass_auc, n_trials)]
   OCP[, c("cmax_only_pct", "cmax_only_lo", "cmax_only_hi") := wil(n_pass_cmax, n_trials)]
-  setcolorder(OCP, c("pk_model", "population", "dose_mg", "boundary", "schedule", "model", "n_rand", "g")); fwrite(OCP, file.path(SD, "oc_pass.csv"))
+  setcolorder(OCP, c("pk_model", "population", "dose_mg", "boundary", "schedule", "model", "n_rand", "g")); m15_fwrite_cond(OCP, file.path(SD, "oc_pass.csv"), COND)
   # 소비자 위험(10,000회 = 본 실행 1~1,000 + 확장 1,001~10,000; k2020)
   CR <- rbindlist(lapply(list.dirs(file.path(RD, "trials", "ocext"), recursive = FALSE), function(dd) {
     x <- read_dir(dd, "^ocext_\\d+_\\d+\\.csv\\.gz$"); if (is.null(x)) return(NULL); v <- fread(file.path(dd, "versions.csv")); lb <- combo_lab(dd)
@@ -82,7 +84,7 @@ if (mode == "tables") {
     stopifnot(all(m$n_trials == NT_EXT))
     m[, c("pass_pct", "pass_lo", "pass_hi") := wil(n_pass, n_trials)]; m[, c("auc_only_pct", "auc_only_lo", "auc_only_hi") := wil(n_pass_auc, n_trials)]
     m[, c("cmax_only_pct", "cmax_only_lo", "cmax_only_hi") := wil(n_pass_cmax, n_trials)]
-    fwrite(m, file.path(SD, "oc_consumer_risk.csv"))
+    m15_fwrite_cond(m, file.path(SD, "oc_consumer_risk.csv"), COND)
   }
   # 균등 모양 민감도
   SHP <- rbindlist(lapply(list.dirs(file.path(RD, "trials", "ocshape"), recursive = FALSE), function(dd) {
@@ -90,7 +92,7 @@ if (mode == "tables") {
     check_trials(x, c("boundary", "schedule", "n_rand", "model"), seq_len(as.integer(CFG$oc$weight_shape_sensitivity$n_trials)), paste("ocshape", basename(dd)))
     rbindlist(lapply(seq_len(nrow(v)), function(i) x[, .(n_trials = .N, n_pass = sum(bit(mask, v$vi[i]))), by = .(boundary, schedule, n_rand, model)][, g := v$g[i]]))[,
       `:=`(pk_model = lb$pk_model, population = lb$population, dose_mg = lb$dose_mg)] }))
-  if (nrow(SHP)) { SHP[, c("pass_pct", "pass_lo", "pass_hi") := wil(n_pass, n_trials)]; fwrite(SHP, file.path(SD, "oc_weight_shape.csv")) }
+  if (nrow(SHP)) { SHP[, c("pass_pct", "pass_lo", "pass_hi") := wil(n_pass, n_trials)]; m15_fwrite_cond(SHP, file.path(SD, "oc_weight_shape.csv"), COND) }
   # 짝 차이(Tango): 130명, g = 0.80, 0.95, 1.00, 1.25
   X <- rbindlist(OCX)[abs(g - 0.80) < 1e-9 | abs(g - 0.95) < 1e-9 | abs(g - 1) < 1e-9 | abs(g - 1.25) < 1e-9]
   pdiff <- function(a, b, by_cols, ct_lab, lab_a, lab_b) {
@@ -109,7 +111,8 @@ if (mode == "tables") {
     pdiff(K[dose_mg == 200][, dose_mg := NULL], K[dose_mg == 300][, dose_mg := NULL], c("pk_model", "population", "boundary", "schedule", "model", "g"), "dose", "200", "300"), fill = TRUE)
   rd <- as.numeric(sub(".*at least ([0-9.]+) percentage points.*", "\\1", CFG$interpretation$design_difference)); stopifnot(is.finite(rd))
   PD[, changes_oc := (lo_pp > 0 | hi_pp < 0) & abs(diff_pp) >= rd]
-  fwrite(PD, file.path(SD, "oc_paired_diff.csv"))
+  PD[, n_rand := NBASE]                                              # 짝 차이는 군당 130명, g 0.80·0.95·1.00·1.25에서만(위 OCX, X)
+  m15_fwrite_cond(PD, file.path(SD, "oc_paired_diff.csv"), COND)
   append_run_log(lf, sprintf("OC tables: %d cells, %d paired differences", nrow(OCP), nrow(PD)))
 
   # ---------------------------------------------------------------- [4] 기전 OC와 50% 교차 ----------------------------------------------------------------
@@ -126,7 +129,7 @@ if (mode == "tables") {
     merge(r$cnt[, .(n_trials = sum(n_trials), n_pass = sum(n_pass), n_pass_auc = sum(n_pass_auc), n_pass_cmax = sum(n_pass_cmax)), by = .(schedule, vi, n_rand, model)], r$v, by = "vi")[,
       `:=`(pk_model = lb$pk_model, population = lb$population, dose_mg = lb$dose_mg, set = kind)] }))))
   MP[, c("pass_pct", "pass_lo", "pass_hi") := wil(n_pass, n_trials)]
-  setcolorder(MP, c("pk_model", "population", "dose_mg", "set", "schedule", "mechanism", "multiplier", "n_rand", "model")); fwrite(MP, file.path(SD, "mech_pass.csv"))
+  setcolorder(MP, c("pk_model", "population", "dose_mg", "set", "schedule", "mechanism", "multiplier", "n_rand", "model")); m15_fwrite_cond(MP, file.path(SD, "mech_pass.csv"), COND)
   # 시험별 통과 행렬(130명, M1): 기전 본 실행 + 보충(같은 시험 j, 항등은 같다)
   BIDX <- m15_boot_index(as.integer(CFG$mechanisms$n_trials), B_BOOT, derive_seed(MS, "crossing_boot"))
   cross_one <- function(mult, p) {                                  # 1.00에서 바깥쪽 첫 50% 미만 교차(log 배율 선형 보간)
@@ -171,11 +174,11 @@ if (mode == "tables") {
       }
     }
   }
-  CRT <- rbindlist(CRS); fwrite(CRT, file.path(SD, "mech_crossing.csv"))
+  CRT <- rbindlist(CRS); m15_fwrite_cond(CRT, file.path(SD, "mech_crossing.csv"), COND)
   # 교차 차이(같은 재표집 색인): S2 - S1, 200 - 300, 일정 - B0 (%p 단위 차이; 어느 쪽이든 미도달인 재표집은 제외, 비율 보고)
   CRT[, ckey := paste(pk_model, population, dose_mg, schedule, mechanism, side, sep = "|")]
   cdiff <- function(key_a, key_b, ct_lab) { a <- CRB[[key_a]]; b <- CRB[[key_b]]; if (is.null(a) || is.null(b)) return(NULL)
-    sd_ <- if (grepl("\\|down$", key_a)) 0 else Inf                                         # 미도달 = 격자 끝 너머(아래쪽 0, 위쪽 Inf)로 검열
+    sd_ <- if (grepl("\\|down$", key_a)) -Inf else Inf                                      # 미도달 = 격자 끝 너머(아래쪽 -Inf, 위쪽 Inf)로 검열: 그 쪽 한계는 정할 수 없음(NA)
     ac <- ifelse(is.finite(a), a, sd_); bc_ <- ifelse(is.finite(b), b, sd_)
     d <- 100 * (ac - bc_); d[!is.finite(a) & !is.finite(b)] <- NA_real_                       # 둘 다 미도달이면 차이를 정할 수 없다
     ea <- CRT$crossing_multiplier[match(key_a, CRT$ckey)]; eb <- CRT$crossing_multiplier[match(key_b, CRT$ckey)]
@@ -186,7 +189,7 @@ if (mode == "tables") {
   CD <- rbindlist(lapply(seq_len(nrow(CRT)), function(i) { r <- CRT[i]; k <- function(pop = r$population, dose = r$dose_mg, sn = r$schedule) paste(r$pk_model, pop, dose, sn, r$mechanism, r$side, sep = "|")
     rbind(if (r$population == "S2") cdiff(k(), k(pop = "S1"), "population S2 - S1"), if (r$dose_mg == 200) cdiff(k(), k(dose = 300), "dose 200 - 300"),
           if (r$schedule != "B0") cdiff(k(), k(sn = "B0"), sprintf("schedule %s - B0", r$schedule))) }))
-  fwrite(CD, file.path(SD, "mech_crossing_diff.csv"))
+  m15_fwrite_cond(CD, file.path(SD, "mech_crossing_diff.csv"), COND)
   append_run_log(lf, sprintf("mechanism tables: %d crossings", nrow(CRT)))
 
   # ---------------------------------------------------------------- [5] AUROC ----------------------------------------------------------------
@@ -208,7 +211,9 @@ if (mode == "tables") {
     s <- stat_cols(r$base); v <- r$v; ST <- setdiff(names(s), c("trial", "schedule", "vi"))
     zs <- r$base[vi == 1, c("schedule", grep("^(zero_R|n_R|zero_T|n_T)_", names(r$base), value = TRUE)), with = FALSE]
     ZS <- rbindlist(lapply(PA, function(e) zs[, .(endpoint = e, zero_share_R = sum(get(paste0("zero_R_", e)), na.rm = TRUE) / sum(get(paste0("n_R_", e)), na.rm = TRUE),
-                                                  zero_share_T = sum(get(paste0("zero_T_", e)), na.rm = TRUE) / sum(get(paste0("n_T_", e)), na.rm = TRUE)), by = schedule]))
+                                                  zero_share_T_identity = sum(get(paste0("zero_T_", e)), na.rm = TRUE) / sum(get(paste0("n_T_", e)), na.rm = TRUE)), by = schedule]))
+    # 양성(차이를 넣은 판)의 시험군 0 비율: 판마다
+    ZV <- rbindlist(lapply(PA, function(e) r$base[, .(endpoint = e, zT = sum(get(paste0("zero_T_", e)), na.rm = TRUE), nT = sum(get(paste0("n_T_", e)), na.rm = TRUE)), by = .(schedule, vi)]))
     rows <- list(); draws <- list()
     for (sn in unique(s$schedule)) {
       w <- s[schedule == sn]; trials <- sort(unique(w$trial))
@@ -222,7 +227,9 @@ if (mode == "tables") {
           pos <- matrix(sapply(vis, function(x) col_at(x, st)), ncol = length(vis))
           keep <- is.finite(neg) & apply(is.finite(pos), 1, all)
           pk <- pos[keep, , drop = FALSE]; nk <- neg[keep]
-          if (sum(keep) < 10) { rows[[length(rows) + 1]] <- data.table(schedule = sn, statistic = st, mechanism = mech, size_pct = as.numeric(sz), direction = dir_, n_studies = sum(keep), auroc = NA_real_); next }
+          ep_ <- sub("_(meanratio|logc)$", "", st); zT_ <- if (ep_ %in% PA) { zz <- ZV[schedule == sn & endpoint == ep_ & vi %in% vis]; sum(zz$zT) / sum(zz$nT) } else NA_real_
+          if (sum(keep) < 10) { rows[[length(rows) + 1]] <- data.table(schedule = sn, statistic = st, mechanism = mech, size_pct = as.numeric(sz), direction = dir_, n_studies = sum(keep), auroc = NA_real_,
+                                                                        zero_share_T_pos = zT_); next }
           a <- .m15_mw(as.vector(pk), nk); dl <- m15_auroc(as.vector(pk), nk)
           # 같은 색인(전체 시험 기준)에서 제외된 시험을 뺀다
           idx <- if (all(keep)) idx_all else { map_ <- cumsum(keep); lapply(idx_all, function(pi_) map_[pi_[keep[pi_]]]) }
@@ -230,7 +237,7 @@ if (mode == "tables") {
           key <- paste(sn, st, mech, sz, dir_, sep = "|"); draws[[key]] <- bt
           rows[[length(rows) + 1]] <- data.table(schedule = sn, statistic = st, mechanism = mech, size_pct = as.numeric(sz), direction = dir_, n_studies = sum(keep), auroc = a,
                                                  lo = quantile(bt, 0.025, names = FALSE, na.rm = TRUE), hi = quantile(bt, 0.975, names = FALSE, na.rm = TRUE),
-                                                 delong_lo = dl$lo, delong_hi = dl$hi)
+                                                 delong_lo = dl$lo, delong_hi = dl$hi, zero_share_T_pos = zT_)
         }
       }
     }
@@ -239,11 +246,11 @@ if (mode == "tables") {
   }, mc.cores = cores, mc.preschedule = FALSE)
   bad <- vapply(AU, function(x) is.null(x) || inherits(x, "try-error"), TRUE); if (length(AU) != nrow(au_jobs) || any(bad)) stop("AUROC 실패 또는 작업자 결과 없음: ", which(bad))
   AUR <- rbindlist(lapply(AU, `[[`, "rows"), fill = TRUE); ZS <- rbindlist(lapply(AU, `[[`, "zs"))
-  ZS[, not_interpretable := zero_share_R > 0.5]; fwrite(ZS, file.path(SD, "pauc_zero_share.csv"))
+  ZS[, not_interpretable := zero_share_R > 0.5]; m15_fwrite_cond(ZS, file.path(SD, "pauc_zero_share.csv"), COND)
   AUR[, endpoint := sub("_(meanratio|logc)$", "", statistic)]
   AUR <- merge(AUR, ZS[, .(pk_model, population, dose_mg, schedule, endpoint, zero_share_R, not_interpretable)], by = c("pk_model", "population", "dose_mg", "schedule", "endpoint"), all.x = TRUE)
   AUR[, role := fifelse(statistic %in% c("AUCinf_A", paste0(c("pAUC_0_14", "pAUC_14_28", "pAUC_28_56"), "_meanratio")), "primary", "sensitivity")]
-  fwrite(AUR, file.path(SD, "auroc.csv"))
+  m15_fwrite_cond(AUR, file.path(SD, "auroc.csv"), COND)
   # 차이(같은 부트스트랩 색인): 일정 - B0, 부분 AUC - AUCinf_A, S2 - S1, 200 - 300 (양방향 합침)
   DR <- list(); names(AU) <- paste(au_jobs$pk_model, au_jobs$population, au_jobs$dose_mg, sep = "|")
   est_of <- function(cb, key) { p <- strsplit(cb, "\\|")[[1]]; k <- strsplit(key, "\\|")[[1]]
@@ -262,7 +269,7 @@ if (mode == "tables") {
     if (p[2] == "S2") DR[[length(DR) + 1]] <- adiff(cb, key, paste(p[1], "S1", p[3], sep = "|"), key, "population S2 - S1")
     if (p[3] == "200") DR[[length(DR) + 1]] <- adiff(cb, key, paste(p[1], p[2], "300", sep = "|"), key, "dose 200 - 300")
   }
-  fwrite(rbindlist(DR), file.path(SD, "auroc_diff.csv"))
+  m15_fwrite_cond(rbindlist(DR), file.path(SD, "auroc_diff.csv"), COND)
   append_run_log(lf, sprintf("AUROC tables: %d cells, %d differences", nrow(AUR), length(DR)))
   append_run_log(lf, "done")
 }
@@ -275,11 +282,9 @@ MODL <- c(k2020 = "Kovalenko 2020 Model 1 (primary)", k2016 = "Kovalenko 2016 (s
 MODS <- c(k2020 = "Kovalenko 2020 Model 1\n(primary)", k2016 = "Kovalenko 2016\n(sensitivity)")   # 그림 띠 표기(두 줄, 잘림 방지)
 SCHS <- c(B0 = "Confirmed", RM36_50 = "Reduced", ADD64_71 = "Extended")
 COLS3 <- c(VIZ$s1, VIZ$s2, VIZ$s3)
-COND <- local({ f <- file.path(RD, "validation", "validation_rule.csv"); if (!file.exists(f)) "" else { r <- fread(f)[pk_model == PRIMARY & wmode == "primary"]
-  if (isTRUE(r$failure[1])) "Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2)." else "" } })
 save_fig <- function(g, name, w, h, tab) {
   if (nzchar(COND)) g <- g + labs(caption = COND)
-  ggsave(file.path(FD, paste0(name, ".png")), g, width = w, height = h, dpi = 150, bg = "white"); fwrite(tab, file.path(FD, paste0(name, ".csv"))) }
+  ggsave(file.path(FD, paste0(name, ".png")), g, width = w, height = h, dpi = 150, bg = "white"); m15_fwrite_cond(tab, file.path(FD, paste0(name, ".csv")), COND) }
 if (mode == "figures") {
   lf <- start_run_log("m15_summary_figures", master_seed = MS, run_mode = "final")
   # fig1: [1] 예측 대 관측(판정 단위, 고정 체중 가정)
@@ -338,7 +343,9 @@ if (mode == "figures") {
   g5 <- ggplot(Es, aes(x = sched_lab, fill = sched_lab)) + geom_boxplot(aes(ymin = q05, lower = q25, middle = q50, upper = q75, ymax = q95), stat = "identity", width = 0.6, colour = VIZ$ink2) +
     geom_hline(yintercept = 0, colour = VIZ$muted) + facet_grid(endpoint ~ panel, scales = "free_y") + scale_fill_manual(values = COLS3, name = NULL) + scale_x_discrete(labels = function(x) SCHS[match(x, SCHL)]) +
     labs(x = NULL, y = "Percent error against the model truth", title = "Bias and precision of NCA parameters by sampling schedule",
-         subtitle = sprintf("%s, 20,000 subjects per panel; box = quartiles, whiskers = 5th and 95th percentiles", MODL[[PRIMARY]])) + theme_dupi()
+         subtitle = { na <- range(Es[endpoint != "AUC0-inf (reliable set)", n]); nr <- range(Es[endpoint == "AUC0-inf (reliable set)", n])
+           sprintf("%s, %s simulated subjects per cell (AUC0-last, Cmax); AUC0-inf uses the reliable-terminal-phase subset (%s to %s per box); box = quartiles, whiskers = 5th and 95th percentiles",
+                   MODL[[PRIMARY]], if (na[1] == na[2]) format(na[1], big.mark = ",") else paste(format(na, big.mark = ","), collapse = " to "), format(nr[1], big.mark = ","), format(nr[2], big.mark = ",")) }) + theme_dupi()
   save_fig(g5, "fig5_bias_precision", 13, 8, Es)
   # fig6: [7] 검정력 대 n
   PSIM <- fread(file.path(RD, "samplesize", "power_sim.csv"))[schedule == "B0" & boundary == "fixed75" & model == "M1"]
@@ -389,9 +396,11 @@ if (mode == "summary") {
   addr("External validation outcome (section 6.2)", vo("k2020"), vo("k2016"), "results/m15/validation/validation_rule.csv")
   cell <- function(pm, gg, col = "pass", d = OCP) { z <- gsel(pick(d, pm), gg); if (!nrow(z)) return("-"); sprintf("%s%% (%s to %s)", fmt(z[[paste0(col, "_pct")]]), fmt(z[[paste0(col, "_lo")]]), fmt(z[[paste0(col, "_hi")]])) }
   for (gg in c(0.95, 1.00)) addr(sprintf("Power at true GMR %.2f, primary scenario", gg), cell("k2020", gg), cell("k2016", gg), "results/m15/summary/oc_pass.csv")
+  NCR <- unique(CR[pk_model == PRIMARY, n_trials]); stopifnot(length(NCR) == 1, NCR == NT_EXT)       # 소비자 위험 연구 수는 파일에서
   for (gg in c(0.80, 1.25)) for (col in c("pass", "auc_only", "cmax_only")) {
     lab <- c(pass = "joint, both endpoints at the margin", auc_only = "AUC0-last-only pass", cmax_only = "Cmax-only pass")[[col]]
-    addr(sprintf("Consumer risk at true GMR %.2f (%s)", gg, lab), cell("k2020", gg, col, if (nrow(CR)) CR else OCP), cell("k2016", gg, col), "results/m15/summary/oc_consumer_risk.csv (Model 1, 10,000 studies); oc_pass.csv (Kovalenko 2016, 1,000)")
+    addr(sprintf("Consumer risk at true GMR %.2f (%s)", gg, lab), cell("k2020", gg, col, if (nrow(CR)) CR else OCP), cell("k2016", gg, col),
+         sprintf("results/m15/summary/oc_consumer_risk.csv (Model 1, %s studies); oc_pass.csv (Kovalenko 2016, %s)", fmt(NCR, 0), fmt(NT_MAIN, 0)))
   }
   pdc <- function(pm, ct_, a_, gg = 0.95) { z <- PD[PD$pk_model == pm & PD$contrast == ct_ & PD$design_a == a_ & abs(PD$g - gg) < 1e-9]
     for (nm in c("population", "dose_mg", "schedule", "boundary", "model")) if (nm %in% names(z) && !is.na(match(nm, names(base)))) { v <- base[[nm]]; if (!all(is.na(z[[nm]]))) z <- z[is.na(z[[nm]]) | z[[nm]] == v] }
@@ -411,25 +420,42 @@ if (mode == "summary") {
   for (ep in c("AUCinf_A", "pAUC_0_14_meanratio", "pAUC_14_28_meanratio", "pAUC_28_56_meanratio")) {
     ac <- function(pm) { z <- AUR[pk_model == pm & population == "S1" & dose_mg == base$dose_mg & schedule == "B0" & statistic == ep & size_pct == 10 & direction == "pooled"]
       if (!nrow(z)) return("-"); paste(sprintf("%s %s (%s to %s)%s", z$mechanism, fmt(z$auroc, 3), fmt(z$lo, 3), fmt(z$hi, 3), fifelse(z$not_interpretable %in% TRUE, " [zero share above 50%]", "")), collapse = "; ") }
-    addr(sprintf("AUROC at a 10%% difference, %s", ep), ac("k2020"), ac("k2016"), "results/m15/summary/auroc.csv")
+    addr(sprintf("AUROC at a 10%% difference, %s", c(AUCinf_A = "AUC0-inf (absolute log GMR, stratified analysis)", pAUC_0_14_meanratio = "partial AUC 0 to 14 days (absolute log ratio of arithmetic means)",
+                                                    pAUC_14_28_meanratio = "partial AUC 14 to 28 days (absolute log ratio of arithmetic means)",
+                                                    pAUC_28_56_meanratio = "partial AUC 28 to 56 days (absolute log ratio of arithmetic means)")[[ep]]), ac("k2020"), ac("k2016"), "results/m15/summary/auroc.csv")
   }
-  ss <- function(pm, col) { z <- SY[pk_model == pm & cv_source == "model, enrolled S1 population" & true_gmr == 0.95 & model == "M1" & cmax_rule == "ratio"]; if (!nrow(z)) "-" else as.character(z[[col]]) }
-  addr("Randomized per arm for 85% power at true GMR 0.95 (model CV)", ss("k2020", "n_rand_85"), ss("k2016", "n_rand_85"), "results/m15/samplesize/syneos_comparison.csv")
-  addr("Randomized per arm for 90% power at true GMR 0.95 (model CV)", ss("k2020", "n_rand_90"), ss("k2016", "n_rand_90"), "results/m15/samplesize/syneos_comparison.csv")
+  ss <- function(pm, col) { z <- SY[pk_model == pm & cv_source == "model, enrolled global population" & true_gmr == 0.95 & model == "M1"]; if (!nrow(z)) return("-")
+    zr <- z[cmax_rule == "ratio"][[col]]; zf <- z[cmax_rule == "fixed"][[col]]; stopifnot(length(zr) == 1, length(zf) == 1)
+    if (zr == zf) as.character(zr) else sprintf("%s (fixed Cmax rule %s)", zr, zf) }
+  addr("Randomized per arm for 85% power at true GMR 0.95 (model CV; Cmax SD by the ratio rule)", ss("k2020", "n_rand_85"), ss("k2016", "n_rand_85"), "results/m15/samplesize/syneos_comparison.csv")
+  addr("Randomized per arm for 90% power at true GMR 0.95 (model CV; Cmax SD by the ratio rule)", ss("k2020", "n_rand_90"), ss("k2016", "n_rand_90"), "results/m15/samplesize/syneos_comparison.csv")
   asr <- function(pm) { z <- pick(PAN, pm, list())[true_gmr == 0.95]; if (!nrow(z)) "-" else sprintf("%s%%", fmt(z$assurance_cv_pct)) }
   addr("Assurance over CV uncertainty at 130 per arm, true GMR 0.95", asr("k2020"), asr("k2016"), "results/m15/samplesize/power_analytic.csv")
-  sy <- function(pm) { z <- SY[pk_model == pm & true_gmr == 0.95 & model == "M1" & cmax_rule == "ratio"]; paste(sprintf("%s: CV %s%%, power %s%%", z$cv_source, fmt(z$cv_pct), fmt(z$power_n117_eval_pct)), collapse = "; ") }
-  addr("Protocol comparison at 117 evaluable per arm, true GMR 0.95", sy("k2020"), sy("k2016"), "results/m15/samplesize/syneos_comparison.csv")
+  syz <- function(pm) { z <- SY[pk_model == pm & true_gmr == 0.95 & model == "M1"]; zr <- z[cmax_rule == "ratio"]; zf <- z[cmax_rule == "fixed"][match(zr$cv_source, cv_source)]
+    stopifnot(nrow(zr) == nrow(zf), !anyNA(zf$cv_source)); list(r = zr, f = zf) }
+  sy <- function(pm) { z <- syz(pm); paste(sprintf("%s: CV %s%%, power %s%% (ratio rule) or %s%% (fixed rule)", z$r$cv_source, fmt(z$r$cv_pct), fmt(z$r$power_n117_eval_pct), fmt(z$f$power_n117_eval_pct)), collapse = "; ") }
+  sn_ <- function(pm) { z <- syz(pm); paste(sprintf("%s: %s and %s (ratio rule); %s and %s (fixed rule)", z$r$cv_source, z$r$n_rand_85, z$r$n_rand_90, z$f$n_rand_85, z$f$n_rand_90), collapse = "; ") }
+  addr("Protocol comparison at 117 evaluable per arm, true GMR 0.95, by CV source (Cmax SD by the ratio rule or the fixed rule of the stored protocol figures)", sy("k2020"), sy("k2016"), "results/m15/samplesize/syneos_comparison.csv")
+  addr("Randomized per arm for 85% and 90% power at true GMR 0.95, by CV source", sn_("k2020"), sn_("k2016"), "results/m15/samplesize/syneos_comparison.csv")
   wr <- function(pm, pr) { z <- WR[pk_model == pm & population == "S1" & dose_mg == base$dose_mg & abs(prob - pr) < 1e-9]
-    paste(sprintf("%s %s (paired 90%%: %s to %s)", z$metric, fmt(z$typical_ratio, 3), fmt(z$paired_q05, 3), fmt(z$paired_q95, 3)), collapse = "; ") }
+    ml <- c(AUCinf = "AUC0-inf", Cmax = "Cmax", AUClast_dense_B0 = "AUC0-last (dense truth, confirmed schedule)"); stopifnot(all(z$metric %in% names(ml)))
+    paste(sprintf("%s %s (paired 90%%: %s to %s)", ml[z$metric], fmt(z$typical_ratio, 3), fmt(z$paired_q05, 3), fmt(z$paired_q95, 3)), collapse = "; ") }
   for (pr in c(0.05, 0.95)) addr(sprintf("Weight effect at the %dth percentile (global population), ratio to 75 kg", round(100 * pr)), wr("k2020", pr), wr("k2016", pr), "results/m15/weight/weight_ratio.csv")
   if (RULE[pk_model == PRIMARY & wmode == "primary", failure][1]) addr("Conditionality", "All results conditional on a primary model that did not pass the pre-specified external check (plan section 6.2)", "",
                                                                          "results/m15/validation/validation_rule.csv")
   TAB <- rbindlist(rows); fwrite(TAB, file.path(SD, "m15_summary_table.csv"))
-  md <- c("# Results summary table (model analysis plan 2026-10-20)", "",
-          "Primary scenario: global healthy-volunteer population, 300 mg, confirmed schedule, 75 kg boundary, 130 randomized per arm, stratified analysis. Every value is read from the file in the last column.", "",
-          "| Item | Kovalenko 2020 Model 1 (primary) | Kovalenko 2016 (sensitivity) | Source |", "|---|---|---|---|",
-          sprintf("| %s | %s | %s | %s |", TAB$item, TAB$model_1, TAB$kovalenko_2016, TAB$source))
+  # 약어: 문서에 나오는 것만, 처음 나오는 순서로(본문 앞에 한 줄)
+  ABBR <- c(`AUC0-inf` = "area under the concentration-time curve from time zero to infinity", `AUC0-last` = "area under the concentration-time curve from time zero to the last quantifiable concentration",
+            AUC = "area under the concentration-time curve", AUROC = "area under the receiver operating characteristic curve", CI = "confidence interval", Cmax = "maximum concentration",
+            CV = "coefficient of variation", F = "bioavailability", GMR = "geometric mean ratio", ka = "absorption rate constant", ke = "linear elimination rate constant",
+            Vmax = "maximum Michaelis-Menten elimination rate", pp = "percentage points", RSE = "relative standard error", SD = "standard deviation", PK = "pharmacokinetic", NCA = "non-compartmental analysis")
+  abbr_line <- function(txt) { txt <- paste(txt, collapse = "\n")
+    pos <- vapply(names(ABBR), function(a) as.integer(regexpr(paste0("(?<![A-Za-z0-9_])", a, "(?![A-Za-z0-9_])"), txt, perl = TRUE)), 1L); pos <- sort(pos[pos > 0])
+    if (!length(pos)) return(character(0)); c(paste0("Abbreviations: ", paste(sprintf("%s, %s", names(pos), ABBR[names(pos)]), collapse = "; "), "."), "") }
+  body_ <- c("Primary scenario: global healthy-volunteer population, 300 mg, confirmed schedule, 75 kg boundary, 130 randomized per arm, stratified analysis. Every value is read from the file in the last column.", "",
+             "| Item | Kovalenko 2020 Model 1 (primary) | Kovalenko 2016 (sensitivity) | Source |", "|---|---|---|---|",
+             sprintf("| %s | %s | %s | %s |", TAB$item, TAB$model_1, TAB$kovalenko_2016, TAB$source))
+  md <- c("# Results summary table (model analysis plan 2026-10-20)", "", abbr_line(body_), body_)
   if (RULE[pk_model == PRIMARY & wmode == "primary", failure][1]) md <- c(md, "", "All results are conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).")
   md <- c(md, "", "Parameter uncertainty was not propagated (no relative standard errors are recorded); every value is conditional on the published parameter point estimates.")
   writeLines(md, file.path(SD, "m15_summary_table.md"))
@@ -471,7 +497,7 @@ if (mode == "summary") {
     stopifnot(nrow(b[endpoint == "AUClast"]) == 1, nrow(b[endpoint == "AUCinf_ruleA"]) == 1, nrow(a) == 1, nrow(v) == 1)
     list(bias = b[endpoint == "AUClast", bias_median_pct], rel = 100 * b[endpoint == "AUCinf_ruleA", n] / b[endpoint == "AUClast", n], auroc = a$auroc, cv = v$cv_auc_pct) })
   rs <- pd95[contrast == "schedule" & design_a == "RM36_50" & base_cell == TRUE]; stopifnot(nrow(rs) == 1)
-  shorter <- rs$diff_pp > 0 && q5$RM36_50$bias < q5$B0$bias && q5$RM36_50$auroc < q5$B0$auroc && q5$RM36_50$cv < q5$B0$cv
+  shorter <- isTRUE(rs$changes_oc) && rs$diff_pp > 0 && q5$RM36_50$bias < q5$B0$bias && q5$RM36_50$auroc < q5$B0$auroc && q5$RM36_50$cv < q5$B0$cv
   c5 <- sprintf("5. The reduced schedule changes power in the primary scenario by %s pp (paired 95%% CI %s to %s) against the confirmed schedule, with model AUC0-last CV %s%% vs %s%%, median AUC0-last error against the dense truth %s%% vs %s%%, a reliable AUC0-inf in %s%% vs %s%% of subjects, and an AUC0-inf AUROC for a 10%% bioavailability difference of %s vs %s%s.",
                 fmt(rs$diff_pp), fmt(rs$lo_pp), fmt(rs$hi_pp), fmt(q5$RM36_50$cv), fmt(q5$B0$cv), fmt(q5$RM36_50$bias), fmt(q5$B0$bias), fmt(q5$RM36_50$rel, 0), fmt(q5$B0$rel, 0),
                 fmt(q5$RM36_50$auroc, 3), fmt(q5$B0$auroc, 3), if (shorter) "; the power gain reflects a shorter, less variable AUC0-last, not better measurement" else "")
@@ -490,7 +516,7 @@ if (mode == "summary") {
          sprintf("4. The conclusion probability falls to 50%% at test-arm differences of %s (primary scenario).", side_txt(bc)),
          c5)
   stopifnot(length(C) <= 5)
-  writeLines(c("# Key conclusions (generated from the result files)", "", HDR, "", C),
+  writeLines(c("# Key conclusions (generated from the result files)", "", HDR, "", abbr_line(c(HDR, C)), C),
              file.path(SD, "m15_key_conclusions_en.md"))
   # 한국어 요약(내부용): 같은 수치
   K <- c("# M15 분석 결과 요약 (내부용, 수치는 results/m15/summary/*.csv에서 자동 생성)", "",
@@ -508,7 +534,14 @@ if (mode == "summary") {
   i0 <- grep("^## 12\\. Assumptions", pl); i1 <- grep("^## 13\\.", pl); tl <- pl[i0:i1]; tl <- tl[grepl("^\\| B[0-9]+ ", tl)]
   AS <- rbindlist(lapply(strsplit(sub("^\\| ", "", sub(" \\|$", "", tl)), " \\| "), function(x) as.data.table(as.list(x))))
   setnames(AS, c("ID", "Assumption", "Value used", "Basis", "Impact evidence", "Action before submission")); fwrite(AS, file.path(SD, "m15_assumptions_register.csv"))
-  for (f in c("m15_summary_table.md", "m15_key_conclusions_en.md")) { source(proj_path("regulatory", "src", "reg_helpers.R"), local = TRUE); check_english(file.path(SD, f)) }
+  if (nzchar(COND)) writeLines(c("# Notice on the M15 results", "", COND, "",
+                                 "This applies to every result under results/m15 except the validation folder: the trial, truth, individual, population, weight, sample-size and summary outputs and the figures.",
+                                 "Result tables written by the summary, sample-size and weight steps carry it in a column named conditionality."), file.path(RD, "NOTICE_conditional.md"))
+  source(proj_path("regulatory", "src", "reg_helpers.R"), local = TRUE)
+  en_files <- c(setdiff(list.files(SD, "\\.(csv|md)$", full.names = TRUE), file.path(SD, "m15_summary_ko.md")), list.files(FD, "\\.csv$", full.names = TRUE),
+                list.files(file.path(RD, c("samplesize", "weight")), "\\.csv$", full.names = TRUE), if (nzchar(COND)) file.path(RD, "NOTICE_conditional.md"))
+  for (f in en_files) check_english(f)
+  append_run_log(lf, sprintf("English text check: %d files", length(en_files)))
   print(TAB); cat(C, sep = "\n")
   append_run_log(lf, "done")
 }
