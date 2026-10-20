@@ -78,3 +78,4 @@ session_info:
   [33] vctrs_0.6.5        glue_1.7.0         rxode2_5.1.7       PreciseSums_0.7   
   [37] fansi_1.0.5        colorspace_2.1-0   tools_4.3.3        pkgconfig_2.0.3   
 [15:02:45] oc k2020 S1 300 trials 1-50 written in 32.95276 secs
+[15:03:16] oc k2020 S1 300 trials 51-100 written in 30.65781 secs
