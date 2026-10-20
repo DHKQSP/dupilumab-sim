@@ -212,6 +212,7 @@ if (mode == "tables") {
     rows <- list(); draws <- list()
     for (sn in unique(s$schedule)) {
       w <- s[schedule == sn]; trials <- sort(unique(w$trial))
+      idx_all <- lapply(AIDX, function(i) { pi_ <- match(i, trials); pi_[!is.na(pi_)] })   # 재표집 색인을 시험 위치로(일정마다 한 번)
       col_at <- function(x, st_) { z <- w[vi == x]; z[[st_]][match(trials, z$trial)] }
       for (st in ST) {
         neg <- col_at(1L, st)
@@ -224,8 +225,8 @@ if (mode == "tables") {
           if (sum(keep) < 10) { rows[[length(rows) + 1]] <- data.table(schedule = sn, statistic = st, mechanism = mech, size_pct = as.numeric(sz), direction = dir_, n_studies = sum(keep), auroc = NA_real_); next }
           a <- .m15_mw(as.vector(pk), nk); dl <- m15_auroc(as.vector(pk), nk)
           # 같은 색인(전체 시험 기준)에서 제외된 시험을 뺀다
-          map_ <- cumsum(keep); idx <- lapply(AIDX, function(i) { pi_ <- match(i, trials); pi_ <- pi_[!is.na(pi_)]; map_[pi_[keep[pi_]]] })
-          bt <- vapply(idx, function(i) .m15_mw(as.vector(pk[i, , drop = FALSE]), nk[i]), 1)
+          idx <- if (all(keep)) idx_all else { map_ <- cumsum(keep); lapply(idx_all, function(pi_) map_[pi_[keep[pi_]]]) }
+          bt <- m15_auroc_draws_w(pk, nk, idx)                                               # 가중 Mann-Whitney(재표집 자료 직접 계산과 같은 값, 단위 시험)
           key <- paste(sn, st, mech, sz, dir_, sep = "|"); draws[[key]] <- bt
           rows[[length(rows) + 1]] <- data.table(schedule = sn, statistic = st, mechanism = mech, size_pct = as.numeric(sz), direction = dir_, n_studies = sum(keep), auroc = a,
                                                  lo = quantile(bt, 0.025, names = FALSE, na.rm = TRUE), hi = quantile(bt, 0.975, names = FALSE, na.rm = TRUE),

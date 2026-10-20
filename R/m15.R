@@ -311,6 +311,20 @@ m15_auroc_draws <- function(pos, neg, idx) {
   pos <- as.matrix(pos); stopifnot(nrow(pos) == length(neg))
   vapply(idx, function(i) .m15_mw(as.vector(pos[i, , drop = FALSE]), neg[i]), 1)
 }
+# 같은 값의 빠른 계산: 재표집(복원 추출)은 시험별 가중치(뽑힌 횟수)와 같으므로, 정렬한 음성 값의 누적 가중치로 가중 Mann-Whitney를 구한다.
+# pos 행렬(시험 x 판), neg 벡터(시험). 결측이 있는 시험은 미리 빼서 넣는다(호출자). m15_auroc_draws와 같은 값(단위 시험).
+m15_auroc_draws_w <- function(pos, neg, idx) {
+  pos <- as.matrix(pos); nt <- length(neg); stopifnot(nrow(pos) == nt, all(is.finite(pos)), all(is.finite(neg)))
+  o <- order(neg); sn <- neg[o]; k <- ncol(pos)
+  pv <- as.vector(pos); pt <- rep(seq_len(nt), k)                     # 양성 값과 그 시험
+  lt <- findInterval(pv, sn, left.open = TRUE); le <- findInterval(pv, sn)   # 음성 중 미만·이하 개수(정렬 순서 위치)
+  vapply(idx, function(i) {
+    w <- tabulate(i, nt); wn <- w[o]; C <- c(0, cumsum(wn))
+    below <- C[lt + 1L]; eq <- C[le + 1L] - C[lt + 1L]
+    sum(w[pt] * (below + 0.5 * eq)) / (sum(w[pt]) * sum(wn))
+  }, 1)
+}
+
 # Mann-Whitney AUROC(순위 기반, 동점 1/2)
 .m15_mw <- function(pos, neg) {
   pos <- pos[is.finite(pos)]; neg <- neg[is.finite(neg)]; m <- length(pos); n <- length(neg)

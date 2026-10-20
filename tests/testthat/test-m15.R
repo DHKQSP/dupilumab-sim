@@ -220,3 +220,10 @@ test_that("시험 시드 조회: 시험·흐름마다 스칼라 하나, 서로 �
   big <- m15_seed_matrix(m15_trial_seeds(20261020L, 10000L)); expect_false(anyDuplicated(as.vector(big)) > 0)
   expect_equal(big[1:300, ], sm[1:300, ][, colnames(big)])
 })
+
+test_that("가중 Mann-Whitney 재표집 AUROC는 재표집 자료에 직접 계산한 값과 같다(동점 포함)", {
+  set.seed(8); nt <- 300; neg <- round(abs(rnorm(nt, 0, 0.05)), 3); pos <- cbind(round(abs(rnorm(nt, 0.03, 0.05)), 3), round(abs(rnorm(nt, -0.02, 0.05)), 3))
+  idx <- m15_boot_index(nt, 40, 5)
+  expect_equal(m15_auroc_draws_w(pos, neg, idx), m15_auroc_draws(pos, neg, idx), tolerance = 1e-12)
+  expect_equal(m15_auroc_draws_w(pos[, 1, drop = FALSE], neg, list(seq_len(nt))), m15_auroc(pos[, 1], neg)$auroc, tolerance = 1e-12)
+})
