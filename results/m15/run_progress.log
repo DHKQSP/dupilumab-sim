@@ -37,3 +37,15 @@ run log: /home/user/dupilumab-sim/logs/m15_trials_pilotcheck_k2020_S1_300_1_500_
 4:   median    M1                 0 TRUE
 2026-10-20T15:02:07Z pilot restarted after the seed lookup fix (D-068 deviation 1)
 2026-10-20T15:02:07Z start scripts/73_m15_trials.R oc k2020 S1 300 1 500 4
+2026-10-20T15:07:30Z done scripts/73_m15_trials.R oc k2020 S1 300 1 500 4 in 323s
+2026-10-20T15:07:30Z start scripts/73_m15_trials.R mech k2020 S1 300 1 500 4
+2026-10-20T15:24:30Z done scripts/73_m15_trials.R mech k2020 S1 300 1 500 4 in 1020s
+2026-10-20T15:24:30Z start scripts/73_m15_trials.R oc k2020 S2 200 1 50 4
+2026-10-20T15:25:08Z done scripts/73_m15_trials.R oc k2020 S2 200 1 50 4 in 38s
+2026-10-20T15:25:08Z start scripts/73_m15_trials.R mech k2020 S2 200 1 50 4
+2026-10-20T15:26:57Z done scripts/73_m15_trials.R mech k2020 S2 200 1 50 4 in 109s
+2026-10-20T15:26:57Z start scripts/73_m15_trials.R pilotcheck k2020 S1 300 1 500
+2026-10-20T15:27:05Z done scripts/73_m15_trials.R pilotcheck k2020 S1 300 1 500 in 8s
+2026-10-20T15:27:05Z start scripts/73_m15_trials.R pilotcheck k2020 S2 200 1 50
+2026-10-20T15:27:12Z done scripts/73_m15_trials.R pilotcheck k2020 S2 200 1 50 in 7s
+2026-10-20T15:27:12Z stage pilot complete

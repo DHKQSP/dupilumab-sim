@@ -1,0 +1,5 @@
+boundary,model,max_drop_in_mc_se,pass
+fixed75,M0,0,TRUE
+fixed75,M1,-0.416161222122813,TRUE
+median,M0,0.260166247315148,TRUE
+median,M1,0,TRUE
