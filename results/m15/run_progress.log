@@ -1,3 +1,11 @@
 2026-10-20T13:55:45Z start scripts/71_m15_populations.R populations
 2026-10-20T13:55:50Z done scripts/71_m15_populations.R populations in 5s
 2026-10-20T13:55:50Z start scripts/71_m15_populations.R truth 4
+2026-10-20T14:14:40Z done scripts/71_m15_populations.R truth 4 in 1130s
+2026-10-20T14:14:40Z start scripts/72_m15_individual.R legacy 2
+2026-10-20T14:15:21Z done scripts/72_m15_individual.R legacy 2 in 41s
+2026-10-20T14:15:23Z start scripts/72_m15_individual.R run 4
+2026-10-20T14:16:46Z done scripts/72_m15_individual.R run 4 in 83s
+2026-10-20T14:16:46Z start scripts/72_m15_individual.R verify_pauc
+2026-10-20T14:17:14Z done scripts/72_m15_individual.R verify_pauc in 28s
+2026-10-20T14:17:16Z stage prep complete
