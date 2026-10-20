@@ -344,7 +344,7 @@ if (mode == "figures") {
     geom_hline(yintercept = 0, colour = VIZ$muted) + facet_grid(endpoint ~ panel, scales = "free_y") + scale_fill_manual(values = COLS3, name = NULL) + scale_x_discrete(labels = function(x) SCHS[match(x, SCHL)]) +
     labs(x = NULL, y = "Percent error against the model truth", title = "Bias and precision of NCA parameters by sampling schedule",
          subtitle = { na <- range(Es[endpoint != "AUC0-inf (reliable set)", n]); nr <- range(Es[endpoint == "AUC0-inf (reliable set)", n])
-           sprintf("%s, %s simulated subjects per cell (AUC0-last, Cmax); AUC0-inf uses the reliable-terminal-phase subset (%s to %s per box); box = quartiles, whiskers = 5th and 95th percentiles",
+           sprintf("%s, %s simulated subjects per cell (AUC0-last, Cmax); box = quartiles, whiskers = 5th and 95th percentiles\nAUC0-inf uses the reliable-terminal-phase subset (%s to %s subjects per box)",
                    MODL[[PRIMARY]], if (na[1] == na[2]) format(na[1], big.mark = ",") else paste(format(na, big.mark = ","), collapse = " to "), format(nr[1], big.mark = ","), format(nr[2], big.mark = ",")) }) + theme_dupi()
   save_fig(g5, "fig5_bias_precision", 13, 8, Es)
   # fig6: [7] 검정력 대 n
@@ -452,7 +452,8 @@ if (mode == "summary") {
   abbr_line <- function(txt) { txt <- paste(txt, collapse = "\n")
     pos <- vapply(names(ABBR), function(a) as.integer(regexpr(paste0("(?<![A-Za-z0-9_])", a, "(?![A-Za-z0-9_])"), txt, perl = TRUE)), 1L); pos <- sort(pos[pos > 0])
     if (!length(pos)) return(character(0)); c(paste0("Abbreviations: ", paste(sprintf("%s, %s", names(pos), ABBR[names(pos)]), collapse = "; "), "."), "") }
-  body_ <- c("Primary scenario: global healthy-volunteer population, 300 mg, confirmed schedule, 75 kg boundary, 130 randomized per arm, stratified analysis. Every value is read from the file in the last column.", "",
+  body_ <- c("Primary scenario: global healthy-volunteer population, 300 mg, confirmed schedule, 75 kg boundary, 130 randomized per arm, stratified analysis. Every value is read from the file in the last column.",
+             "Intervals: Wilson 95% confidence interval (CI) for probabilities; paired Tango 95% CI for differences in power; study-level cluster bootstrap 95% CI for 50% crossings and AUROC; 5th to 95th percentile of the paired individual ratio for the weight effect.", "",
              "| Item | Kovalenko 2020 Model 1 (primary) | Kovalenko 2016 (sensitivity) | Source |", "|---|---|---|---|",
              sprintf("| %s | %s | %s | %s |", TAB$item, TAB$model_1, TAB$kovalenko_2016, TAB$source))
   md <- c("# Results summary table (model analysis plan 2026-10-20)", "", abbr_line(body_), body_)
