@@ -289,7 +289,7 @@ if (mode == "figures") {
   lf <- start_run_log("m15_summary_figures", master_seed = MS, run_mode = "final")
   # fig1: [1] 예측 대 관측(판정 단위, 고정 체중 가정)
   U <- fread(file.path(RD, "validation", "validation_units.csv"))[wmode %in% c("primary", "wunc") & metric %in% c("AUClast_mean", "AUClast_cv_within", "Cmax_mean") & is.finite(observed)]
-  U[, `:=`(model_lab = MODS[pk_model], weight_lab = fifelse(wmode == "primary", "Fixed weight assumption", "Uncertain-mean weight assumption"),
+  U[, `:=`(model_lab = factor(MODS[pk_model], MODS), weight_lab = fifelse(wmode == "primary", "Fixed weight assumption", "Uncertain-mean weight assumption"),
            metric_lab = c(AUClast_mean = "AUC0-last mean (mg x day/L)", AUClast_cv_within = "AUC0-last within-arm CV (%)", Cmax_mean = "Cmax mean (mg/L)")[metric])]
   ULAB <- c(tdu12265_300 = "TDU12265 300 mg", tdu12265_600 = "TDU12265 600 mg", PKM12350 = "PKM12350", PKM14161 = "PKM14161", `R668-HV-1108` = "R668-HV-1108"); stopifnot(all(U$unit %in% names(ULAB)))
   U[, unit_lab := paste0(ULAB[unit], fifelse(dev_status == "external", " (external)", ""))]   # 개발 자료 여부는 모델마다 달라 행마다 y 눈금을 따로 둔다
@@ -302,7 +302,7 @@ if (mode == "figures") {
   save_fig(g1, "fig1_validation", 12, 6.5, U)
   # fig2: [3] OC 곡선(130명, M1, 75 kg 경계)
   OCP <- fread(file.path(SD, "oc_pass.csv"))[n_rand == NBASE & model == "M1" & boundary == "fixed75"]
-  OCP[, `:=`(sched_lab = factor(SCHL[schedule], SCHL), panel = sprintf("%s, %d mg", c(S1 = "Global", S2 = "Korean")[population], dose_mg), model_lab = MODS[pk_model])]
+  OCP[, `:=`(sched_lab = factor(SCHL[schedule], SCHL), panel = sprintf("%s, %d mg", c(S1 = "Global", S2 = "Korean")[population], dose_mg), model_lab = factor(MODS[pk_model], MODS))]
   g2 <- ggplot(OCP, aes(g, pass_pct / 100, colour = sched_lab, linetype = sched_lab)) + geom_ribbon(aes(ymin = pass_lo / 100, ymax = pass_hi / 100, fill = sched_lab, group = sched_lab), alpha = 0.12, colour = NA) +
     geom_line(linewidth = 0.7) + scale_linetype_manual(values = c("solid", "solid", "22"), name = NULL) +   # 확장 일정(점선)이 확정 일정 위에 그려져 겹쳐도 둘 다 보인다
     geom_vline(xintercept = c(0.8, 1.25), linetype = 2, colour = VIZ$muted) + facet_grid(model_lab ~ panel) + scale_x_log10(breaks = c(0.8, 0.9, 1, 1.1, 1.25)) +
@@ -313,7 +313,8 @@ if (mode == "figures") {
   # fig3: [4] 기전 OC(130명, M1, 확정 일정)
   MP <- fread(file.path(SD, "mech_pass.csv"))[n_rand == NBASE & model == "M1" & schedule == "B0"]
   idn <- MP[mechanism == "identity" & set == "mech"]; MPm <- rbind(MP[mechanism != "identity"], rbindlist(lapply(c("F", "ka", "ke", "Vmax"), function(m) copy(idn)[, mechanism := m])))
-  MPm[, `:=`(diff_pct = 100 * (multiplier - 1), dose_lab = paste(dose_mg, "mg"), panel = sprintf("%s, %s", c(S1 = "Global", S2 = "Korean")[population], c(k2020 = "Model 1", k2016 = "Kovalenko 2016")[pk_model]))]
+  MPm[, `:=`(diff_pct = 100 * (multiplier - 1), dose_lab = paste(dose_mg, "mg"), panel = sprintf("%s\n%s", c(k2020 = "Model 1", k2016 = "Kovalenko 2016")[pk_model], c(S1 = "Global", S2 = "Korean")[population]))]
+  MPm[, panel := factor(panel, c("Model 1\nGlobal", "Model 1\nKorean", "Kovalenko 2016\nGlobal", "Kovalenko 2016\nKorean"))]; stopifnot(!anyNA(MPm$panel))
   g3 <- ggplot(MPm[order(multiplier)], aes(diff_pct, pass_pct / 100, colour = dose_lab)) + geom_line(aes(group = interaction(dose_lab, panel, mechanism)), linewidth = 0.6) + geom_point(aes(shape = set), size = 1.4) +
     geom_hline(yintercept = 0.5, linetype = 3, colour = VIZ$muted) + facet_grid(panel ~ mechanism) + scale_y_continuous(labels = scales::percent) +
     scale_colour_manual(values = COLS3[1:2], name = NULL) + scale_shape_manual(values = c(mech = 16, mechsupp = 1), labels = c(mech = "Main range", mechsupp = "Supplementary"), name = NULL) +
@@ -369,12 +370,12 @@ if (mode == "figures") {
   # fig7: [8] forest plot(300 mg, 두 모델, S1·S2)
   WR <- fread(file.path(RD, "weight", "weight_ratio.csv"))[population %in% c("S1", "S2") & dose_mg == as.numeric(CFG$doses_mg$primary)]
   WR[, `:=`(lab = sprintf("%s P%d (%.1f kg)", c(S1 = "Global", S2 = "Korean")[population], round(100 * prob), WT), met_lab = c(AUCinf = "AUC0-inf", Cmax = "Cmax", AUClast_dense_B0 = "AUC0-last (confirmed schedule)")[metric],
-            model_lab = MODL[pk_model])]
+            model_lab = factor(MODL[pk_model], MODL))]
   WR[, lab := factor(lab, rev(unique(lab[order(population, prob)])))]
   g7 <- ggplot(WR, aes(y = lab)) + geom_vline(xintercept = 1, colour = VIZ$muted) + geom_errorbarh(aes(xmin = pi_q05, xmax = pi_q95), height = 0, colour = VIZ$grid, linewidth = 2.2) +
     geom_errorbarh(aes(xmin = paired_q05, xmax = paired_q95), height = 0.3, colour = VIZ$s1) + geom_point(aes(x = typical_ratio), colour = VIZ$s1, size = 1.8) +
     facet_grid(model_lab ~ met_lab) + scale_x_log10() +
-    labs(x = "Ratio to 75 kg (log scale): point = typical subject; bar = 90% interval of the paired ratio; grey band = 90% prediction interval with IIV", y = NULL,
+    labs(x = "Ratio to 75 kg (log scale): point = typical subject; bar = 90% interval of the paired ratio; grey band = 90% prediction interval with between-subject variability", y = NULL,
          title = "Body-weight effect on exposure at enrolled-weight percentiles", subtitle = sprintf("%d mg, simulated through the weight covariate only", as.numeric(CFG$doses_mg$primary))) + theme_dupi()
   save_fig(g7, "fig7_weight_forest", 13, 7, WR)
   append_run_log(lf, "done")
