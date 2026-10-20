@@ -9,3 +9,4 @@
 2026-10-20T14:16:46Z start scripts/72_m15_individual.R verify_pauc
 2026-10-20T14:17:14Z done scripts/72_m15_individual.R verify_pauc in 28s
 2026-10-20T14:17:16Z stage prep complete
+2026-10-20T14:21:43Z start scripts/73_m15_trials.R oc k2020 S1 300 1 500 4
