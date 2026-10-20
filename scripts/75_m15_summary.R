@@ -431,6 +431,7 @@ if (mode == "summary") {
           "| Item | Kovalenko 2020 Model 1 (primary) | Kovalenko 2016 (sensitivity) | Source |", "|---|---|---|---|",
           sprintf("| %s | %s | %s | %s |", TAB$item, TAB$model_1, TAB$kovalenko_2016, TAB$source))
   if (RULE[pk_model == PRIMARY & wmode == "primary", failure][1]) md <- c(md, "", "All results are conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).")
+  md <- c(md, "", "Parameter uncertainty was not propagated (no relative standard errors are recorded); every value is conditional on the published parameter point estimates.")
   writeLines(md, file.path(SD, "m15_summary_table.md"))
   # 핵심 결론(최대 5줄, 2.1절 해석 기준, 전제 점검)
   pz <- function(gg) gsel(pick(OCP, PRIMARY), gg); crz <- function(gg) gsel(pick(if (nrow(CR)) CR else OCP, PRIMARY), gg)
@@ -462,25 +463,44 @@ if (mode == "summary") {
     fifelse(z$reached, paste0(fmt(z$crossing_pct), "%"), sprintf(if (ko) "격자 안에서 도달 안 함(%2$s%% 차이에서 %1$s%%)" else "not reached within the grid (%s%% at %s%%)", fmt(100 * z$p_at_grid_end), fmt(100 * (z$grid_end - 1), 0)))),
     collapse = ", ")
   bc <- CRT[pk_model == PRIMARY & population == "S1" & dose_mg == base$dose_mg & schedule == "B0"]
+  # 결론 5: 축소 일정의 검정력 차이와 측정 품질(주 모델, 기본 시나리오의 집단·용량)
+  BP <- fread(file.path(RD, "individual", "bias_precision.csv")); SSI5 <- fread(file.path(RD, "individual", "ss_inputs_m15.csv"))
+  bsel <- function(d, sc) { z <- d[d$pk_model == PRIMARY & d$population == base$population & d$dose_mg == base$dose_mg & d$schedule == sc]; z }
+  q5 <- lapply(c(B0 = "B0", RM36_50 = "RM36_50"), function(sc) {
+    b <- bsel(BP, sc); a <- bsel(AUR, sc)[statistic == "AUCinf_A" & mechanism == "F" & size_pct == 10 & direction == "pooled"]; v <- bsel(SSI5, sc)
+    stopifnot(nrow(b[endpoint == "AUClast"]) == 1, nrow(b[endpoint == "AUCinf_ruleA"]) == 1, nrow(a) == 1, nrow(v) == 1)
+    list(bias = b[endpoint == "AUClast", bias_median_pct], rel = 100 * b[endpoint == "AUCinf_ruleA", n] / b[endpoint == "AUClast", n], auroc = a$auroc, cv = v$cv_auc_pct) })
+  rs <- pd95[contrast == "schedule" & design_a == "RM36_50" & base_cell == TRUE]; stopifnot(nrow(rs) == 1)
+  shorter <- rs$diff_pp > 0 && q5$RM36_50$bias < q5$B0$bias && q5$RM36_50$auroc < q5$B0$auroc && q5$RM36_50$cv < q5$B0$cv
+  c5 <- sprintf("5. The reduced schedule changes power in the primary scenario by %s pp (paired 95%% CI %s to %s) against the confirmed schedule, with model AUC0-last CV %s%% vs %s%%, median AUC0-last error against the dense truth %s%% vs %s%%, a reliable AUC0-inf in %s%% vs %s%% of subjects, and an AUC0-inf AUROC for a 10%% bioavailability difference of %s vs %s%s.",
+                fmt(rs$diff_pp), fmt(rs$lo_pp), fmt(rs$hi_pp), fmt(q5$RM36_50$cv), fmt(q5$B0$cv), fmt(q5$RM36_50$bias), fmt(q5$B0$bias), fmt(q5$RM36_50$rel, 0), fmt(q5$B0$rel, 0),
+                fmt(q5$RM36_50$auroc, 3), fmt(q5$B0$auroc, 3), if (shorter) "; the power gain reflects a shorter, less variable AUC0-last, not better measurement" else "")
+  c5_ko <- sprintf("5. 축소 일정은 기본 시나리오 검정력을 확정 일정 대비 %s%%p(짝 95%% 구간 %s~%s) 바꾼다. 모델 AUC0-last CV %s%% 대 %s%%, 조밀 참값 대비 AUC0-last 중앙 오차 %s%% 대 %s%%, 신뢰할 AUC0-inf 비율 %s%% 대 %s%%, 생체이용률 10%% 차이의 AUC0-inf AUROC %s 대 %s%s.",
+                   fmt(rs$diff_pp), fmt(rs$lo_pp), fmt(rs$hi_pp), fmt(q5$RM36_50$cv), fmt(q5$B0$cv), fmt(q5$RM36_50$bias), fmt(q5$B0$bias), fmt(q5$RM36_50$rel, 0), fmt(q5$B0$rel, 0),
+                   fmt(q5$RM36_50$auroc, 3), fmt(q5$B0$auroc, 3), if (shorter) ". 검정력 증가는 더 짧고 덜 변하는 AUC0-last 때문이지 더 나은 측정 때문이 아니다" else "")
+  HDR <- if (rv$failure) "All results are conditional on a primary model that did not pass the pre-specified external check (plan section 6.2) and on the published parameter point estimates (no relative standard errors are recorded, so parameter uncertainty was not propagated)." else
+    "All results are conditional on the published parameter point estimates (no relative standard errors are recorded, so parameter uncertainty was not propagated)."
+  HDR_KO <- if (rv$failure) "주의: 모든 결과는 사전 등록 외부 점검을 통과하지 못한 주 모델(Kovalenko 2020 Model 1, 고정 체중 가정; 계획서 6.2절, D-068)과 공개 파라미터 점추정값에 조건부다(RSE가 없어 파라미터 불확실성은 전파하지 않았다)." else
+    "주의: 모든 결과는 공개 파라미터 점추정값에 조건부다(RSE가 없어 파라미터 불확실성은 전파하지 않았다)."
   C <- c(sprintf("1. The primary model %s the original healthy-volunteer studies under the pre-specified rule (outcome: %s; detection probability of the combined rule at a 25%% bias %s%%).",
                  vword, RULE[pk_model == PRIMARY, outcome][1], fmt(det25, 0)),
          sprintf("2. At 130 randomized per arm (primary scenario) the simulated power at a true GMR of 0.95 is %s%% and the joint consumer risk is %s%% at 0.80 and %s%% at 1.25 (single-endpoint maxima %s%% and %s%%); the design %s the pre-specified adequacy reading.",
                  fmt(p95$pass_pct), fmt(c80$pass_pct), fmt(c125$pass_pct), fmt(max(c80$auc_only_pct, c80$cmax_only_pct)), fmt(max(c125$auc_only_pct, c125$cmax_only_pct)), if (adequate) "meets" else "does not meet"),
          sprintf("3. Design factors that change power at a true GMR of 0.95 by at least 2 percentage points (pp) with a paired 95%% CI excluding 0 (primary model, 130 per arm; cells counted over populations, doses, schedules, boundaries and analysis models): %s.", sig_txt),
          sprintf("4. The conclusion probability falls to 50%% at test-arm differences of %s (primary scenario).", side_txt(bc)),
-         "5. Parameter uncertainty was not propagated (no relative standard errors recorded); every result is conditional on the published point estimates.")
+         c5)
   stopifnot(length(C) <= 5)
-  writeLines(c("# Key conclusions (generated from the result files)", "", if (rv$failure) c("All results are conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).", ""), C),
+  writeLines(c("# Key conclusions (generated from the result files)", "", HDR, "", C),
              file.path(SD, "m15_key_conclusions_en.md"))
   # 한국어 요약(내부용): 같은 수치
   K <- c("# M15 분석 결과 요약 (내부용, 수치는 results/m15/summary/*.csv에서 자동 생성)", "",
-         if (rv$failure) c("주의: 모든 결과는 사전 등록 외부 점검을 통과하지 못한 주 모델(Kovalenko 2020 Model 1, 고정 체중 가정)에 조건부다(계획서 6.2절, D-068).", ""),
+         HDR_KO, "",
          sprintf("1. 외부 검증: 주 모델 결과 범주 '%s', 결합 규칙의 25%% 편향 검출 확률 %s%%. 민감도 모델 결과 범주 '%s'.", RULE[pk_model == PRIMARY, outcome][1], fmt(det25, 0), RULE[pk_model != PRIMARY, outcome][1]),
          sprintf("2. 기본 시나리오(S1, 300 mg, 확정 일정, 75 kg 경계, 군당 130명, 층 포함 분석): 참 GMR 0.95 검정력 %s%%, 결합 소비자 위험 0.80에서 %s%%, 1.25에서 %s%%(단일 평가변수 최대 %s%%, %s%%) → 사전 해석 기준 %s.",
                  fmt(p95$pass_pct), fmt(c80$pass_pct), fmt(c125$pass_pct), fmt(max(c80$auc_only_pct, c80$cmax_only_pct)), fmt(max(c125$auc_only_pct, c125$cmax_only_pct)), if (adequate) "충족" else "미충족"),
          sprintf("3. 참 GMR 0.95 검정력을 2%%p 이상 바꾸고 짝 95%% 구간이 0을 포함하지 않는 설계 요인(주 모델, 군당 130명; 집단·용량·일정·경계·분석 모형 칸 수): %s.", sig_txt_ko),
          sprintf("4. 결론 확률 50%% 교차(기본 시나리오): %s.", side_txt(bc, TRUE)),
-         "5. 파라미터 불확실성은 RSE가 없어 전파하지 않았다. 모든 결과는 공개 점추정값 조건부다.", "",
+         c5_ko, "",
          "요약 표: results/m15/summary/m15_summary_table.md(영문). 그림: results/m15/figures/.")
   writeLines(K, file.path(SD, "m15_summary_ko.md"))
   # 가정 목록: 계획서 12절 표를 CSV로
