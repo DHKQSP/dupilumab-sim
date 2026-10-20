@@ -28,3 +28,6 @@ Rplots.pdf
 
 # Python
 __pycache__/
+
+# M15 실행 드라이버의 마지막 단계 출력(임시)
+results/m15/last_stage.out

@@ -1,0 +1,9 @@
+population,boundary,boundary_kg,share_upper_stratum
+S1,fixed75,75,0.54935
+S1,median,76,0.501425
+S2,fixed75,75,0.05206
+S2,median,66.1,0.49789
+S1_uniform,fixed75,75,0.483265
+S1_uniform,median,74.5,0.50001
+S2_uniform,fixed75,75,0.15305
+S2_uniform,median,67.5,0.500305
