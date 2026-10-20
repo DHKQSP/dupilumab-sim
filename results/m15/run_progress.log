@@ -35,3 +35,5 @@ run log: /home/user/dupilumab-sim/logs/m15_trials_pilotcheck_k2020_S1_300_1_500_
 2:  fixed75    M1                 0 TRUE
 3:   median    M0                 0 TRUE
 4:   median    M1                 0 TRUE
+2026-10-20T15:02:07Z pilot restarted after the seed lookup fix (D-068 deviation 1)
+2026-10-20T15:02:07Z start scripts/73_m15_trials.R oc k2020 S1 300 1 500 4
