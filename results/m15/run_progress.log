@@ -56,3 +56,5 @@ run log: /home/user/dupilumab-sim/logs/m15_trials_pilotcheck_k2020_S1_300_1_500_
 2026-10-20T15:45:15Z start scripts/73_m15_trials.R oc k2020 S2 300 1 1000 4
 2026-10-20T15:55:29Z done scripts/73_m15_trials.R oc k2020 S2 300 1 1000 4 in 614s
 2026-10-20T15:55:29Z start scripts/73_m15_trials.R oc k2020 S2 200 1 1000 4
+2026-10-20T16:05:22Z done scripts/73_m15_trials.R oc k2020 S2 200 1 1000 4 in 593s
+2026-10-20T16:05:22Z start scripts/73_m15_trials.R mech k2020 S1 300 1 1000 4
