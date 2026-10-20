@@ -1,0 +1,268 @@
+# ICH M15 분석계획서(plans/M15_analysis_plan_20261020.md)의 기계 판독용 사전 등록 (지시 2026-10-20 [0]~[10], D-068).
+# 동결 규칙: 이 파일과 계획서를 커밋한 뒤에 계산한다. 결과를 본 뒤 바꾸는 항목은 D-068에 이유와 함께 적고 계획서 13절(Deviations)에 남긴다.
+# 원칙(지시): 저장소 기존 모델의 구조와 추정값을 바꾸지 않는다. '실효 용량' 같은 파생 개념을 쓰지 않는다. 체중 효과는 모델 공변량으로 직접 모의한다.
+# 영어 문서 규칙은 계획서에 적용한다(이 파일의 주석은 내부용 한국어).
+version: 1
+registered_on: "2026-10-20"
+directive: "M15 analysis directive 2026-10-20, sections [0] to [10]"
+plan: plans/M15_analysis_plan_20261020.md
+output_dir: results/m15
+master_seed: 20261020
+scripts:
+  lib: R/m15.R                          # 이 분석 전용 함수(source_project()에 넣지 않고 각 스크립트가 직접 source)
+  validation: scripts/70_m15_validation.R            # [1]
+  populations: scripts/71_m15_populations.R          # [2] 집단, 층 경계, 참값(유도 GMR), [8]
+  individual: scripts/72_m15_individual.R            # [6] 개인 수준(20,000명)
+  trials: scripts/73_m15_trials.R                    # [3] OC, [4] 기전 OC, [5] AUROC 입력
+  samplesize: scripts/74_m15_samplesize.R            # [7]
+  summary: scripts/75_m15_summary.R                  # [9] 그림, [10] 요약 표·결론·가정 목록
+
+models:
+  primary: k2020                        # Kovalenko 2020 Model 1 (config/params_k2020_model1.yaml), 공변량은 체중→Vc 하나(지수 0.711, 기준 75 kg)
+  sensitivity: k2016                    # Kovalenko 2016 (config/params_typical.yaml + params_variability.yaml), 체중→Vc(0.705, 75 kg)
+  variant: {k2020: struct2020, k2016: base}
+  # 지시의 'Kovalenko 2020 성인 공변량 모델'(3상 Model 4)은 저장소에 값이 없어 구현할 수 없다. 저장소의 2020 모델(Model 1)을 주 모델로 쓴다(D-068).
+  note: "The directive's Kovalenko 2020 adult covariate model (Model 4) is not in the repository; Kovalenko 2020 Model 1 is primary (D-068)."
+lloq_mg_L: 0.078                        # config/assay.yaml(계획 시험 LLOQ 자리표시값; [2]~[8]). [1]은 validation.lloq_mg_L
+day_convention: "study Day d = elapsed day d - 1 after the dose"
+
+# ---------------------------------------------------------------- [1] 모델 확인과 외부 검증 ----------------------------------------------------------------
+validation:
+  replicates: 5000                      # 주 판정(고정 체중 가정)과 두 번째 판정(평균 불확실 가정) 각각
+  replicates_sensitivity: 1000          # 고정 평균 70, 86 kg 기술 민감도(앞 1,000회, 같은 대상자 난수)
+  lloq_mg_L: 0.078                      # config/design_clot2021.yaml lloq_mg_L(문헌 자료의 원개발사 분석법; 계획 시험 LLOQ config/assay.yaml과 별개)
+  pi_level: 0.95                        # 예측구간 2.5~97.5번째 백분위수
+  sex_ratio_male: 0.5
+  jitter: false                         # 공칭 채혈 시각(Step 1과 같음)
+  residual_error: true
+  weight_default_bounds: {male: [50, 100], female: [40, 90]}   # R/step1.R 기본(범위 정보가 없는 시험)
+  weight_primary: "for a study without weight information, the registered assumption B14 (regulatory/tables/assumptions_register.csv): normal mean 78 kg (80 kg for PKM14271), SD 10 kg, sex-specific default bounds"
+  weight_mean_uncertainty: {dist: uniform, half_width_kg: 8, level: study, role: "second judgement (uncertain-mean weight assumption)",
+                            rule: "each replicate draws one study-level mean weight from Uniform(assumed mean - 8 kg, assumed mean + 8 kg), shared by all arms of the study; within-study SD 10 kg; sex-specific default bounds",
+                            note: "the half-width was proposed by the statistical review and is not derived from a source independent of the Step 1 results; therefore the fixed assumption decides and this judgement is reported beside it"}
+  weight_sensitivity_means_kg: [70, 86]                       # 고정 평균 기술 민감도, SD 10
+  arms:
+    # id: {study, dose_mg, n_subj, schedule(design_clot2021.yaml dataset_schedules), weight, observed(관측값 없으면 null)}
+    tdu12265_300:
+      study: TDU12265
+      dose_mg: 300
+      n_subj: 6
+      schedule: tdu12265
+      weight: {dist: range_truncnorm, lo: 52.1, hi: 78.3}
+      observed: {Cmax_mean: 38.3, Cmax_sd: 15.3, AUClast_mean: 700, AUClast_sd: 234, source: "config/design_clot2021.yaml clot300_japanese_TDU12265 (Clot 2021 Table 5)"}
+    tdu12265_600:
+      study: TDU12265
+      dose_mg: 600
+      n_subj: 6
+      schedule: tdu12265
+      weight: {dist: range_truncnorm, lo: 52.1, hi: 78.3}
+      observed: {Cmax_mean: 70.1, Cmax_sd: 24.1, AUClast_mean: 1780, AUClast_sd: 699, source: "config/design_clot2021.yaml clot600_japanese (Clot 2021 Table 5); n from the directive"}
+    pkm12350_T: {study: PKM12350, dose_mg: 300, n_subj: 15, schedule: pkm12350, weight: {dist: truncnorm, mean: 78, sd: 10},
+                 observed: {AUClast_mean: 487.5, AUClast_sd: 199.6, source: "config/design_clot2021.yaml arm_checks_300mg (Li 2020 Table 3)"}}
+    pkm12350_R: {study: PKM12350, dose_mg: 300, n_subj: 13, schedule: pkm12350, weight: {dist: truncnorm, mean: 78, sd: 10},
+                 observed: {AUClast_mean: 500, AUClast_sd: 179.2, source: "config/design_clot2021.yaml arm_checks_300mg (Li 2020 Table 3)"}}
+    pkm14161_T: {study: PKM14161, dose_mg: 300, n_subj: 19, schedule: pkm14161, weight: {dist: truncnorm, mean: 78, sd: 10},
+                 observed: {AUClast_mean: 587, AUClast_sd: 302, source: "config/design_clot2021.yaml arm_checks_300mg (Li 2020 Table 3)"}}
+    pkm14161_R: {study: PKM14161, dose_mg: 300, n_subj: 19, schedule: pkm14161, weight: {dist: truncnorm, mean: 78, sd: 10},
+                 observed: {AUClast_mean: 575, AUClast_sd: 235, source: "config/design_clot2021.yaml arm_checks_300mg (Li 2020 Table 3)"}}
+    hv1108_T:   {study: R668-HV-1108, dose_mg: 300, n_subj: 18, schedule: hv1108, weight: {dist: truncnorm, mean: 78, sd: 10},
+                 observed: {AUClast_mean: 630, AUClast_sd: 223, source: "config/design_clot2021.yaml arm_checks_300mg (Li 2020 Table 3)"}}
+    hv1108_R:   {study: R668-HV-1108, dose_mg: 300, n_subj: 18, schedule: hv1108, weight: {dist: truncnorm, mean: 78, sd: 10},
+                 observed: {AUClast_mean: 530, AUClast_sd: 233, source: "config/design_clot2021.yaml arm_checks_300mg (Li 2020 Table 3)"}}
+    pkm14271_T: {study: PKM14271, dose_mg: 200, n_subj: 19, schedule: pkm14271, weight: {dist: truncnorm, mean: 80, sd: 10},
+                 observed: {Cmax_mean: 23.2, Cmax_sd: 7.8, AUClast_mean: 339, AUClast_sd: 128, source: "config/design_clot2021.yaml PKM14271_200mg_test"}}
+    pkm14271_R: {study: PKM14271, dose_mg: 200, n_subj: 19, schedule: pkm14271, weight: {dist: truncnorm, mean: 80, sd: 10},
+                 observed: {Cmax_mean: 22.8, Cmax_sd: 8.9, AUClast_mean: 323, AUClast_sd: 132, source: "config/design_clot2021.yaml PKM14271_200mg_reference"}}
+    # 관측값이 저장소에 없는 Li 2020 Table 2 군: 예측만 산출하고 관측 칸은 비운다
+    as0907_150: {study: R668-AS-0907, dose_mg: 150, n_subj: 6, schedule: as0907, weight: {dist: range_truncnorm, lo: 58.0, hi: 95.1}, observed: null}
+    as0907_300: {study: R668-AS-0907, dose_mg: 300, n_subj: 6, schedule: as0907, weight: {dist: range_truncnorm, lo: 58.0, hi: 95.1}, observed: null}
+    tdu12265_75:  {study: TDU12265, dose_mg: 75,  n_subj: 6, schedule: tdu12265, weight: {dist: range_truncnorm, lo: 52.1, hi: 78.3}, observed: null}
+    tdu12265_150: {study: TDU12265, dose_mg: 150, n_subj: 6, schedule: tdu12265, weight: {dist: range_truncnorm, lo: 52.1, hi: 78.3}, observed: null}
+  pooled_arms:                          # 기술 통계만: 같은 반복의 구성 군 모의를 합쳐 만든다(PKM12350 시험군·PKM14161 시험군과 대상자 34명 공유)
+    nonasian_pooled_300:
+      from: [as0907_300, pkm12350_T, pkm14161_T]
+      observed: {Cmax_mean: 32.0, Cmax_sd: 10.5, AUClast_mean: 544, AUClast_sd: 218, n_subj: 40, source: "config/design_clot2021.yaml clot300_nonasian_pooled (Clot 2021 Table 5)"}
+      composition_note: "assumed 6/15/19 split (config/design_clot2021.yaml); inconsistent with the stored component SDs (pooled total sum of squares 1,853,436 is below the within-arm sums of squares of the two Li 2020 components, 2,199,434)"
+  rule_units:                           # 독립 연구 단위(평행군은 두 군 합침: 두 군 모두 듀필루맙)
+    tdu12265_300: {arms: [tdu12265_300]}
+    tdu12265_600: {arms: [tdu12265_600]}
+    PKM12350: {arms: [pkm12350_T, pkm12350_R]}
+    PKM14161: {arms: [pkm14161_T, pkm14161_R]}
+    R668-HV-1108: {arms: [hv1108_T, hv1108_R]}
+  unit_statistic: "arithmetic mean and CV (SD / mean) over all subjects of the unit; the observed combined SD is sqrt((sum (n_i - 1) SD_i^2 + sum n_i (mean_i - mean)^2) / (N - 1))"
+  parallel_studies:                     # 기술 통계: GMR 예측분포(두 군 같은 제품)와 연구 내 합동 로그 분산
+    - {study: PKM12350, T: pkm12350_T, R: pkm12350_R, reported_gmr: {AUClast: 0.90, AUClast_ci: [0.71, 1.16], source: "FDA BLA 761055 Clinical Pharmacology Review Table 4.2.c p.27 (AUC0-t), as recorded in SPEC.md section 10"}}
+    - {study: PKM14161, T: pkm14161_T, R: pkm14161_R}
+    - {study: R668-HV-1108, T: hv1108_T, R: hv1108_R}
+    - {study: PKM14271, T: pkm14271_T, R: pkm14271_R}
+  gmr_rule: "descriptive only. The predictive distribution uses the same estimator as the observed value: each replicate's arm arithmetic mean and SD are converted by GM = mean / sqrt(1 + CV^2), GMR = GM_T / GM_R. The pooled two-sample t GMR on subject logs is shown beside it and is compared with the reported PKM12350 GMR. The within-study pooled log variance sum((n_i - 1) log(1 + CV_i^2)) / sum(n_i - 1) is compared with its predictive interval."
+  range_truncnorm: "mean = (lo + hi) / 2, SD = (hi - lo) / 4, truncated to [lo, hi] for both sexes"
+  rank_rule: "percentile rank of the observed value among the replicates with a Wilson 95% CI; a comparison is labelled borderline when that CI contains the 2.5th or 97.5th percentile"
+  failure_rule:
+    R1: {metric: AUClast_mean, units: all, outside_pi_min: 2, of: 5}
+    R2: {metric: AUClast_cv_within, units: all, outside_pi_min: 2, of: 5}                                         # 군 안 합동 CV(관측·모의 모두 제품 차이 항 제외)
+    R4: {metric: AUClast_mean, units: external, pi_level: 0.99, outside_pi_min: 1, of: {k2020: 2, k2016: 4}}     # 외부 단위: k2020 PKM12350, R668-HV-1108; k2016 TDU12265 300, 600, PKM12350, PKM14161
+    R5: {metric: Cmax_mean,    units: [tdu12265_300, tdu12265_600], outside_pi_min: 2, of: 2}
+    independence_false_alarm_pct: {R1: 2.3, R2: 2.3, R4: {k2020: 2.0, k2016: 3.9}, R5: 0.25}
+    detection: {factors: [0.75, 0.85, 1.15, 1.25], rule: "detection probability = share of replicates in which the rule is met when every unit's AUC0-last and Cmax means are replaced by factor x the replicate mean (CVs unchanged), against the same intervals"}
+    revision_note: "R4 was first registered as 2 or more external units outside the 95% interval; that version is implied by R1, so it was replaced (consistency review) by any external unit outside its 99% interval, after a 60-replicate development run of the five-unit rule had been seen"
+    false_alarm: "also estimated by treating each simulated replicate in turn as the observed data (under the model and the weight assumptions); reported; thresholds are not changed after it is seen"
+    disclosure: "the rule was written after the Step 1 arm results were known (results/step1*/step1f_300mg_arm_check.csv, D-030); those results are shown beside the new comparison"
+    descriptive: "single arms, the non-Asian pooled group, the GMRs, the within-study variance, the 200 mg PKM14271 study and the arms without observed values are reported but are not part of the rule"
+    decision: "reproduction failure for a model = R1 or R2 or R4 or R5 under the fixed weight assumption (B14); the same rule is also judged under the uncertain-mean weight assumption and the outcome is reported as one of: fails under both, fails under the fixed assumption only, fails under the uncertain-mean assumption only, passes under both"
+    action: "the [1] table, the list of items that cannot be evaluated, the data request and the question on Model 1 as primary are reported to the requester before [2] to [8] start; if the primary model fails, [2] to [8] still run and every later result is labelled as conditional on the failed check; the requester may stop or redirect, and the reply is recorded in DECISIONS.md"
+  data_request: "per study and arm: n, Cmax and AUC0-last mean and SD, GMR with 90% CI (Li 2020 Tables 2 and 3), Table S1 weight mean, SD and range; RSE or covariance of both models; Korean sex-specific weight and height summaries (KNHANES); Kovalenko 2020 Model 4 parameter table"
+  late_data_rule: "values supplied after registration are added in a dated addendum; the failure rule set is not changed; new arms are reported descriptively"
+
+# ---------------------------------------------------------------- [2] 시나리오 격자 ----------------------------------------------------------------
+populations:
+  S1:
+    label: "global healthy-volunteer population (R668-AS-0907 weight range)"
+    weight: {dist: range_truncnorm, lo: 58.0, hi: 95.1}       # 평균 76.55, SD 9.275
+    weight_sensitivity: {dist: uniform, lo: 58.0, hi: 95.1}
+    height: {by_sex: false, mean_cm: 172.5, sd_cm: 10.4, source: "NCT03389893 summary of 71 adults with atopic dermatitis (config/population_atopic.yaml source line); used for healthy volunteers (assumption)"}
+  S2:
+    label: "Korean healthy-volunteer population (fallback: TDU12265 weight range; KNHANES raw data not available)"
+    weight: {dist: range_truncnorm, lo: 52.1, hi: 78.3}       # 평균 65.2, SD 6.55
+    weight_sensitivity: {dist: uniform, lo: 52.1, hi: 78.3}
+    # 키: 성별 공통 체중 분포와 맞추기 위해 성별을 합친 한 분포(남 173.5/6.0, 여 160.5/5.5의 50:50 혼합의 평균과 SD = sqrt(0.5 x 36 + 0.5 x 30.25 + 0.25 x 13^2))
+    height: {by_sex: false, mean_cm: 167.0, sd_cm: 8.68,
+             source: "Size Korea 7th survey (2015), web search excerpt retrieved 2026-10-20: mean height men 173.9 cm (20s), 173.1 cm (30s); women 160.9 cm (20s), 160.2 cm (30s); no SD and no weight in the excerpt; sex means 173.5 and 160.5 cm, SDs 6.0 and 5.5 cm assumed; pooled over sex at ratio 0.5"}
+    size_korea_weight_note: "the available Size Korea excerpt reports height means only, so it cannot replace the TDU12265 weight range"
+  weight_height_rho: 0.513              # scripts/53_atopic_summary.R의 NCT03389893 요약 통계 유도값(정규 점수 상관, Gaussian copula)
+  sex_ratio_male: 0.5
+  bmi_note: "BMI = WT / (HT/100)^2 is generated for reporting only. It changes no result: neither model has a BMI covariate, and the protocol BMI 18 to 32 criterion is not applied as an inclusion filter (the share of enrolled draws outside 18 to 32 is reported)"
+inclusion: {male_kg: [60, 90], female_kg: [50, 90]}
+strata_boundary:
+  fixed75: 75
+  median: "median of the enrolled-population weight distribution (population after inclusion, sex mix 0.5), from 200,000 draws, rounded to 0.1 kg, fixed before any trial is simulated"
+  rule: "stratum 1 = WT <= boundary, stratum 2 = WT > boundary"
+  note: "expected share above 75 kg about 55% in S1 and about 5% in S2 (pre-registration population check); the boundary comparison is informative mainly in S2"
+doses_mg: {primary: 300, comparison: 200}
+schedules:                              # 투여 후 경과일; 계획 시험 허용창은 config/trial_design.yaml sampling_window_days
+  B0:       [0.25, 1, 3, 5, 7, 10, 14, 21, 28, 35, 42, 49, 56]          # 확정 일정(config/schedule_decision.yaml)
+  RM36_50:  [0.25, 1, 3, 5, 7, 10, 14, 21, 28, 56]                      # Day 36, 43, 50 제거
+  ADD64_71: [0.25, 1, 3, 5, 7, 10, 14, 21, 28, 35, 42, 49, 56, 63, 70]  # Day 64, 71 추가
+jitter: "uniform within each visit window of config/trial_design.yaml (time 0 fixed, times >= 0, planned order kept with a minimum gap of 1 hour); one draw per subject and planned time on the union grid"
+n_randomized_per_arm: [80, 90, 100, 110, 120, 130, 140, 150, 160]
+n_base_randomized_per_arm: 130          # 117명 평가 가능(10% 탈락)에 해당하는 저장소 설계값
+dropout: {model: MCAR_bernoulli, p: 0.10, note: "withdrawal before the end of sampling; a withdrawn subject is not evaluable for any endpoint"}
+randomization: "stratified permuted blocks of 2 within stratum in enrollment order; arm of size n = first n subjects allocated to that arm"
+enrollment_pool: 330                    # 시험당 대상자 수(군당 160명에 도달하도록)
+seeds:
+  rule: "R/seeds.R derive_seed, rule version 1; master 20261020"
+  trials: "derive_seed(20261020, 'trial', j, stream), stream in {subj, alloc, drop, jitter, eps}; the table is built for j = 1 to 10,000; a collision in the 28-bit seed space is resolved by appending 'r1' (then 'r2') to the later (j, stream) in (j, stream) order; resolved pairs are logged"
+  trial_streams: "within a study every random number (sex, weight uniform, height score, random-effect scores, allocation uniform, withdrawal uniform, jitter and residual draws on the union grid) is indexed by enrollment position and planned time, never by arm; no PK model, population, boundary, dose, schedule, sample size, analysis model, g or mechanism version is in the tag"
+  validation: "derive_seed(20261020, 'val', arm, stream) for subjects and residuals and derive_seed(20261020, 'val', study, 'wmean') for the study-level mean weight; no PK model or weight mode in the tag"
+  other: {population_quantiles: "derive_seed(20261020, 'popq')", truth: "derive_seed(20261020, 'truth')", individual: "derive_seed(20261020, 'ind', stream)", weight_effect: "derive_seed(20261020, 'weight_iiv')",
+          legacy: "derive_seed(20261020, 'legacy', stream)", verify_pauc: "derive_seed(20261020, 'verify_pauc', stream)", assurance: "derive_seed(20261020, 'assurance_cv'), 'assurance_calibration' and 'assurance_source_weight'", auroc_bootstrap: "derive_seed(20261020, 'auroc_boot')", crossing_bootstrap: "derive_seed(20261020, 'crossing_boot')"}
+
+# ---------------------------------------------------------------- 분석 모형과 판정 ----------------------------------------------------------------
+analysis_models:
+  M1: "log y ~ treatment + weight stratum (two levels); df = N - 3; 'with stratum'; primary"
+  M0: "pooled two-sample t on log y; df = N - 2; 'without stratum'"
+  empty_stratum: "if a stratum has no evaluable subject in the analysis set, M1 drops the stratum term (count reported)"
+decision_rule: "similarity concluded when the 90% CI of the GMR is within [0.80, 1.25] (inclusive, unrounded) for both AUC0-last and Cmax; an endpoint that cannot be analysed counts as not concluded"
+interpretation:                         # 서술용 해석 기준(시험의 NCA 판정에 영향 없음); 등록 후 바꾸면 이탈로 기록
+  adequate_design: "Model 1 only (10,000 studies at the margins): simulated power at true GMR 0.95 at least 90%, and the upper Wilson 95% bound of the joint consumer risk at 0.80 and 1.25 at most 5%; Kovalenko 2016 is reported descriptively"
+  design_difference: "a design factor is reported as changing the operating characteristics when the paired Tango 95% CI of the difference in pass probability excludes 0 and the difference is at least 2 percentage points"
+  validation_wording: "a model that passes the failure rule is described as 'reproduced' only where the combined rule's detection probability at a 25% bias (factors 0.75 and 1.25, the smaller of the two) is at least 50%; otherwise 'not contradicted'"
+
+# ---------------------------------------------------------------- [3] OC 곡선 ----------------------------------------------------------------
+oc:
+  construction: "test-arm model concentrations C_T(t) = g x C(t) for each test-arm subject, applied before residual error and BLQ censoring; the additive residual is not scaled"
+  true_gmr_statement: "the true GMR is exactly g for AUC0-inf, Cmax and fixed-interval partial AUCs; for the dense-sampling AUC0-last truth it is g up to the LLOQ crossing shift (|log ratio - log g| < 0.002, unit test); decisions are judged against g"
+  gmr_grid: {lo: 0.80, hi: 1.25, n_points: 19, spacing: log_symmetric, extra: [0.95, 1.0526315789473684], n_total: 21}   # extra = 0.95, 1/0.95
+  n_trials: 1000
+  factors: [model, population, boundary, dose, schedule, n_randomized_per_arm, analysis_model, gmr]
+  table_points: {power: [0.95, 1.00], consumer_risk: [0.80, 1.25]}
+  consumer_risk_reporting: "three ways at g = 0.80 and 1.25: the joint pass with both endpoints at the margin, the AUC0-last-only pass and the Cmax-only pass; the larger single-endpoint value approximates the largest consumer risk of the joint rule"
+  paired_differences: "with versus without stratum, 75 kg versus median boundary, schedule versus B0, S1 versus S2, 200 mg versus 300 mg, on the same studies; Tango score 95% CI with the discordant counts"
+  extension: {model: k2020, populations: [S1, S2], doses_mg: [300, 200], gmr: [0.80, 1.25], n_trials: 10000, note: "trials 1 to 1000 are the main run; 1001 to 10000 added for consumer-risk precision"}
+  weight_shape_sensitivity: {model: k2020, dose_mg: 300, schedules: [B0], populations: [S1_uniform, S2_uniform], gmr: [0.80, 0.95, 1.00, 1.25], n_trials: 1000}
+
+# ---------------------------------------------------------------- [4] 기전별 OC ----------------------------------------------------------------
+mechanisms:
+  parameters: [F, ka, ke, Vmax]         # 지시의 Vm = 저장소 Vmax(농도 단위 최대 속도); Model 1의 ka 배율은 MTT를 바꾸지 않는다
+  multipliers: [0.80, 0.85, 0.90, 0.95, 1.05, 1.10, 1.15, 1.20]
+  arm: "test arm only: every version uses the same test-arm subjects, jitter and residual draws as the identity version; the reference arm is solved once and is unchanged"
+  boundary: fixed75
+  n_trials: 1000
+  base_n_randomized_per_arm: 130
+  truth: {n_subj: 20000, residual: false, metrics: [AUClast_dense_by_schedule, AUCinf, Cmax, pAUC_true]}
+  auclast_true_rule: "dense-sampling truth: model AUC from 0 to the earlier of the continuous true Tlast (last time at which the true concentration is >= LLOQ, log-linear interpolation on a 0.25-day grid to day 70) and the schedule's last planned time; the same definition is used in [6]"
+  pauc_true_rule: "model AUC between the fixed interval boundaries (no Tlast truncation)"
+  crossing_rule: "first point, moving outward from multiplier 1.00 (the identity is a node), at which the conclusion probability falls below 50%, interpolated linearly on log(multiplier); 95% CI from a bootstrap over studies (2,000 resamples, derive_seed(20261020, 'crossing_boot')); reported as a percent difference 100 x (multiplier - 1) with the induced true AUC0-last, AUC0-inf and Cmax GMRs interpolated at that point; if not reached, 'not reached within the grid' and the probability at the end of the grid"
+  supplementary: {model: k2020, dose_mg: 300, populations: [S1, S2], schedules: [B0], parameters: [ke, Vmax, ka], multipliers: [0.60, 0.70, 1.30, 1.40, 1.50], n_trials: 1000,
+                  note: "beyond the requested range, so that the 50% crossing can be located; base design (130 randomized per arm, M1)"}
+
+# ---------------------------------------------------------------- [5] AUROC ----------------------------------------------------------------
+auroc:
+  statistic: "absolute estimated log GMR from M1 at 130 randomized per arm for AUC0-inf; for partial AUCs |log(arithmetic mean pAUC_T / arithmetic mean pAUC_R)| with zeros kept (130 randomized, evaluable subjects with a quantifiable sample)"
+  pauc_offset_mg_day_L: 0.078           # c = LLOQ x 1 day; 민감도 통계량 M1 on log(pAUC + c)에만 쓴다
+  pauc_zero_rule: "a partial AUC of 0 is a valid result and is kept; subjects with no quantifiable sample are excluded; the share of zero values by arm, schedule and endpoint is reported; a cell where the zero share in the reference arm exceeds 50% is reported as not interpretable"
+  pauc_sensitivity: {log_offset_m1: "|estimated log GMR| from M1 fitted to log(pAUC + c), c = 0.078 mg x day/L", lambda_z_extrapolation: "pAUC_28_56_ext: Clast x exp(-lambda_z (t - Tlast)) added from max(28, Tlast) to 56 when lambda_z is computable; both statistics"}
+  missing_rule: "a study with fewer than 2 analysable subjects in an arm counts as missing for that endpoint; AUROC uses studies where both the positive and the negative are estimable; the count is reported per cell"
+  endpoints: {AUCinf: "AUCINF_obs, rule A (subjects with a flag or without lambda_z excluded)", AUCinf_ruleB: "sensitivity: all subjects with lambda_z", pAUC_0_14: [0, 14], pAUC_14_28: [14, 28], pAUC_28_56: [28, 56]}
+  pauc_rule: "linear-up/log-down on actual times after the standard BLQ rules; boundary concentration interpolated within the segment (linear if rising, log-linear if falling); no contribution after Tlast"
+  positives: [0.95, 1.05, 0.90, 1.10, 0.85, 1.15]   # 기전별 주입 배율; 크기별(5, 10, 15%) 양방향 합침도 보고
+  negatives: identity
+  estimator: "Mann-Whitney (ties count one half); 95% CI and the CIs of all AUROC differences from a percentile cluster bootstrap over studies (2,000 resamples; all versions of a resampled study kept together; one set of resampled indices shared by every cell, derive_seed(20261020, 'auroc_boot')); the DeLong interval is shown for reference only"
+  n_randomized_per_arm: 130
+
+# ---------------------------------------------------------------- [6] 채혈 평가 ----------------------------------------------------------------
+individual:
+  n_subj: 20000
+  combos: [model, population, dose]
+  schedules: [B0, RM36_50, ADD64_71]
+  bias: "median percent error, 100 x (estimate / truth - 1)"
+  precision: ["RMSE of percent error", "RMSE of log ratio", "median absolute percent error"]
+  truths: {AUClast: "primary: dense-sampling truth (mechanisms.auclast_true_rule); secondary, labelled integration error only: model AUC to the observed Tlast", AUCinf: "model AUC to 400 days (to 4000 days if the residual amount exceeds 1e-7 of the dose)", Cmax: "maximum of the true concentration (grid 0.25 day to 60 days, three-point parabola refinement)"}
+  lambda_z_success: "lambda_z computable and AUC_%Extrap_obs < 20; denominator all subjects (computable-only rate also reported)"
+  extrap_percentiles: [5, 25, 50, 75, 95, 99]
+  legacy_check: {population: "normal 75 kg SD 9 truncated 60 to 90", schedule: B0, compare_with: "results/individual/individual_base.csv and individual_struct2020.csv (lambda_ok_pct, extrap median and P95)",
+                 rule: "difference within 3 SE of the difference; SE of the difference = sqrt(SE_new^2 + SE_stored^2) with SE_stored taken equal to SE_new (same number of subjects); SE_new from a 200-resample subject bootstrap", action: "on failure the full trial runs do not start; the cause is reported"}
+  pauc_verification: "m15_pauc against PKNCA 0.12.1 pk.calc.aucint (lin up/log down, auc.type AUClast) on the preprocess_blq output of 1,000 jittered, residual-error profiles per schedule; agreement within 1e-8 relative where PKNCA returns a value; where PKNCA returns NA m15_pauc must return 0"
+
+# ---------------------------------------------------------------- [7] 표본 수 ----------------------------------------------------------------
+samplesize:
+  simulation_power: "from [3] at true GMR 0.95 and 1.00, every scenario"
+  analytic: "R/samplesize.R ss_p2_power with inputs re-estimated from [6] per model x population x dose x schedule and weight moments from the simulated enrolled weights per boundary; evaluable n = 0.9 x randomized; the n needed comes from the analytic search (integer evaluable n, randomized = ceiling(n / 0.9)); simulated power is interpolated between grid n only for display"
+  assurance_cv:
+    source: "Li 2020 Table 3 AUClast arm CVs at 300 mg (PKM12350 15/13, PKM14161 19/19, R668-HV-1108 18/18; n from the directive)"
+    method: "pooled log variance s2 = sum((n_i - 1) log(1 + CV_i^2)) / df, df = sum(n_i - 1); sigma2 = calibration x df s2 / chi-square(df); transported to the enrolled population as sigma2_trial = sigma2 - beta_AUC^2 (var_logWT_source - var_logWT_enrolled); Cmax SD = ratio_sd_cmax_auc x AUC0-last SD (ratio from [6], same model, population, dose and schedule); power on a CV grid 20% to 80% by 0.25 points, linearly interpolated at each draw (draws outside the grid clamped, share reported); assurance = mean power over 10,000 draws"
+    calibration: "c = true log variance / mean of the arithmetic-CV-based pooled estimator, from 20,000 log-normal replicate sets at the six arms' n (derive_seed(20261020, 'assurance_calibration')) at the observed pooled value"
+    source_weights: "var_logWT_source = mean over 2,000 simulated studies (study mean weight ~ Uniform(70, 86) kg) of the within-study variance of log weight (SD 10 kg, default bounds, 100 subjects each; derive_seed(20261020, 'assurance_source_weight'))"
+    evaluated_at: "every randomized n 80 to 160 (evaluable 0.9 n), true GMR 0.95 and 1.00, M0 and M1, each PK model, population, dose, schedule and boundary"
+    draws: 10000
+  assurance_parameters: {status: pending, method: "scripts/67 param_set (log-normal from RSE, independent); 1,000 sets x 2,000 subjects; CV, rho and log-weight slopes re-estimated per set; mean power", input: config/param_uncertainty.yaml}
+  syneos: {auclast_cv_pct: 43, n_evaluable_per_arm: 117, n_randomized_per_arm: 130, cmax_sd_rule: "both rules side by side: ratio rule (model ratio_sd_cmax_auc x the AUC0-last SD) and fixed rule (model Cmax SD; the rule of the stored protocol figures, D-055)",
+           source: "CV 43%: config/prereg_20260926.yaml base_cv_pct (Syneos proposal); 117 evaluable of 130 randomized: config/trial_design.yaml (directive of 2026-09-23, attributed to Syneos by the directive)"}
+  targets_pct: [85, 90]
+
+# ---------------------------------------------------------------- [8] 체중 효과 ----------------------------------------------------------------
+weight_effect:
+  percentiles: [5, 25, 50, 75, 95]
+  populations: [S1, S2, S1_uniform, S2_uniform]        # 균등 모양은 민감도
+  reference_kg: 75
+  metrics: [AUCinf, Cmax, AUClast_dense_B0]
+  n_subj_iiv: 20000
+  point: "typical subject (all eta = 0) at the percentile weight / typical subject at 75 kg"
+  interval: "90% interval of the ratio: 5th to 95th percentile over 20,000 subjects of the paired individual ratio X_i(w) / X_i(75 kg) with the same random effects at both weights; the geometric mean of the paired ratios is also given"
+  prediction_interval: "separate column: 5th to 95th percentile of X_i(w) / typical X(75 kg) (includes between-subject variability)"
+  parameter_uncertainty: "pending (config/param_uncertainty.yaml)"
+  sensitivity_coefficients: {parameters: [F, ke, Vmax], step: 0.01, formula: "(ln X(1.01 theta) - ln X(0.99 theta)) / (ln 1.01 - ln 0.99)", cmax_grid_day: 0.01}
+  doses_mg: [300, 200]
+
+# ---------------------------------------------------------------- 실행 계획 ----------------------------------------------------------------
+compute:
+  cores: 4
+  pilot: "trials 1 to 500 of [3] and [4] for k2020 S1 300 mg and trials 1 to 50 for k2020 S2 200 mg first; the pilot trials are part of the final run"
+  pilot_checks: {identity: "for every study, the [3] pass at g = 1.00, 75 kg boundary equals the [4] identity pass (M0 and M1, all schedules; counts at every n)", analytic_mc_se: 3, analytic_min_pp: 2.5,
+                 analytic: "|simulated - analytic| <= max(3 MC SE, 2.5 percentage points) at g 0.95 and 1.00 (B0, 75 kg, 130 randomized, M0 and M1)", monotone_mc_se: 2,
+                 monotone: "no decrease of more than 2 MC SE between adjacent g values moving toward 1.00 (B0, both boundaries, 130 randomized, M0 and M1)",
+                 report: "run time, m1_dropped count and per-endpoint NA counts", action: "if a check fails, the full run does not start; the cause is reported and any correction is a deviation"}
+  order: ["[1]", "report [1] to the requester", "populations", "truths", "[6] legacy check", "[6]", "partial AUC verification", "[3] pilot", "[4] pilot", "pilot checks", "[3]", "[4]", "[4] supplementary", "[3] extension", "[3] weight shape", "[8]", "[7]", summary]
+  estimated_core_hours: 28
+  estimated_wall_hours_4_cores: {low: 7, high: 9}
+  overrun_order: "if the pilot projects more than 10 hours, every Model 1 cell runs first and Kovalenko 2016 [4] at 200 mg runs last"
