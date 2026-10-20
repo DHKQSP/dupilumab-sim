@@ -1,0 +1,100 @@
+run_name: m15_trials_mechsupp_k2020_S1_300_1_1000
+started_utc: 2026-10-20 17:55:03
+run_mode: final
+master_seed: 20261020
+seed_rule_version: 1
+git_sha: 45f68bc16b93ddb6d146f600a33eea72d196f4e4
+git_code_clean: TRUE
+R_version: R version 4.3.3 (2024-02-29)
+rxode2: 5.1.7
+BEmaster: not installed
+config_sha256:
+  assay.yaml: 13bb4e6e5a604962f3e30a9f31dffb53fcfcaa71272e41d6a12413c1cec26604
+  crossval_reference.yaml: 4a8ee97a00c6c0ecc2c42373c8d21099adbfc833d3b6e4b1abfbf714653549de
+  design_clot2021.yaml: 4b3ddc374dfbf3f451d3fe3d6a865645b0b5d93b0ea7eea9a3f24cd8d2f05da5
+  gate_decision.yaml: fec8e5a4376e78560e2945be2c69db22e63e6b6731a2413101efa1ac58cb1838
+  literature_core_deck.yaml: ed067a30878b498ed7f584d96695f25a6abb14944cb426992c8036b09acb3a80
+  literature_precedents.yaml: 44c48b27ac1afbe90f1e23f55480f148dfa34e03a4dca31a81d29096a0537e67
+  nca_rules.yaml: 0f53d9e003bf1df504df24201f06301cabe423babd1078def5c5a4b3b2c1db94
+  oc_design.yaml: 629011b264fbc4c3f03f8a3989bac1f2711d49959f3268f5e8f758c80f93ea0a
+  param_uncertainty.yaml: baa74b9c41f188019290c0e294d5ad4954f6528b30a4ac11232f68af1846570c
+  params_k2020_model1.yaml: b6e3816238f158ab76cda1edfc4ce9ae49b53fdd4836de8be36bd64664dca96f
+  params_typical.yaml: 0661b248227771273d5c58c86c61f35ef655fdeecebe3f188868fd61cff4b801
+  params_variability.yaml: b849a4cc3acc6d47f9833392ac4f47ebacc6ad9fa79fcc5848628fd4b5aa99a9
+  population_atopic.yaml: a5e5356587a4727996496d247df2f1b007adb6fe7e7a9f98ce81388040495abb
+  prereg_20260926.yaml: dc2c9f1bd4d62e13ad9f5f551dcf97eb7ee1359ba13aaa3af8efc063dfc6303e
+  prereg_20260929_oc.yaml: 1956b6d4556ba2e1f092b2f8e71c185ed0ec0196337bc66e2a89247ee941801b
+  prereg_20260929.yaml: 7da31a299058aa2f7b56584460808cefa80b30d627f205611c2bc6445f9c2613
+  prereg_20261002_day57.yaml: ffcda7253952791feb6dd5411d338f47a36716b319667a0820e51a8ee6d27b23
+  prereg_20261020_m15.yaml: bd75b33fd8e6ed92102cff047410a4ee14df0a98409bb140fbec6bd3a0217e61
+  repro_check.yaml: a5e8401417d3dd780a21876356e654a5c6b270f9d50eb47de942105cb34d2756
+  repro_request.yaml: 0e85501d9e970a1b51dfa4f347f196c7fbd38b3908c4e629ce54451938094eb3
+  scenarios.yaml: 7243c4f34f21614eccae4c143ba05b8a9eb9183a76770cfce7153ef30a5dc17c
+  schedule_decision.yaml: de62d815c54d33e4016ed7fdb535ede38ae9c0a6350ef8e7e0a26cb5dd9572b2
+  trial_design.yaml: 553eceab74155a3497fef1ab587f3b8d2be1319704e17ae1f0e177601726e84f
+extra:
+  mode: mechsupp
+  model: k2020
+  population: S1
+  dose: 300
+  from: 1
+  to: 1000
+  cores: 4
+  boundaries: 75
+  seed_collisions_resolved: 1106 drop;5033 eps;5812 drop;7222 eps;7667 drop;7939 jitter;8309 jitter
+session_info:
+  R version 4.3.3 (2024-02-29)
+  Platform: x86_64-pc-linux-gnu (64-bit)
+  Running under: Ubuntu 24.04.4 LTS
+  
+  Matrix products: default
+  BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+  LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0
+  
+  locale:
+   [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       
+   [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   
+   [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          
+  [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   
+  
+  time zone: Etc/UTC
+  tzcode source: system (glibc)
+  
+  attached base packages:
+  [1] stats     graphics  grDevices datasets  utils     methods   base     
+  
+  other attached packages:
+  [1] digest_0.6.34      data.table_1.14.10 yaml_2.3.8        
+  
+  loaded via a namespace (and not attached):
+   [1] gtable_0.3.4       dplyr_1.1.4        compiler_4.3.3     renv_1.2.4        
+   [5] crayon_1.5.2       tidyselect_1.2.0   Rcpp_1.1.2         scales_1.3.0      
+   [9] fastmap_1.1.1      ggplot2_3.4.4      R6_2.5.1           generics_0.1.3    
+  [13] knitr_1.45         backports_1.4.1    checkmate_2.3.1    tibble_3.2.1      
+  [17] munsell_0.5.0      pillar_1.9.0       rlang_1.1.3        utf8_1.2.4        
+  [21] cachem_1.0.8       xfun_0.41          sys_3.4.2          RcppParallel_6.2.1
+  [25] memoise_2.0.1      cli_3.6.2          magrittr_2.0.3     grid_4.3.3        
+  [29] rxode2ll_2.0.18    lotri_1.0.5        lifecycle_1.0.4    dparser_1.3.1-13  
+  [33] vctrs_0.6.5        glue_1.7.0         rxode2_5.1.7       PreciseSums_0.7   
+  [37] fansi_1.0.5        colorspace_2.1-0   tools_4.3.3        pkgconfig_2.0.3   
+[17:55:41] mechsupp k2020 S1 300 trials 1-50 written in 38.35517 secs
+[17:56:22] mechsupp k2020 S1 300 trials 51-100 written in 40.42695 secs
+[17:57:01] mechsupp k2020 S1 300 trials 101-150 written in 38.8067 secs
+[17:57:40] mechsupp k2020 S1 300 trials 151-200 written in 39.09668 secs
+[17:58:21] mechsupp k2020 S1 300 trials 201-250 written in 40.7388 secs
+[17:59:00] mechsupp k2020 S1 300 trials 251-300 written in 39.91341 secs
+[17:59:41] mechsupp k2020 S1 300 trials 301-350 written in 40.32582 secs
+[18:00:19] mechsupp k2020 S1 300 trials 351-400 written in 38.27955 secs
+[18:00:57] mechsupp k2020 S1 300 trials 401-450 written in 38.19006 secs
+[18:01:36] mechsupp k2020 S1 300 trials 451-500 written in 38.70359 secs
+[18:02:15] mechsupp k2020 S1 300 trials 501-550 written in 39.36642 secs
+[18:02:57] mechsupp k2020 S1 300 trials 551-600 written in 41.63805 secs
+[18:03:34] mechsupp k2020 S1 300 trials 601-650 written in 37.54421 secs
+[18:04:12] mechsupp k2020 S1 300 trials 651-700 written in 37.92296 secs
+[18:04:52] mechsupp k2020 S1 300 trials 701-750 written in 39.2965 secs
+[18:05:32] mechsupp k2020 S1 300 trials 751-800 written in 39.98987 secs
+[18:06:11] mechsupp k2020 S1 300 trials 801-850 written in 39.39971 secs
+[18:06:51] mechsupp k2020 S1 300 trials 851-900 written in 39.54232 secs
+[18:07:29] mechsupp k2020 S1 300 trials 901-950 written in 38.35847 secs
+[18:08:09] mechsupp k2020 S1 300 trials 951-1000 written in 39.92757 secs
+[18:08:09] done
