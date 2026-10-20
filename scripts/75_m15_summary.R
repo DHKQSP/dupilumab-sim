@@ -222,7 +222,11 @@ POPL <- c(S1 = "Global healthy-volunteer population", S2 = "Korean healthy-volun
 SCHL <- c(B0 = "Confirmed schedule", RM36_50 = "Reduced (Days 36 to 50 removed)", ADD64_71 = "Extended (Days 64 and 71 added)")
 MODL <- c(k2020 = "Kovalenko 2020 Model 1 (primary)", k2016 = "Kovalenko 2016 (sensitivity)")
 COLS3 <- c(VIZ$s1, VIZ$s2, VIZ$s3)
-save_fig <- function(g, name, w, h, tab) { ggsave(file.path(FD, paste0(name, ".png")), g, width = w, height = h, dpi = 150, bg = "white"); fwrite(tab, file.path(FD, paste0(name, ".csv"))) }
+COND <- local({ f <- file.path(RD, "validation", "validation_rule.csv"); if (!file.exists(f)) "" else { r <- fread(f)[pk_model == PRIMARY & wmode == "primary"]
+  if (isTRUE(r$failure[1])) "Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2)." else "" } })
+save_fig <- function(g, name, w, h, tab) {
+  if (nzchar(COND)) g <- g + labs(caption = COND)
+  ggsave(file.path(FD, paste0(name, ".png")), g, width = w, height = h, dpi = 150, bg = "white"); fwrite(tab, file.path(FD, paste0(name, ".csv"))) }
 if (mode == "figures") {
   lf <- start_run_log("m15_summary_figures", master_seed = MS, run_mode = "final")
   # fig1: [1] 예측 대 관측(판정 단위, 고정 체중 가정)
@@ -379,7 +383,19 @@ if (mode == "summary") {
                  paste(sprintf("%s %s", bc$mechanism, fifelse(bc$reached, paste0(fmt(bc$crossing_pct), "%"), "not reached")), collapse = ", ")),
          "5. Parameter uncertainty was not propagated (no relative standard errors recorded); every result is conditional on the published point estimates.")
   stopifnot(length(C) <= 5)
-  writeLines(c("# Key conclusions (generated from the result files)", "", C), file.path(SD, "m15_key_conclusions_en.md"))
+  writeLines(c("# Key conclusions (generated from the result files)", "", if (rv$failure) c("All results are conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).", ""), C),
+             file.path(SD, "m15_key_conclusions_en.md"))
+  # 한국어 요약(내부용): 같은 수치
+  K <- c("# M15 분석 결과 요약 (내부용, 수치는 results/m15/summary/*.csv에서 자동 생성)", "",
+         if (rv$failure) c("주의: 모든 결과는 사전 등록 외부 점검을 통과하지 못한 주 모델(Kovalenko 2020 Model 1, 고정 체중 가정)에 조건부다(계획서 6.2절, D-068).", ""),
+         sprintf("1. 외부 검증: 주 모델 결과 범주 '%s', 결합 규칙의 25%% 편향 검출 확률 %s%%. 민감도 모델 결과 범주 '%s'.", RULE[pk_model == PRIMARY, outcome][1], fmt(det25, 0), RULE[pk_model != PRIMARY, outcome][1]),
+         sprintf("2. 기본 시나리오(S1, 300 mg, 확정 일정, 75 kg 경계, 군당 130명, 층 포함 분석): 참 GMR 0.95 검정력 %s%%, 결합 소비자 위험 0.80에서 %s%%, 1.25에서 %s%%(단일 평가변수 최대 %s%%, %s%%) → 사전 해석 기준 %s.",
+                 fmt(p95$pass_pct), fmt(c80$pass_pct), fmt(c125$pass_pct), fmt(max(c80$auc_only_pct, c80$cmax_only_pct)), fmt(max(c125$auc_only_pct, c125$cmax_only_pct)), if (adequate) "충족" else "미충족"),
+         sprintf("3. 참 GMR 0.95 검정력을 2%%p 이상 바꾸고 짝 95%% 구간이 0을 포함하지 않는 설계 요인(주 모델): %s.", if (nrow(sig)) paste(unique(sprintf("%s(%s 대 %s)", sig$contrast, sig$design_a, sig$design_b)), collapse = "; ") else "없음"),
+         sprintf("4. 결론 확률 50%% 교차(기본 시나리오, 아래쪽·위쪽): %s.", paste(sprintf("%s %s", bc$mechanism, fifelse(bc$reached, paste0(fmt(bc$crossing_pct), "%"), "도달 안 함")), collapse = ", ")),
+         "5. 파라미터 불확실성은 RSE가 없어 전파하지 않았다. 모든 결과는 공개 점추정값 조건부다.", "",
+         "요약 표: results/m15/summary/m15_summary_table.md(영문). 그림: results/m15/figures/.")
+  writeLines(K, file.path(SD, "m15_summary_ko.md"))
   # 가정 목록: 계획서 12절 표를 CSV로
   pl <- readLines(proj_path("plans", "M15_analysis_plan_20261020.md"), warn = FALSE)
   i0 <- grep("^## 12\\. Assumptions", pl); i1 <- grep("^## 13\\.", pl); tl <- pl[i0:i1]; tl <- tl[grepl("^\\| B[0-9]+ ", tl)]
