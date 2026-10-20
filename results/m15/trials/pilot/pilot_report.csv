@@ -1,0 +1,161 @@
+combo,item,boundary,schedule,n_rand,value,n_studies
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,ADD64_71,80,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,B0,80,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,RM36_50,80,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,ADD64_71,90,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,B0,90,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,RM36_50,90,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,ADD64_71,100,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,B0,100,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,RM36_50,100,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,ADD64_71,110,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,B0,110,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,RM36_50,110,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,ADD64_71,120,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,B0,120,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,RM36_50,120,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,ADD64_71,130,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,B0,130,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,RM36_50,130,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,ADD64_71,140,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,B0,140,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,RM36_50,140,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,ADD64_71,150,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,B0,150,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,RM36_50,150,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,ADD64_71,160,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,B0,160,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,RM36_50,160,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,ADD64_71,80,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,B0,80,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,RM36_50,80,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,ADD64_71,90,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,B0,90,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,RM36_50,90,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,ADD64_71,100,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,B0,100,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,RM36_50,100,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,ADD64_71,110,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,B0,110,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,RM36_50,110,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,ADD64_71,120,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,B0,120,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,RM36_50,120,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,ADD64_71,130,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,B0,130,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,RM36_50,130,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,ADD64_71,140,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,B0,140,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,RM36_50,140,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,ADD64_71,150,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,B0,150,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,RM36_50,150,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,ADD64_71,160,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,B0,160,0,500
+k2020_S1_300,"studies with the stratum term dropped (M1, AUC0-last)",median,RM36_50,160,0,500
+k2020_S1_300,studies with AUCinf_A missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,ADD64_71,130,0,500
+k2020_S1_300,studies with AUCinf_A missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,B0,130,0,500
+k2020_S1_300,studies with AUCinf_A missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,RM36_50,130,0,500
+k2020_S1_300,studies with AUCinf_B missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,ADD64_71,130,0,500
+k2020_S1_300,studies with AUCinf_B missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,B0,130,0,500
+k2020_S1_300,studies with AUCinf_B missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,RM36_50,130,0,500
+k2020_S1_300,studies with AUClast missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,ADD64_71,130,0,500
+k2020_S1_300,studies with AUClast missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,B0,130,0,500
+k2020_S1_300,studies with AUClast missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,RM36_50,130,0,500
+k2020_S1_300,studies with Cmax missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,ADD64_71,130,0,500
+k2020_S1_300,studies with Cmax missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,B0,130,0,500
+k2020_S1_300,studies with Cmax missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,RM36_50,130,0,500
+k2020_S1_300,studies with pAUC_0_14 missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,ADD64_71,130,0,500
+k2020_S1_300,studies with pAUC_0_14 missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,B0,130,0,500
+k2020_S1_300,studies with pAUC_0_14 missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,RM36_50,130,0,500
+k2020_S1_300,studies with pAUC_14_28 missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,ADD64_71,130,0,500
+k2020_S1_300,studies with pAUC_14_28 missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,B0,130,0,500
+k2020_S1_300,studies with pAUC_14_28 missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,RM36_50,130,0,500
+k2020_S1_300,studies with pAUC_28_56 missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,ADD64_71,130,0,500
+k2020_S1_300,studies with pAUC_28_56 missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,B0,130,0,500
+k2020_S1_300,studies with pAUC_28_56 missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,RM36_50,130,0,500
+k2020_S1_300,studies with pAUC_28_56_ext missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,ADD64_71,130,0,500
+k2020_S1_300,studies with pAUC_28_56_ext missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,B0,130,0,500
+k2020_S1_300,studies with pAUC_28_56_ext missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,RM36_50,130,0,500
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,ADD64_71,80,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,B0,80,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,RM36_50,80,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,ADD64_71,90,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,B0,90,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,RM36_50,90,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,ADD64_71,100,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,B0,100,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,RM36_50,100,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,ADD64_71,110,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,B0,110,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,RM36_50,110,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,ADD64_71,120,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,B0,120,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,RM36_50,120,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,ADD64_71,130,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,B0,130,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,RM36_50,130,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,ADD64_71,140,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,B0,140,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,RM36_50,140,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,ADD64_71,150,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,B0,150,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,RM36_50,150,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,ADD64_71,160,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,B0,160,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",fixed75,RM36_50,160,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,ADD64_71,80,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,B0,80,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,RM36_50,80,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,ADD64_71,90,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,B0,90,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,RM36_50,90,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,ADD64_71,100,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,B0,100,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,RM36_50,100,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,ADD64_71,110,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,B0,110,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,RM36_50,110,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,ADD64_71,120,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,B0,120,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,RM36_50,120,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,ADD64_71,130,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,B0,130,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,RM36_50,130,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,ADD64_71,140,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,B0,140,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,RM36_50,140,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,ADD64_71,150,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,B0,150,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,RM36_50,150,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,ADD64_71,160,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,B0,160,0,50
+k2020_S2_200,"studies with the stratum term dropped (M1, AUC0-last)",median,RM36_50,160,0,50
+k2020_S2_200,studies with AUCinf_A missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,ADD64_71,130,0,50
+k2020_S2_200,studies with AUCinf_A missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,B0,130,0,50
+k2020_S2_200,studies with AUCinf_A missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,RM36_50,130,0,50
+k2020_S2_200,studies with AUCinf_B missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,ADD64_71,130,0,50
+k2020_S2_200,studies with AUCinf_B missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,B0,130,0,50
+k2020_S2_200,studies with AUCinf_B missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,RM36_50,130,0,50
+k2020_S2_200,studies with AUClast missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,ADD64_71,130,0,50
+k2020_S2_200,studies with AUClast missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,B0,130,0,50
+k2020_S2_200,studies with AUClast missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,RM36_50,130,0,50
+k2020_S2_200,studies with Cmax missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,ADD64_71,130,0,50
+k2020_S2_200,studies with Cmax missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,B0,130,0,50
+k2020_S2_200,studies with Cmax missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,RM36_50,130,0,50
+k2020_S2_200,studies with pAUC_0_14 missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,ADD64_71,130,0,50
+k2020_S2_200,studies with pAUC_0_14 missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,B0,130,0,50
+k2020_S2_200,studies with pAUC_0_14 missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,RM36_50,130,0,50
+k2020_S2_200,studies with pAUC_14_28 missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,ADD64_71,130,0,50
+k2020_S2_200,studies with pAUC_14_28 missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,B0,130,0,50
+k2020_S2_200,studies with pAUC_14_28 missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,RM36_50,130,0,50
+k2020_S2_200,studies with pAUC_28_56 missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,ADD64_71,130,0,50
+k2020_S2_200,studies with pAUC_28_56 missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,B0,130,0,50
+k2020_S2_200,studies with pAUC_28_56 missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,RM36_50,130,0,50
+k2020_S2_200,studies with pAUC_28_56_ext missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,ADD64_71,130,0,50
+k2020_S2_200,studies with pAUC_28_56_ext missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,B0,130,0,50
+k2020_S2_200,studies with pAUC_28_56_ext missing at 130 per arm (fewer than 2 analysable subjects in an arm),fixed75,RM36_50,130,0,50
+,run time: oc k2020 S1 300 1 500 4 in 323s,,,,323,
+,run time: mech k2020 S1 300 1 500 4 in 1020s,,,,1020,
+,run time: oc k2020 S2 200 1 50 4 in 38s,,,,38,
+,run time: mech k2020 S2 200 1 50 4 in 109s,,,,109,

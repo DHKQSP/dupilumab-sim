@@ -6,11 +6,12 @@
 #                    auroc.csv, auroc_diff.csv, pauc_zero_share.csv
 #   figures          results/m15/figures/ — fig1~fig7 PNG(영문) + 같은 값의 표(CSV)
 #   summary          results/m15/summary/ — m15_summary_table.csv/.md(영문), m15_key_conclusions_en.md, m15_assumptions_register.csv, m15_summary_ko.md
+#   pilot            results/m15/trials/pilot/pilot_report.csv — 11절 예비 실행 보고 항목(실행 시간, 층 항 제외 시험 수, 평가변수별 결측 시험 수)
 # 사용법: nice -n 5 Rscript scripts/75_m15_summary.R <tables|figures|summary> [cores]
 source("R/00_setup.R"); source_project(); source(proj_path("R", "m15.R"))
 suppressPackageStartupMessages({ library(ggplot2); library(patchwork) })
 args <- commandArgs(trailingOnly = TRUE)
-if (!length(args) || !args[1] %in% c("tables", "figures", "summary")) stop("사용법: Rscript scripts/75_m15_summary.R <tables|figures|summary> [cores]")
+if (!length(args) || !args[1] %in% c("tables", "figures", "summary", "pilot")) stop("사용법: Rscript scripts/75_m15_summary.R <tables|figures|summary|pilot> [cores]")
 mode <- args[1]; cores <- if (length(args) >= 2) as.integer(args[2]) else 4L
 CFG <- m15_cfg(); MS <- as.integer(CFG$master_seed); stopifnot(MS == 20261020L)
 RD <- proj_path(CFG$output_dir); SD <- file.path(RD, "summary"); FD <- file.path(RD, "figures")
@@ -19,8 +20,33 @@ NBASE <- as.integer(CFG$mechanisms$base_n_randomized_per_arm); B_BOOT <- 2000L
 PRIMARY <- CFG$models$primary
 combo_lab <- function(dd) { p <- strsplit(basename(dd), "_")[[1]]; list(pk_model = p[1], population = paste(p[2:(length(p) - 1)], collapse = "_"), dose_mg = as.numeric(p[length(p)])) }
 read_dir <- function(dd, pat) { f <- list.files(dd, pattern = pat, full.names = TRUE); if (!length(f)) return(NULL); rbindlist(lapply(f, fread), fill = TRUE) }
+# 완전성 점검: 키마다 한 행, 등록된 시험 번호가 빠짐없이(중복·누락이면 중단; 묶음 파일을 지우고 그 범위만 다시 실행)
+check_trials <- function(x, keys, expect, what) {
+  if (anyDuplicated(x, by = c("trial", keys))) stop(what, ": 중복 행(같은 시험이 두 번)")
+  got <- sort(unique(x$trial)); if (!identical(as.integer(got), as.integer(expect))) stop(what, sprintf(": 시험 %d개(기대 %d개), 누락 예: %s", length(got), length(expect), paste(head(setdiff(expect, got), 5), collapse = ",")))
+  invisible(TRUE)
+}
+NT_MAIN <- as.integer(CFG$oc$n_trials); NT_EXT <- as.integer(CFG$oc$extension$n_trials)
 bit <- function(mask, v) bitwAnd(as.integer(mask), as.integer(2^(v - 1))) > 0
 wil <- function(k, n) { w <- wilson_ci(k, n); list(pct = w$est, lo = w$lo, hi = w$hi) }
+
+# ================================================================ 예비 실행 보고(11절) ================================================================
+if (mode == "pilot") {
+  PR <- list(c("k2020_S1_300", 1L, 500L), c("k2020_S2_200", 1L, 50L))
+  out <- rbindlist(lapply(PR, function(z) {
+    oc <- read_dir(file.path(RD, "trials", "oc", z[1]), "^oc_\\d+_\\d+\\.csv\\.gz$")[trial >= as.integer(z[2]) & trial <= as.integer(z[3])]
+    me <- read_dir(file.path(RD, "trials", "mech", z[1]), "^mech_\\d+_\\d+\\.csv\\.gz$")[trial >= as.integer(z[2]) & trial <= as.integer(z[3])]
+    a <- oc[model == "M1", .(item = "studies with the stratum term dropped (M1, AUC0-last)", value = sum(m1_dropped > 0), n_studies = uniqueN(trial)), by = .(boundary, schedule, n_rand)]
+    ec <- grep("^est_", names(me), value = TRUE)
+    b <- rbindlist(lapply(ec, function(cc) me[, .(item = sprintf("studies with %s missing at 130 per arm (fewer than 2 analysable subjects in an arm)", sub("^est_", "", cc)),
+                                                value = sum(!is.finite(get(cc))), n_studies = uniqueN(trial)), by = .(schedule)]))[, `:=`(boundary = "fixed75", n_rand = NBASE)]
+    rbind(a, b, fill = TRUE)[, combo := z[1]]
+  }), fill = TRUE)
+  pl <- readLines(file.path(RD, "run_progress.log")); rs <- grep("pilot restarted", pl); if (length(rs)) pl <- pl[(max(rs) + 1):length(pl)]   # 시드 수정 뒤 예비 실행만(D-068 이탈 1)
+  dn <- grep("done scripts/73_m15_trials.R (oc|mech) k2020 (S1 300 1 500|S2 200 1 50)", pl, value = TRUE)
+  tm <- data.table(combo = NA_character_, item = sub(".*done scripts/73_m15_trials.R ", "run time: ", dn), value = as.numeric(sub(".* in ([0-9]+)s$", "\\1", dn)), n_studies = NA_integer_)
+  out <- rbind(out, tm, fill = TRUE); setcolorder(out, c("combo", "item")); fwrite(out, file.path(RD, "trials", "pilot", "pilot_report.csv")); print(out[value > 0 | grepl("run time", item)])
+}
 
 # ================================================================ 파생 표 ================================================================
 if (mode == "tables") {
@@ -30,12 +56,14 @@ if (mode == "tables") {
   OCX <- list()                                                    # 시험별 통과(짝 차이용): 키 = 묶음
   OCP <- rbindlist(lapply(oc_dirs, function(dd) {
     x <- read_dir(dd, "^oc_\\d+_\\d+\\.csv\\.gz$"); if (is.null(x)) return(NULL); v <- fread(file.path(dd, "versions.csv")); lb <- combo_lab(dd)
+    check_trials(x, c("boundary", "schedule", "n_rand", "model"), seq_len(NT_MAIN), basename(dd))
     long <- rbindlist(lapply(seq_len(nrow(v)), function(i) x[, .(trial, boundary, schedule, n_rand, model, g = v$g[i], pass = bit(mask, v$vi[i]), pass_auc = bit(mask_auc, v$vi[i]),
                                                                 pass_cmax = bit(mask_cmax, v$vi[i]), m1_dropped, n_stratum2)]))
     OCX[[basename(dd)]] <<- long[n_rand == NBASE][, `:=`(pk_model = lb$pk_model, population = lb$population, dose_mg = lb$dose_mg)]
     long[, .(n_trials = .N, n_pass = sum(pass), n_pass_auc = sum(pass_auc), n_pass_cmax = sum(pass_cmax), m1_dropped_studies = sum(m1_dropped > 0),
              n_stratum2_median = as.numeric(median(n_stratum2))), by = .(boundary, schedule, n_rand, model, g)][, `:=`(pk_model = lb$pk_model, population = lb$population, dose_mg = lb$dose_mg)]
   }))
+  OCP[model == "M0", m1_dropped_studies := NA_integer_]             # M0에는 층 항이 없다(73은 M1 값을 두 모형 행에 붙인다)
   OCP[, c("pass_pct", "pass_lo", "pass_hi") := wil(n_pass, n_trials)]
   OCP[, c("auc_only_pct", "auc_only_lo", "auc_only_hi") := wil(n_pass_auc, n_trials)]
   OCP[, c("cmax_only_pct", "cmax_only_lo", "cmax_only_hi") := wil(n_pass_cmax, n_trials)]
@@ -43,6 +71,7 @@ if (mode == "tables") {
   # 소비자 위험(10,000회 = 본 실행 1~1,000 + 확장 1,001~10,000; k2020)
   CR <- rbindlist(lapply(list.dirs(file.path(RD, "trials", "ocext"), recursive = FALSE), function(dd) {
     x <- read_dir(dd, "^ocext_\\d+_\\d+\\.csv\\.gz$"); if (is.null(x)) return(NULL); v <- fread(file.path(dd, "versions.csv")); lb <- combo_lab(dd)
+    check_trials(x, c("boundary", "schedule", "n_rand", "model"), (NT_MAIN + 1L):NT_EXT, paste("ocext", basename(dd)))
     rbindlist(lapply(seq_len(nrow(v)), function(i) x[, .(n_trials = .N, n_pass = sum(bit(mask, v$vi[i])), n_pass_auc = sum(bit(mask_auc, v$vi[i])), n_pass_cmax = sum(bit(mask_cmax, v$vi[i]))),
                                                      by = .(boundary, schedule, n_rand, model)][, g := v$g[i]]))[, `:=`(pk_model = lb$pk_model, population = lb$population, dose_mg = lb$dose_mg)]
   }))
@@ -50,6 +79,7 @@ if (mode == "tables") {
     m <- merge(CR, OCP[, .(pk_model, population, dose_mg, boundary, schedule, n_rand, model, g, m_n = n_trials, m_p = n_pass, m_a = n_pass_auc, m_c = n_pass_cmax)],
                by = c("pk_model", "population", "dose_mg", "boundary", "schedule", "n_rand", "model", "g"))
     m[, `:=`(n_trials = n_trials + m_n, n_pass = n_pass + m_p, n_pass_auc = n_pass_auc + m_a, n_pass_cmax = n_pass_cmax + m_c)][, c("m_n", "m_p", "m_a", "m_c") := NULL]
+    stopifnot(all(m$n_trials == NT_EXT))
     m[, c("pass_pct", "pass_lo", "pass_hi") := wil(n_pass, n_trials)]; m[, c("auc_only_pct", "auc_only_lo", "auc_only_hi") := wil(n_pass_auc, n_trials)]
     m[, c("cmax_only_pct", "cmax_only_lo", "cmax_only_hi") := wil(n_pass_cmax, n_trials)]
     fwrite(m, file.path(SD, "oc_consumer_risk.csv"))
@@ -57,6 +87,7 @@ if (mode == "tables") {
   # 균등 모양 민감도
   SHP <- rbindlist(lapply(list.dirs(file.path(RD, "trials", "ocshape"), recursive = FALSE), function(dd) {
     x <- read_dir(dd, "^ocshape_\\d+_\\d+\\.csv\\.gz$"); if (is.null(x)) return(NULL); v <- fread(file.path(dd, "versions.csv")); lb <- combo_lab(dd)
+    check_trials(x, c("boundary", "schedule", "n_rand", "model"), seq_len(as.integer(CFG$oc$weight_shape_sensitivity$n_trials)), paste("ocshape", basename(dd)))
     rbindlist(lapply(seq_len(nrow(v)), function(i) x[, .(n_trials = .N, n_pass = sum(bit(mask, v$vi[i]))), by = .(boundary, schedule, n_rand, model)][, g := v$g[i]]))[,
       `:=`(pk_model = lb$pk_model, population = lb$population, dose_mg = lb$dose_mg)] }))
   if (nrow(SHP)) { SHP[, c("pass_pct", "pass_lo", "pass_hi") := wil(n_pass, n_trials)]; fwrite(SHP, file.path(SD, "oc_weight_shape.csv")) }
@@ -85,7 +116,11 @@ if (mode == "tables") {
   TG <- fread(file.path(RD, "truth", "truth_gmr.csv"))
   mech_dirs <- list.dirs(file.path(RD, "trials", "mech"), recursive = FALSE)
   rd_mech <- function(kind, dd) { d2 <- file.path(RD, "trials", kind, basename(dd)); if (!dir.exists(d2)) return(NULL)
-    list(cnt = read_dir(d2, sprintf("^cnt_%s_\\d+_\\d+\\.csv\\.gz$", kind)), base = read_dir(d2, sprintf("^%s_\\d+_\\d+\\.csv\\.gz$", kind)), v = fread(file.path(d2, "versions.csv"))) }
+    r <- list(cnt = read_dir(d2, sprintf("^cnt_%s_\\d+_\\d+\\.csv\\.gz$", kind)), base = read_dir(d2, sprintf("^%s_\\d+_\\d+\\.csv\\.gz$", kind)), v = fread(file.path(d2, "versions.csv")))
+    nt_ <- if (kind == "mechsupp") as.integer(CFG$mechanisms$supplementary$n_trials) else as.integer(CFG$mechanisms$n_trials)
+    if (!is.null(r$base)) check_trials(r$base, c("schedule", "vi"), seq_len(nt_), paste(kind, basename(dd)))
+    if (!is.null(r$cnt)) stopifnot(all(r$cnt[, .(n = sum(n_trials)), by = .(schedule, vi, n_rand, model)]$n == nt_))
+    r }
   MP <- rbindlist(lapply(c("mech", "mechsupp"), function(kind) rbindlist(lapply(list.dirs(file.path(RD, "trials", kind), recursive = FALSE), function(dd) {
     r <- rd_mech(kind, dd); if (is.null(r$cnt)) return(NULL); lb <- combo_lab(dd)
     merge(r$cnt[, .(n_trials = sum(n_trials), n_pass = sum(n_pass), n_pass_auc = sum(n_pass_auc), n_pass_cmax = sum(n_pass_cmax)), by = .(schedule, vi, n_rand, model)], r$v, by = "vi")[,
@@ -115,9 +150,12 @@ if (mode == "tables") {
         W <- dcast(bb, trial ~ multiplier, value.var = "pass", fun.aggregate = function(z) as.integer(z[1]))
         mult <- as.numeric(names(W)[-1]); P <- as.matrix(W[, -1]); nt <- nrow(P)
         est <- cross_one(mult, colMeans(P))
-        bt <- vapply(BIDX, function(i) { i <- i[i <= nt]; cross_one(mult, colMeans(P[i, , drop = FALSE])) }, 1)
+        bt <- vapply(BIDX, function(i) { r_ <- match(i, W$trial); r_ <- r_[!is.na(r_)]; cross_one(mult, colMeans(P[r_, , drop = FALSE])) }, 1)
         key <- paste(lb$pk_model, lb$population, lb$dose_mg, sn, mech, side, sep = "|")
         CRB[[key]] <- bt
+        # 미도달 재표집은 격자 끝 너머로 검열(버리지 않음): 아래쪽은 0, 위쪽은 Inf로 두고 백분위수를 구한다
+        btc <- ifelse(is.finite(bt), bt, if (side == "down") 0 else Inf); qb <- quantile(btc, c(0.025, 0.975), names = FALSE, type = 7)
+        beyond <- function(q) (side == "down" && q == 0) || (side == "up" && is.infinite(q))
         # 유도 참 GMR(교차점에서 log 배율 선형 보간)
         tg <- TG[pk_model == lb$pk_model & population == lb$population & dose_mg == lb$dose_mg & (mechanism == mech | mechanism == "identity") &
                  metric %in% c("AUCinf", "Cmax", paste0("AUClast_dense_", sn))][(if (side == "down") multiplier <= 1 else multiplier >= 1)]
@@ -125,8 +163,9 @@ if (mode == "tables") {
           exp(approx(log(z$multiplier), log(z$gmr), xout = log(est))$y) }
         CRS[[key]] <- data.table(pk_model = lb$pk_model, population = lb$population, dose_mg = lb$dose_mg, schedule = sn, mechanism = mech, side = side, model = "M1", n_rand = NBASE,
                                  grid_end = if (side == "down") min(mult) else max(mult), p_at_grid_end = colMeans(P)[which.max(abs(log(mult)))], reached = is.finite(est),
-                                 crossing_multiplier = est, crossing_pct = 100 * (est - 1), lo_pct = 100 * (quantile(bt, 0.025, na.rm = TRUE, names = FALSE) - 1),
-                                 hi_pct = 100 * (quantile(bt, 0.975, na.rm = TRUE, names = FALSE) - 1), boot_not_reached_pct = 100 * mean(!is.finite(bt)),
+                                 crossing_multiplier = est, crossing_pct = 100 * (est - 1),
+                                 lo_pct = if (!is.finite(est) || beyond(qb[1])) NA_real_ else 100 * (qb[1] - 1), hi_pct = if (!is.finite(est) || beyond(qb[2])) NA_real_ else 100 * (qb[2] - 1),
+                                 outer_bound_beyond_grid = beyond(if (side == "down") qb[1] else qb[2]), boot_not_reached_pct = 100 * mean(!is.finite(bt)),
                                  induced_gmr_AUClast = ig(paste0("AUClast_dense_", sn)), induced_gmr_AUCinf = ig("AUCinf"), induced_gmr_Cmax = ig("Cmax"), n_trials = nt)
       }
     }
@@ -136,8 +175,9 @@ if (mode == "tables") {
   CRT[, ckey := paste(pk_model, population, dose_mg, schedule, mechanism, side, sep = "|")]
   cdiff <- function(key_a, key_b, ct_lab) { a <- CRB[[key_a]]; b <- CRB[[key_b]]; if (is.null(a) || is.null(b)) return(NULL)
     d <- 100 * (a - b); ea <- CRT$crossing_multiplier[match(key_a, CRT$ckey)]; eb <- CRT$crossing_multiplier[match(key_b, CRT$ckey)]
-    data.table(contrast = ct_lab, a = key_a, b = key_b, diff_pp = 100 * (ea - eb), lo_pp = quantile(d, 0.025, na.rm = TRUE, names = FALSE), hi_pp = quantile(d, 0.975, na.rm = TRUE, names = FALSE),
-               boot_na_pct = 100 * mean(!is.finite(d))) }
+    na_ <- 100 * mean(!is.finite(d)); ok_ <- is.finite(ea) && is.finite(eb) && na_ <= 2.5    # 미도달 재표집이 2.5% 넘으면 구간을 정할 수 없다
+    data.table(contrast = ct_lab, a = key_a, b = key_b, diff_pp = 100 * (ea - eb), lo_pp = if (ok_) quantile(d, 0.025, na.rm = TRUE, names = FALSE) else NA_real_,
+               hi_pp = if (ok_) quantile(d, 0.975, na.rm = TRUE, names = FALSE) else NA_real_, boot_na_pct = na_) }
   CD <- rbindlist(lapply(seq_len(nrow(CRT)), function(i) { r <- CRT[i]; k <- function(pop = r$population, dose = r$dose_mg, sn = r$schedule) paste(r$pk_model, pop, dose, sn, r$mechanism, r$side, sep = "|")
     rbind(if (r$population == "S2") cdiff(k(), k(pop = "S1"), "population S2 - S1"), if (r$dose_mg == 200) cdiff(k(), k(dose = 300), "dose 200 - 300"),
           if (r$schedule != "B0") cdiff(k(), k(sn = "B0"), sprintf("schedule %s - B0", r$schedule))) }))
@@ -161,8 +201,9 @@ if (mode == "tables") {
   AU <- parallel::mclapply(seq_len(nrow(au_jobs)), function(jj) {
     dd <- au_jobs$dir[jj]; r <- rd_mech("mech", dd); if (is.null(r$base)) return(NULL)
     s <- stat_cols(r$base); v <- r$v; ST <- setdiff(names(s), c("trial", "schedule", "vi"))
-    zs <- r$base[vi == 1, c("schedule", grep("^(zero_R|n_R)_", names(r$base), value = TRUE)), with = FALSE]
-    ZS <- rbindlist(lapply(PA, function(e) zs[, .(endpoint = e, zero_share_R = sum(get(paste0("zero_R_", e)), na.rm = TRUE) / sum(get(paste0("n_R_", e)), na.rm = TRUE)), by = schedule]))
+    zs <- r$base[vi == 1, c("schedule", grep("^(zero_R|n_R|zero_T|n_T)_", names(r$base), value = TRUE)), with = FALSE]
+    ZS <- rbindlist(lapply(PA, function(e) zs[, .(endpoint = e, zero_share_R = sum(get(paste0("zero_R_", e)), na.rm = TRUE) / sum(get(paste0("n_R_", e)), na.rm = TRUE),
+                                                  zero_share_T = sum(get(paste0("zero_T_", e)), na.rm = TRUE) / sum(get(paste0("n_T_", e)), na.rm = TRUE)), by = schedule]))
     rows <- list(); draws <- list()
     for (sn in unique(s$schedule)) {
       w <- s[schedule == sn]; trials <- sort(unique(w$trial))
@@ -178,7 +219,7 @@ if (mode == "tables") {
           if (sum(keep) < 10) { rows[[length(rows) + 1]] <- data.table(schedule = sn, statistic = st, mechanism = mech, size_pct = as.numeric(sz), direction = dir_, n_studies = sum(keep), auroc = NA_real_); next }
           a <- .m15_mw(as.vector(pk), nk); dl <- m15_auroc(as.vector(pk), nk)
           # 같은 색인(전체 시험 기준)에서 제외된 시험을 뺀다
-          map_ <- cumsum(keep); idx <- lapply(AIDX, function(i) { i <- i[i <= length(keep)]; map_[i[keep[i]]] })
+          map_ <- cumsum(keep); idx <- lapply(AIDX, function(i) { pi_ <- match(i, trials); pi_ <- pi_[!is.na(pi_)]; map_[pi_[keep[pi_]]] })
           bt <- vapply(idx, function(i) .m15_mw(as.vector(pk[i, , drop = FALSE]), nk[i]), 1)
           key <- paste(sn, st, mech, sz, dir_, sep = "|"); draws[[key]] <- bt
           rows[[length(rows) + 1]] <- data.table(schedule = sn, statistic = st, mechanism = mech, size_pct = as.numeric(sz), direction = dir_, n_studies = sum(keep), auroc = a,
@@ -339,7 +380,8 @@ if (mode == "summary") {
   for (mech in c("F", "ka", "ke", "Vmax")) {
     cc <- function(pm) { z <- CRT[pk_model == pm & population == "S1" & dose_mg == base$dose_mg & schedule == "B0" & mechanism == mech]
       paste(vapply(c("down", "up"), function(sd_) { r <- z[side == sd_]; if (!nrow(r)) return("-"); if (!r$reached) return(sprintf("not reached (%s%% at %s%%)", fmt(100 * r$p_at_grid_end), fmt(100 * (r$grid_end - 1), 0)))
-        sprintf("%s%% (%s to %s; AUC0-last GMR %s, Cmax GMR %s)", fmt(r$crossing_pct), fmt(r$lo_pct), fmt(r$hi_pct), fmt(r$induced_gmr_AUClast, 3), fmt(r$induced_gmr_Cmax, 3)) }, ""), collapse = "; ") }
+        bl <- function(x) if (is.na(x)) "beyond the grid end" else fmt(x)
+        sprintf("%s%% (%s to %s; AUC0-last GMR %s, Cmax GMR %s)", fmt(r$crossing_pct), bl(r$lo_pct), bl(r$hi_pct), fmt(r$induced_gmr_AUClast, 3), fmt(r$induced_gmr_Cmax, 3)) }, ""), collapse = "; ") }
     addr(sprintf("50%% crossing, %s (lower; upper)", mech), cc("k2020"), cc("k2016"), "results/m15/summary/mech_crossing.csv")
   }
   for (ep in c("AUCinf_A", "pAUC_0_14_meanratio", "pAUC_14_28_meanratio", "pAUC_28_56_meanratio")) {
