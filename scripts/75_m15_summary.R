@@ -272,6 +272,8 @@ fmt <- function(x, d = 1) formatC(x, format = "f", digits = d, big.mark = ",")
 POPL <- c(S1 = "Global healthy-volunteer population", S2 = "Korean healthy-volunteer population")
 SCHL <- c(B0 = "Confirmed schedule", RM36_50 = "Reduced (Days 36 to 50 removed)", ADD64_71 = "Extended (Days 64 and 71 added)")
 MODL <- c(k2020 = "Kovalenko 2020 Model 1 (primary)", k2016 = "Kovalenko 2016 (sensitivity)")
+MODS <- c(k2020 = "Kovalenko 2020 Model 1\n(primary)", k2016 = "Kovalenko 2016\n(sensitivity)")   # 그림 띠 표기(두 줄, 잘림 방지)
+SCHS <- c(B0 = "Confirmed", RM36_50 = "Reduced", ADD64_71 = "Extended")
 COLS3 <- c(VIZ$s1, VIZ$s2, VIZ$s3)
 COND <- local({ f <- file.path(RD, "validation", "validation_rule.csv"); if (!file.exists(f)) "" else { r <- fread(f)[pk_model == PRIMARY & wmode == "primary"]
   if (isTRUE(r$failure[1])) "Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2)." else "" } })
@@ -282,20 +284,26 @@ if (mode == "figures") {
   lf <- start_run_log("m15_summary_figures", master_seed = MS, run_mode = "final")
   # fig1: [1] 예측 대 관측(판정 단위, 고정 체중 가정)
   U <- fread(file.path(RD, "validation", "validation_units.csv"))[wmode %in% c("primary", "wunc") & metric %in% c("AUClast_mean", "AUClast_cv_within", "Cmax_mean") & is.finite(observed)]
-  U[, `:=`(model_lab = MODL[pk_model], weight_lab = fifelse(wmode == "primary", "Fixed weight assumption", "Uncertain-mean weight assumption"),
+  U[, `:=`(model_lab = MODS[pk_model], weight_lab = fifelse(wmode == "primary", "Fixed weight assumption", "Uncertain-mean weight assumption"),
            metric_lab = c(AUClast_mean = "AUC0-last mean (mg x day/L)", AUClast_cv_within = "AUC0-last within-arm CV (%)", Cmax_mean = "Cmax mean (mg/L)")[metric])]
-  g1 <- ggplot(U, aes(y = unit)) + geom_errorbarh(aes(xmin = pi_lo, xmax = pi_hi, colour = weight_lab), height = 0.25, position = position_dodge(width = 0.5)) +
+  ULAB <- c(tdu12265_300 = "TDU12265 300 mg", tdu12265_600 = "TDU12265 600 mg", PKM12350 = "PKM12350", PKM14161 = "PKM14161", `R668-HV-1108` = "R668-HV-1108"); stopifnot(all(U$unit %in% names(ULAB)))
+  U[, unit_lab := paste0(ULAB[unit], fifelse(dev_status == "external", " (external)", ""))]   # 개발 자료 여부는 모델마다 달라 행마다 y 눈금을 따로 둔다
+  U[, unit_lab := factor(unit_lab, unique(unit_lab[order(match(unit, rev(names(ULAB))))]))]
+  g1 <- ggplot(U, aes(y = unit_lab)) + geom_errorbarh(aes(xmin = pi_lo, xmax = pi_hi, colour = weight_lab), height = 0.25, position = position_dodge(width = 0.5)) +
     geom_point(aes(x = pred_median, colour = weight_lab), position = position_dodge(width = 0.5), size = 1.8) + geom_point(aes(x = observed), shape = 4, size = 2.6, stroke = 1, colour = VIZ$ink) +
-    facet_grid(model_lab ~ metric_lab, scales = "free_x") + scale_colour_manual(values = COLS3[1:2], name = NULL) + labs(x = "Predicted median and 95% prediction interval; cross = observed", y = NULL,
-    title = "External validation against the Li 2020 healthy-volunteer studies", subtitle = "Five rule units; parallel-group studies pool both arms") + theme_dupi()
+    facet_grid(model_lab ~ metric_lab, scales = "free") + scale_colour_manual(values = COLS3[1:2], name = NULL) + labs(x = "Predicted median and 95% prediction interval; cross = observed", y = NULL,
+    title = "External validation against the Li 2020 healthy-volunteer studies",
+    subtitle = "Five rule units; parallel-group studies pool both arms; rule R4 judges external units against the 99% interval") + theme_dupi()
   save_fig(g1, "fig1_validation", 12, 6.5, U)
   # fig2: [3] OC 곡선(130명, M1, 75 kg 경계)
   OCP <- fread(file.path(SD, "oc_pass.csv"))[n_rand == NBASE & model == "M1" & boundary == "fixed75"]
-  OCP[, `:=`(sched_lab = factor(SCHL[schedule], SCHL), panel = sprintf("%s, %d mg", c(S1 = "Global", S2 = "Korean")[population], dose_mg), model_lab = MODL[pk_model])]
-  g2 <- ggplot(OCP, aes(g, pass_pct / 100, colour = sched_lab)) + geom_ribbon(aes(ymin = pass_lo / 100, ymax = pass_hi / 100, fill = sched_lab), alpha = 0.12, colour = NA) + geom_line(linewidth = 0.7) +
+  OCP[, `:=`(sched_lab = factor(SCHL[schedule], SCHL), panel = sprintf("%s, %d mg", c(S1 = "Global", S2 = "Korean")[population], dose_mg), model_lab = MODS[pk_model])]
+  g2 <- ggplot(OCP, aes(g, pass_pct / 100, colour = sched_lab, linetype = sched_lab)) + geom_ribbon(aes(ymin = pass_lo / 100, ymax = pass_hi / 100, fill = sched_lab, group = sched_lab), alpha = 0.12, colour = NA) +
+    geom_line(linewidth = 0.7) + scale_linetype_manual(values = c("solid", "solid", "22"), name = NULL) +   # 확장 일정(점선)이 확정 일정 위에 그려져 겹쳐도 둘 다 보인다
     geom_vline(xintercept = c(0.8, 1.25), linetype = 2, colour = VIZ$muted) + facet_grid(model_lab ~ panel) + scale_x_log10(breaks = c(0.8, 0.9, 1, 1.1, 1.25)) +
     scale_y_continuous(labels = scales::percent) + scale_colour_manual(values = COLS3, name = NULL) + scale_fill_manual(values = COLS3, guide = "none") +
-    labs(x = "True GMR (log scale)", y = "Probability of concluding similarity", title = "Operating characteristic curves", subtitle = "130 randomized per arm, stratified analysis, 75 kg boundary; band = Wilson 95% CI") + theme_dupi()
+    labs(x = "True GMR (log scale)", y = "Probability of concluding similarity", title = "Operating characteristic curves", subtitle = "130 randomized per arm, stratified analysis, 75 kg boundary; band = Wilson 95% CI") + theme_dupi() +
+    theme(panel.spacing.x = unit(1.4, "lines"))
   save_fig(g2, "fig2_oc_curves", 12, 6.5, OCP)
   # fig3: [4] 기전 OC(130명, M1, 확정 일정)
   MP <- fread(file.path(SD, "mech_pass.csv"))[n_rand == NBASE & model == "M1" & schedule == "B0"]
@@ -312,7 +320,7 @@ if (mode == "figures") {
   AUR[, `:=`(sched_lab = factor(SCHL[schedule], SCHL), ep_lab = c(AUCinf = "AUC0-inf", pAUC_0_14 = "pAUC 0 to 14 d", pAUC_14_28 = "pAUC 14 to 28 d", pAUC_28_56 = "pAUC 28 to 56 d")[endpoint],
              panel = paste(c(S1 = "Global", S2 = "Korean")[population], mechanism))]
   AUR[endpoint == "AUCinf_A", ep_lab := "AUC0-inf"]
-  g4 <- ggplot(AUR, aes(size_pct, auroc, colour = sched_lab)) + geom_errorbar(aes(ymin = lo, ymax = hi), width = 0.6, position = position_dodge(width = 1.6)) +
+  g4 <- ggplot(AUR, aes(size_pct, auroc, colour = sched_lab, group = sched_lab)) + geom_errorbar(aes(ymin = lo, ymax = hi), width = 0.6, position = position_dodge(width = 1.6)) +
     geom_point(aes(shape = not_interpretable %in% TRUE), position = position_dodge(width = 1.6), size = 1.6) + geom_line(position = position_dodge(width = 1.6)) +
     facet_grid(ep_lab ~ panel) + scale_shape_manual(values = c(`FALSE` = 16, `TRUE` = 1), labels = c(`FALSE` = "Interpretable", `TRUE` = "Zero share above 50%"), name = NULL) +
     scale_colour_manual(values = COLS3, name = NULL) + scale_x_continuous(breaks = c(5, 10, 15)) + coord_cartesian(ylim = c(0.4, 1)) +
@@ -328,24 +336,25 @@ if (mode == "figures") {
   Es <- E[, .(n = .N, q05 = quantile(err, 0.05), q25 = quantile(err, 0.25), q50 = median(err), q75 = quantile(err, 0.75), q95 = quantile(err, 0.95), rmse = sqrt(mean(err^2))), by = .(pk_model, population, dose_mg, schedule, endpoint)]
   Es[, `:=`(sched_lab = factor(SCHL[schedule], SCHL), panel = sprintf("%s, %d mg", c(S1 = "Global", S2 = "Korean")[population], dose_mg))]
   g5 <- ggplot(Es, aes(x = sched_lab, fill = sched_lab)) + geom_boxplot(aes(ymin = q05, lower = q25, middle = q50, upper = q75, ymax = q95), stat = "identity", width = 0.6, colour = VIZ$ink2) +
-    geom_hline(yintercept = 0, colour = VIZ$muted) + facet_grid(endpoint ~ panel, scales = "free_y") + scale_fill_manual(values = COLS3, guide = "none") +
+    geom_hline(yintercept = 0, colour = VIZ$muted) + facet_grid(endpoint ~ panel, scales = "free_y") + scale_fill_manual(values = COLS3, name = NULL) + scale_x_discrete(labels = function(x) SCHS[match(x, SCHL)]) +
     labs(x = NULL, y = "Percent error against the model truth", title = "Bias and precision of NCA parameters by sampling schedule",
-         subtitle = sprintf("%s, 20,000 subjects per panel; box = quartiles, whiskers = 5th and 95th percentiles", MODL[[PRIMARY]])) + theme_dupi() + theme(axis.text.x = element_text(angle = 20, hjust = 1))
+         subtitle = sprintf("%s, 20,000 subjects per panel; box = quartiles, whiskers = 5th and 95th percentiles", MODL[[PRIMARY]])) + theme_dupi()
   save_fig(g5, "fig5_bias_precision", 13, 8, Es)
   # fig6: [7] 검정력 대 n
   PSIM <- fread(file.path(RD, "samplesize", "power_sim.csv"))[schedule == "B0" & boundary == "fixed75" & model == "M1"]
   PAN <- fread(file.path(RD, "samplesize", "power_analytic.csv"))[schedule == "B0" & boundary == "fixed75" & model == "M1"]
-  PSIM[, panel := sprintf("%s, %s, %d mg", c(k2020 = "Model 1", k2016 = "Kovalenko 2016")[pk_model], c(S1 = "Global", S2 = "Korean")[population], dose_mg)]
-  PAN[, panel := sprintf("%s, %s, %d mg", c(k2020 = "Model 1", k2016 = "Kovalenko 2016")[pk_model], c(S1 = "Global", S2 = "Korean")[population], dose_mg)]
-  PL <- rbind(PSIM[, .(panel, n_rand, true_gmr, what = "Simulated (Wilson 95% CI)", value = power_pct, lo, hi)],
-              PAN[, .(panel, n_rand, true_gmr, what = "Analytic, model CV", value = power_model_cv_pct, lo = NA_real_, hi = NA_real_)],
-              PAN[, .(panel, n_rand, true_gmr, what = "Assurance over CV uncertainty", value = assurance_cv_pct, lo = NA_real_, hi = NA_real_)])
-  PL[, gl := sprintf("True GMR %.2f", true_gmr)]
+  PSIM[, panel := sprintf("%s, %d mg", c(S1 = "Global", S2 = "Korean")[population], dose_mg)]
+  PAN[, panel := sprintf("%s, %d mg", c(S1 = "Global", S2 = "Korean")[population], dose_mg)]
+  PL <- rbind(PSIM[, .(pk_model, panel, n_rand, true_gmr, what = "Simulated (Wilson 95% CI)", value = power_pct, lo, hi)],
+              PAN[, .(pk_model, panel, n_rand, true_gmr, what = "Analytic, model CV", value = power_model_cv_pct, lo = NA_real_, hi = NA_real_)],
+              PAN[, .(pk_model, panel, n_rand, true_gmr, what = "Assurance over CV uncertainty", value = assurance_cv_pct, lo = NA_real_, hi = NA_real_)])
+  RL <- CJ(pk_model = c("k2020", "k2016"), true_gmr = sort(unique(PL$true_gmr)), sorted = FALSE)[, gl := sprintf("%s\nTrue GMR %.2f", c(k2020 = "Model 1", k2016 = "Kovalenko 2016")[pk_model], true_gmr)]
+  PL <- merge(PL, RL, by = c("pk_model", "true_gmr")); PL[, gl := factor(gl, RL$gl)]
   g6 <- ggplot(PL, aes(n_rand, value / 100, colour = what)) + geom_errorbar(aes(ymin = lo / 100, ymax = hi / 100), width = 2, na.rm = TRUE) + geom_line() + geom_point(size = 1.2) +
     facet_grid(gl ~ panel) + scale_y_continuous(labels = scales::percent) + scale_colour_manual(values = COLS3, name = NULL) + geom_vline(xintercept = NBASE, linetype = 3, colour = VIZ$muted) +
     labs(x = "Randomized subjects per arm (10% withdrawal)", y = "Probability of concluding similarity", title = "Power and assurance against sample size",
-         subtitle = "Confirmed schedule, 75 kg boundary, stratified analysis; dotted line = 130 per arm") + theme_dupi()
-  save_fig(g6, "fig6_power_n", 14, 7, PL)
+         subtitle = "Confirmed schedule, 75 kg boundary, stratified analysis; dotted line = 130 per arm; assurance draws its CV from the Li 2020 300 mg arms at both doses") + theme_dupi()
+  save_fig(g6, "fig6_power_n", 13, 11, PL)
   # fig7: [8] forest plot(300 mg, 두 모델, S1·S2)
   WR <- fread(file.path(RD, "weight", "weight_ratio.csv"))[population %in% c("S1", "S2") & dose_mg == as.numeric(CFG$doses_mg$primary)]
   WR[, `:=`(lab = sprintf("%s P%d (%.1f kg)", c(S1 = "Global", S2 = "Korean")[population], round(100 * prob), WT), met_lab = c(AUCinf = "AUC0-inf", Cmax = "Cmax", AUClast_dense_B0 = "AUC0-last (confirmed schedule)")[metric],
@@ -431,19 +440,29 @@ if (mode == "summary") {
   is_base <- function(z) (is.na(z$population) | z$population == base$population) & (is.na(z$dose_mg) | z$dose_mg == base$dose_mg) & (is.na(z$schedule) | z$schedule == base$schedule) &
     (is.na(z$boundary) | z$boundary == base$boundary) & (is.na(z$model) | z$model == base$model)
   pd95[, base_cell := is_base(pd95)]
-  sg <- pd95[, .(k = sum(changes_oc), n = .N, in_base = any(changes_oc & base_cell)), by = .(contrast, design_a, design_b)][k > 0]
+  stopifnot(!anyNA(pd95$changes_oc))
+  sg <- pd95[, .(k = sum(changes_oc), n = .N, in_base = any(changes_oc & base_cell), d_lo = if (any(changes_oc)) min(diff_pp[changes_oc]) else NA_real_,
+                 d_hi = if (any(changes_oc)) max(diff_pp[changes_oc]) else NA_real_), by = .(contrast, design_a, design_b)][k > 0]
+  DLAB <- c(RM36_50 = "reduced schedule", ADD64_71 = "extended schedule", B0 = "confirmed schedule", M1 = "stratified analysis", M0 = "unstratified analysis",
+            median = "median boundary", fixed75 = "75 kg boundary", S2 = "Korean population", S1 = "global population", `200` = "200 mg", `300` = "300 mg")
+  DLAB_KO <- c(RM36_50 = "축소 일정", ADD64_71 = "확장 일정", B0 = "확정 일정", M1 = "층 포함 분석", M0 = "층 없는 분석", median = "중앙값 경계", fixed75 = "75 kg 경계",
+               S2 = "한국인 집단", S1 = "전체 집단", `200` = "200 mg", `300` = "300 mg")
+  stopifnot(all(c(sg$design_a, sg$design_b) %in% names(DLAB)))
+  sg[, rng := fifelse(d_lo == d_hi, sprintf("%s pp", fmt(d_lo)), sprintf("%s to %s pp", fmt(d_lo), fmt(d_hi)))]
+  sg[, rng_ko := fifelse(d_lo == d_hi, sprintf("%s%%p", fmt(d_lo)), sprintf("%s~%s%%p", fmt(d_lo), fmt(d_hi)))]
+  CLAB_KO <- c(`stratum term` = "층 항", boundary = "경계", schedule = "일정", population = "집단", dose = "용량")
   sig <- sg
-  sig_txt <- if (nrow(sg)) paste(sprintf("%s (%s vs %s): %d of %d cells%s", sg$contrast, sg$design_a, sg$design_b, sg$k, sg$n, fifelse(sg$in_base, ", including the primary scenario", "")), collapse = "; ") else "none"
-  sig_txt_ko <- if (nrow(sg)) paste(sprintf("%s(%s 대 %s): %d/%d칸%s", sg$contrast, sg$design_a, sg$design_b, sg$k, sg$n, fifelse(sg$in_base, ", 기본 시나리오 포함", "")), collapse = "; ") else "없음"
+  sig_txt <- if (nrow(sg)) paste(sprintf("%s (%s minus %s): %d of %d cells, %s%s", sg$contrast, DLAB[sg$design_a], DLAB[sg$design_b], sg$k, sg$n, sg$rng, fifelse(sg$in_base, ", including the primary scenario", "")), collapse = "; ") else "none"
+  sig_txt_ko <- if (nrow(sg)) paste(sprintf("%s(%s 빼기 %s): %d/%d칸, %s%s", CLAB_KO[sg$contrast], DLAB_KO[sg$design_a], DLAB_KO[sg$design_b], sg$k, sg$n, sg$rng_ko, fifelse(sg$in_base, ", 기본 시나리오 포함", "")), collapse = "; ") else "없음"
   side_txt <- function(z, ko = FALSE) paste(sprintf("%s %s %s", z$mechanism, if (ko) fifelse(z$side == "down", "아래쪽", "위쪽") else fifelse(z$side == "down", "lower", "upper"),
-    fifelse(z$reached, paste0(fmt(z$crossing_pct), "%"), sprintf(if (ko) "격자 안에서 도달 안 함(%s%%에서 %s%%)" else "not reached within the grid (%s%% at %s%%)", fmt(100 * z$p_at_grid_end), fmt(100 * (z$grid_end - 1), 0)))),
+    fifelse(z$reached, paste0(fmt(z$crossing_pct), "%"), sprintf(if (ko) "격자 안에서 도달 안 함(%2$s%% 차이에서 %1$s%%)" else "not reached within the grid (%s%% at %s%%)", fmt(100 * z$p_at_grid_end), fmt(100 * (z$grid_end - 1), 0)))),
     collapse = ", ")
   bc <- CRT[pk_model == PRIMARY & population == "S1" & dose_mg == base$dose_mg & schedule == "B0"]
   C <- c(sprintf("1. The primary model %s the original healthy-volunteer studies under the pre-specified rule (outcome: %s; detection probability of the combined rule at a 25%% bias %s%%).",
                  vword, RULE[pk_model == PRIMARY, outcome][1], fmt(det25, 0)),
          sprintf("2. At 130 randomized per arm (primary scenario) the simulated power at a true GMR of 0.95 is %s%% and the joint consumer risk is %s%% at 0.80 and %s%% at 1.25 (single-endpoint maxima %s%% and %s%%); the design %s the pre-specified adequacy reading.",
                  fmt(p95$pass_pct), fmt(c80$pass_pct), fmt(c125$pass_pct), fmt(max(c80$auc_only_pct, c80$cmax_only_pct)), fmt(max(c125$auc_only_pct, c125$cmax_only_pct)), if (adequate) "meets" else "does not meet"),
-         sprintf("3. Design factors that change power at a true GMR of 0.95 by at least 2 percentage points with a paired 95%% CI excluding 0 (primary model, 130 per arm; cells counted over populations, doses, schedules, boundaries and analysis models): %s.", sig_txt),
+         sprintf("3. Design factors that change power at a true GMR of 0.95 by at least 2 percentage points (pp) with a paired 95%% CI excluding 0 (primary model, 130 per arm; cells counted over populations, doses, schedules, boundaries and analysis models): %s.", sig_txt),
          sprintf("4. The conclusion probability falls to 50%% at test-arm differences of %s (primary scenario).", side_txt(bc)),
          "5. Parameter uncertainty was not propagated (no relative standard errors recorded); every result is conditional on the published point estimates.")
   stopifnot(length(C) <= 5)
