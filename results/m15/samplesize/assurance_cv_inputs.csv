@@ -1,0 +1,2 @@
+df,pooled_log_var,pooled_cv_pct,calibration,calibration_n_sets,var_logwt_source,cv_draw_raw_p05,cv_draw_calibrated_p50,cv_draw_raw_p95,n_draws,conditionality
+96,0.162892886662994,42.0607441818191,1.04383692345774,20000,0.0143791499058779,37.3180728260872,43.2376093994208,48.410369096688,10000,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).

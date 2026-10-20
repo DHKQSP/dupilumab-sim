@@ -1,0 +1,34 @@
+ID,Assumption,Value used,Basis,Impact evidence,Action before submission
+B01,Bioanalytical LLOQ of the planned study,0.078 mg/L,"Originator's assay (placeholder, `config/assay.yaml`)",Earlier LLOQ sensitivity (assumptions register B01),Set the validated assay LLOQ and regenerate
+B02,Day 1 post-dose sampling time,0.25 day,Placeholder,Affects Cmax sampling only,Set to the protocol time
+B03,Visit windows,"plus or minus 2 h to Day 1, 6 h to Day 14, 1 day thereafter",Placeholder,Simulated in all trial-level analyses,Align with the protocol
+B04,Body weight distribution of enrolled subjects (replaced for this analysis),"Global: normal 76.55 kg, SD 9.275, truncated 58.0 to 95.1 kg; Korean: normal 65.2 kg, SD 6.55, truncated 52.1 to 78.3 kg; inclusion men 60 to 90 kg, women 50 to 90 kg",Ranges relayed by the sponsor from Li 2020; shape rule of section 5,"Uniform-shape sensitivity (sections 8.1, 8.6)",Confirm ranges against the publication; supply Korean data
+B05,Randomization stratification (replaced),Two strata at 75 kg or at the enrolled median; permuted blocks of two,Request,Both boundaries simulated,Align with the protocol
+B06,Evaluable subjects (replaced),80 to 160 randomized per arm; 10% MCAR withdrawal; withdrawn subjects not evaluable for any endpoint,Request,Sample-size grid,Align with the protocol
+B07,"Km fixed, without between-subject variability",0.01 mg/L in both models,As published,Earlier sensitivity (register B07),None
+B08,No parameter uncertainty layer,Published point estimates,No RSE or covariance recorded,Not evaluated,Supply RSE or covariance
+B09,"Residual error model, down to the LLOQ","As published (proportional 15.0% and 24.2%, additive 0.03 mg/L)",As published,Not evaluated here,None
+B10,Immunogenicity,Not modelled,No anti-drug antibody (ADA) model in the published PK models,Not evaluated here,None
+B11,Automated lambda_z selection without manual review,Phoenix best-fit rules,Standard NCA practice,AUC0-last and Cmax unaffected,Pre-specify in the statistical analysis plan
+B12,Same presentation for both products; 200 mg presentation modelled as the 300 mg model,Model parameters unchanged,Study design; no presentation-specific absorption,Section 6.3 limitation,Label 200 mg results as limited
+B13,Population: healthy adults (replaced),BMI 18 to 32 criterion not applied as a filter,BMI changes no result (section 7.1),Share outside 18 to 32 reported,None
+B14,Body weight of Li 2020 arms without weight information,"Normal 78 kg (80 kg for PKM14271), SD 10 kg, bounds 50 to 100 kg (men), 40 to 90 kg (women)",Weights not recorded,Second judgement with uncertain study mean; fixed 70 and 86 kg,Supply Table S1
+B18,Primary model,Kovalenko 2020 Model 1,Section 4.1,Kovalenko 2016 repeats every main result,Confirm with the requester
+B19,Covariates,"Weight on Vc only; no EASI, albumin, race or BMI effect",Model structure,Not evaluable without Model 4,Supply the Model 4 table
+B20,Height and weight-height relation,"Global: normal 172.5 cm, SD 10.4 (atopic dermatitis summary used for healthy adults); Korean: normal 167.0 cm, SD 8.68 (Size Korea means, assumed SDs); Gaussian copula correlation 0.513",Section 7.1,BMI only; no effect on PK,None
+B21,Sex ratio and sex-common weight shape,0.5; same weight distribution for both sexes before sex-specific bounds,Repository assumption,Not evaluated,Confirm expected enrolment
+B22,Median boundary,"Fixed a priori from 200,000 draws",Section 2.3,Both boundaries simulated,None
+B23,Jitter,Uniform within each visit window,Repository rule,Simulated,Align with the protocol
+B24,True GMR in section 8.1,Concentration scaling by g; additive residual not scaled,Section 8.1,Unit test of the scaling truth,None
+B25,Representation of a product difference,One parameter multiplied in the test arm; Model 1 ka multiplier with MTT unchanged; Vm read as Vmax,Section 8.2,Four mechanisms reported,None
+B26,Variability of test and reference,Identical IIV and residual error; diagonal IIV,Published models,Not evaluated,None
+B27,Li 2020 arm sizes and TDU12265 values,"Sizes from the request; TDU12265 300 and 600 mg values from Clot 2021 Table 5, assumed equal to Li 2020 Table 2; TDU12265 600 mg n = 6",Section 2.2,Not evaluated,Confirm against the publication
+B28,Range-only weight distributions,"Normal with midpoint mean and SD of one quarter of the range, both sexes within the range",Section 5,Not evaluated,Supply Table S1
+B29,Non-Asian pooled 300 mg composition,"6, 15 and 19 subjects (inconsistent with the stored SDs; descriptive only)",`config/design_clot2021.yaml`,Excluded from the rule,Confirm composition
+B30,R668-AS-0907 schedule for 150 mg,Same as 300 mg,No dose-specific schedule recorded,Not evaluated,Confirm
+B31,LLOQ of the literature data,0.078 mg/L,`config/design_clot2021.yaml`,Not evaluated,None
+B32,Truth definitions,"Dense-sampling AUC0-last truth (section 8.2(a)); AUC0-inf to 400 or 4,000 days",Section 8,Secondary integration-only truth reported,None
+B33,Partial AUC handling,No contribution after Tlast; zeros kept; arithmetic-mean ratio statistic; offset 0.078 mg x day/L in the sensitivity,Section 8.3,Two sensitivities,None
+B34,CV source for assurance,"Li 2020 arm CVs, calibrated and transported; Cmax SD by the model ratio",Section 8.5,Raw and transported values reported,Supply study-specific variability
+B35,Observed GMR of the Li 2020 parallel studies,Log-normal conversion of arm means and SDs (descriptive),Section 6.2,Pooled t shown beside it,Supply reported GMRs
+B36,Interpretations of the request,Section 2.3,Request wording,Not applicable,Confirm with the requester
