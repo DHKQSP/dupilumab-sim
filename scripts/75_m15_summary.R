@@ -357,7 +357,7 @@ if (mode == "figures") {
     facet_grid(gl ~ panel) + scale_y_continuous(labels = scales::percent) + scale_colour_manual(values = c(VIZ$s1, VIZ$s2, VIZ$s2, VIZ$s3), name = NULL) +
     scale_linetype_manual(values = c("solid", "solid", "22", "solid"), name = NULL) + guides(colour = guide_legend(nrow = 2)) + geom_vline(xintercept = NBASE, linetype = 3, colour = VIZ$muted) +
     labs(x = "Randomized subjects per arm (10% withdrawal)", y = "Probability of concluding similarity", title = "Power and assurance against sample size",
-         subtitle = "Confirmed schedule, 75 kg boundary, stratified analysis; dotted line = 130 per arm; the registered assurance draws its CV from the Li 2020 300 mg arms at both doses") + theme_dupi()
+         subtitle = "Confirmed schedule, 75 kg boundary, stratified analysis; dotted line = 130 per arm\nThe registered assurance draws its CV from the Li 2020 300 mg arms at both doses; the post hoc assurance shifts it to the cell by the model (plan section 13.4)") + theme_dupi()
   save_fig(g6, "fig6_power_n", 13, 11, PL)
   # fig7: [8] forest plot(300 mg, 두 모델, S1·S2)
   WR <- fread(file.path(RD, "weight", "weight_ratio.csv"))[population %in% c("S1", "S2") & dose_mg == as.numeric(CFG$doses_mg$primary)]
