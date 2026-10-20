@@ -222,16 +222,18 @@ for (b0 in starts) {
   if (file.exists(f)) { cat("skip", basename(f), "\n"); next }
   t0 <- Sys.time()
   res <- parallel::mclapply(js, function(j) tryCatch(fun(j), error = function(e) e), mc.cores = cores, mc.preschedule = TRUE)
-  bad <- vapply(res, function(x) inherits(x, "error") || inherits(x, "try-error"), TRUE)
-  if (any(bad)) stop("시험 실패: ", paste(js[bad], collapse = ","), " ", conditionMessage(res[bad][[1]]))
+  bad <- vapply(res, function(x) is.null(x) || inherits(x, "error") || inherits(x, "try-error"), TRUE)       # NULL = 강제 종료된 작업자(결과 없음)
+  if (length(res) != length(js) || any(bad)) stop("시험 실패 또는 작업자 결과 없음: ", paste(js[bad], collapse = ","), " ",
+                                                  if (is.null(res[bad][[1]])) "worker died" else conditionMessage(res[bad][[1]]))
   tmp <- file.path(out_dir, paste0("tmp_", basename(f)))
   if (mode %in% c("mech", "mechsupp")) {
     cnt <- rbindlist(lapply(res, `[[`, "cnt"))[, .(n_trials = .N, n_pass = sum(pass), n_pass_auc = sum(pass_auc), n_pass_cmax = sum(pass_cmax)), by = .(schedule, vi, n_rand, model)]
     fc <- file.path(out_dir, paste0("cnt_", basename(f))); fct <- file.path(out_dir, paste0("tmp_cnt_", basename(f))); fwrite(cnt, fct)
     base <- rbindlist(lapply(res, `[[`, "base"), fill = TRUE)
     for (cc in grep("^(est_|mean_)", names(base), value = TRUE)) set(base, j = cc, value = signif(base[[cc]], 7))
+    stopifnot(setequal(unique(base$trial), js), all(cnt$n_trials == length(js)))
     fwrite(base, tmp); file.rename(fct, fc)
-  } else fwrite(rbindlist(res), tmp)
+  } else { out <- rbindlist(res); stopifnot(setequal(unique(out$trial), js)); fwrite(out, tmp) }
   file.rename(tmp, f)
   msg <- sprintf("%s %s %s %g trials %d-%d written in %s", mode, model, popv, dose, min(js), max(js), format(Sys.time() - t0)); cat(msg, "\n"); append_run_log(lf, msg)
 }

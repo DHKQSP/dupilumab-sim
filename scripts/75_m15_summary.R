@@ -155,7 +155,8 @@ if (mode == "tables") {
         CRB[[key]] <- bt
         # 미도달 재표집은 격자 끝 너머로 검열(버리지 않음): 아래쪽은 0, 위쪽은 Inf로 두고 백분위수를 구한다
         btc <- ifelse(is.finite(bt), bt, if (side == "down") 0 else Inf); qb <- quantile(btc, c(0.025, 0.975), names = FALSE, type = 7)
-        beyond <- function(q) (side == "down" && q == 0) || (side == "up" && is.infinite(q))
+        nr_ <- sum(!is.finite(bt)); beyond_outer <- nr_ >= 0.025 * length(bt)       # 바깥쪽 한계: 미도달 재표집이 2.5% 이상이면 격자 끝 너머
+        beyond <- function(q) beyond_outer && ((side == "down" && identical(q, qb[1])) || (side == "up" && identical(q, qb[2])))
         # 유도 참 GMR(교차점에서 log 배율 선형 보간)
         tg <- TG[pk_model == lb$pk_model & population == lb$population & dose_mg == lb$dose_mg & (mechanism == mech | mechanism == "identity") &
                  metric %in% c("AUCinf", "Cmax", paste0("AUClast_dense_", sn))][(if (side == "down") multiplier <= 1 else multiplier >= 1)]
@@ -174,10 +175,14 @@ if (mode == "tables") {
   # 교차 차이(같은 재표집 색인): S2 - S1, 200 - 300, 일정 - B0 (%p 단위 차이; 어느 쪽이든 미도달인 재표집은 제외, 비율 보고)
   CRT[, ckey := paste(pk_model, population, dose_mg, schedule, mechanism, side, sep = "|")]
   cdiff <- function(key_a, key_b, ct_lab) { a <- CRB[[key_a]]; b <- CRB[[key_b]]; if (is.null(a) || is.null(b)) return(NULL)
-    d <- 100 * (a - b); ea <- CRT$crossing_multiplier[match(key_a, CRT$ckey)]; eb <- CRT$crossing_multiplier[match(key_b, CRT$ckey)]
-    na_ <- 100 * mean(!is.finite(d)); ok_ <- is.finite(ea) && is.finite(eb) && na_ <= 2.5    # 미도달 재표집이 2.5% 넘으면 구간을 정할 수 없다
-    data.table(contrast = ct_lab, a = key_a, b = key_b, diff_pp = 100 * (ea - eb), lo_pp = if (ok_) quantile(d, 0.025, na.rm = TRUE, names = FALSE) else NA_real_,
-               hi_pp = if (ok_) quantile(d, 0.975, na.rm = TRUE, names = FALSE) else NA_real_, boot_na_pct = na_) }
+    sd_ <- if (grepl("\\|down$", key_a)) 0 else Inf                                         # 미도달 = 격자 끝 너머(아래쪽 0, 위쪽 Inf)로 검열
+    ac <- ifelse(is.finite(a), a, sd_); bc_ <- ifelse(is.finite(b), b, sd_)
+    d <- 100 * (ac - bc_); d[!is.finite(a) & !is.finite(b)] <- NA_real_                       # 둘 다 미도달이면 차이를 정할 수 없다
+    ea <- CRT$crossing_multiplier[match(key_a, CRT$ckey)]; eb <- CRT$crossing_multiplier[match(key_b, CRT$ckey)]
+    na_ <- 100 * mean(is.na(d)); q_ <- if (na_ <= 2.5) quantile(d, c(0.025, 0.975), names = FALSE, na.rm = TRUE) else c(NA_real_, NA_real_)
+    q_[!is.finite(q_)] <- NA_real_                                                            # 무한대에 놓인 한계 = 정할 수 없음
+    data.table(contrast = ct_lab, a = key_a, b = key_b, diff_pp = 100 * (ea - eb), lo_pp = if (is.finite(ea) && is.finite(eb)) q_[1] else NA_real_,
+               hi_pp = if (is.finite(ea) && is.finite(eb)) q_[2] else NA_real_, boot_not_reached_pct = 100 * mean(!is.finite(a) | !is.finite(b)), boot_both_not_reached_pct = na_) }
   CD <- rbindlist(lapply(seq_len(nrow(CRT)), function(i) { r <- CRT[i]; k <- function(pop = r$population, dose = r$dose_mg, sn = r$schedule) paste(r$pk_model, pop, dose, sn, r$mechanism, r$side, sep = "|")
     rbind(if (r$population == "S2") cdiff(k(), k(pop = "S1"), "population S2 - S1"), if (r$dose_mg == 200) cdiff(k(), k(dose = 300), "dose 200 - 300"),
           if (r$schedule != "B0") cdiff(k(), k(sn = "B0"), sprintf("schedule %s - B0", r$schedule))) }))
@@ -231,7 +236,7 @@ if (mode == "tables") {
     list(rows = rbindlist(rows, fill = TRUE)[, `:=`(pk_model = au_jobs$pk_model[jj], population = au_jobs$population[jj], dose_mg = au_jobs$dose_mg[jj])],
          zs = ZS[, `:=`(pk_model = au_jobs$pk_model[jj], population = au_jobs$population[jj], dose_mg = au_jobs$dose_mg[jj])], draws = draws)
   }, mc.cores = cores, mc.preschedule = FALSE)
-  bad <- vapply(AU, function(x) inherits(x, "try-error"), TRUE); if (any(bad)) stop("AUROC 실패: ", AU[bad][[1]])
+  bad <- vapply(AU, function(x) is.null(x) || inherits(x, "try-error"), TRUE); if (length(AU) != nrow(au_jobs) || any(bad)) stop("AUROC 실패 또는 작업자 결과 없음: ", which(bad))
   AUR <- rbindlist(lapply(AU, `[[`, "rows"), fill = TRUE); ZS <- rbindlist(lapply(AU, `[[`, "zs"))
   ZS[, not_interpretable := zero_share_R > 0.5]; fwrite(ZS, file.path(SD, "pauc_zero_share.csv"))
   AUR[, endpoint := sub("_(meanratio|logc)$", "", statistic)]
@@ -242,9 +247,13 @@ if (mode == "tables") {
   DR <- list(); names(AU) <- paste(au_jobs$pk_model, au_jobs$population, au_jobs$dose_mg, sep = "|")
   est_of <- function(cb, key) { p <- strsplit(cb, "\\|")[[1]]; k <- strsplit(key, "\\|")[[1]]
     AUR[pk_model == p[1] & population == p[2] & dose_mg == as.numeric(p[3]) & schedule == k[1] & statistic == k[2] & mechanism == k[3] & size_pct == as.numeric(k[4]) & direction == k[5], auroc] }
-  adiff <- function(ca, ka, cbb, kb, contrast) { a <- AU[[ca]]$draws[[ka]]; b <- AU[[cbb]]$draws[[kb]]; if (is.null(a) || is.null(b)) return(NULL); d <- a - b
-    data.table(contrast = contrast, a = paste(ca, ka, sep = "|"), b = paste(cbb, kb, sep = "|"), diff = est_of(ca, ka) - est_of(cbb, kb),
-               lo = quantile(d, 0.025, names = FALSE, na.rm = TRUE), hi = quantile(d, 0.975, names = FALSE, na.rm = TRUE)) }
+  ni_of <- function(cb, key) { p <- strsplit(cb, "\\|")[[1]]; k <- strsplit(key, "\\|")[[1]]
+    z <- AUR[pk_model == p[1] & population == p[2] & dose_mg == as.numeric(p[3]) & schedule == k[1] & statistic == k[2] & mechanism == k[3] & size_pct == as.numeric(k[4]) & direction == k[5], not_interpretable]
+    isTRUE(z[1]) }
+  adiff <- function(ca, ka, cbb, kb, ct_lab) { a <- AU[[ca]]$draws[[ka]]; b <- AU[[cbb]]$draws[[kb]]; if (is.null(a) || is.null(b)) return(NULL); d <- a - b
+    data.table(contrast = ct_lab, a = paste(ca, ka, sep = "|"), b = paste(cbb, kb, sep = "|"), diff = est_of(ca, ka) - est_of(cbb, kb),
+               lo = quantile(d, 0.025, names = FALSE, na.rm = TRUE), hi = quantile(d, 0.975, names = FALSE, na.rm = TRUE),
+               not_interpretable_a = ni_of(ca, ka), not_interpretable_b = ni_of(cbb, kb))[, not_interpretable := not_interpretable_a | not_interpretable_b] }
   for (cb in names(AU)) for (key in names(AU[[cb]]$draws)) {
     k <- strsplit(key, "\\|")[[1]]; if (k[5] != "pooled") next; p <- strsplit(cb, "\\|")[[1]]
     if (k[1] != "B0") DR[[length(DR) + 1]] <- adiff(cb, key, cb, paste(c("B0", k[-1]), collapse = "|"), sprintf("schedule %s - B0", k[1]))
@@ -289,11 +298,11 @@ if (mode == "figures") {
   save_fig(g2, "fig2_oc_curves", 12, 6.5, OCP)
   # fig3: [4] 기전 OC(130명, M1, 확정 일정)
   MP <- fread(file.path(SD, "mech_pass.csv"))[n_rand == NBASE & model == "M1" & schedule == "B0"]
-  idn <- MP[mechanism == "identity"]; MPm <- rbind(MP[mechanism != "identity"], rbindlist(lapply(c("F", "ka", "ke", "Vmax"), function(m) copy(idn)[, mechanism := m])))
+  idn <- MP[mechanism == "identity" & set == "mech"]; MPm <- rbind(MP[mechanism != "identity"], rbindlist(lapply(c("F", "ka", "ke", "Vmax"), function(m) copy(idn)[, mechanism := m])))
   MPm[, `:=`(diff_pct = 100 * (multiplier - 1), dose_lab = paste(dose_mg, "mg"), panel = sprintf("%s, %s", c(S1 = "Global", S2 = "Korean")[population], c(k2020 = "Model 1", k2016 = "Kovalenko 2016")[pk_model]))]
-  g3 <- ggplot(MPm[order(multiplier)], aes(diff_pct, pass_pct / 100, colour = dose_lab, linetype = set)) + geom_line(linewidth = 0.6) + geom_point(size = 1) +
+  g3 <- ggplot(MPm[order(multiplier)], aes(diff_pct, pass_pct / 100, colour = dose_lab)) + geom_line(aes(group = interaction(dose_lab, panel, mechanism)), linewidth = 0.6) + geom_point(aes(shape = set), size = 1.4) +
     geom_hline(yintercept = 0.5, linetype = 3, colour = VIZ$muted) + facet_grid(panel ~ mechanism) + scale_y_continuous(labels = scales::percent) +
-    scale_colour_manual(values = COLS3[1:2], name = NULL) + scale_linetype_manual(values = c(mech = 1, mechsupp = 2), labels = c(mech = "Main range", mechsupp = "Supplementary"), name = NULL) +
+    scale_colour_manual(values = COLS3[1:2], name = NULL) + scale_shape_manual(values = c(mech = 16, mechsupp = 1), labels = c(mech = "Main range", mechsupp = "Supplementary"), name = NULL) +
     labs(x = "Test-arm parameter difference (%)", y = "Probability of concluding similarity", title = "Mechanism-specific operating characteristics",
          subtitle = "Confirmed schedule, 130 randomized per arm, stratified analysis; dotted line = 50%") + theme_dupi()
   save_fig(g3, "fig3_mechanism_oc", 12, 8, MPm)
@@ -354,7 +363,7 @@ if (mode == "figures") {
 if (mode == "summary") {
   lf <- start_run_log("m15_summary", master_seed = MS, run_mode = "final")
   RULE <- fread(file.path(RD, "validation", "validation_rule.csv"))
-  OCP <- fread(file.path(SD, "oc_pass.csv")); CR <- fread(file.path(SD, "oc_consumer_risk.csv")); PD <- fread(file.path(SD, "oc_paired_diff.csv"))
+  OCP <- fread(file.path(SD, "oc_pass.csv")); CR <- fread(file.path(SD, "oc_consumer_risk.csv")); PD <- fread(file.path(SD, "oc_paired_diff.csv"), na.strings = c("", "NA"))
   CRT <- fread(file.path(SD, "mech_crossing.csv")); AUR <- fread(file.path(SD, "auroc.csv"))
   SY <- fread(file.path(RD, "samplesize", "syneos_comparison.csv")); PAN <- fread(file.path(RD, "samplesize", "power_analytic.csv"))
   WR <- fread(file.path(RD, "weight", "weight_ratio.csv"))
@@ -372,7 +381,8 @@ if (mode == "summary") {
   }
   pdc <- function(pm, ct_, a_, gg = 0.95) { z <- PD[PD$pk_model == pm & PD$contrast == ct_ & PD$design_a == a_ & abs(PD$g - gg) < 1e-9]
     for (nm in c("population", "dose_mg", "schedule", "boundary", "model")) if (nm %in% names(z) && !is.na(match(nm, names(base)))) { v <- base[[nm]]; if (!all(is.na(z[[nm]]))) z <- z[is.na(z[[nm]]) | z[[nm]] == v] }
-    if (nrow(z) != 1) return("-"); sprintf("%s pp (%s to %s)", fmt(z$diff_pp), fmt(z$lo_pp), fmt(z$hi_pp)) }
+    if (nrow(z) != 1) { if (pm == PRIMARY) stop(sprintf("요약 표 %s/%s: 기본 시나리오 칸 %d개", ct_, a_, nrow(z))); return("-") }
+    sprintf("%s pp (%s to %s)", fmt(z$diff_pp), fmt(z$lo_pp), fmt(z$hi_pp)) }
   for (ct in list(c("stratum term", "M1", "Effect of the stratum term (stratified minus unstratified)"), c("boundary", "median", "Effect of the median boundary (median minus 75 kg)"),
                   c("population", "S2", "Effect of the population (Korean minus global)"), c("dose", "200", "Effect of the dose (200 minus 300 mg)"),
                   c("schedule", "RM36_50", "Effect of the reduced schedule (minus confirmed)"), c("schedule", "ADD64_71", "Effect of the extended schedule (minus confirmed)")))
@@ -399,6 +409,8 @@ if (mode == "summary") {
   wr <- function(pm, pr) { z <- WR[pk_model == pm & population == "S1" & dose_mg == base$dose_mg & abs(prob - pr) < 1e-9]
     paste(sprintf("%s %s (paired 90%%: %s to %s)", z$metric, fmt(z$typical_ratio, 3), fmt(z$paired_q05, 3), fmt(z$paired_q95, 3)), collapse = "; ") }
   for (pr in c(0.05, 0.95)) addr(sprintf("Weight effect at the %dth percentile (global population), ratio to 75 kg", round(100 * pr)), wr("k2020", pr), wr("k2016", pr), "results/m15/weight/weight_ratio.csv")
+  if (RULE[pk_model == PRIMARY & wmode == "primary", failure][1]) addr("Conditionality", "All results conditional on a primary model that did not pass the pre-specified external check (plan section 6.2)", "",
+                                                                         "results/m15/validation/validation_rule.csv")
   TAB <- rbindlist(rows); fwrite(TAB, file.path(SD, "m15_summary_table.csv"))
   md <- c("# Results summary table (model analysis plan 2026-10-20)", "",
           "Primary scenario: global healthy-volunteer population, 300 mg, confirmed schedule, 75 kg boundary, 130 randomized per arm, stratified analysis. Every value is read from the file in the last column.", "",
@@ -413,16 +425,25 @@ if (mode == "summary") {
   rv <- RULE[pk_model == PRIMARY & wmode == "primary" & rule == "any"]
   det25 <- min(rv$detect_x0.75_pct, rv$detect_x1.25_pct)
   vword <- if (rv$failure) "did not pass" else if (det25 >= 50) "reproduced" else "was not contradicted by"
-  sig <- PD[pk_model == PRIMARY & abs(g - 0.95) < 1e-9 & changes_oc == TRUE]
+  # 결론 3: 설계 요인별로 기준을 충족한 칸 수(주 모델, 참 GMR 0.95, 130명)와 기본 시나리오 칸의 충족 여부
+  pd95 <- PD[pk_model == PRIMARY & abs(g - 0.95) < 1e-9]
+  is_base <- function(z) (is.na(z$population) | z$population == base$population) & (is.na(z$dose_mg) | z$dose_mg == base$dose_mg) & (is.na(z$schedule) | z$schedule == base$schedule) &
+    (is.na(z$boundary) | z$boundary == base$boundary) & (is.na(z$model) | z$model == base$model)
+  pd95[, base_cell := is_base(pd95)]
+  sg <- pd95[, .(k = sum(changes_oc), n = .N, in_base = any(changes_oc & base_cell)), by = .(contrast, design_a, design_b)][k > 0]
+  sig <- sg
+  sig_txt <- if (nrow(sg)) paste(sprintf("%s (%s vs %s): %d of %d cells%s", sg$contrast, sg$design_a, sg$design_b, sg$k, sg$n, fifelse(sg$in_base, ", including the primary scenario", "")), collapse = "; ") else "none"
+  sig_txt_ko <- if (nrow(sg)) paste(sprintf("%s(%s 대 %s): %d/%d칸%s", sg$contrast, sg$design_a, sg$design_b, sg$k, sg$n, fifelse(sg$in_base, ", 기본 시나리오 포함", "")), collapse = "; ") else "없음"
+  side_txt <- function(z, ko = FALSE) paste(sprintf("%s %s %s", z$mechanism, if (ko) fifelse(z$side == "down", "아래쪽", "위쪽") else fifelse(z$side == "down", "lower", "upper"),
+    fifelse(z$reached, paste0(fmt(z$crossing_pct), "%"), sprintf(if (ko) "격자 안에서 도달 안 함(%s%%에서 %s%%)" else "not reached within the grid (%s%% at %s%%)", fmt(100 * z$p_at_grid_end), fmt(100 * (z$grid_end - 1), 0)))),
+    collapse = ", ")
   bc <- CRT[pk_model == PRIMARY & population == "S1" & dose_mg == base$dose_mg & schedule == "B0"]
   C <- c(sprintf("1. The primary model %s the original healthy-volunteer studies under the pre-specified rule (outcome: %s; detection probability of the combined rule at a 25%% bias %s%%).",
                  vword, RULE[pk_model == PRIMARY, outcome][1], fmt(det25, 0)),
          sprintf("2. At 130 randomized per arm (primary scenario) the simulated power at a true GMR of 0.95 is %s%% and the joint consumer risk is %s%% at 0.80 and %s%% at 1.25 (single-endpoint maxima %s%% and %s%%); the design %s the pre-specified adequacy reading.",
                  fmt(p95$pass_pct), fmt(c80$pass_pct), fmt(c125$pass_pct), fmt(max(c80$auc_only_pct, c80$cmax_only_pct)), fmt(max(c125$auc_only_pct, c125$cmax_only_pct)), if (adequate) "meets" else "does not meet"),
-         sprintf("3. Design factors that change power at a true GMR of 0.95 by at least 2 percentage points with a paired 95%% CI excluding 0 (primary model): %s.",
-                 if (nrow(sig)) paste(unique(sprintf("%s (%s vs %s)", sig$contrast, sig$design_a, sig$design_b)), collapse = "; ") else "none"),
-         sprintf("4. The conclusion probability falls to 50%% at test-arm differences of %s (primary scenario, lower and upper crossings).",
-                 paste(sprintf("%s %s", bc$mechanism, fifelse(bc$reached, paste0(fmt(bc$crossing_pct), "%"), "not reached")), collapse = ", ")),
+         sprintf("3. Design factors that change power at a true GMR of 0.95 by at least 2 percentage points with a paired 95%% CI excluding 0 (primary model, 130 per arm; cells counted over populations, doses, schedules, boundaries and analysis models): %s.", sig_txt),
+         sprintf("4. The conclusion probability falls to 50%% at test-arm differences of %s (primary scenario).", side_txt(bc)),
          "5. Parameter uncertainty was not propagated (no relative standard errors recorded); every result is conditional on the published point estimates.")
   stopifnot(length(C) <= 5)
   writeLines(c("# Key conclusions (generated from the result files)", "", if (rv$failure) c("All results are conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).", ""), C),
@@ -433,8 +454,8 @@ if (mode == "summary") {
          sprintf("1. 외부 검증: 주 모델 결과 범주 '%s', 결합 규칙의 25%% 편향 검출 확률 %s%%. 민감도 모델 결과 범주 '%s'.", RULE[pk_model == PRIMARY, outcome][1], fmt(det25, 0), RULE[pk_model != PRIMARY, outcome][1]),
          sprintf("2. 기본 시나리오(S1, 300 mg, 확정 일정, 75 kg 경계, 군당 130명, 층 포함 분석): 참 GMR 0.95 검정력 %s%%, 결합 소비자 위험 0.80에서 %s%%, 1.25에서 %s%%(단일 평가변수 최대 %s%%, %s%%) → 사전 해석 기준 %s.",
                  fmt(p95$pass_pct), fmt(c80$pass_pct), fmt(c125$pass_pct), fmt(max(c80$auc_only_pct, c80$cmax_only_pct)), fmt(max(c125$auc_only_pct, c125$cmax_only_pct)), if (adequate) "충족" else "미충족"),
-         sprintf("3. 참 GMR 0.95 검정력을 2%%p 이상 바꾸고 짝 95%% 구간이 0을 포함하지 않는 설계 요인(주 모델): %s.", if (nrow(sig)) paste(unique(sprintf("%s(%s 대 %s)", sig$contrast, sig$design_a, sig$design_b)), collapse = "; ") else "없음"),
-         sprintf("4. 결론 확률 50%% 교차(기본 시나리오, 아래쪽·위쪽): %s.", paste(sprintf("%s %s", bc$mechanism, fifelse(bc$reached, paste0(fmt(bc$crossing_pct), "%"), "도달 안 함")), collapse = ", ")),
+         sprintf("3. 참 GMR 0.95 검정력을 2%%p 이상 바꾸고 짝 95%% 구간이 0을 포함하지 않는 설계 요인(주 모델, 군당 130명; 집단·용량·일정·경계·분석 모형 칸 수): %s.", sig_txt_ko),
+         sprintf("4. 결론 확률 50%% 교차(기본 시나리오): %s.", side_txt(bc, TRUE)),
          "5. 파라미터 불확실성은 RSE가 없어 전파하지 않았다. 모든 결과는 공개 점추정값 조건부다.", "",
          "요약 표: results/m15/summary/m15_summary_table.md(영문). 그림: results/m15/figures/.")
   writeLines(K, file.path(SD, "m15_summary_ko.md"))

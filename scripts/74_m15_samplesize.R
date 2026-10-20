@@ -66,7 +66,8 @@ VS <- with_seed(derive_seed(MS, "assurance_source_weight"), {
     w[male] <- m15_q_weight(u[male], list(dist = "truncnorm", mean = m0, sd = 10, lo = -Inf, hi = Inf), BMv[1], BMv[2])
     w[!male] <- m15_q_weight(u[!male], list(dist = "truncnorm", mean = m0, sd = 10, lo = -Inf, hi = Inf), BFv[1], BFv[2])
     var(log(w)) }, 1)) })
-AN <- rbindlist(parallel::mclapply(seq_len(nrow(cells)), function(i) {
+n_needed <- function(cv, g, inp, am, rule, wm, target) { for (ne in 20:600) if (pw(ne, cv, g, inp, am, rule, wm) >= target / 100) return(ne); NA_integer_ }
+ANL <- parallel::mclapply(seq_len(nrow(cells)), function(i) {
   c_ <- cells[i]; inp <- list(sd_cmax = c_$sd_cmax, ratio_sd_cmax_auc = c_$ratio_sd_cmax_auc, rho_total = c_$rho_total, beta_auc = c_$beta_auc, beta_cmax = c_$beta_cmax)
   wm <- c_[, .(p_stratum2, mean_lwt, var_between, var_within, var_total)]
   s2t <- draws - c_$beta_auc^2 * (VS - c_$var_total)                  # 등록 집단으로 옮긴 로그 분산
@@ -77,10 +78,14 @@ AN <- rbindlist(parallel::mclapply(seq_len(nrow(cells)), function(i) {
     curve <- vapply(CVG, function(cv) pw(ne, cv, g, inp, am, "ratio", wm), 1)
     asr <- mean(approx(CVG, curve, xout = pmin(pmax(cv_draw, min(CVG)), max(CVG)))$y)
     data.table(n_rand = nr, n_eval = ne, true_gmr = g, model = am, power_model_cv_pct = 100 * pm, assurance_cv_pct = 100 * asr,
+               n_eval_85 = n_needed(c_$cv_auc_pct, g, inp, am, "fixed", wm, 85), n_eval_90 = n_needed(c_$cv_auc_pct, g, inp, am, "fixed", wm, 90),
                power_cv43_pct = 100 * pw(ne, as.numeric(SSC$syneos$auclast_cv_pct), g, inp, am, "ratio", wm), share_draws_clamped = clamp,
                cv_draw_trial_p50 = median(cv_draw))
   }))))))[, `:=`(pk_model = c_$pk_model, population = c_$population, dose_mg = c_$dose_mg, schedule = c_$schedule, boundary = c_$boundary, cv_model_pct = c_$cv_auc_pct)]
-}, mc.cores = cores, mc.preschedule = FALSE))
+}, mc.cores = cores, mc.preschedule = FALSE)
+bad <- vapply(ANL, function(x) is.null(x) || inherits(x, "try-error"), TRUE); if (length(ANL) != nrow(cells) || any(bad)) stop("분석식 검정력 실패 또는 작업자 결과 없음: ", paste(which(bad), collapse = ","))
+AN <- rbindlist(ANL); AN[, `:=`(n_rand_85 = ceiling(n_eval_85 / EVAL), n_rand_90 = ceiling(n_eval_90 / EVAL))]   # 필요 표본 수는 모델 CV(칸마다, n과 무관)
+stopifnot(uniqueN(AN[, .(pk_model, population, dose_mg, schedule, boundary)]) == nrow(cells))
 setcolorder(AN, c("pk_model", "population", "dose_mg", "schedule", "boundary", "model", "n_rand", "n_eval", "true_gmr"))
 fwrite(AN, file.path(od, "power_analytic.csv"))
 fwrite(data.table(df = DF, pooled_log_var = S2, pooled_cv_pct = 100 * sqrt(exp(S2) - 1), calibration = CAL, calibration_n_sets = CAL_N, var_logwt_source = VS,
@@ -91,7 +96,6 @@ fwrite(data.table(df = DF, pooled_log_var = S2, pooled_cv_pct = 100 * sqrt(exp(S
 # [1]에서 재현된 CV: 관측 합동 CV(Li 2020 6군)와 같은 군의 모델 예측 CV(70 반복 중앙값을 같은 자유도로 합동)
 VR <- fread(proj_path(CFG$output_dir, "validation", "validation_reps.csv.gz"))[wmode == "primary" & arm %in% LI$arm]
 REPCV <- VR[, .(cv_med = median(AUClast_cv)), by = .(pk_model, arm)][LI, on = "arm"][, .(cv_model_li_pct = 100 * sqrt(exp(sum((n - 1) * log(1 + (cv_med / 100)^2)) / sum(n - 1)) - 1)), by = pk_model]
-n_needed <- function(cv, g, inp, am, rule, wm, target) { for (ne in 20:600) if (pw(ne, cv, g, inp, am, rule, wm) >= target / 100) return(ne); NA_integer_ }
 prim <- cells[population == "S1" & dose_mg == as.numeric(CFG$doses_mg$primary) & schedule == "B0" & boundary == "fixed75"]
 SY <- rbindlist(lapply(seq_len(nrow(prim)), function(i) {
   c_ <- prim[i]; inp <- list(sd_cmax = c_$sd_cmax, ratio_sd_cmax_auc = c_$ratio_sd_cmax_auc, rho_total = c_$rho_total, beta_auc = c_$beta_auc, beta_cmax = c_$beta_cmax)

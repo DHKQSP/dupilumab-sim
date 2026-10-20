@@ -83,7 +83,7 @@ if (mode == "truth") {
   }
   t0 <- Sys.time()
   res <- parallel::mclapply(seq_len(nrow(jobs)), one, mc.cores = cores, mc.preschedule = FALSE)
-  bad <- vapply(res, function(x) inherits(x, "try-error"), TRUE); if (any(bad)) stop("참값 실패: ", res[bad][[1]])
+  bad <- vapply(res, function(x) is.null(x) || inherits(x, "try-error"), TRUE); if (length(res) != nrow(jobs) || any(bad)) stop("참값 실패 또는 작업자 결과 없음: ", paste(which(bad), collapse = ","))
   G <- rbindlist(lapply(res, `[[`, "gmr")); R <- rbindlist(lapply(res, `[[`, "ref")); TL <- rbindlist(lapply(res, `[[`, "tl"))
   for (d in list(G, R, TL)) setcolorder(d, c("pk_model", "population", "dose_mg"))
   stopifnot(all(abs(G[mechanism == "identity", gmr] - 1) < 1e-12))
@@ -123,7 +123,7 @@ if (mode == "weight") {
   }
   t0 <- Sys.time()
   res <- parallel::mclapply(seq_len(nrow(jobs)), one, mc.cores = min(cores, nrow(jobs)), mc.preschedule = FALSE)
-  bad <- vapply(res, function(x) inherits(x, "try-error"), TRUE); if (any(bad)) stop("체중 효과 실패: ", res[bad][[1]])
+  bad <- vapply(res, function(x) is.null(x) || inherits(x, "try-error"), TRUE); if (length(res) != nrow(jobs) || any(bad)) stop("체중 효과 실패 또는 작업자 결과 없음: ", paste(which(bad), collapse = ","))
   RT <- rbindlist(lapply(res, `[[`, "ratio")); SC <- rbindlist(lapply(res, `[[`, "sens"))
   map <- rbind(data.table(population = "reference", prob = NA_real_, WT = REFKG), Q)
   RTm <- merge(map, RT, by = "WT", allow.cartesian = TRUE); SCm <- merge(map, SC, by = "WT", allow.cartesian = TRUE)

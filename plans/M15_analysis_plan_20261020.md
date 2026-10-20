@@ -516,6 +516,18 @@ Any change after registration is recorded in the decision log with the reason an
 
 1. Seed lookup error in the trial script (found by the registered pilot check). In `scripts/73_m15_trials.R`, the per-study seed was looked up in a data.table whose study-index column had the same name as the function argument, so every simulated study used the same seed and the 500 pilot studies were identical. The analytic cross-check of section 6.4 failed (simulated power 100% against an analytic 94% at a true GMR of 0.95), and the full run did not start. The lookup was replaced by a matrix lookup with a unit test, a static check for this pattern was added to the test suite, and the defective pilot outputs were deleted (they remain in the git history) and the pilot was rerun from the start. No design element, threshold or seed rule was changed. The same review found an argument and column name clash in a filter of the summary script, which had not yet produced any output; it was fixed before use.
 
+2. Pre-run code audit. A multi-agent code audit before the full run (independent recomputation of one OC study and one mechanism study: no mismatch) led to changes in output handling only:
+   - the trial script now stops when a parallel worker returns no result and checks that every batch file holds exactly its studies. The change was made by atomic file replacement after the first two full-run stages had started; computed values are unchanged, and the summary script checks every cell for missing or duplicated studies;
+   - the summary script censors bootstrap resamples that do not reach the 50% crossing beyond the grid end instead of dropping them;
+   - it matches bootstrap indices to study numbers;
+   - it reads empty fields as missing;
+   - it reports the test-arm zero share and the interpretability flag on AUROC differences;
+   - it labels the summary table CSV as conditional;
+   - it reports the required sample size for every cell.
+3. Run order. The full run follows the order in `scripts/run_m15.sh` (Model 1 operating characteristic and mechanism runs, the supplementary runs, Kovalenko 2016 runs at 300 mg, the consumer-risk extension, the weight-shape sensitivity, Kovalenko 2016 mechanism runs at 200 mg), which differs from the order listed in the configuration file. Results do not depend on the order, because every study has its own seeds.
+4. Post-run correction. The Wilson 95% CI of the lambda_z success rate among subjects with a computable lambda_z (section 8.4) was missing from the sampling-evaluation table; it was added from the stored subject-level results without re-simulation.
+5. Figures. Korean-labelled companion figures are not produced; the Korean summary text is the internal companion.
+
 ## 14. Software and quality control
 
 Software: R 4.3.3; rxode2 5.1.7; data.table 1.14.10; ggplot2 3.4.4 and patchwork 1.2.0 (figures); the project NCA engine; PKNCA 0.12.1 (verification of the partial AUC only). No new package is added; AUROC and the Tango interval are computed in base R.

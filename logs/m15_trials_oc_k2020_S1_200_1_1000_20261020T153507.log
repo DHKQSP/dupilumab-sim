@@ -78,3 +78,24 @@ session_info:
   [29] rxode2ll_2.0.18    lotri_1.0.5        lifecycle_1.0.4    dparser_1.3.1-13  
   [33] vctrs_0.6.5        glue_1.7.0         rxode2_5.1.7       PreciseSums_0.7   
   [37] fansi_1.0.5        colorspace_2.1-0   tools_4.3.3        pkgconfig_2.0.3   
+[15:35:39] oc k2020 S1 200 trials 1-50 written in 32.34186 secs
+[15:36:13] oc k2020 S1 200 trials 51-100 written in 33.81296 secs
+[15:36:45] oc k2020 S1 200 trials 101-150 written in 32.02024 secs
+[15:37:15] oc k2020 S1 200 trials 151-200 written in 29.55945 secs
+[15:37:44] oc k2020 S1 200 trials 201-250 written in 29.29007 secs
+[15:38:16] oc k2020 S1 200 trials 251-300 written in 31.67052 secs
+[15:38:45] oc k2020 S1 200 trials 301-350 written in 29.67967 secs
+[15:39:16] oc k2020 S1 200 trials 351-400 written in 30.70743 secs
+[15:39:44] oc k2020 S1 200 trials 401-450 written in 28.22369 secs
+[15:40:15] oc k2020 S1 200 trials 451-500 written in 30.6448 secs
+[15:40:45] oc k2020 S1 200 trials 501-550 written in 30.40424 secs
+[15:41:15] oc k2020 S1 200 trials 551-600 written in 30.05989 secs
+[15:41:44] oc k2020 S1 200 trials 601-650 written in 28.81931 secs
+[15:42:13] oc k2020 S1 200 trials 651-700 written in 28.68767 secs
+[15:42:43] oc k2020 S1 200 trials 701-750 written in 30.00672 secs
+[15:43:13] oc k2020 S1 200 trials 751-800 written in 30.6803 secs
+[15:43:45] oc k2020 S1 200 trials 801-850 written in 31.5406 secs
+[15:44:14] oc k2020 S1 200 trials 851-900 written in 29.45833 secs
+[15:44:44] oc k2020 S1 200 trials 901-950 written in 29.82779 secs
+[15:45:13] oc k2020 S1 200 trials 951-1000 written in 28.72548 secs
+[15:45:13] done

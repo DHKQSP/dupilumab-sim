@@ -5,12 +5,13 @@
 #   run [cores]     모델 x 집단 x 용량(8묶음): NCA 편향·정밀도, 외삽 분포, λz 성공률, Day 64/71 정량 몫 → results/m15/individual/
 #                   [7] 분석식 입력(로그 SD, 상관, log 체중 기울기)도 여기서 낸다(ss_inputs_m15.csv)
 #   legacy [cores]  기존 시험 모집단(정규 75 kg, SD 9, 60~90 kg 절단)·B0로 저장 결과(results/individual/individual_*.csv)와 3 MC SE 이내 대조
+#   patch_ci        run 뒤 보정(D-068 이탈 4): λz 성공률(계산 가능 대상자 기준)의 Wilson 95% 구간을 individual_subjects.rds에서 계산해 extrapolation_lambda_z.csv에 더한다
 #   verify_pauc     m15_pauc 대 PKNCA 0.12.1 pk.calc.aucint(lin up/log down, AUClast; preprocess_blq 출력): 일정마다 허용창·잔차 있는 1,000개 프로필(6.1절 1번)
 # AUC0-last 참값(8.4절): 주 = 조밀 채혈 참값(0부터 min(연속 시간 참 Tlast, 일정의 마지막 계획 시각)까지의 모델 AUC), 보조 = 관측 Tlast까지의 모델 AUC(적분 오차만)
 # 사용법: nice -n 5 Rscript scripts/72_m15_individual.R <run|legacy|verify_pauc> [cores]
 source("R/00_setup.R"); source_project(); source(proj_path("R", "m15.R"))
 args <- commandArgs(trailingOnly = TRUE)
-if (!length(args) || !args[1] %in% c("run", "legacy", "verify_pauc")) stop("사용법: Rscript scripts/72_m15_individual.R <run|legacy|verify_pauc> [cores]")
+if (!length(args) || !args[1] %in% c("run", "legacy", "verify_pauc", "patch_ci")) stop("사용법: Rscript scripts/72_m15_individual.R <run|legacy|verify_pauc|patch_ci> [cores]")
 mode <- args[1]; cores <- if (length(args) >= 2) as.integer(args[2]) else 4L
 CFG <- m15_cfg(); MS <- as.integer(CFG$master_seed); stopifnot(MS == 20261020L)
 design <- read_cfg("trial_design.yaml"); LLOQ <- study_lloq()
@@ -63,7 +64,7 @@ summ_schedule <- function(x) {
   succ <- x$lambda_ok & x$`AUC_%Extrap_obs` < 20
   w_all <- wilson_ci(sum(succ, na.rm = TRUE), nrow(x)); w_c <- wilson_ci(sum(succ, na.rm = TRUE), sum(x$lambda_ok))
   ext <- data.table(n_subj = nrow(x), lambda_ok_pct = 100 * mean(x$lambda_ok), success_pct = w_all$est, success_lo = w_all$lo, success_hi = w_all$hi,
-                    success_computable_pct = w_c$est, reliable_pct = 100 * mean(x$reliable),
+                    success_computable_pct = w_c$est, success_computable_lo = w_c$lo, success_computable_hi = w_c$hi, reliable_pct = 100 * mean(x$reliable),
                     extrap_p05 = quantile(ex, 0.05, names = FALSE), extrap_p25 = quantile(ex, 0.25, names = FALSE), extrap_p50 = quantile(ex, 0.50, names = FALSE),
                     extrap_p75 = quantile(ex, 0.75, names = FALSE), extrap_p95 = quantile(ex, 0.95, names = FALSE), extrap_p99 = quantile(ex, 0.99, names = FALSE),
                     extrap_gt20_pct = 100 * mean(ex > 20), tlast_median = median(x$Tlast, na.rm = TRUE),
@@ -158,4 +159,15 @@ if (mode == "verify_pauc") {
   V[, pass := max_rel_diff <= 1e-8 & n_pknca_na == n_pknca_na_m15_zero]
   fwrite(V, file.path(od, "pauc_pknca_check.csv")); print(V)
   append_run_log(lf, sprintf("done: all pass %s", all(V$pass)))
+}
+
+if (mode == "patch_ci") {
+  lf <- start_run_log("m15_individual_patch_ci", master_seed = MS, run_mode = "final")
+  IS <- readRDS(file.path(od, "individual_subjects.rds")); E <- fread(file.path(od, "extrapolation_lambda_z.csv"))
+  ci <- IS[, { k <- sum(lambda_ok & pct_extrap < 20, na.rm = TRUE); n_ <- sum(lambda_ok); w <- wilson_ci(k, n_); .(chk = w$est, success_computable_lo = w$lo, success_computable_hi = w$hi) },
+           by = .(pk_model, population, dose_mg, schedule)]
+  E[, intersect(c("success_computable_lo", "success_computable_hi"), names(E)) := NULL]
+  E <- merge(E, ci, by = c("pk_model", "population", "dose_mg", "schedule")); stopifnot(nrow(E) == 24L, max(abs(E$chk - E$success_computable_pct)) < 1e-9)
+  E[, chk := NULL]; setcolorder(E, c("pk_model", "population", "dose_mg", "schedule")); fwrite(E, file.path(od, "extrapolation_lambda_z.csv")); print(E[, .(pk_model, population, dose_mg, schedule, success_computable_pct, success_computable_lo, success_computable_hi)])
+  append_run_log(lf, "done")
 }
