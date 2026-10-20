@@ -512,6 +512,10 @@ Any change after registration is recorded in the decision log with the reason an
 4. The population step was run (enrolled medians 76.0 kg for the global and 66.1 kg for the Korean population; shares above 75 kg about 55% and 5%).
 5. The truth, sampling-evaluation, weight-effect, trial and sample-size scripts were run with 300 to 600 subjects and 4 to 8 studies in the scratch copy, to test the code. These outputs are not results, are not stored, and no design element was changed in response to them. The truth grid was refined from 0.5 to 0.25 day in response to a unit test against a fine reference grid, not to an outcome.
 
+### 13.3 Deviations after registration
+
+1. Seed lookup error in the trial script (found by the registered pilot check). In `scripts/73_m15_trials.R`, the per-study seed was looked up in a data.table whose study-index column had the same name as the function argument, so every simulated study used the same seed and the 500 pilot studies were identical. The analytic cross-check of section 6.4 failed (simulated power 100% against an analytic 94% at a true GMR of 0.95), and the full run did not start. The lookup was replaced by a matrix lookup with a unit test, a static check for this pattern was added to the test suite, and the defective pilot outputs were deleted (they remain in the git history) and the pilot was rerun from the start. No design element, threshold or seed rule was changed. The same review found an argument and column name clash in a filter of the summary script, which had not yet produced any output; it was fixed before use.
+
 ## 14. Software and quality control
 
 Software: R 4.3.3; rxode2 5.1.7; data.table 1.14.10; ggplot2 3.4.4 and patchwork 1.2.0 (figures); the project NCA engine; PKNCA 0.12.1 (verification of the partial AUC only). No new package is added; AUROC and the Tango interval are computed in base R.

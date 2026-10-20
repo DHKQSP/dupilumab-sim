@@ -62,10 +62,10 @@ if (mode == "tables") {
   if (nrow(SHP)) { SHP[, c("pass_pct", "pass_lo", "pass_hi") := wil(n_pass, n_trials)]; fwrite(SHP, file.path(SD, "oc_weight_shape.csv")) }
   # 짝 차이(Tango): 130명, g = 0.80, 0.95, 1.00, 1.25
   X <- rbindlist(OCX)[abs(g - 0.80) < 1e-9 | abs(g - 0.95) < 1e-9 | abs(g - 1) < 1e-9 | abs(g - 1.25) < 1e-9]
-  pdiff <- function(a, b, by_cols, contrast, lab_a, lab_b) {
+  pdiff <- function(a, b, by_cols, ct_lab, lab_a, lab_b) {
     z <- merge(a, b, by = c(by_cols, "trial"), suffixes = c("_a", "_b")); if (!nrow(z)) return(NULL)
     z[, { bb <- sum(pass_a & !pass_b); cc <- sum(!pass_a & pass_b); r <- m15_tango_ci(bb, cc, .N)
-      .(contrast = contrast, design_a = lab_a, design_b = lab_b, n_trials = .N, pass_a_pct = 100 * mean(pass_a), pass_b_pct = 100 * mean(pass_b),
+      .(contrast = ct_lab, design_a = lab_a, design_b = lab_b, n_trials = .N, pass_a_pct = 100 * mean(pass_a), pass_b_pct = 100 * mean(pass_b),
         diff_pp = 100 * r[["diff"]], lo_pp = 100 * r[["lo"]], hi_pp = 100 * r[["hi"]], discordant_a_only = bb, discordant_b_only = cc) }, by = by_cols]
   }
   K <- X[, .(trial, pk_model, population, dose_mg, boundary, schedule, model, g, pass)]
@@ -133,10 +133,10 @@ if (mode == "tables") {
   }
   CRT <- rbindlist(CRS); fwrite(CRT, file.path(SD, "mech_crossing.csv"))
   # 교차 차이(같은 재표집 색인): S2 - S1, 200 - 300, 일정 - B0 (%p 단위 차이; 어느 쪽이든 미도달인 재표집은 제외, 비율 보고)
-  cdiff <- function(ka, kb, contrast) { a <- CRB[[ka]]; b <- CRB[[kb]]; if (is.null(a) || is.null(b)) return(NULL)
-    d <- 100 * (a - b); ea <- CRT[paste(pk_model, population, dose_mg, schedule, mechanism, side, sep = "|") == ka, crossing_multiplier]
-    eb <- CRT[paste(pk_model, population, dose_mg, schedule, mechanism, side, sep = "|") == kb, crossing_multiplier]
-    data.table(contrast = contrast, a = ka, b = kb, diff_pp = 100 * (ea - eb), lo_pp = quantile(d, 0.025, na.rm = TRUE, names = FALSE), hi_pp = quantile(d, 0.975, na.rm = TRUE, names = FALSE),
+  CRT[, ckey := paste(pk_model, population, dose_mg, schedule, mechanism, side, sep = "|")]
+  cdiff <- function(key_a, key_b, ct_lab) { a <- CRB[[key_a]]; b <- CRB[[key_b]]; if (is.null(a) || is.null(b)) return(NULL)
+    d <- 100 * (a - b); ea <- CRT$crossing_multiplier[match(key_a, CRT$ckey)]; eb <- CRT$crossing_multiplier[match(key_b, CRT$ckey)]
+    data.table(contrast = ct_lab, a = key_a, b = key_b, diff_pp = 100 * (ea - eb), lo_pp = quantile(d, 0.025, na.rm = TRUE, names = FALSE), hi_pp = quantile(d, 0.975, na.rm = TRUE, names = FALSE),
                boot_na_pct = 100 * mean(!is.finite(d))) }
   CD <- rbindlist(lapply(seq_len(nrow(CRT)), function(i) { r <- CRT[i]; k <- function(pop = r$population, dose = r$dose_mg, sn = r$schedule) paste(r$pk_model, pop, dose, sn, r$mechanism, r$side, sep = "|")
     rbind(if (r$population == "S2") cdiff(k(), k(pop = "S1"), "population S2 - S1"), if (r$dose_mg == 200) cdiff(k(), k(dose = 300), "dose 200 - 300"),
@@ -329,7 +329,7 @@ if (mode == "summary") {
     lab <- c(pass = "joint, both endpoints at the margin", auc_only = "AUC0-last-only pass", cmax_only = "Cmax-only pass")[[col]]
     addr(sprintf("Consumer risk at true GMR %.2f (%s)", gg, lab), cell("k2020", gg, col, if (nrow(CR)) CR else OCP), cell("k2016", gg, col), "results/m15/summary/oc_consumer_risk.csv (Model 1, 10,000 studies); oc_pass.csv (Kovalenko 2016, 1,000)")
   }
-  pdc <- function(pm, contrast, a, gg = 0.95) { z <- PD[pk_model == pm & PD$contrast == contrast & design_a == a & abs(g - gg) < 1e-9]
+  pdc <- function(pm, ct_, a_, gg = 0.95) { z <- PD[PD$pk_model == pm & PD$contrast == ct_ & PD$design_a == a_ & abs(PD$g - gg) < 1e-9]
     for (nm in c("population", "dose_mg", "schedule", "boundary", "model")) if (nm %in% names(z) && !is.na(match(nm, names(base)))) { v <- base[[nm]]; if (!all(is.na(z[[nm]]))) z <- z[is.na(z[[nm]]) | z[[nm]] == v] }
     if (nrow(z) != 1) return("-"); sprintf("%s pp (%s to %s)", fmt(z$diff_pp), fmt(z$lo_pp), fmt(z$hi_pp)) }
   for (ct in list(c("stratum term", "M1", "Effect of the stratum term (stratified minus unstratified)"), c("boundary", "median", "Effect of the median boundary (median minus 75 kg)"),

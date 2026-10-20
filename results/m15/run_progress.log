@@ -10,3 +10,28 @@
 2026-10-20T14:17:14Z done scripts/72_m15_individual.R verify_pauc in 28s
 2026-10-20T14:17:16Z stage prep complete
 2026-10-20T14:21:43Z start scripts/73_m15_trials.R oc k2020 S1 300 1 500 4
+2026-10-20T14:26:46Z done scripts/73_m15_trials.R oc k2020 S1 300 1 500 4 in 303s
+2026-10-20T14:26:46Z start scripts/73_m15_trials.R mech k2020 S1 300 1 500 4
+2026-10-20T14:43:48Z done scripts/73_m15_trials.R mech k2020 S1 300 1 500 4 in 1022s
+2026-10-20T14:43:48Z start scripts/73_m15_trials.R oc k2020 S2 200 1 50 4
+2026-10-20T14:44:24Z done scripts/73_m15_trials.R oc k2020 S2 200 1 50 4 in 36s
+2026-10-20T14:44:24Z start scripts/73_m15_trials.R mech k2020 S2 200 1 50 4
+2026-10-20T14:46:09Z done scripts/73_m15_trials.R mech k2020 S2 200 1 50 4 in 105s
+2026-10-20T14:46:09Z start scripts/73_m15_trials.R pilotcheck k2020 S1 300 1 500
+2026-10-20T14:46:17Z FAILED scripts/73_m15_trials.R pilotcheck k2020 S1 300 1 500 (exit 3)
+- One or more packages recorded in the lockfile are not installed.
+- Use `renv::status()` for more details.
+run log: /home/user/dupilumab-sim/logs/m15_trials_pilotcheck_k2020_S1_300_1_500_20261020T144613.log
+                        check value    n pass
+1:       identity_trial_match     0 3000 TRUE
+2: identity_count_match_all_n     0   54 TRUE
+   true_gmr model sim_pct mc_se_pct analytic_pct  tol_pct  pass
+1:     0.95    M0     100 1.0476999     94.17196 3.143100 FALSE
+2:     0.95    M1     100 1.0043874     94.67217 3.013162 FALSE
+3:     1.00    M0     100 0.4532994     98.96182 2.500000  TRUE
+4:     1.00    M1     100 0.4252024     99.08769 2.500000  TRUE
+   boundary model max_drop_in_mc_se pass
+1:  fixed75    M0                 0 TRUE
+2:  fixed75    M1                 0 TRUE
+3:   median    M0                 0 TRUE
+4:   median    M1                 0 TRUE

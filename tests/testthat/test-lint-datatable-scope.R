@@ -62,3 +62,40 @@ test_that("검사기가 실제로 위반을 잡는다(자기 검증)", {
   ok_fn <- quote(function(be, method) { m_ <- method; be[be[["method"]] == m_] })
   expect_length(find_violations(ok_fn[[3]], names(ok_fn[[2]])), 0)
 })
+
+# M15 코드(D-068): 흔한 짧은 이름(루프 변수로도 쓰이는 이름)이 data.table의 i 인자(행 선택·조인)에 함수 인자로 나타나면 위반.
+# scripts/73의 시드 조회 SEEDS[.(j, s), seed]에서 인자 j가 시드 표의 j 열로 해석되어 모든 시험이 같은 시드를 쓴 버그를 다시 막는다.
+# 기본 벡터 부분집합 x$col[k], x[[i]][k]은 제외한다.
+M15_GENERIC <- c("j", "k", "v", "s", "g", "model", "trial", "rep", "set", "code", "side", "contrast", "ka", "unit", "metric", "rule")
+find_generic_i <- function(body, formals_) {
+  bad <- character(0)
+  walk <- function(e) {
+    if (is.call(e)) {
+      if (identical(e[[1]], as.name("[")) && length(e) >= 3 && !identical(e[[3]], quote(expr = ))) {
+        tgt <- e[[2]]
+        vec <- is.call(tgt) && (identical(tgt[[1]], as.name("$")) || identical(tgt[[1]], as.name("[[")))
+        si <- unique(collect_symbols(e[[3]]))
+        v <- intersect(si, intersect(formals_, M15_GENERIC))
+        if (!vec && length(v)) bad <<- c(bad, paste0(paste(v, collapse = ","), " in ", paste(deparse(e, width.cutoff = 60)[1], collapse = "")))
+      }
+      for (a in as.list(e)[-1]) if (!missing(a)) walk(a)
+    }
+  }
+  walk(body); bad
+}
+test_that("M15 코드에서 흔한 짧은 이름의 함수 인자가 data.table 행 선택에 쓰이지 않는다", {
+  files <- c(proj_path("R", "m15.R"), list.files(proj_path("scripts"), pattern = "^7[0-9]_m15_.*\\.R$", full.names = TRUE))
+  viol <- character(0)
+  for (f in files) {
+    exprs <- parse(f, keep.source = FALSE)
+    visit <- function(e) {
+      if (is.call(e)) {
+        if (identical(e[[1]], as.name("function"))) { v <- find_generic_i(e[[3]], names(e[[2]])); if (length(v)) viol <<- c(viol, paste0(basename(f), ": ", v)) }
+        for (a in as.list(e)[-1]) if (!missing(a)) visit(a)
+      }
+    }
+    for (e in exprs) visit(e)
+  }
+  if (length(viol)) message(paste(viol, collapse = "\n"))
+  expect_length(viol, 0)
+})

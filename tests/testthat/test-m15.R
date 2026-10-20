@@ -208,3 +208,15 @@ test_that("분석계획서(영문): ASCII만, 한글·en/em dash·U+2212 없음,
   expect_true(grepl("studies 1 to 500", x)); expect_true(grepl("c = 0.078 mg x day/L", x)); expect_equal(cfg$auroc$pauc_offset_mg_day_L, 0.078)
   expect_true(grepl("2,000 resamples", x)); expect_true(grepl("20,000 log-normal replicate sets", x))
 })
+
+test_that("시험 시드 조회: 시험·흐름마다 스칼라 하나, 서로 다르고, 충돌 없는 칸은 derive_seed와 같다(D-068 이탈: 모든 시험이 같은 시드였던 버그)", {
+  tab <- m15_trial_seeds(20261020L, 300L); sm <- m15_seed_matrix(tab)
+  expect_equal(dim(sm), c(300L, 5L)); expect_false(anyDuplicated(as.vector(sm)) > 0)
+  for (jj in c(1L, 2L, 150L, 300L)) for (st in c("subj", "eps")) {
+    expect_length(m15_seed_of(sm, jj, st), 1L)
+    if (tab$resolved[tab$j == jj & tab$stream == st] == 0L) expect_equal(m15_seed_of(sm, jj, st), derive_seed(20261020L, "trial", jj, st))
+  }
+  expect_false(m15_seed_of(sm, 1L, "subj") == m15_seed_of(sm, 2L, "subj"))
+  big <- m15_seed_matrix(m15_trial_seeds(20261020L, 10000L)); expect_false(anyDuplicated(as.vector(big)) > 0)
+  expect_equal(big[1:300, ], sm[1:300, ][, colnames(big)])
+})

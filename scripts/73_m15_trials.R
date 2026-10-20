@@ -48,8 +48,8 @@ if (!is.null(G)) stopifnot(sum(abs(G - 1) < 1e-12) == 1, length(G) <= 30)
 INTERVALS <- list(pAUC_0_14 = as.numeric(unlist(CFG$auroc$endpoints$pAUC_0_14)), pAUC_14_28 = as.numeric(unlist(CFG$auroc$endpoints$pAUC_14_28)),
                   pAUC_28_56 = as.numeric(unlist(CFG$auroc$endpoints$pAUC_28_56)))
 C_OFF <- as.numeric(CFG$auroc$pauc_offset_mg_day_L); stopifnot(isTRUE(all.equal(C_OFF, LLOQ * 1)))
-SEEDS <- m15_trial_seeds(MS, NT_EXT); setkey(SEEDS, j, stream)
-sd_ <- function(j, s) SEEDS[.(j, s), seed]
+SEEDS <- m15_trial_seeds(MS, NT_EXT); SM <- m15_seed_matrix(SEEDS)
+sd_ <- function(trial_j, stream_s) m15_seed_of(SM, trial_j, stream_s)
 p <- load_params(model); invisible(get_model(p$model_id))
 out_dir <- proj_path(CFG$output_dir, "trials", if (mode == "pilotcheck") "pilot" else mode, sprintf("%s_%s_%g", model, popv, dose)); dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
 lf <- start_run_log(sprintf("m15_trials_%s_%s_%s_%g_%d_%d", mode, model, popv, dose, from, to), master_seed = MS, run_mode = "final",
@@ -78,8 +78,8 @@ solve_versions <- function(tb, ip_list) {
 }
 # 분석 행: 대조군은 판 ref_v, 시험군은 판 v. nca: data.table(sid, v, schedule, <평가변수 열>)
 analysis_rows <- function(al, nca, versions, ref_v, endpoints, bname) {
-  rbindlist(lapply(versions, function(v) {
-    vv <- v
+  rbindlist(lapply(versions, function(ver) {
+    vv <- ver
     r <- merge(al[arm == "R"], nca[v == ref_v], by.x = "id", by.y = "sid", allow.cartesian = TRUE)
     t <- merge(al[arm == "T"], nca[v == vv], by.x = "id", by.y = "sid", allow.cartesian = TRUE)
     x <- rbind(r, t)

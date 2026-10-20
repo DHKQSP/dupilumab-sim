@@ -115,7 +115,7 @@ if (mode == "legacy") {
                  k2020 = fread(proj_path("results", "individual", "individual_struct2020.csv"))[schedule == "B0"])
   res <- parallel::mclapply(MODELS, function(m) {
     x <- sim_individual(m, pop, as.numeric(design$dose_mg), list(B0 = SCHED$B0), tag = "legacy", incl = incl)
-    ex <- function(v) v[is.finite(v)]
+    ex <- function(x_) x_[is.finite(x_)]
     st <- function(xx) c(lambda_ok_pct = 100 * mean(xx$lambda_ok), extrap_median = median(ex(xx$`AUC_%Extrap_obs`)), extrap_p95 = quantile(ex(xx$`AUC_%Extrap_obs`), 0.95, names = FALSE))
     est <- st(x)
     bs <- with_seed(derive_seed(MS, "legacy", "boot", m), t(replicate(200, st(x[sample.int(.N, .N, replace = TRUE)]))))

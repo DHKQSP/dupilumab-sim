@@ -395,6 +395,14 @@ m15_trial_seeds <- function(ms, n_trials, streams = c("subj", "alloc", "drop", "
   tab[]
 }
 
+# 시드 표 → 행렬(행 = 시험 j, 열 = 흐름) 조회. data.table 안에서 인자 이름이 열 이름(j, stream)으로 해석되는 일을 피하려고 행렬로 바꾼다
+# (scripts/73의 SEEDS[.(j, s), seed]는 j를 열로 읽어 모든 시험에 같은 시드를 주었다; D-068 이탈 기록).
+m15_seed_matrix <- function(tab) {
+  w <- dcast(tab, j ~ stream, value.var = "seed"); stopifnot(identical(w$j, seq_len(nrow(w))))
+  m <- as.matrix(w[, setdiff(names(w), "j"), with = FALSE]); storage.mode(m) <- "integer"; m
+}
+m15_seed_of <- function(sm, trial_j, stream_s) { x <- unname(sm[trial_j, stream_s]); stopifnot(length(x) == 1L, is.finite(x)); x }
+
 # 참 GMR 격자: log 대칭 n점(lo, hi 포함; n 홀수면 1 포함) + 추가 점
 m15_gmr_grid <- function(spec) {
   x <- exp(seq(log(as.numeric(spec$lo)), log(as.numeric(spec$hi)), length.out = as.integer(spec$n_points)))
