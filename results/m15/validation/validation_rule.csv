@@ -1,0 +1,21 @@
+pk_model,wmode,rule,metric,pi_level,units,units_outside,n_outside,n_compared,threshold,met,false_alarm_sim_pct,detect_x0.75_pct,detect_x0.85_pct,detect_x1.15_pct,detect_x1.25_pct,failure,n_rep,outcome
+k2020,primary,R1,AUClast_mean,0.95,tdu12265_300;tdu12265_600;PKM12350;PKM14161;R668-HV-1108,PKM12350,1,5,2,FALSE,2.12,99.98,76.46,62.02,97.96,TRUE,5000,fails under the fixed weight assumption only
+k2020,primary,R2,AUClast_cv_within,0.95,tdu12265_300;tdu12265_600;PKM12350;PKM14161;R668-HV-1108,"",0,5,2,FALSE,2.2,2.2,2.2,2.2,2.2,TRUE,5000,fails under the fixed weight assumption only
+k2020,primary,R4,AUClast_mean,0.99,PKM12350;R668-HV-1108,PKM12350,1,2,1,TRUE,2,99.5,61.32,40.04,87.96,TRUE,5000,fails under the fixed weight assumption only
+k2020,primary,R5,Cmax_mean,0.95,tdu12265_300;tdu12265_600,"",0,2,2,FALSE,0.16,38.86,6.68,4.38,21.08,TRUE,5000,fails under the fixed weight assumption only
+k2020,primary,any,"",,"","",,,,TRUE,5.94,100,84.56,70.34,98.7,TRUE,5000,fails under the fixed weight assumption only
+k2020,wunc,R1,AUClast_mean,0.95,tdu12265_300;tdu12265_600;PKM12350;PKM14161;R668-HV-1108,PKM12350,1,5,2,FALSE,2.36,98.7,57.12,41.58,88.98,FALSE,5000,fails under the fixed weight assumption only
+k2020,wunc,R2,AUClast_cv_within,0.95,tdu12265_300;tdu12265_600;PKM12350;PKM14161;R668-HV-1108,"",0,5,2,FALSE,2.24,2.24,2.24,2.24,2.24,FALSE,5000,fails under the fixed weight assumption only
+k2020,wunc,R4,AUClast_mean,0.99,PKM12350;R668-HV-1108,"",0,2,1,FALSE,2,92.98,42.48,28.2,68.74,FALSE,5000,fails under the fixed weight assumption only
+k2020,wunc,R5,Cmax_mean,0.95,tdu12265_300;tdu12265_600,"",0,2,2,FALSE,0.16,38.86,6.68,4.38,21.08,FALSE,5000,fails under the fixed weight assumption only
+k2020,wunc,any,"",,"","",,,,FALSE,6.26,99.44,68.36,53.04,93.36,FALSE,5000,fails under the fixed weight assumption only
+k2016,primary,R1,AUClast_mean,0.95,tdu12265_300;tdu12265_600;PKM12350;PKM14161;R668-HV-1108,PKM12350,1,5,2,FALSE,2.28,100,82.02,66.54,98.9,FALSE,5000,passes under both weight assumptions
+k2016,primary,R2,AUClast_cv_within,0.95,tdu12265_300;tdu12265_600;PKM12350;PKM14161;R668-HV-1108,"",0,5,2,FALSE,2.08,2.08,2.08,2.08,2.08,FALSE,5000,passes under both weight assumptions
+k2016,primary,R4,AUClast_mean,0.99,tdu12265_300;tdu12265_600;PKM12350;PKM14161,"",0,4,1,FALSE,3.96,99.8,70.2,57.42,95.68,FALSE,5000,passes under both weight assumptions
+k2016,primary,R5,Cmax_mean,0.95,tdu12265_300;tdu12265_600,"",0,2,2,FALSE,0.26,38.88,6.44,4.82,22.36,FALSE,5000,passes under both weight assumptions
+k2016,primary,any,"",,"","",,,,FALSE,7.7,100,88.96,76.7,99.5,FALSE,5000,passes under both weight assumptions
+k2016,wunc,R1,AUClast_mean,0.95,tdu12265_300;tdu12265_600;PKM12350;PKM14161;R668-HV-1108,"",0,5,2,FALSE,2.4,99.02,61.04,43.62,89.92,FALSE,5000,passes under both weight assumptions
+k2016,wunc,R2,AUClast_cv_within,0.95,tdu12265_300;tdu12265_600;PKM12350;PKM14161;R668-HV-1108,"",0,5,2,FALSE,2.02,2.02,2.02,2.02,2.02,FALSE,5000,passes under both weight assumptions
+k2016,wunc,R4,AUClast_mean,0.99,tdu12265_300;tdu12265_600;PKM12350;PKM14161,"",0,4,1,FALSE,3.94,96.88,53.06,36.1,78.64,FALSE,5000,passes under both weight assumptions
+k2016,wunc,R5,Cmax_mean,0.95,tdu12265_300;tdu12265_600,"",0,2,2,FALSE,0.26,38.88,6.44,4.82,22.36,FALSE,5000,passes under both weight assumptions
+k2016,wunc,any,"",,"","",,,,FALSE,7.84,99.58,73.22,56.18,94.6,FALSE,5000,passes under both weight assumptions
