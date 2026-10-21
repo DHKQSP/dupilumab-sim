@@ -946,6 +946,7 @@ if (mode == "postcheck") {
 if (mode == "final") {
   lf <- start_run_log("m15_amend_final", master_seed = MS, run_mode = "final")
   FD_ <- file.path(AD, "final"); dir.create(FD_, showWarnings = FALSE); PD1 <- file.path(AD, "p1"); PD2 <- file.path(AD, "ppc"); PAD <- file.path(AD, "param_assurance"); DOSE <- 300
+  COND <- sub("cause under diagnosis, amendment section 16.7", "diagnosed in amendment section 16.7, final conclusion 1", COND, fixed = TRUE)   # 16.7절 진단이 끝난 뒤의 최종 산출물 문구
   ROB <- fread(file.path(PD1, "robustness_p1.csv")); RT <- fread(file.path(PD2, "rule_false_positive.csv"))
   ASR <- fread(file.path(PAD, "assurance_param.csv")); WRP <- fread(file.path(PAD, "weight_ratio_param.csv")); C1 <- readLines(file.path(PD2, "conclusion1.md"), warn = FALSE)
   SS <- fread(file.path(PD1, "sampling_schedule.csv")); WC <- fread(file.path(AD, "weight_check.csv"))
@@ -979,8 +980,8 @@ if (mode == "final") {
   addt("Pooled 300 mg AUC0-last, predicted/observed, six arms / four arms without PKM12350 (95% prediction interval of the ratio); reading (fixed weight assumption)", sprintf("%s / %s; %s", b7("k2020", "^six"), b7("k2020", "^four"), rd7("k2020")),
        sprintf("%s / %s; %s", b7("k2016", "^six"), b7("k2016", "^four"), rd7("k2016")), "amend1/ppc/seven_arm_bias.csv")
   addt("Between-arm variation of the six observed 300 mg arm means (Cochran Q p-value)", sprintf("p %s (%s)", formatC(HCT$p_value[1], format = "f", digits = 3), if (isTRUE(HCT$present[1])) "present" else "not detected"), "same data", "amend1/ppc/between_arm_check.csv")
-  as_ <- function(sid, pv, nr) { z <- ASR[set_id == sid & population == pv & n_rand == nr]; stopifnot(nrow(z) == 1); sprintf("%s%% (2.5th to 97.5th percentile %s to %s; sets at least 90%%: %s%%)", fmt(z$assurance_param_pct), fmt(z$p025_pct), fmt(z$p975_pct), fmt(z$share_sets_ge90_pct)) }
-  for (nr in c(107, 130)) for (pv in c("S1", "S2")) addt(sprintf("Assurance over parameter uncertainty, %d randomized per arm, %s population (Model 1: borrowed Kovalenko 2016 relative widths on eight structural parameters; Kovalenko 2016: bootstrap percentiles, all parameters)", nr, PLAB[[pv]]),
+  as_ <- function(sid, pv, nr) { z <- ASR[set_id == sid & population == pv & n_rand == nr]; stopifnot(nrow(z) == 1); sprintf("%s%% (2.5th to 97.5th percentile %s to %s; sets at least 90%%: %s%%; uncorrected mean %s%%)", fmt(z$assurance_param_pct), fmt(z$p025_pct), fmt(z$p975_pct), fmt(z$share_sets_ge90_pct), fmt(z$assurance_uncorrected_pct)) }
+  for (nr in c(107, 130)) for (pv in c("S1", "S2")) addt(sprintf("Assurance over parameter uncertainty, %d randomized per arm, %s population (Model 1: borrowed Kovalenko 2016 relative widths on eight structural parameters; Kovalenko 2016: bootstrap percentiles, all parameters; control-variate corrected, so a percentile can exceed 100%%; parameter-uncertainty distribution, not a confidence interval)", nr, PLAB[[pv]]),
                                                          as_("k2020_b16", pv, nr), as_("k2016", pv, nr), "amend1/param_assurance/assurance_param.csv")
   for (nr in c(107, 130)) addt(sprintf("Assurance, matched scope (eight structural parameters only; Model 1: borrowed uncertainty, Kovalenko 2016 relative widths), %d per arm, global population", nr), as_("k2020_b16", "S1", nr), as_("k2016_thetas", "S1", nr), "amend1/param_assurance/assurance_param.csv")
   wp <- function(sid) { z <- WRP[set_id == sid & population == "S1" & metric == "AUCinf"][order(prob)]; sprintf("%s (%s to %s) / %s (%s to %s)", fmt(z$set0[1], 3), fmt(z$p025[1], 3), fmt(z$p975[1], 3), fmt(z$set0[2], 3), fmt(z$p025[2], 3), fmt(z$p975[2], 3)) }
