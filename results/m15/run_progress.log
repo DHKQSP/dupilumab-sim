@@ -256,3 +256,13 @@ Execution halted
 2026-10-21T07:27:30Z start scripts/75_m15_summary.R summary
 2026-10-21T07:27:36Z done scripts/75_m15_summary.R summary in 6s
 2026-10-21T07:27:36Z stage a1final complete
+2026-10-21T07:42:05Z start scripts/77_m15_amend.R p1report
+2026-10-21T07:42:11Z done scripts/77_m15_amend.R p1report in 6s
+2026-10-21T07:42:11Z start scripts/77_m15_amend.R appendix
+2026-10-21T07:42:16Z done scripts/77_m15_amend.R appendix in 5s
+2026-10-21T07:42:16Z start scripts/76_m15_param_assurance.R summary
+2026-10-21T07:42:21Z done scripts/76_m15_param_assurance.R summary in 5s
+2026-10-21T07:42:21Z start scripts/77_m15_amend.R final
+2026-10-21T07:42:25Z done scripts/77_m15_amend.R final in 4s
+2026-10-21T07:42:25Z start scripts/75_m15_summary.R summary
+2026-10-21T07:42:31Z done scripts/75_m15_summary.R summary in 6s

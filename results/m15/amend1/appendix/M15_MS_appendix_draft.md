@@ -1,6 +1,6 @@
 # Modelling and simulation appendix: design of the phase 1 pharmacokinetic similarity study
 
-Draft for the European Medicines Agency (EMA) scientific advice briefing document. Structured as in the International Council for Harmonisation (ICH) M15 guideline. Generated on 2026-10-21 from the result files at commit 52c4d09 (plan `plans/M15_analysis_plan_20261020.md`, amendment 1, section 16). Every result is read from a result file and every design setting from the registered configuration (`config/prereg_20261020_m15.yaml`).
+Draft for the European Medicines Agency (EMA) scientific advice briefing document. Structured as in the International Council for Harmonisation (ICH) M15 guideline. Generated on 2026-10-21 from the result files at commit 72e44b9 (plan `plans/M15_analysis_plan_20261020.md`, amendment 1, section 16). Every result is read from a result file and every design setting from the registered configuration (`config/prereg_20261020_m15.yaml`).
 
 Model 1 is Kovalenko 2020 Table 1 Model 1, the initial base structural model reviewed by the US Food and Drug Administration (FDA) in its 2017 clinical pharmacology review (section 4.6); it remains the primary model as registered, and Kovalenko 2016 is the sensitivity model.
 
