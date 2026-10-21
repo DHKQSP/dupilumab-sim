@@ -48,7 +48,7 @@ if (mode == "mechcheck") {
         a <- cx[[nm]][schedule == "B0" & vi <= 16]; b <- copy(cs[[s_]])
         R[[length(R) + 1]] <- data.table(cell = cell, check = paste("counts", nm), n_rows = nrow(a), n_stored = nrow(b), max_rel_diff = same_tab(copy(a), b, c("schedule", "vi", "n_rand", "model"))) }
       vx <- fread(file.path(dx, "versions.csv")); vs <- fread(file.path(ds, "versions.csv"))
-      R[[length(R) + 1]] <- data.table(cell = cell, check = "versions.csv rows 1 to 16", n_rows = nrow(vx), n_stored = nrow(vs), max_rel_diff = same_tab(copy(vx[vi <= 16]), copy(vs), "vi"))
+      R[[length(R) + 1]] <- data.table(cell = cell, check = "versions.csv rows 1 to 16", n_rows = nrow(vx[vi <= 16]), n_stored = nrow(vs), max_rel_diff = same_tab(copy(vx[vi <= 16]), copy(vs), "vi"))
     }
   }
   CK <- rbindlist(R); stopifnot(nrow(CK) > 0); CK[, pass := is.finite(max_rel_diff) & max_rel_diff <= as.numeric(AM$identity_check$csv_relative) & n_rows == n_stored]
