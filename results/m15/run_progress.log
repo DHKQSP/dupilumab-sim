@@ -202,3 +202,13 @@ Execution halted
 2026-10-21T05:32:15Z done scripts/77_m15_amend.R p1report in 5s
 2026-10-21T05:32:15Z start scripts/77_m15_amend.R appendix
 2026-10-21T05:32:20Z done scripts/77_m15_amend.R appendix in 5s
+2026-10-21T06:14:52Z start scripts/75_m15_summary.R summary
+2026-10-21T06:14:58Z done scripts/75_m15_summary.R summary in 6s
+2026-10-21T06:14:58Z start scripts/77_m15_amend.R extract 4
+2026-10-21T06:15:24Z done scripts/77_m15_amend.R extract 4 in 26s
+2026-10-21T06:15:24Z start scripts/77_m15_amend.R ppcstored
+2026-10-21T06:15:30Z done scripts/77_m15_amend.R ppcstored in 6s
+2026-10-21T06:15:30Z start scripts/77_m15_amend.R p1report
+2026-10-21T06:15:35Z done scripts/77_m15_amend.R p1report in 5s
+2026-10-21T06:15:35Z start scripts/77_m15_amend.R appendix
+2026-10-21T06:15:40Z done scripts/77_m15_amend.R appendix in 5s
