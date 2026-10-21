@@ -284,3 +284,48 @@ Execution halted
 2026-10-21T10:02:57Z start scripts/77_m15_amend.R postcheck results/m15/tm/pre_summary_copy results/m15/tm/summary_rerun_check.csv
 2026-10-21T10:03:01Z done scripts/77_m15_amend.R postcheck results/m15/tm/pre_summary_copy results/m15/tm/summary_rerun_check.csv in 4s
 2026-10-21T10:03:01Z stage tm complete
+2026-10-21T10:34:51Z start scripts/78_m15_tm_fraction.R ssx 4
+2026-10-21T10:36:28Z FAILED scripts/78_m15_tm_fraction.R ssx 4 (exit 3)
+2:   reg_over_true
+3:   ftm_cavg_true
+4:   ftm_cavg_true
+5: ftm_trough_true
+6: ftm_trough_true
+7:          mb_rel
+8:          mb_rel
+    model WT param mult gm_pct_AUCtau_true gm_pct_Ctrough_true    n  change
+ 1: k2016 75  Vmax  0.8           5.427200            6.782497 1000 Vm -20%
+ 2: k2016 75  Vmax  1.2          -5.463964           -6.863080 1000 Vm +20%
+ 3: k2016 75    ke  0.8          24.998916           30.578237 1000 ke -20%
+ 4: k2016 75    ke  1.2         -16.665975          -20.296970 1000 ke +20%
+ 5: k2016 75     F  0.8         -25.468310          -26.874773 1000  F -20%
+ 6: k2016 75     F  1.2          25.429269           26.787182 1000  F +20%
+ 7: k2020 75  Vmax  0.8           5.177836            6.326024 1000 Vm -20%
+ 8: k2020 75  Vmax  1.2          -5.227141           -6.419540 1000 Vm +20%
+ 9: k2020 75    ke  0.8          24.999039           29.930654 1000 ke -20%
+10: k2020 75    ke  1.2         -16.666019          -19.865100 1000 ke +20%
+11: k2020 75     F  0.8         -25.233474          -26.433565 1000  F -20%
+12: k2020 75     F  1.2          25.180818           26.331646 1000  F +20%
+2026-10-21T10:38:10Z note: post hoc tmx first attempt failed its convergence check (plan 17.11 item 3); second attempt with dosing to day 2,240 at commit c4edc94
+2026-10-21T10:38:10Z start scripts/78_m15_tm_fraction.R ssx 4
+2026-10-21T10:41:16Z FAILED scripts/78_m15_tm_fraction.R ssx 4 (exit 3)
+2:   reg_over_true
+3:   ftm_cavg_true
+4:   ftm_cavg_true
+5: ftm_trough_true
+6: ftm_trough_true
+7:          mb_rel
+8:          mb_rel
+    model WT param mult gm_pct_AUCtau_true gm_pct_Ctrough_true    n  change
+ 1: k2016 75  Vmax  0.8           5.427200            6.782497 1000 Vm -20%
+ 2: k2016 75  Vmax  1.2          -5.463964           -6.863080 1000 Vm +20%
+ 3: k2016 75    ke  0.8          24.998994           30.578317 1000 ke -20%
+ 4: k2016 75    ke  1.2         -16.665980          -20.296975 1000 ke +20%
+ 5: k2016 75     F  0.8         -25.468310          -26.874773 1000  F -20%
+ 6: k2016 75     F  1.2          25.429269           26.787183 1000  F +20%
+ 7: k2020 75  Vmax  0.8           5.177836            6.326024 1000 Vm -20%
+ 8: k2020 75  Vmax  1.2          -5.227141           -6.419540 1000 Vm +20%
+ 9: k2020 75    ke  0.8          24.999044           29.930657 1000 ke -20%
+10: k2020 75    ke  1.2         -16.666018          -19.865100 1000 ke +20%
+11: k2020 75     F  0.8         -25.233474          -26.433565 1000  F -20%
+12: k2020 75     F  1.2          25.180819           26.331645 1000  F +20%

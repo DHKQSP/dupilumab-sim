@@ -481,7 +481,7 @@ m15_tm_conc <- function(x, Vm, ke, Km) Vm * (1 - x) / (x * ke) - Km
 
 # 모든 대상자 같은 투여 일정의 풀이: dose_times(일), dose_amts(mg, depot), times(관측 시각, 0 제외). 허용오차는 참값과 같다(.solve_param_table, TRUTH_ATOL·TRUTH_RTOL).
 # 반환 data.table(id, time, C, auc, resid = 몸 안 총량(mg; depot·transit·중심·말초))
-m15_solve_regimen <- function(ip, model_id, dose_times, dose_amts, times) {
+m15_solve_regimen <- function(ip, model_id, dose_times, dose_amts, times, atol = TRUTH_ATOL, rtol = TRUTH_RTOL) {   # 허용오차 기본 = 참값(등록); 17.11절 사후 점검만 4.3절 설정
   stopifnot(length(dose_times) == length(dose_amts), length(dose_times) >= 1, all(times > 0))
   mod <- get_model(model_id)
   pcols <- c("id", "Vc_i", "ke", "k12", "k21", "Vmax", "Km", "ka", "ada", "t_ada", "ada_mult", if ("ktr" %in% names(ip)) "ktr")
@@ -489,7 +489,7 @@ m15_solve_regimen <- function(ip, model_id, dose_times, dose_amts, times) {
   ev <- rxode2::et(amt = dose_amts[1], cmt = "depot", time = dose_times[1])
   for (k in seq_along(dose_times)[-1]) ev <- rxode2::et(ev, amt = dose_amts[k], cmt = "depot", time = dose_times[k])
   ev <- rxode2::add.sampling(ev, times)
-  s <- rxode2::rxSolve(mod, params = prm, events = ev, atol = TRUTH_ATOL, rtol = TRUTH_RTOL, maxsteps = 2000000L, cores = 1L, returnType = "data.table", addDosing = FALSE)
+  s <- rxode2::rxSolve(mod, params = prm, events = ev, atol = atol, rtol = rtol, maxsteps = 2000000L, cores = 1L, returnType = "data.table", addDosing = FALSE)
   if ("sim.id" %in% names(s)) s[, id := prm$id[sim.id]] else if ("id" %in% names(s)) s[, id := prm$id[as.integer(id)]] else if (nrow(prm) == 1) s[, id := prm$id[1]] else stop("rxSolve 출력에 id가 없습니다")
   stc <- intersect(c("depot", "tr1", "tr2", "tr3", "absc", "central", "periph"), names(s))
   s[, resid := rowSums(.SD), .SDcols = stc]

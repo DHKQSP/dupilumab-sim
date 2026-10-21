@@ -181,7 +181,7 @@ if (mode == "ssx") {
   for (m_ in MODELS) invisible(get_model(load_params(m_)$model_id))
   one <- function(k) {
     k_ <- k; jb <- JOBS[k_]; p <- load_params(jb$model); if (jb$param != "none") p <- apply_multipliers(p, setNames(list(jb$mult), jb$param))
-    ip <- ip_of(p, jb$WT); s <- m15_solve_regimen(ip, p$model_id, DT_, DA_, TT)
+    ip <- ip_of(p, jb$WT); s <- m15_solve_regimen(ip, p$model_id, DT_, DA_, TT, atol = as.numeric(PH$solver$atol), rtol = as.numeric(PH$solver$rtol))   # 17.11절 4: 4.3절 허용오차
     at <- function(t0, v) { r <- s[abs(time - t0) < 1e-6][order(id)]; stopifnot(nrow(r) == nrow(ip)); r[[v]] }
     o <- data.table(id = sort(ip$id), auc_reg = at(SS[2], "auc") - at(SS[1], "auc"), auc_prev = at(PV[2], "auc") - at(PV[1], "auc"), auc_true = at(IV[2], "auc") - at(IV[1], "auc"), Ctrough_true = at(IV[2], "C"))
     o <- merge(o, ip[, .(id, Vm = Vmax, ke_i = ke, Km, Vc_i, F)], by = "id")
