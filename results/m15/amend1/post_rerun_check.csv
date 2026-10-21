@@ -1,0 +1,29 @@
+file,status,numeric_max_rel_diff,text_columns_changed,ok
+figures/fig1_validation.csv,text differs only,0,unit_lab;conditionality,TRUE
+figures/fig2_oc_curves.csv,text differs only,0,conditionality,TRUE
+figures/fig3_mechanism_oc.csv,text differs only,0,conditionality,TRUE
+figures/fig4_auroc.csv,text differs only,0,conditionality,TRUE
+figures/fig5_bias_precision.csv,text differs only,0,conditionality,TRUE
+figures/fig6_power_n.csv,text differs only,0,conditionality,TRUE
+figures/fig7_weight_forest.csv,text differs only,0,conditionality,TRUE
+samplesize/assurance_cv_inputs.csv,text differs only,0,conditionality,TRUE
+samplesize/power_analytic.csv,text differs only,0,conditionality,TRUE
+samplesize/power_sim.csv,text differs only,0,conditionality,TRUE
+samplesize/syneos_comparison.csv,text differs only,0,conditionality,TRUE
+samplesize/weight_moments.csv,text differs only,0,conditionality,TRUE
+summary/auroc_diff.csv,text differs only,0,conditionality,TRUE
+summary/auroc.csv,text differs only,0,conditionality,TRUE
+summary/m15_applicability.csv,text differs only,0,conditionality,TRUE
+summary/m15_assumptions_register.csv,rows differ (plan-derived table),,"",TRUE
+summary/m15_deviations.csv,rows differ (plan-derived table),,"",TRUE
+summary/m15_summary_table.csv,text differs only,0,item;model_1;kovalenko_2016,TRUE
+summary/mech_crossing_diff.csv,text differs only,0,conditionality,TRUE
+summary/mech_crossing.csv,text differs only,0,conditionality,TRUE
+summary/mech_pass.csv,text differs only,0,conditionality,TRUE
+summary/oc_consumer_risk.csv,text differs only,0,conditionality,TRUE
+summary/oc_paired_diff.csv,text differs only,0,conditionality,TRUE
+summary/oc_pass.csv,text differs only,0,conditionality,TRUE
+summary/oc_weight_shape.csv,text differs only,0,conditionality,TRUE
+summary/pauc_zero_share.csv,text differs only,0,conditionality,TRUE
+weight/sensitivity_coefficients.csv,text differs only,0,conditionality,TRUE
+weight/weight_ratio.csv,text differs only,0,conditionality,TRUE

@@ -159,3 +159,16 @@ run log: /home/user/dupilumab-sim/logs/m15_amend_mechcheck_20261021T031119.log
 2026-10-21T04:11:54Z done scripts/77_m15_amend.R mechcheck in 12s
 2026-10-21T04:11:54Z start scripts/71_m15_populations.R truthx 4
 2026-10-21T04:14:33Z done scripts/71_m15_populations.R truthx 4 in 159s
+2026-10-21T05:03:35Z start scripts/71_m15_populations.R weight 4
+2026-10-21T05:09:45Z done scripts/71_m15_populations.R weight 4 in 370s
+2026-10-21T05:09:45Z start scripts/74_m15_samplesize.R 4
+2026-10-21T05:10:10Z done scripts/74_m15_samplesize.R 4 in 25s
+2026-10-21T05:10:10Z start scripts/75_m15_summary.R tables 4
+2026-10-21T05:17:38Z done scripts/75_m15_summary.R tables 4 in 448s
+2026-10-21T05:17:38Z start scripts/75_m15_summary.R figures
+2026-10-21T05:17:50Z done scripts/75_m15_summary.R figures in 12s
+2026-10-21T05:17:50Z start scripts/75_m15_summary.R summary
+2026-10-21T05:17:56Z done scripts/75_m15_summary.R summary in 6s
+2026-10-21T05:17:56Z start scripts/77_m15_amend.R postcheck results/m15/amend1/pre_rerun_copy
+2026-10-21T05:17:59Z done scripts/77_m15_amend.R postcheck results/m15/amend1/pre_rerun_copy in 3s
+2026-10-21T05:17:59Z stage a1post complete
