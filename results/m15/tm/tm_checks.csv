@@ -1,0 +1,14 @@
+check,value,limit,pass
+a_regimen_equals_registered_single_dose_solver,0,1e-12,TRUE
+b_typical_equals_m15_typical_metrics_k2020,9.91069333267092e-08,1e-05,TRUE
+b_typical_equals_m15_typical_metrics_k2016,5.01065533509149e-09,1e-05,TRUE
+c_ftm_at_threshold_concentration_equals_threshold,1.11022302462516e-16,1e-12,TRUE
+d_at_most_one_rising_and_one_falling_crossing,1,1,TRUE
+e_resolved_concentration_at_crossing_50,6.34121465781234e-07,1e-04,TRUE
+e_resolved_concentration_at_crossing_80,9.3473306994607e-07,1e-04,TRUE
+e_resolved_concentration_at_crossing_95,1.68207913204821e-05,1e-04,TRUE
+f_all_reported_values_finite,0,0,TRUE
+f_amount_remaining_at_auc_inf_time_over_last_dose,3.5013240169277e-08,1e-07,TRUE
+"f_subjects_using_fallback_time (count, descriptive)",0,,TRUE
+g_regimen_equals_independent_event_table,0,1e-10,TRUE
+g_amount_jump_at_each_repeat_dose_equals_dose_times_F,1.23096149162727e-07,1e-04,TRUE

@@ -66,3 +66,5 @@ session_info:
   loaded via a namespace (and not attached):
   [1] compiler_4.3.3 tools_4.3.3    renv_1.2.4    
 [09:58:12] jobs 84; seed 225297860; grid A 10800 points (to 140 d), grid B 1402 points
+[10:02:10] jobs done in 3.9 min
+[10:02:14] checks: 13 of 13 pass; subjects rows 84000; fallback 0

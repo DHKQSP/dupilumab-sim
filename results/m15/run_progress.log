@@ -276,3 +276,5 @@ Calls: source ... suppressPackageStartupMessages -> withCallingHandlers -> libra
 Execution halted
 2026-10-21T09:58:11Z note: the first tm launch stopped at package loading (R library environment not activated in the launching shell; no computation); relaunched at commit 1a371e7
 2026-10-21T09:58:11Z start scripts/78_m15_tm_fraction.R run 4
+2026-10-21T10:02:16Z done scripts/78_m15_tm_fraction.R run 4 in 245s
+2026-10-21T10:02:16Z start scripts/78_m15_tm_fraction.R report
