@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # run_m15.sh — 계획서 11절 순서대로 [2]~[8] 실행(D-068). 단계마다 진행 줄을 results/m15/run_progress.log에 남긴다.
-# 사용법: bash scripts/run_m15.sh <stage> ; stage = prep | pilot | full | post | a1prep | a1pilot | a1full(개정 1, 계획서 16.12절)
+# 사용법: bash scripts/run_m15.sh <stage> ; stage = prep | pilot | full | post | a1prep | a1pilot | a1full | a1post | a1p1(개정 1, 계획서 16.12절)
 #   prep  : 집단 → 참값 → 기존 엔진 대조(중단 규칙) → [6] → 부분 AUC 검증(중단 규칙)
 #   pilot : 예비 실행(k2020 S1 300 시험 1~500, k2020 S2 200 시험 1~50; [3]·[4]) → 점검(실패 시 종료 코드 3)
 #   full  : 본 실행(Model 1 칸 먼저, Kovalenko 2016 [4] 200 mg 마지막; 이미 쓴 묶음은 건너뜀) → 보충 → 확장 → 체중 모양
@@ -62,6 +62,24 @@ case "${1:-}" in
     R scripts/77_m15_amend.R mechcheck
     R scripts/71_m15_populations.R truthx 4
     ;;
-  *) echo "usage: bash scripts/run_m15.sh <prep|pilot|full|post|a1prep|a1pilot|a1full>"; exit 1 ;;
+  a1post)    # 16.12절 4단계: 표기 반영 사후 단계 재실행(깨끗한 커밋) → 재실행 전 사본과 비교(숫자 열 동일)
+    B=results/m15/amend1/pre_rerun_copy; rm -rf "$B"; mkdir -p "$B"
+    for d in summary samplesize weight figures; do mkdir -p "$B/$d"; cp results/m15/$d/*.csv "$B/$d/"; done
+    [ -f results/m15/individual/individual_subjects.rds ] || { echo "$(date -u +%FT%TZ) STOP individual_subjects.rds missing" >> "$P"; exit 3; }
+    R scripts/71_m15_populations.R weight 4
+    R scripts/74_m15_samplesize.R 4
+    R scripts/75_m15_summary.R tables 4
+    R scripts/75_m15_summary.R figures
+    R scripts/75_m15_summary.R summary
+    R scripts/77_m15_amend.R postcheck "$B"
+    ;;
+  a1p1)      # 16.12절 5~6단계 나머지: 교차 확장 → P1 추출 → 저장 반복 사후 예측 점검 표 → P1 보고 → 부록 초안
+    R scripts/77_m15_amend.R mechx
+    R scripts/77_m15_amend.R extract 4
+    R scripts/77_m15_amend.R ppcstored
+    R scripts/77_m15_amend.R p1report
+    R scripts/77_m15_amend.R appendix
+    ;;
+  *) echo "usage: bash scripts/run_m15.sh <prep|pilot|full|post|a1prep|a1pilot|a1full|a1post|a1p1>"; exit 1 ;;
 esac
 echo "$(date -u +%FT%TZ) stage ${1} complete" >> "$P"
