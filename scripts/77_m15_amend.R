@@ -483,6 +483,14 @@ if (mode == "p1report") {
     own[[c(schedule = "schedule", `stratum term` = "model", boundary = "boundary", population = "population", dose = "dose")[[ct]]]] <- NULL
     kk <- intersect(names(own), names(w)); isown <- Reduce(`&`, lapply(kk, function(k_) w[[k_]] == own[[k_]])); stopifnot(sum(isown) == 1)        # 행 자신의 칸은 빼고 센다(16.10절)
     wo <- w[!isown]; set(ROB, i, "other_cells_same_class", sprintf("%d of %d other cells", sum(substr(wo$cl, 1, 1) == substr(r$class, 1, 1)), nrow(wo))) }
+  for (i in which(!grepl("power", ROB$metric))) { r <- ROB[i]                                                                   # 검정력 외 행(16.10절): 일정 대비는 다른 집단 칸, 집단 대비는 다른 두 일정
+    if (grepl("_S[12]$", r$row_id)) { cp <- ROB[row_id == if (grepl("_S1$", r$row_id)) sub("_S1$", "_S2", r$row_id) else sub("_S2$", "_S1", r$row_id)]; stopifnot(nrow(cp) == 1)
+      set(ROB, i, "other_cells_same_class", sprintf("%d of 1 other cells (other population)", as.integer(substr(cp$class, 1, 1) == substr(r$class, 1, 1)))); next }
+    oth <- c("ADD64_71", "RM36_50")
+    xs <- lapply(oth, function(sn) if (r$row_id == "pop_auroc") list(au_("k2020", "population S2 - S1", "S2", sn), au_("k2016", "population S2 - S1", "S2", sn)) else {
+      mech <- sub("^pop_cross_([A-Za-z]+)_(down|up)$", "\\1", r$row_id); sd_ <- sub("^pop_cross_([A-Za-z]+)_(down|up)$", "\\2", r$row_id); list(cr_("k2020", "population S2 - S1", "S2", sn, mech, sd_), cr_("k2016", "population S2 - S1", "S2", sn, mech, sd_)) })
+    cl_o <- vapply(xs, function(x) cls(sgn(x[[1]][1], x[[1]][2], x[[1]][3], r$threshold), sgn(x[[2]][1], x[[2]][2], x[[2]][3], r$threshold), x[[1]][1], x[[2]][1]), "")
+    set(ROB, i, "other_cells_same_class", sprintf("%d of %d other cells (other schedules)", sum(substr(cl_o, 1, 1) == substr(r$class, 1, 1)), length(cl_o))) }
   # 표본 수 행: 130명 모의 검정력의 Wilson 하한 >= 90%(2.1절 1번의 검정력 부분), 분석식 90% 필요 n
   ss <- rbindlist(lapply(c("S1", "S2"), function(pv) rbindlist(lapply(c("k2020", "k2016"), function(m) {
     o <- OCP[pk_model == m & population == pv & dose_mg == DOSE & schedule == "B0" & boundary == "fixed75" & model == "M1" & n_rand == NBASE & abs(g - G) < 1e-9]
@@ -968,7 +976,8 @@ if (mode == "final") {
   # 3) 요약 표 1개
   T <- list(); addt <- function(item, v1, v2, src) T[[length(T) + 1]] <<- data.table(item = item, model_1 = v1, kovalenko_2016 = v2, source = src)
   fp <- function(lab, ug, nr = "registered") { r <- RT[mapping == lab & wmode == "primary" & nca_rule == nr & between_study_cv_pct == ug & rule == "any (registered rule)"]; stopifnot(nrow(r) == 1); r }
-  addt("P3 re-run after an implementation error (plan section 16.10)", "not triggered: no implementation error of the registered models was found (no source excerpt or code defect showing one; the weight-effect check and the identity checks passed)", "not triggered", "plan section 16.10; amend1/weight_check.csv; amend1/mechsuppx_identity_check.csv")
+  addt("P3 re-run after an implementation error (plan section 16.10)", sprintf("not triggered: no implementation error of the registered models was found (no source excerpt or code defect showing one; the identity checks passed; the weight-effect check met its 1e-6 tolerance in %d of %d rows, and the other %d (%s) are within the registered solver tolerance, deviation 13.3 item 15)", sum(WC$pass), nrow(WC), sum(!WC$pass), paste(unique(WC[pass == FALSE, sprintf("%s, %g mg, %s", MLAB[pk_model], dose_mg, metric)]), collapse = "; ")), "not triggered",
+         "plan section 16.10; results/m15/amend1/weight_check.csv; results/m15/amend1/mechsuppx_identity_check.csv")
   addt("Posterior predictive check: misfit rule met on the observed data (fixed weight assumption)", ifelse(fp("a_model1", 0)$met, "met", "not met"), ifelse(fp("a_k2016", 0)$met, "met", "not met"), "amend1/ppc/rule_false_positive.csv")
   ON10 <- any(RT$between_study_cv_pct == 10)
   fpt <- function(lab, nr) if (ON10) sprintf("%s%% / %s%%", fmt(fp(lab, 0, nr)$false_positive_pct), fmt(fp(lab, 10, nr)$false_positive_pct)) else sprintf("%s%% (between-study sensitivity not run: no between-arm variation detected)", fmt(fp(lab, 0, nr)$false_positive_pct))
@@ -981,15 +990,15 @@ if (mode == "final") {
        sprintf("%s / %s; %s", b7("k2016", "^six"), b7("k2016", "^four"), rd7("k2016")), "amend1/ppc/seven_arm_bias.csv")
   addt("Between-arm variation of the six observed 300 mg arm means (Cochran Q p-value)", sprintf("p %s (%s)", formatC(HCT$p_value[1], format = "f", digits = 3), if (isTRUE(HCT$present[1])) "present" else "not detected"), "same data", "amend1/ppc/between_arm_check.csv")
   as_ <- function(sid, pv, nr) { z <- ASR[set_id == sid & population == pv & n_rand == nr]; stopifnot(nrow(z) == 1); sprintf("%s%% (2.5th to 97.5th percentile %s to %s; sets at least 90%%: %s%%; uncorrected mean %s%%)", fmt(z$assurance_param_pct), fmt(z$p025_pct), fmt(z$p975_pct), fmt(z$share_sets_ge90_pct), fmt(z$assurance_uncorrected_pct)) }
-  for (nr in c(107, 130)) for (pv in c("S1", "S2")) addt(sprintf("Assurance over parameter uncertainty, %d randomized per arm, %s population (Model 1: borrowed Kovalenko 2016 relative widths on eight structural parameters; Kovalenko 2016: bootstrap percentiles, all parameters; control-variate corrected, so a percentile can exceed 100%%; parameter-uncertainty distribution, not a confidence interval)", nr, PLAB[[pv]]),
+  for (nr in c(107, 130)) for (pv in c("S1", "S2")) addt(sprintf("Assurance over parameter uncertainty, %d randomized per arm, %s population (Model 1: borrowed uncertainty, Kovalenko 2016 relative widths on eight structural parameters; Kovalenko 2016: bootstrap percentiles, full set with Km and the additive residual fixed; control-variate corrected, so a percentile can exceed 100%%; parameter-uncertainty distribution, not a confidence interval)", nr, PLAB[[pv]]),
                                                          as_("k2020_b16", pv, nr), as_("k2016", pv, nr), "amend1/param_assurance/assurance_param.csv")
-  for (nr in c(107, 130)) addt(sprintf("Assurance, matched scope (eight structural parameters only; Model 1: borrowed uncertainty, Kovalenko 2016 relative widths), %d per arm, global population", nr), as_("k2020_b16", "S1", nr), as_("k2016_thetas", "S1", nr), "amend1/param_assurance/assurance_param.csv")
+  for (nr in c(107, 130)) addt(sprintf("Assurance, matched scope (eight structural parameters only; Model 1: borrowed uncertainty, Kovalenko 2016 relative widths; control-variate corrected; parameter-uncertainty distribution, not a confidence interval), %d per arm, global population", nr), as_("k2020_b16", "S1", nr), as_("k2016_thetas", "S1", nr), "amend1/param_assurance/assurance_param.csv")
   wp <- function(sid) { z <- WRP[set_id == sid & population == "S1" & metric == "AUCinf"][order(prob)]; sprintf("%s (%s to %s) / %s (%s to %s)", fmt(z$set0[1], 3), fmt(z$p025[1], 3), fmt(z$p975[1], 3), fmt(z$set0[2], 3), fmt(z$p025[2], 3), fmt(z$p975[2], 3)) }
   addt("Weight effect, global 5th / 95th percentile weight, typical AUC0-inf ratio with parameter-uncertainty interval (Model 1: borrowed uncertainty, Kovalenko 2016 relative widths)", wp("k2020_b16"), wp("k2016"), "amend1/param_assurance/weight_ratio_param.csv")
   ap <- function(m) paste(APL[model == m, sprintf("%s %s%%", PLAB[population], fmt(outside_pct))], collapse = "; ")
   addt("Enrolled weights outside the documented range", ap("Model 1"), ap("Kovalenko 2016"), "amend1/final/applicability_amend1.csv")
-  cl <- ROB[, .N, by = .(k = substr(class, 1, 1))]
-  addt("Robustness classification of design contrasts (rows by class)", paste(sprintf("class %s: %d", cl$k, cl$N), collapse = "; "), "", "amend1/final/robustness_table.csv")
+  cl <- ROB[, .N, by = .(k = fifelse(grepl("^[1-4] ", class), paste("class", substr(class, 1, 1)), class))]
+  addt("Robustness classification of design contrasts (rows by class)", paste(sprintf("%s: %d", cl$k, cl$N), collapse = "; "), "", "amend1/final/robustness_table.csv")
   TAB <- rbindlist(T); m15_fwrite_cond(TAB, file.path(FD_, "summary_table.csv"), COND)
   # 4) 결론 5줄 이내
   P1C <- readLines(file.path(PD1, "p1_key_conclusions.md"), warn = FALSE); p1c <- grep("^[1-5]\\. ", P1C, value = TRUE); stopifnot(length(p1c) == 5)
@@ -1003,7 +1012,7 @@ if (mode == "final") {
          sub("^4\\. ", "5. ", p1c[4]))
   stopifnot(length(C) <= 5)
   writeLines(c("# Final key conclusions (amendment 1; at most five; generated from the result files)", "", if (nzchar(COND)) c(COND, "") else NULL, C), file.path(FD_, "key_conclusions.md"))
-  md <- c("# Amendment 1 final summary", "", "## Summary table", "", "| Item | Model 1 | Kovalenko 2016 | Source |", "|---|---|---|---|", sprintf("| %s | %s | %s | results/m15/%s |", TAB$item, TAB$model_1, TAB$kovalenko_2016, TAB$source), "",
+  md <- c("# Amendment 1 final summary", "", "## Summary table", "", "| Item | Model 1 | Kovalenko 2016 | Source |", "|---|---|---|---|", sprintf("| %s | %s | %s | %s |", TAB$item, TAB$model_1, TAB$kovalenko_2016, ifelse(grepl("^amend1/", TAB$source), paste0("results/m15/", TAB$source), TAB$source)), "",
           "## Robustness table", "", "| Contrast | Metric | Cell | Model 1 as implemented | Model 1 with a corrected mapping | Kovalenko 2016 | Class |", "|---|---|---|---|---|---|---|",
           sprintf("| %s | %s | %s | %s | %s | %s | %s |", RF$contrast, RF$metric, RF$cell, RF$model_1_as_implemented, RF$model_1_corrected_mapping, RF$kovalenko_2016, RF$class), "",
           "## Applicability (section 16.9)", "", "| Population | Model | Range basis | Range (kg) | Enrolled (kg) | Outside (%) | Disease dimension |", "|---|---|---|---|---|---|---|",

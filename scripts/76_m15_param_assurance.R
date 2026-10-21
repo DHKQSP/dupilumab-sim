@@ -141,7 +141,7 @@ if (mode == "summary") {
     a <- merge(a, mc, by = c("pk_model", "population"))
     a[, `:=`(n_rand = nr, n_eval = 0.9 * nr, true_gmr = GMR, distribution_label = "parameter-uncertainty distribution (not a confidence interval)",
              truncated_distribution = n_sets_redrawn > as.integer(AU$redraw_label_threshold))][] }))
-  A[, `:=`(dose_mg = DOSE, schedule = "B0", boundary = BNDY, model = AM)]
+  A[, `:=`(dose_mg = DOSE, schedule = "B0", boundary = BNDY, model = AM, set_label = vapply(set_id, function(x) as.character(SETS[[x]]$label), ""))]
   setcolorder(A, c("set_id", "pk_model", "population", "dose_mg", "schedule", "boundary", "model", "n_rand", "n_eval", "true_gmr"))
   m15_fwrite_cond(A, file.path(od, "assurance_param.csv"), COND)
   # 8.6절 3번: 전형 대상자 체중 효과 비의 파라미터 불확실성 구간(세트 1~N의 2.5~97.5번째 백분위수), 세트 0 = 저장 값과 대조
@@ -151,6 +151,7 @@ if (mode == "summary") {
           by = .(set_id, pk_model, population, metric, prob)]
   WS[, stored := WR[match(paste(WS$pk_model, DOSE, WS$population, WS$prob, WS$metric), paste(WR$pk_model, WR$dose_mg, WR$population, WR$prob, WR$metric)), typical_ratio]]
   WS[, set0_matches_stored := abs(set0 / stored - 1) < 1e-6]
+  WS[, `:=`(set_label = vapply(set_id, function(x) as.character(SETS[[x]]$label), ""), distribution_label = "parameter-uncertainty distribution (not a confidence interval)")]
   m15_fwrite_cond(WS[, dose_mg := DOSE], file.path(od, "weight_ratio_param.csv"), COND)
   print(A); print(WS); append_run_log(lf, sprintf("done: %d sets", NSETS))
 }
