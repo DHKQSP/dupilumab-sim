@@ -66,3 +66,7 @@ session_info:
   
   loaded via a namespace (and not attached):
   [1] compiler_4.3.3 tools_4.3.3    renv_1.2.4    
+[06:43:55] 44 arm jobs simulated in 11.10607 mins
+[06:44:15] identity check a_model1 vs stored k2020: rows 110000/110000, max relative difference 5.0774e-15
+[06:44:15] identity check a_k2016 vs stored k2016: rows 110000/110000, max relative difference 5.02645e-15
+[06:45:04] done (alt): a_model1 fails under the fixed weight assumption only; a_k2016 passes under both weight assumptions
