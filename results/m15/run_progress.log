@@ -266,3 +266,13 @@ Execution halted
 2026-10-21T07:42:25Z done scripts/77_m15_amend.R final in 4s
 2026-10-21T07:42:25Z start scripts/75_m15_summary.R summary
 2026-10-21T07:42:31Z done scripts/75_m15_summary.R summary in 6s
+2026-10-21T09:57:22Z note: addendum 1 (D-071) stage tm started at registered commit 1a371e7
+2026-10-21T09:57:22Z start scripts/78_m15_tm_fraction.R run 4
+2026-10-21T09:57:24Z FAILED scripts/78_m15_tm_fraction.R run 4 (exit 1)
+- One or more packages recorded in the lockfile are not installed.
+- Use `renv::status()` for more details.
+Error in library(yaml) : there is no package called ‘yaml’
+Calls: source ... suppressPackageStartupMessages -> withCallingHandlers -> library
+Execution halted
+2026-10-21T09:58:11Z note: the first tm launch stopped at package loading (R library environment not activated in the launching shell; no computation); relaunched at commit 1a371e7
+2026-10-21T09:58:11Z start scripts/78_m15_tm_fraction.R run 4
