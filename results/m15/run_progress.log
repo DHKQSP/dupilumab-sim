@@ -172,3 +172,17 @@ run log: /home/user/dupilumab-sim/logs/m15_amend_mechcheck_20261021T031119.log
 2026-10-21T05:17:56Z start scripts/77_m15_amend.R postcheck results/m15/amend1/pre_rerun_copy
 2026-10-21T05:17:59Z done scripts/77_m15_amend.R postcheck results/m15/amend1/pre_rerun_copy in 3s
 2026-10-21T05:17:59Z stage a1post complete
+2026-10-21T05:18:33Z start scripts/77_m15_amend.R mechx
+2026-10-21T05:19:04Z done scripts/77_m15_amend.R mechx in 31s
+2026-10-21T05:19:04Z start scripts/77_m15_amend.R extract 4
+2026-10-21T05:19:25Z done scripts/77_m15_amend.R extract 4 in 21s
+2026-10-21T05:19:25Z start scripts/77_m15_amend.R ppcstored
+2026-10-21T05:19:30Z done scripts/77_m15_amend.R ppcstored in 5s
+2026-10-21T05:19:30Z start scripts/77_m15_amend.R p1report
+2026-10-21T05:19:33Z FAILED scripts/77_m15_amend.R p1report (exit 1)
+- One or more packages recorded in the lockfile are not installed.
+- Use `renv::status()` for more details.
+run log: /home/user/dupilumab-sim/logs/m15_amend_p1report_20261021T051931.log
+Error in if (unit == "pp") 1 else 3 : the condition has length > 1
+Calls: [ ... ci_ -> ifelse -> sprintf -> fmt -> ifelse -> formatC
+Execution halted
