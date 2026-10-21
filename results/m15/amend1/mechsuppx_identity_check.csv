@@ -1,5 +1,49 @@
 cell,check,n_rows,n_stored,max_rel_diff,pass
-k2020_S1_300,"identity rows (vi 1) vs mech, all schedules",150,150,0,TRUE
-k2020_S1_300,B0 versions 1 to 16 vs mechsupp,800,800,0,TRUE
+k2020_S1_300,"identity rows (vi 1) vs mech, all schedules",3000,3000,0,TRUE
+k2020_S1_300,B0 versions 1 to 16 vs mechsupp,16000,16000,0,TRUE
 k2020_S1_300,counts cnt_mechsuppx_00001_00050.csv.gz,288,288,0,TRUE
+k2020_S1_300,counts cnt_mechsuppx_00051_00100.csv.gz,288,288,0,TRUE
+k2020_S1_300,counts cnt_mechsuppx_00101_00150.csv.gz,288,288,0,TRUE
+k2020_S1_300,counts cnt_mechsuppx_00151_00200.csv.gz,288,288,0,TRUE
+k2020_S1_300,counts cnt_mechsuppx_00201_00250.csv.gz,288,288,0,TRUE
+k2020_S1_300,counts cnt_mechsuppx_00251_00300.csv.gz,288,288,0,TRUE
+k2020_S1_300,counts cnt_mechsuppx_00301_00350.csv.gz,288,288,0,TRUE
+k2020_S1_300,counts cnt_mechsuppx_00351_00400.csv.gz,288,288,0,TRUE
+k2020_S1_300,counts cnt_mechsuppx_00401_00450.csv.gz,288,288,0,TRUE
+k2020_S1_300,counts cnt_mechsuppx_00451_00500.csv.gz,288,288,0,TRUE
+k2020_S1_300,counts cnt_mechsuppx_00501_00550.csv.gz,288,288,0,TRUE
+k2020_S1_300,counts cnt_mechsuppx_00551_00600.csv.gz,288,288,0,TRUE
+k2020_S1_300,counts cnt_mechsuppx_00601_00650.csv.gz,288,288,0,TRUE
+k2020_S1_300,counts cnt_mechsuppx_00651_00700.csv.gz,288,288,0,TRUE
+k2020_S1_300,counts cnt_mechsuppx_00701_00750.csv.gz,288,288,0,TRUE
+k2020_S1_300,counts cnt_mechsuppx_00751_00800.csv.gz,288,288,0,TRUE
+k2020_S1_300,counts cnt_mechsuppx_00801_00850.csv.gz,288,288,0,TRUE
+k2020_S1_300,counts cnt_mechsuppx_00851_00900.csv.gz,288,288,0,TRUE
+k2020_S1_300,counts cnt_mechsuppx_00901_00950.csv.gz,288,288,0,TRUE
+k2020_S1_300,counts cnt_mechsuppx_00951_01000.csv.gz,288,288,0,TRUE
 k2020_S1_300,versions.csv rows 1 to 16,16,16,0,TRUE
+k2020_S2_300,"identity rows (vi 1) vs mech, all schedules",3000,3000,0,TRUE
+k2020_S2_300,B0 versions 1 to 16 vs mechsupp,16000,16000,0,TRUE
+k2020_S2_300,counts cnt_mechsuppx_00001_00050.csv.gz,288,288,0,TRUE
+k2020_S2_300,counts cnt_mechsuppx_00051_00100.csv.gz,288,288,0,TRUE
+k2020_S2_300,counts cnt_mechsuppx_00101_00150.csv.gz,288,288,0,TRUE
+k2020_S2_300,counts cnt_mechsuppx_00151_00200.csv.gz,288,288,0,TRUE
+k2020_S2_300,counts cnt_mechsuppx_00201_00250.csv.gz,288,288,0,TRUE
+k2020_S2_300,counts cnt_mechsuppx_00251_00300.csv.gz,288,288,0,TRUE
+k2020_S2_300,counts cnt_mechsuppx_00301_00350.csv.gz,288,288,0,TRUE
+k2020_S2_300,counts cnt_mechsuppx_00351_00400.csv.gz,288,288,0,TRUE
+k2020_S2_300,counts cnt_mechsuppx_00401_00450.csv.gz,288,288,0,TRUE
+k2020_S2_300,counts cnt_mechsuppx_00451_00500.csv.gz,288,288,0,TRUE
+k2020_S2_300,counts cnt_mechsuppx_00501_00550.csv.gz,288,288,0,TRUE
+k2020_S2_300,counts cnt_mechsuppx_00551_00600.csv.gz,288,288,0,TRUE
+k2020_S2_300,counts cnt_mechsuppx_00601_00650.csv.gz,288,288,0,TRUE
+k2020_S2_300,counts cnt_mechsuppx_00651_00700.csv.gz,288,288,0,TRUE
+k2020_S2_300,counts cnt_mechsuppx_00701_00750.csv.gz,288,288,0,TRUE
+k2020_S2_300,counts cnt_mechsuppx_00751_00800.csv.gz,288,288,0,TRUE
+k2020_S2_300,counts cnt_mechsuppx_00801_00850.csv.gz,288,288,0,TRUE
+k2020_S2_300,counts cnt_mechsuppx_00851_00900.csv.gz,288,288,0,TRUE
+k2020_S2_300,counts cnt_mechsuppx_00901_00950.csv.gz,288,288,0,TRUE
+k2020_S2_300,counts cnt_mechsuppx_00951_01000.csv.gz,288,288,0,TRUE
+k2020_S2_300,versions.csv rows 1 to 16,16,16,0,TRUE
+k2016_S1_300,"identity rows (vi 1) vs mech, all schedules",3000,3000,0,TRUE
+k2016_S2_300,"identity rows (vi 1) vs mech, all schedules",3000,3000,0,TRUE

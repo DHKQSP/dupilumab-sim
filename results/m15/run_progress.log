@@ -150,3 +150,12 @@ run log: /home/user/dupilumab-sim/logs/m15_amend_mechcheck_20261021T031119.log
 2026-10-21T03:21:21Z done scripts/77_m15_amend.R weightcheck in 29s
 2026-10-21T03:29:12Z done scripts/73_m15_trials.R mechsuppx k2020 S1 300 1 1000 4 in 1030s
 2026-10-21T03:29:12Z start scripts/73_m15_trials.R mechsuppx k2020 S2 300 1 1000 4
+2026-10-21T03:46:19Z done scripts/73_m15_trials.R mechsuppx k2020 S2 300 1 1000 4 in 1027s
+2026-10-21T03:46:19Z start scripts/73_m15_trials.R mechsuppx k2016 S1 300 1 1000 4
+2026-10-21T03:58:58Z done scripts/73_m15_trials.R mechsuppx k2016 S1 300 1 1000 4 in 759s
+2026-10-21T03:58:58Z start scripts/73_m15_trials.R mechsuppx k2016 S2 300 1 1000 4
+2026-10-21T04:11:42Z done scripts/73_m15_trials.R mechsuppx k2016 S2 300 1 1000 4 in 764s
+2026-10-21T04:11:42Z start scripts/77_m15_amend.R mechcheck
+2026-10-21T04:11:54Z done scripts/77_m15_amend.R mechcheck in 12s
+2026-10-21T04:11:54Z start scripts/71_m15_populations.R truthx 4
+2026-10-21T04:14:33Z done scripts/71_m15_populations.R truthx 4 in 159s
