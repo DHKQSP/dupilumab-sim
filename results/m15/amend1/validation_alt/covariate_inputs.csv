@@ -1,0 +1,13 @@
+pk_model,covariate,in_model,healthy_input,flag
+a_model1,Body weight,Yes: Vc x (WT / 75 kg)^0.711,simulated from each study's or scenario's weight distribution,none
+a_model1,EASI,No,none (not a model input),none: no patient EASI value is used
+a_model1,Albumin,No,none (not a model input),none
+a_model1,Race,No,none (ethnicity enters only through the weight distribution),none
+a_model1,BMI,No,reported only (no effect on PK),none
+a_model1,Sex,No,sex ratio 0.5 (assumption); weight bounds and height only,none
+a_k2016,Body weight,Yes: Vc x (WT / 75 kg)^0.705,simulated from each study's or scenario's weight distribution,none
+a_k2016,EASI,No,none (not a model input),none: no patient EASI value is used
+a_k2016,Albumin,No,none (not a model input),none
+a_k2016,Race,No,none (ethnicity enters only through the weight distribution),none
+a_k2016,BMI,No,reported only (no effect on PK),none
+a_k2016,Sex,No,sex ratio 0.5 (assumption); weight bounds and height only,none
