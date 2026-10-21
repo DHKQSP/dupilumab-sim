@@ -236,3 +236,7 @@ Execution halted
 2026-10-21T06:50:52Z NOTE a1p2full restarted: the first launch (06:47:52) was ended with its shell after 3 batches; completed batches are skipped
 2026-10-21T06:50:52Z start scripts/76_m15_param_assurance.R sets k2020_b16 0 1000 4
 2026-10-21T06:52:10Z NOTE correction: the first a1p2full launch (06:47:52, PID 15617) had not ended; the duplicate launched at 06:50:52 was stopped at 06:51 (deterministic sets, no file affected); the first launch continues
+2026-10-21T07:04:36Z done scripts/76_m15_param_assurance.R sets k2020_b16 0 1000 4 in 1004s
+2026-10-21T07:04:36Z start scripts/76_m15_param_assurance.R sets k2016 0 1000 4
+2026-10-21T07:09:55Z start scripts/77_m15_amend.R ppc
+2026-10-21T07:10:25Z done scripts/77_m15_amend.R ppc in 30s
