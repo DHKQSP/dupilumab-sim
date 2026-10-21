@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # run_m15.sh — 계획서 11절 순서대로 [2]~[8] 실행(D-068). 단계마다 진행 줄을 results/m15/run_progress.log에 남긴다.
-# 사용법: bash scripts/run_m15.sh <stage> ; stage = prep | pilot | full | post
+# 사용법: bash scripts/run_m15.sh <stage> ; stage = prep | pilot | full | post | a1prep | a1pilot | a1full(개정 1, 계획서 16.12절)
 #   prep  : 집단 → 참값 → 기존 엔진 대조(중단 규칙) → [6] → 부분 AUC 검증(중단 규칙)
 #   pilot : 예비 실행(k2020 S1 300 시험 1~500, k2020 S2 200 시험 1~50; [3]·[4]) → 점검(실패 시 종료 코드 3)
 #   full  : 본 실행(Model 1 칸 먼저, Kovalenko 2016 [4] 200 mg 마지막; 이미 쓴 묶음은 건너뜀) → 보충 → 확장 → 체중 모양
@@ -50,6 +50,18 @@ case "${1:-}" in
     R scripts/75_m15_summary.R figures
     R scripts/75_m15_summary.R summary
     ;;
-  *) echo "usage: bash scripts/run_m15.sh <prep|pilot|full|post>"; exit 1 ;;
+  a1prep)    # 개정 1(계획서 16.12절 3단계): Day 57·64·71 정량 몫, 항약물항체 후보일 농도, 분산 분해(저장 결과와 일치 점검)
+    R scripts/72_m15_individual.R amend 4
+    ;;
+  a1pilot)   # 16.12절 5단계 예비: mechsuppx Model 1 S1 시험 1~50 → 일치 점검(불일치면 종료 코드 3)
+    R scripts/73_m15_trials.R mechsuppx k2020 S1 300 1 50 4
+    R scripts/77_m15_amend.R mechcheck k2020 S1
+    ;;
+  a1full)    # 16.12절 5단계 본 실행: 네 칸 1~1,000(이미 쓴 묶음은 건너뜀) → 일치 점검 → 참값 확장
+    for m in k2020 k2016; do for pop in S1 S2; do R scripts/73_m15_trials.R mechsuppx $m $pop 300 1 1000 4; done; done
+    R scripts/77_m15_amend.R mechcheck
+    R scripts/71_m15_populations.R truthx 4
+    ;;
+  *) echo "usage: bash scripts/run_m15.sh <prep|pilot|full|post|a1prep|a1pilot|a1full>"; exit 1 ;;
 esac
 echo "$(date -u +%FT%TZ) stage ${1} complete" >> "$P"
