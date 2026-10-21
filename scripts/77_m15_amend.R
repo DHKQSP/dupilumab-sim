@@ -149,16 +149,18 @@ if (mode == "mechx") {
 if (mode == "weightcheck") {
   lf <- start_run_log("m15_amend_weightcheck", master_seed = MS, run_mode = "final")
   WR <- fread(file.path(RD, "weight", "weight_ratio.csv")); TOL <- as.numeric(AM$weight_check$tolerance); REF <- as.numeric(CFG$weight_effect$reference_kg)
-  # 독립 계산(solve_model 따로 호출): 전형 대상자(η = 0) AUC0-inf = 4,000일까지 ODE 누적 AUC(조밀 시간 격자; 400일에서 4,000일로 한 번에 건너뛰면 transit 모델 풀이가 실패),
+  # 독립 계산(solve_model 따로 호출): 전형 대상자(η = 0) AUC0-inf = 등록 정의대로 400일까지 ODE 누적 AUC(남은 양 < 1e-7 x 용량 확인;
+  #   transit 구조 모델은 약 2,700일 이후 수치 언더플로로 NaN이 되어 4,000일 값을 쓰지 않는다),
   # Cmax = 등록 정의(0.01일 격자 최댓값의 세 점 포물선 보정, 8.6절). 참고 열: 0.001일 격자 Cmax 비(수치 정밀도)
-  TT <- c(seq(0.001, 60, by = 0.001), seq(61, 400, by = 1), seq(410, 4000, by = 10))
+  TT <- c(seq(0.001, 60, by = 0.001), seq(61, 400, by = 1))
   pmax3 <- function(time, C) { i <- which.max(C); v <- C[i]
     if (i > 1 && i < length(C)) { tt <- time[(i - 1):(i + 1)]; cc <- C[(i - 1):(i + 1)]; A <- cbind(tt^2, tt, 1); co <- solve(A, cc); if (co[1] < 0) v <- co[3] - co[2]^2 / (4 * co[1]) }
     v }
   indep <- function(p, wts, dose) {
     ip <- individual_params(p, data.table(id = seq_along(wts), WT = wts))
     s <- solve_model(ip, CJ(id = seq_along(wts), time = TT), dose, model_id = p$model_id); stopifnot(!anyNA(s$auc), !anyNA(s$C))
-    a <- s[abs(time - 4000) < 1e-9, .(id, AUCinf = auc)]
+    stc <- setdiff(names(s), c("id", "time", "C", "auc")); a <- s[abs(time - 400) < 1e-9][, resid := rowSums(.SD), .SDcols = stc]
+    stopifnot(all(a$resid / dose < 1e-7)); a <- a[, .(id, AUCinf = auc)]
     g01 <- s[time <= 60 + 1e-9 & abs(time * 100 - round(time * 100)) < 1e-6][order(id, time)]
     cm <- g01[, .(Cmax = pmax3(time, C)), by = id]; cf <- s[time <= 60 + 1e-9][order(id, time)][, .(Cmax_fine = pmax3(time, C)), by = id]
     merge(merge(a, cm, by = "id"), cf, by = "id")[order(id)] }
@@ -178,8 +180,9 @@ if (mode == "weightcheck") {
   POPS <- CFG$populations
   tm_bmi <- function(p, wts, bmi, dose) {                            # m15_typical_metrics와 같은 풀이(0.01일 격자, 400/4,000일), eta 표에 BMI 열
     pp <- p; ip <- individual_params(pp, data.table(id = seq_along(wts), WT = wts, BMI = bmi, ada = 0))
-    s <- solve_model(ip, CJ(id = seq_along(wts), time = c(seq(0.01, 60, by = 0.01), seq(61, 400, by = 1), seq(410, 4000, by = 10))), dose, model_id = pp$model_id); stopifnot(!anyNA(s$auc))
-    a <- s[abs(time - 4000) < 1e-9, .(id, AUCinf = auc)]
+    s <- solve_model(ip, CJ(id = seq_along(wts), time = c(seq(0.01, 60, by = 0.01), seq(61, 400, by = 1))), dose, model_id = pp$model_id); stopifnot(!anyNA(s$auc))
+    stc <- setdiff(names(s), c("id", "time", "C", "auc")); a <- s[abs(time - 400) < 1e-9][, resid := rowSums(.SD), .SDcols = stc]
+    stopifnot(all(a$resid / dose < 1e-7)); a <- a[, .(id, AUCinf = auc)]
     cm <- s[time <= 60][order(id, time)][, { i <- which.max(C); v <- C[i]
       if (i > 1 && i < .N) { tt <- time[(i - 1):(i + 1)]; cc <- C[(i - 1):(i + 1)]; A <- cbind(tt^2, tt, 1); co <- solve(A, cc); if (co[1] < 0) v <- co[3] - co[2]^2 / (4 * co[1]) }
       .(Cmax = v) }, by = id]
