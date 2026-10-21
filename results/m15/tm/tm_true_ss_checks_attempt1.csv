@@ -1,0 +1,3 @@
+check,value,limit,pass
+convergence_true_interval_vs_previous,2.99300990294071e-05,1e-06,FALSE
+identity_days_112_to_126_vs_registered_AUCtau_ss,1.44695649151316e-06,1e-05,TRUE

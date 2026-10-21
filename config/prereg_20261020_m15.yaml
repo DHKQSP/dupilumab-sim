@@ -473,11 +473,11 @@ addendum_tm_20261021:
   post_hoc_true_ss:                                # 17.11절 2(사후, 첫 실행 뒤 출력 검증에서): 같은 대상자·체중·모델·파라미터 변화, 300 mg 2주 간격을 1,120일까지 계속
     registered_on: "2026-10-21"
     plan_section: "17.11"
-    dose_times_last: 1120
-    interval: [1120, 1134]
-    previous_interval: [1106, 1120]
+    dose_times_last: 2240                          # 첫 시도 1,120일은 수렴 점검 실패(최대 3.0e-5, Kovalenko 2016 ke x 0.8 극단 대상자; 17.11절 3) → 2,240일로 연장, 기준 1e-6 유지
+    interval: [2240, 2254]
+    previous_interval: [2226, 2240]
     convergence_rel: 1.0e-6
     identity_rel: 1.0e-5                           # 112~126일 AUC = 등록 AUCtau,ss
-    outputs: [tm_true_ss.csv, tm_true_ss_change.csv, tm_true_ss_checks.csv, tm_true_ss_subjects.csv.gz]
+    outputs: [tm_true_ss.csv, tm_true_ss_change.csv, tm_true_ss_checks.csv, tm_true_ss_subjects.csv.gz, tm_true_ss_checks_attempt1.csv]
   outputs: [tm_subjects.csv.gz, tm_typical.csv, tm_curves.csv, tm_checks.csv, tm_table1.csv, tm_table1.md, tm_table2.csv, tm_table2.md, tm_elasticity_full.csv,
             tm_fig1_ftm_curves.png, tm_fig2_elasticity.png, tm_fig2_data.csv, tm_quantifiable_by_day.csv, tm_report.md, summary_rerun_check.csv]
