@@ -188,3 +188,17 @@ Calls: [ ... ci_ -> ifelse -> sprintf -> fmt -> ifelse -> formatC
 Execution halted
 2026-10-21T05:24:28Z start scripts/77_m15_amend.R ppcstored
 2026-10-21T05:24:33Z FAILED scripts/77_m15_amend.R ppcstored (exit 1)
+2026-10-21T05:24:54Z start scripts/77_m15_amend.R ppcstored
+2026-10-21T05:24:59Z done scripts/77_m15_amend.R ppcstored in 5s
+2026-10-21T05:24:59Z start scripts/77_m15_amend.R p1report
+2026-10-21T05:25:04Z done scripts/77_m15_amend.R p1report in 5s
+2026-10-21T05:25:04Z start scripts/77_m15_amend.R appendix
+2026-10-21T05:25:09Z done scripts/77_m15_amend.R appendix in 5s
+2026-10-21T05:32:00Z start scripts/75_m15_summary.R summary
+2026-10-21T05:32:05Z done scripts/75_m15_summary.R summary in 5s
+2026-10-21T05:32:05Z start scripts/77_m15_amend.R ppcstored
+2026-10-21T05:32:10Z done scripts/77_m15_amend.R ppcstored in 5s
+2026-10-21T05:32:10Z start scripts/77_m15_amend.R p1report
+2026-10-21T05:32:15Z done scripts/77_m15_amend.R p1report in 5s
+2026-10-21T05:32:15Z start scripts/77_m15_amend.R appendix
+2026-10-21T05:32:20Z done scripts/77_m15_amend.R appendix in 5s
