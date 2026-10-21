@@ -4,7 +4,8 @@
 #   prep  : 집단 → 참값 → 기존 엔진 대조(중단 규칙) → [6] → 부분 AUC 검증(중단 규칙)
 #   pilot : 예비 실행(k2020 S1 300 시험 1~500, k2020 S2 200 시험 1~50; [3]·[4]) → 점검(실패 시 종료 코드 3)
 #   full  : 본 실행(Model 1 칸 먼저, Kovalenko 2016 [4] 200 mg 마지막; 이미 쓴 묶음은 건너뜀) → 보충 → 확장 → 체중 모양
-#   post  : [8] → [7] → 요약 표·그림·요약
+#   post  : [8] → [7] → 요약 표·그림·요약. 그림 5는 results/m15/individual/individual_subjects.rds(약 17 MB, .gitignore 제외)를 읽는다:
+#           새로 받은 저장소에서는 먼저 nice -n 5 Rscript scripts/72_m15_individual.R run 4(약 2분, 결정적)를 실행한다
 set -euo pipefail
 cd "$(dirname "$0")/.."
 P=results/m15/run_progress.log; mkdir -p results/m15
@@ -42,6 +43,7 @@ case "${1:-}" in
     for pop in S1 S2; do R scripts/73_m15_trials.R mech k2016 $pop 200 1 1000 4; done
     ;;
   post)
+    [ -f results/m15/individual/individual_subjects.rds ] || { echo "$(date -u +%FT%TZ) STOP individual_subjects.rds missing: run scripts/72_m15_individual.R run 4 first" >> "$P"; exit 3; }
     R scripts/71_m15_populations.R weight 4
     R scripts/74_m15_samplesize.R 4
     R scripts/75_m15_summary.R tables 4

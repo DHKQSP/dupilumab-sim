@@ -509,4 +509,5 @@ Km 근거: Kovalenko 2016에서 0.01 미만은 목적함수가 둔감했으므�
 - [6] `scripts/72_m15_individual.R run`: 모델·집단·용량마다 20,000명, 조밀 채혈 참값 대비 편향(중앙 % 오차)·정밀도(RMSE), 관측 Tlast 참값(적분 오차만), %외삽 분포, λz 성공률(%외삽 < 20), Day 64/71 정량 몫. `legacy`(기존 엔진 대조), `verify_pauc`(PKNCA 대조).
 - [7] `scripts/74_m15_samplesize.R`: 모의 검정력, 분석식 검정력(R/samplesize.R 변경 없음), CV 불확실성 assurance(Li 2020 6군 df 96, 보정 계수, 등록 집단으로 이동), Syneos 가정(CV 43%, 117명) 대조(Cmax 비 규칙과 고정 규칙 나란히), 85·90% 필요 표본 수. 사후(계획서 13.4절 1): 기준 칸(300 mg, 확정 일정)에서 칸으로 모델 로그 분산 차이만큼 옮긴 assurance(assurance_cv_cellshift_pct; 기준 칸에서 등록 값과 같음).
 - [8] `scripts/71_m15_populations.R weight`: 백분위(5/25/50/75/95) 체중의 전형 대상자 비(75 kg 대비), 같은 η 개인 짝 비 90% 구간, 개인차 예측구간, F·ke·Vmax 정규화 민감도 계수.
-- [9]·[10] `scripts/75_m15_summary.R`(결과 뒤 작성): 그림 7개, 요약 표 1개, 핵심 결론 5줄 이내(전제 점검), 가정 목록 CSV.
+- [9]·[10] `scripts/75_m15_summary.R`(등록 커밋 d4a7def에는 없음; 7255f5d(2026-10-20 13:32 UTC, [1] 결과와 [2]~[8] 실행 전)에 run_m15.sh와 함께 추가, 이후 수정은 계획서 13.3·13.4절과 D-068): 그림 7개, 요약 표 1개(이탈·사후 분석 표 포함), 핵심 결론 5줄 이내(전제 점검), 가정 목록 CSV, 적용 가능성 표(m15_applicability.csv), 이탈 표(m15_deviations.csv). 결과 표마다 조건부 열(conditionality)과 200 mg 한계 열(limitation).
+- 재현: `bash scripts/run_m15.sh prep|pilot|full|post`. 그림 5는 `results/m15/individual/individual_subjects.rds`(.gitignore 제외, 약 17 MB)를 읽으므로 새 저장소에서는 post 전에 `scripts/72_m15_individual.R run 4`(결정적, 약 2분)를 먼저 실행한다(post 단계가 없으면 멈춘다).

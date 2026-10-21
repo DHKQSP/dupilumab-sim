@@ -441,6 +441,14 @@ m15_conditional_label <- function(rd, primary) {
   r <- data.table::fread(f); r <- r[r$pk_model == primary & r$wmode == "primary"]
   if (isTRUE(r$failure[1])) "Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2)." else ""
 }
+M15_LIM200 <- "Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3)."
 m15_fwrite_cond <- function(tab, path, cond) {                       # 호출자 표는 바꾸지 않는다(복사본에 열 추가)
-  tab <- data.table::copy(data.table::as.data.table(tab)); if (nzchar(cond)) tab[, conditionality := cond]; data.table::fwrite(tab, path)
+  tab <- data.table::copy(data.table::as.data.table(tab)); if (nzchar(cond)) tab[, conditionality := cond]
+  # 200 mg 한계 표시(계획서 6.3절): 용량 열, 용량 대비 행, 키 문자열("|200|")에 200 mg이 있으면
+  is200 <- rep(FALSE, nrow(tab))
+  if ("dose_mg" %in% names(tab)) is200 <- is200 | (!is.na(tab$dose_mg) & tab$dose_mg == 200)
+  if (all(c("contrast", "design_a") %in% names(tab))) is200 <- is200 | (!is.na(tab$contrast) & grepl("dose", tab$contrast))
+  for (kc in intersect(c("a", "b"), names(tab))) is200 <- is200 | grepl("\\|200(\\||$)", tab[[kc]])
+  if (any(is200)) tab[, limitation := ifelse(is200, M15_LIM200, "")]
+  data.table::fwrite(tab, path)
 }

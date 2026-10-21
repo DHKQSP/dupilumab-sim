@@ -240,3 +240,14 @@ test_that("conditional label and writer: label only after a primary failure, cal
   y <- data.table::fread(f); expect_identical(names(y), c("a", "conditionality")); expect_true(all(y$conditionality == lab))
   m15_fwrite_cond(x, f, ""); expect_identical(names(data.table::fread(f)), "a")
 })
+
+test_that("conditional writer adds the 200 mg limitation column only where 200 mg rows exist", {
+  f <- tempfile(fileext = ".csv")
+  m15_fwrite_cond(data.table::data.table(dose_mg = c(300, 200, NA)), f, "")
+  y <- data.table::fread(f); expect_identical(y$limitation[2], M15_LIM200); expect_true(all(is.na(y$limitation[-2]) | y$limitation[-2] == ""))
+  m15_fwrite_cond(data.table::data.table(contrast = c("dose", "schedule"), design_a = c("200", "RM36_50")), f, "")
+  y <- data.table::fread(f); expect_identical(y$limitation[1], M15_LIM200)
+  m15_fwrite_cond(data.table::data.table(contrast = "dose 200 - 300", a = "k2020|S1|200|B0|F|down", b = "k2020|S1|300|B0|F|down"), f, "")
+  expect_identical(data.table::fread(f)$limitation, M15_LIM200)
+  m15_fwrite_cond(data.table::data.table(dose_mg = 300), f, ""); expect_false("limitation" %in% names(data.table::fread(f)))
+})

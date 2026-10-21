@@ -8,7 +8,8 @@ start_run_log <- function(run_name, master_seed, run_mode, extra = list()) {
   names(cfg_hash) <- basename(cfg_files)
   git_sha <- tryCatch(system("git rev-parse HEAD", intern = TRUE, ignore.stderr = TRUE), error = function(e) NA_character_)
   # 코드 출처: 추적 파일의 커밋 전 변경(R/, scripts/, config/, tests/)이 있으면 커밋 해시만으로 실행 코드를 특정할 수 없으므로 목록을 남긴다(D-054)
-  dirty <- tryCatch(suppressWarnings(system("git status --porcelain --untracked-files=no -- R scripts config tests", intern = TRUE, ignore.stderr = TRUE)), error = function(e) NA_character_)
+  dirty <- tryCatch({ x <- suppressWarnings(system("git status --porcelain --untracked-files=no -- R scripts config tests", intern = TRUE, ignore.stderr = TRUE))
+    if (!is.null(attr(x, "status"))) NA_character_ else x }, error = function(e) NA_character_)   # git 실패(저장소 없음 등) = 알 수 없음(NA)
   lines <- c(
     sprintf("run_name: %s", run_name),
     sprintf("started_utc: %s", format(Sys.time(), "%Y-%m-%d %H:%M:%S", tz = "UTC")),
