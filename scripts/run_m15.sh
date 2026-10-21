@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # run_m15.sh — 계획서 11절 순서대로 [2]~[8] 실행(D-068). 단계마다 진행 줄을 results/m15/run_progress.log에 남긴다.
-# 사용법: bash scripts/run_m15.sh <stage> ; stage = prep | pilot | full | post | a1prep | a1pilot | a1full | a1post | a1p1 | a1p2a | a1p2pilot | a1p2full | a1final(개정 1, 계획서 16.12절)
+# 사용법: bash scripts/run_m15.sh <stage> ; stage = prep | pilot | full | post | a1prep | a1pilot | a1full | a1post | a1p1 | a1p2a | a1p2pilot | a1p2full | a1final(개정 1, 계획서 16.12절) | tm(추록 1, 계획서 17절)
 #   prep  : 집단 → 참값 → 기존 엔진 대조(중단 규칙) → [6] → 부분 AUC 검증(중단 규칙)
 #   pilot : 예비 실행(k2020 S1 300 시험 1~500, k2020 S2 200 시험 1~50; [3]·[4]) → 점검(실패 시 종료 코드 3)
 #   full  : 본 실행(Model 1 칸 먼저, Kovalenko 2016 [4] 200 mg 마지막; 이미 쓴 묶음은 건너뜀) → 보충 → 확장 → 체중 모양
@@ -97,6 +97,13 @@ case "${1:-}" in
     R scripts/77_m15_amend.R final
     R scripts/75_m15_summary.R summary
     ;;
-  *) echo "usage: bash scripts/run_m15.sh <prep|pilot|full|post|a1prep|a1pilot|a1full|a1post|a1p1|a1p2a|a1p2pilot|a1p2full|a1final>"; exit 1 ;;
+  tm)        # 추록 1(계획서 17절, D-071): f_TM 계산(약 20~30분) → 표 2개·그림 2개 → 가정·이탈 표 갱신(요약 단계 재실행, 숫자 열 동일 확인)
+    R scripts/78_m15_tm_fraction.R run 4
+    R scripts/78_m15_tm_fraction.R report
+    B=results/m15/tm/pre_summary_copy; rm -rf "$B"; mkdir -p "$B/summary"; cp results/m15/summary/*.csv "$B/summary/"
+    R scripts/75_m15_summary.R summary
+    R scripts/77_m15_amend.R postcheck "$B" results/m15/tm/summary_rerun_check.csv
+    ;;
+  *) echo "usage: bash scripts/run_m15.sh <prep|pilot|full|post|a1prep|a1pilot|a1full|a1post|a1p1|a1p2a|a1p2pilot|a1p2full|a1final|tm>"; exit 1 ;;
 esac
 echo "$(date -u +%FT%TZ) stage ${1} complete" >> "$P"

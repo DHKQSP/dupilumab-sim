@@ -471,3 +471,105 @@ m15_fwrite_cond <- function(tab, path, cond) {                       # 호출자
   if (any(is200)) tab[, limitation := ifelse(is200, M15_LIM200, "")]
   data.table::fwrite(tab, path)
 }
+
+# ---------------------------------------------------------------- 추록 1(계획서 17절, D-071): target-mediated 소실 비중 ----------------------------------------------------------------
+# 중심구획 순간 소실 속도(농도/일) 중 MM 경로의 몫. R/model.R에서 MM 속도/Vc = Vm·C/(Km + C), 선형 속도 ke·C이므로
+# f_TM = [Vm/(Km + C)] / [Vm/(Km + C) + ke]. 말초 구획에는 소실이 없다.
+m15_ftm <- function(C, Vm, ke, Km) { a <- Vm / (Km + C); a / (a + ke) }
+# f_TM >= x인 농도 범위는 C <= C_x, C_x = Vm (1 - x) / (x ke) - Km(x = 0.5이면 C* = Vm/ke - Km). C_x <= 0이면 f_TM은 x에 닿지 않는다(C >= 0).
+m15_tm_conc <- function(x, Vm, ke, Km) Vm * (1 - x) / (x * ke) - Km
+
+# 모든 대상자 같은 투여 일정의 풀이: dose_times(일), dose_amts(mg, depot), times(관측 시각, 0 제외). 허용오차는 참값과 같다(.solve_param_table, TRUTH_ATOL·TRUTH_RTOL).
+# 반환 data.table(id, time, C, auc, resid = 몸 안 총량(mg; depot·transit·중심·말초))
+m15_solve_regimen <- function(ip, model_id, dose_times, dose_amts, times) {
+  stopifnot(length(dose_times) == length(dose_amts), length(dose_times) >= 1, all(times > 0))
+  mod <- get_model(model_id)
+  pcols <- c("id", "Vc_i", "ke", "k12", "k21", "Vmax", "Km", "ka", "ada", "t_ada", "ada_mult", if ("ktr" %in% names(ip)) "ktr")
+  prm <- as.data.frame(ip[, c(pcols, "F"), with = FALSE]); names(prm)[names(prm) == "F"] <- "Fbio"
+  ev <- rxode2::et(amt = dose_amts[1], cmt = "depot", time = dose_times[1])
+  for (k in seq_along(dose_times)[-1]) ev <- rxode2::et(ev, amt = dose_amts[k], cmt = "depot", time = dose_times[k])
+  ev <- rxode2::add.sampling(ev, times)
+  s <- rxode2::rxSolve(mod, params = prm, events = ev, atol = TRUTH_ATOL, rtol = TRUTH_RTOL, maxsteps = 2000000L, cores = 1L, returnType = "data.table", addDosing = FALSE)
+  if ("sim.id" %in% names(s)) s[, id := prm$id[sim.id]] else if ("id" %in% names(s)) s[, id := prm$id[as.integer(id)]] else if (nrow(prm) == 1) s[, id := prm$id[1]] else stop("rxSolve 출력에 id가 없습니다")
+  stc <- intersect(c("depot", "tr1", "tr2", "tr3", "absc", "central", "periph"), names(s))
+  s[, resid := rowSums(.SD), .SDcols = stc]
+  s[, .(id, time, C, auc, resid)]
+}
+
+# 한 대상자 격자(time 오름차순, 첫 행 time 0·C 0·auc 0)에서 농도 문턱 c0의 교차. 상승 교차 = 처음 C > c0가 되는 시각(직선 보간),
+# 하강 교차 = 마지막으로 C > c0인 격자 점 뒤 C = c0가 되는 시각(로그 선형 보간). 교차 시각의 누적 AUC는 왼쪽 격자 점 auc + 사다리꼴(끝 농도 = c0).
+# status: "throughout"(C <= c0 전 구간; f_TM >= x 계속), "never"(c0 <= 0), "censored"(격자 끝에서도 C > c0), "crossed"
+.m15_tm_cross <- function(time, C, auc, c0) {
+  na <- list(status = NA_character_, t_up = NA_real_, a_up = NA_real_, t_dn = NA_real_, a_dn = NA_real_, n_up = 0L, n_dn = 0L)
+  if (!is.finite(c0) || c0 <= 0) { na$status <- "never"; return(na) }
+  ab <- C > c0; K <- length(C)
+  na$n_up <- sum(!ab[-K] & ab[-1]); na$n_dn <- sum(ab[-K] & !ab[-1])
+  if (!any(ab)) { na$status <- "throughout"; na$t_up <- 0; na$a_up <- 0; na$t_dn <- 0; na$a_dn <- 0; return(na) }
+  i <- which(ab)[1]; stopifnot(i > 1)
+  na$t_up <- time[i - 1] + (c0 - C[i - 1]) / (C[i] - C[i - 1]) * (time[i] - time[i - 1])
+  na$a_up <- auc[i - 1] + (na$t_up - time[i - 1]) * (C[i - 1] + c0) / 2
+  j <- max(which(ab))
+  if (j == K) { na$status <- "censored"; return(na) }
+  lam <- log(C[j] / C[j + 1]) / (time[j + 1] - time[j])
+  na$t_dn <- time[j] + log(C[j] / c0) / lam
+  na$a_dn <- auc[j] + (na$t_dn - time[j]) * (C[j] + c0) / 2
+  na$status <- "crossed"; na
+}
+
+# 단회 투여(시나리오 A) 대상자별 지표. s: m15_solve_regimen 출력(t_inf 행 제외 가능), pr: data.table(id, Vm, ke, Km), xs: 문턱(f_TM 비율).
+# AUC0-last = 0부터 min(연속 시간 참 Tlast(LLOQ), t_end)까지의 모델 AUC(계획서 8.2(a) 조밀 채혈 참값과 같은 정의). share_x = 그 AUC 중 f_TM >= x(C <= C_x)인 시간에 쌓인 몫.
+# 교차 시각 t_x = f_TM이 끝까지 x 이상으로 남는 시각(하강 교차; throughout이면 0). amt_tm_share = 0~t_end 소실량 중 MM 경로 몫(보충).
+m15_tm_single <- function(s, pr, xs, lloq, t_end = 56, t_max = 140) {
+  te_ <- t_end; tm_ <- t_max; xs_ <- xs
+  g <- rbind(data.table(id = unique(s$id), time = 0, C = 0, auc = 0), s[time <= tm_ + 1e-9, .(id, time, C, auc)])
+  setorder(g, id, time)
+  tl <- .m15_tlast_grid(g, lloq)
+  g <- merge(g, pr, by = "id")
+  out <- g[, {
+    i <- which.max(C); cmax <- C[i]; if (i > 1 && i < .N) cmax <- .parabola_max(time[(i - 1):(i + 1)], C[(i - 1):(i + 1)])
+    k_end <- which(abs(time - te_) < 1e-6); stopifnot(length(k_end) == 1L)
+    w <- seq_len(k_end); rt <- Vm[1] * C[w] / (Km[1] + C[w]); rl <- ke[1] * C[w]; dt <- diff(time[w])
+    a_tm <- sum(dt * (rt[-1] + rt[-length(w)]) / 2); a_ln <- sum(dt * (rl[-1] + rl[-length(w)]) / 2)
+    r <- list(Cmax = cmax, Tmax = time[i], ftm_cmax = m15_ftm(cmax, Vm[1], ke[1], Km[1]), C_star = m15_tm_conc(0.5, Vm[1], ke[1], Km[1]),
+              auc_end = auc[k_end], amt_tm_share = a_tm / (a_tm + a_ln))
+    for (x in xs_) {
+      cx <- m15_tm_conc(x, Vm[1], ke[1], Km[1]); z <- .m15_tm_cross(time, C, auc, cx); tag <- sprintf("%02d", round(100 * x))
+      r[[paste0("C_", tag)]] <- cx; r[[paste0("status_", tag)]] <- z$status; r[[paste0("t_", tag)]] <- if (z$status == "censored") Inf else if (z$status == "never") NA_real_ else z$t_dn
+      r[[paste0("tup_", tag)]] <- z$t_up; r[[paste0("aup_", tag)]] <- z$a_up; r[[paste0("adn_", tag)]] <- z$a_dn; r[[paste0("nup_", tag)]] <- z$n_up; r[[paste0("ndn_", tag)]] <- z$n_dn
+    }
+    r
+  }, by = id]
+  out <- merge(out, tl, by = "id")
+  out[, `:=`(T_auc = pmin(t_true_last, te_), AUClast = fifelse(t_true_last >= te_, auc_end, auc_true_last))]
+  for (x in xs_) {
+    tag <- sprintf("%02d", round(100 * x)); st <- out[[paste0("status_", tag)]]; tx <- out[[paste0("t_", tag)]]
+    up <- pmin(out[[paste0("aup_", tag)]], out$AUClast); dn <- out[[paste0("adn_", tag)]]
+    tail_part <- ifelse(st == "crossed" & tx < out$T_auc, out$AUClast - dn, 0)
+    sh <- ifelse(st == "throughout", 1, ifelse(st == "never", 0, (up + tail_part) / out$AUClast))
+    set(out, j = paste0("share_", tag), value = sh)
+  }
+  out[, c("auc_end", "auc_true_last") := NULL]
+  setorder(out, id)[]
+}
+
+# 정상상태 1 투여간격(시나리오 B) 대상자별 지표. s: m15_solve_regimen 출력(prev[1], ss 구간 격자, t_inf 포함), pr: data.table(id, Vm, ke, Km).
+# Ctrough = 구간 끝(다음 투여 직전) 농도, Cavg = AUCtau / tau, Cmax(격자 + 포물선), Cmin = 구간 최솟값. 정상상태 점검: AUCtau / 직전 구간 AUC, C(끝) / C(시작).
+m15_tm_ss <- function(s, pr, ss = c(112, 126), prev = c(98, 112)) {
+  a0 <- ss[1]; a1 <- ss[2]; p0 <- prev[1]; tau <- a1 - a0
+  pt <- function(t0) s[abs(time - t0) < 1e-6, .(id, C, auc)]
+  e <- merge(merge(pt(p0)[, .(id, auc_p0 = auc)], pt(a0)[, .(id, auc_a0 = auc, C_start = C)], by = "id"), pt(a1)[, .(id, auc_a1 = auc, Ctrough = C)], by = "id")
+  g <- merge(s[time >= a0 - 1e-6 & time <= a1 + 1e-6, .(id, time, C)], pr, by = "id"); setorder(g, id, time)
+  w <- g[, {
+    i <- which.max(C); cmax <- C[i]; if (i > 1 && i < .N) cmax <- .parabola_max(time[(i - 1):(i + 1)], C[(i - 1):(i + 1)])
+    f <- m15_ftm(C, Vm[1], ke[1], Km[1]); dt <- diff(time); trap <- function(y) sum(dt * (y[-1] + y[-.N]) / 2)
+    rt <- Vm[1] * C / (Km[1] + C); rl <- ke[1] * C
+    list(Cmax_ss = cmax, Tmax_ss = time[i], Cmin_ss = min(C), ftm_tmean = trap(f) / (time[.N] - time[1]), amt_tm_share = trap(rt) / (trap(rt) + trap(rl)))
+  }, by = id]
+  out <- merge(merge(e, w, by = "id"), pr, by = "id")
+  out[, `:=`(AUCtau_ss = auc_a1 - auc_a0, AUCtau_prev = auc_a0 - auc_p0)]
+  out[, `:=`(Cavg_ss = AUCtau_ss / tau, ss_ratio_auc = AUCtau_ss / AUCtau_prev, ss_ratio_trough = Ctrough / C_start)]
+  out[, `:=`(ftm_trough = m15_ftm(Ctrough, Vm, ke, Km), ftm_cavg = m15_ftm(Cavg_ss, Vm, ke, Km), ftm_cmax = m15_ftm(Cmax_ss, Vm, ke, Km), ftm_cmin = m15_ftm(Cmin_ss, Vm, ke, Km),
+             C_star = m15_tm_conc(0.5, Vm, ke, Km), auc_at_start = auc_a0)]
+  out[, c("auc_p0", "auc_a0", "auc_a1", "Vm", "ke", "Km") := NULL]
+  setorder(out, id)[]
+}

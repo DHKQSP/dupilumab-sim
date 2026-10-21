@@ -11,7 +11,7 @@
 #   ppcstored                 사후 예측 점검 표(16.7절 1~3, 저장 반복만): amend1/ppc/arm_table.csv(제품·분석법 열), seven_arm_bias.csv(PKM12350 포함·제외), between_arm_check.csv
 #   p1report                  P1 보고(16.12절): robustness 분류(16.10절, Model 1 대 Kovalenko 2016), P1 결과 표 1개, 핵심 결론 5줄 → amend1/p1/
 #   appendix                  브리핑 부록 초안(16.6절, 영문, ICH M15 구성, 표 위주) → amend1/appendix/M15_MS_appendix_draft.md, .docx(pandoc markdown-smart); 영문·ASCII 점검
-#   postcheck <before_dir>    표기 반영 사후 단계 재실행 점검(16.1절): summary, samplesize, weight, figures의 CSV를 재실행 전 사본과 열마다 비교(숫자 열 동일, 바뀐 표기 열만 허용)
+#   postcheck <before_dir> [out_csv]  표기 반영 사후 단계 재실행 점검(16.1절; 추록 1은 out_csv를 준다): summary, samplesize, weight, figures의 CSV를 재실행 전 사본과 열마다 비교(숫자 열 동일, 바뀐 표기 열만 허용)
 #   final                     최종(16.10절): robustness 표(세 열), 적용 가능성(16.9절), 요약 표 1개, 결론 5줄 이내 → amend1/final/
 #   ppc                       P2 사후 예측 점검 진단(16.7절 4~7): 대안 매핑 군 표·7개 군 편향, 판정 규칙 오경보율(두 NCA 규칙, 연구 간 인자 CV 0·10%), 검출 확률,
 #                             연구별 규칙, 넓힌 한계로 본 관측 판정, 결론 1 고정 서식 → amend1/ppc/
@@ -946,7 +946,8 @@ if (mode == "postcheck") {
     data.table(file = rel, status = if (dn <= 1e-12 && !length(ch)) "identical" else if (dn <= 1e-12) "text differs only" else "numeric difference", numeric_max_rel_diff = dn, text_columns_changed = paste(ch, collapse = ";")) }))
   ALLOWED_TXT <- c("conditionality", "item", "model_1", "kovalenko_2016", "unit_lab", "summary", "decision_log", "Assumption", "Value used", "Basis", "Impact evidence", "Action before submission", "ID")
   R[, ok := status %in% c("identical", "columns differ (plan-derived table)", "rows differ (plan-derived table)") | (status == "text differs only" & vapply(strsplit(text_columns_changed, ";"), function(x) all(x %in% ALLOWED_TXT), TRUE))]
-  fwrite(R, file.path(AD, "post_rerun_check.csv")); print(R[status != "identical"]); append_run_log(lf, sprintf("post re-run check: %d files, %d identical, all ok %s", nrow(R), sum(R$status == "identical"), all(R$ok)))
+  outp <- if (length(args) >= 3) proj_path(args[3]) else file.path(AD, "post_rerun_check.csv")       # 추록 1(17절)은 결과 경로를 따로 준다(등록 점검 파일을 덮어쓰지 않음)
+  fwrite(R, outp); print(R[status != "identical"]); append_run_log(lf, sprintf("post re-run check: %d files, %d identical, all ok %s", nrow(R), sum(R$status == "identical"), all(R$ok)))
   if (!all(R$ok)) quit(status = 3)
 }
 

@@ -338,3 +338,85 @@ test_that("분석계획서 16절(개정 1)의 등록 수치가 설정 블록 ame
   expect_identical(A$ppc$between_arm_check$present_p_below, 0.10); expect_true(grepl("below 0.10 (fixed here, before Q is computed)", x, fixed = TRUE))
   expect_equal(A$param_uncertainty$redraw$max, 10L)
 })
+
+# ---------------------------------------------------------------- 추록 1(계획서 17절, D-071): target-mediated 소실 비중 ----------------------------------------------------------------
+test_that("f_TM(추록 1): MM 속도 몫과 같고, C_x에서 정확히 x, C*에서 0.5, 농도에 따라 감소", {
+  Vm <- c(1.07, 0.968, 0.5); ke <- c(0.0534, 0.0459, 0.08); Km <- 0.01; C <- c(0.3, 5, 40)
+  expect_equal(m15_ftm(C, Vm, ke, Km), (Vm * C / (Km + C)) / (Vm * C / (Km + C) + ke * C), tolerance = 1e-14)
+  for (x in c(0.5, 0.8, 0.95)) expect_equal(m15_ftm(m15_tm_conc(x, Vm, ke, Km), Vm, ke, Km), rep(x, 3), tolerance = 1e-13)
+  expect_equal(m15_tm_conc(0.5, 1.07, 0.0534, 0.01), 1.07 / 0.0534 - 0.01)
+  expect_equal(m15_tm_conc(0.8, 1.07, 0.0534, 0.01), 1.07 / (4 * 0.0534) - 0.01)
+  expect_true(all(diff(m15_ftm(seq(0, 100, by = 0.5), 1.07, 0.0534, 0.01)) < 0))
+  expect_true(m15_tm_conc(0.999, 0.001, 1, 0.01) < 0)                  # f_TM(0) < x이면 C_x <= 0(도달 불가)
+})
+
+test_that("문턱 교차(추록 1): Bateman 곡선에서 하강 교차 시각과 누적 AUC가 해석해와 같고, 상태 분류가 맞다", {
+  k1 <- 0.06; k2 <- 0.5; A <- 40; Cf <- function(t) A * (exp(-k1 * t) - exp(-k2 * t)); Af <- function(t) A * ((1 - exp(-k1 * t)) / k1 - (1 - exp(-k2 * t)) / k2)
+  tt <- seq(0, 140, by = 0.01); C <- Cf(tt); au <- Af(tt); c0 <- 12
+  tm <- optimize(Cf, c(0, 30), maximum = TRUE)$maximum
+  t_dn <- uniroot(function(t) Cf(t) - c0, c(tm, 140), tol = 1e-12)$root; t_up <- uniroot(function(t) Cf(t) - c0, c(0, tm), tol = 1e-12)$root
+  z <- .m15_tm_cross(tt, C, au, c0)
+  expect_identical(z$status, "crossed"); expect_equal(z$n_up, 1L); expect_equal(z$n_dn, 1L)
+  expect_equal(z$t_dn, t_dn, tolerance = 1e-6); expect_equal(z$t_up, t_up, tolerance = 1e-4)
+  expect_equal(z$a_dn, Af(t_dn), tolerance = 1e-7); expect_equal(z$a_up, Af(t_up), tolerance = 1e-4)   # 상승 교차는 직선 보간(0.01일 격자에서 시각 오차 약 1e-5일)
+  expect_identical(.m15_tm_cross(tt, C, au, 100)$status, "throughout"); expect_equal(.m15_tm_cross(tt, C, au, 100)$t_dn, 0)
+  expect_identical(.m15_tm_cross(tt, C, au, -1)$status, "never")
+  expect_identical(.m15_tm_cross(tt[tt <= 20], C[tt <= 20], au[tt <= 20], c0)$status, "censored")
+})
+
+test_that("단회 투여 지표(추록 1, m15_tm_single): AUC0-last 몫이 수치 적분과 같고, Tlast 잘라내기와 throughout 처리가 맞다", {
+  k1 <- 0.08; k2 <- 0.6; A <- 35; Cf <- function(t) A * (exp(-k1 * t) - exp(-k2 * t)); Af <- function(t) A * ((1 - exp(-k1 * t)) / k1 - (1 - exp(-k2 * t)) / k2)
+  tt <- round(seq(0.01, 140, by = 0.01), 8)
+  s <- rbind(data.table(id = 1L, time = tt, C = Cf(tt), auc = Af(tt)), data.table(id = 2L, time = tt, C = Cf(tt) / 10, auc = Af(tt) / 10))
+  pr <- data.table(id = 1:2, Vm = 1.07, ke = 0.0534, Km = 0.01); lloq <- 0.078
+  o <- m15_tm_single(s, pr, c(0.5, 0.8, 0.95), lloq, t_end = 56, t_max = 140)
+  cs <- m15_tm_conc(0.5, 1.07, 0.0534, 0.01)
+  tl <- uniroot(function(t) Cf(t) - lloq, c(20, 140), tol = 1e-12)$root; Te <- min(tl, 56)
+  num <- integrate(function(t) Cf(t) * (Cf(t) <= cs), 0, Te, subdivisions = 5000, rel.tol = 1e-10)$value
+  expect_equal(o[id == 1, share_50], num / Af(Te), tolerance = 1e-6)
+  expect_equal(o[id == 1, AUClast], Af(Te), tolerance = 1e-6)
+  expect_identical(o[id == 2, status_50], "throughout"); expect_equal(o[id == 2, share_50], 1); expect_equal(o[id == 2, t_50], 0)
+  t50 <- uniroot(function(t) Cf(t) - cs, c(optimize(Cf, c(0, 30), maximum = TRUE)$maximum, 140), tol = 1e-12)$root
+  expect_equal(o[id == 1, t_50], t50, tolerance = 1e-6)
+  expect_equal(o[id == 1, ftm_cmax], m15_ftm(optimize(Cf, c(0, 30), maximum = TRUE)$objective, 1.07, 0.0534, 0.01), tolerance = 1e-6)
+  rt <- function(t) 1.07 * Cf(t) / (0.01 + Cf(t)); rl <- function(t) 0.0534 * Cf(t)
+  expect_equal(o[id == 1, amt_tm_share], integrate(rt, 0, 56, rel.tol = 1e-10)$value / (integrate(rt, 0, 56, rel.tol = 1e-10)$value + integrate(rl, 0, 56, rel.tol = 1e-10)$value), tolerance = 1e-4)   # 보충 지표: 첫 격자 구간(C < Km)의 사다리꼴 오차
+})
+
+test_that("정상상태 지표(추록 1, m15_tm_ss): 일정한 농도에서 f_TM, Cavg, 정상상태 비가 해석해와 같다", {
+  c0 <- 15; tt <- round(c(98, seq(112, 126, by = 0.01)), 8)
+  s <- data.table(id = 1L, time = tt, C = c0, auc = c0 * tt, resid = 1)
+  o <- m15_tm_ss(s, data.table(id = 1L, Vm = 1.07, ke = 0.0534, Km = 0.01), c(112, 126), c(98, 112))
+  f0 <- m15_ftm(c0, 1.07, 0.0534, 0.01)
+  expect_equal(o$Cavg_ss, c0); expect_equal(o$AUCtau_ss, 14 * c0); expect_equal(o$ss_ratio_auc, 1); expect_equal(o$ss_ratio_trough, 1)
+  expect_equal(c(o$ftm_trough, o$ftm_cavg, o$ftm_cmax, o$ftm_cmin, o$ftm_tmean), rep(f0, 5), tolerance = 1e-12)
+  expect_equal(o$amt_tm_share, f0, tolerance = 1e-12)
+})
+
+test_that("투여 일정 풀이(추록 1, m15_solve_regimen): 단회 투여는 등록 단회 풀이(.solve_param_table)와 같고, 투여 시각 전에는 다음 투여가 영향이 없다", {
+  skip_if_no_rxode2()
+  p <- load_params("k2020"); ip <- individual_params(p, data.table(id = 1:3, WT = c(60, 75, 90), ada = 0, eta_Vmax = c(-0.2, 0, 0.3), eta_ke = c(0.1, 0, -0.2)))
+  pcols <- c("id", "Vc_i", "ke", "k12", "k21", "Vmax", "Km", "ka", "ada", "t_ada", "ada_mult", "ktr")
+  prm <- as.data.frame(ip[, c(pcols, "F"), with = FALSE]); names(prm)[names(prm) == "F"] <- "Fbio"
+  tt <- c(0.25, 1, 3, 7, 14, 28, 56, 400)
+  a <- m15_solve_regimen(ip, p$model_id, 0, 300, tt); b <- .solve_param_table(get_model(p$model_id), prm, tt, 300)
+  expect_equal(a$C, b$C, tolerance = 1e-12); expect_equal(a$auc, b$auc, tolerance = 1e-12); expect_equal(a$id, as.integer(b$id))
+  m <- m15_solve_regimen(ip, p$model_id, c(0, 14), c(600, 300), c(1, 7, 13.99, 20))
+  s6 <- m15_solve_regimen(ip, p$model_id, 0, 600, c(1, 7, 13.99))
+  expect_equal(m[time < 14, C], s6$C, tolerance = 1e-10)
+  expect_true(all(m[time == 20, resid] > s6[time == 13.99, resid] * 0))
+})
+
+test_that("추록 1 설정(addendum_tm_20261021)과 계획서 17절이 일치하고 채혈일 환산이 등록 일정과 같다", {
+  f <- proj_path("plans", "M15_analysis_plan_20261020.md"); skip_if_not(file.exists(f))
+  x <- paste(readLines(f, warn = FALSE), collapse = " "); C <- read_cfg("prereg_20261020_m15.yaml"); A <- C$addendum_tm_20261021
+  expect_true(grepl("## 17. Addendum 1 (2026-10-21)", x, fixed = TRUE)); expect_identical(A$decision, "D-071"); expect_identical(A$plan_section, "17")
+  expect_equal(A$n_subjects, 1000L); expect_equal(as.numeric(unlist(A$weights_kg)), c(60, 75, 90)); expect_equal(as.numeric(unlist(A$thresholds)), c(0.50, 0.80, 0.95))
+  expect_equal(as.numeric(unlist(A$sampling_days$elapsed)), c(0, as.numeric(unlist(C$schedules$B0))))
+  expect_equal(as.integer(unlist(A$sampling_days$study_day)), c(0L, 1L, 2L, 4L, 6L, 8L, 11L, 15L, 22L, 29L, 36L, 43L, 50L, 57L))
+  expect_equal(as.numeric(unlist(A$scenarios$B$dose_times)), c(0, seq(14, 112, by = 14))); expect_equal(as.numeric(unlist(A$scenarios$B$dose_mg)), c(600, rep(300, 8)))
+  expect_equal(as.numeric(unlist(A$scenarios$B$ss_interval)), c(112, 126)); expect_true(grepl("days 112 to 126 after the first dose", x, fixed = TRUE))
+  expect_equal(as.numeric(unlist(A$elasticity$multipliers)), c(0.8, 1.2)); expect_identical(as.character(unlist(A$elasticity$parameters)), c("Vmax", "ke", "F"))
+  expect_true(grepl("n = 1,000 virtual subjects", x, fixed = TRUE)); expect_true(grepl("derive_seed(20261020, \"tm\")", x, fixed = TRUE))
+  expect_true(grepl("60, 75 and 90 kg", x, fixed = TRUE)); expect_equal(as.numeric(A$lloq_mg_L), study_lloq())
+})

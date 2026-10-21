@@ -484,10 +484,10 @@ if (mode == "summary") {
   sec_items <- function(h0, h1, type) { i0 <- grep(h0, pl_); i1 <- grep(h1, pl_); stopifnot(length(i0) == 1, length(i1) == 1, i1 > i0)
     x <- pl_[(i0 + 1):(i1 - 1)]; it <- grep("^[0-9]+\\. ", x, value = TRUE)
     first2 <- vapply(strsplit(sub("^[0-9]+\\. ", "", it), "(?<=\\.)\\s+(?=[A-Z])", perl = TRUE), function(z) paste(head(z, 2), collapse = " "), "")   # 첫 두 문장
-    data.table(number = as.integer(sub("^([0-9]+)\\..*", "\\1", it)), type = type, summary = first2, dlog = vapply(regmatches(it, regexec("\\(amendment 1, (D-0[0-9]{2})\\)", it)), function(m) if (length(m) == 2) m[2] else "D-068", "")) }
+    data.table(number = as.integer(sub("^([0-9]+)\\..*", "\\1", it)), type = type, summary = first2, dlog = vapply(regmatches(it, regexec("\\((?:amendment|addendum) 1, (D-0[0-9]{2})\\)", it)), function(m) if (length(m) == 2) m[2] else "D-068", "")) }
   pl_ <- readLines(proj_path("plans", "M15_analysis_plan_20261020.md"), warn = FALSE)
   DEV <- rbind(sec_items("^### 13\\.3 ", "^### 13\\.4 ", "deviation after registration"), sec_items("^### 13\\.4 ", "^## 14\\. ", "post hoc analysis"))
-  DEV[, `:=`(plan_section = fifelse(type == "post hoc analysis", "13.4", "13.3"), decision_log = dlog)][, dlog := NULL]   # 개정 1 항목은 본문의 결정 기록 번호(D-069, 정정은 D-070)
+  DEV[, `:=`(plan_section = fifelse(type == "post hoc analysis", "13.4", "13.3"), decision_log = dlog)][, dlog := NULL]   # 개정 1 항목은 본문의 결정 기록 번호(D-069, 정정은 D-070), 추록 1은 D-071
   m15_fwrite_cond(DEV, file.path(SD, "m15_deviations.csv"), COND)
   md <- c(md, "", "## Deviations and post hoc analyses (plan sections 13.3 and 13.4; full text in the plan)", "", "| Section | Number | Type | Summary |", "|---|---|---|---|",
           sprintf("| %s | %d | %s | %s |", DEV$plan_section, DEV$number, DEV$type, DEV$summary))
