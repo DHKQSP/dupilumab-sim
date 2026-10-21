@@ -1,0 +1,25 @@
+model,WT,quantity,key,typical,median,p05,p95
+k2016,60,Registered-interval AUCtau (days 112 to 126) / true steady-state AUCtau (x 100),reg_over_true,98.7876349990346,98.6991663370017,90.5929254227634,100.035241615407
+k2016,75,Registered-interval AUCtau (days 112 to 126) / true steady-state AUCtau (x 100),reg_over_true,98.8647946778638,98.776914585602,90.738609517868,100.053306040481
+k2016,90,Registered-interval AUCtau (days 112 to 126) / true steady-state AUCtau (x 100),reg_over_true,98.9429542307757,98.8546297573623,90.941345721702,100.07778154242
+k2020,60,Registered-interval AUCtau (days 112 to 126) / true steady-state AUCtau (x 100),reg_over_true,99.1689672528024,99.1159868428969,94.1135140284519,100.046540397427
+k2020,75,Registered-interval AUCtau (days 112 to 126) / true steady-state AUCtau (x 100),reg_over_true,99.2313746647832,99.1954171570318,94.2575128764032,100.070721892613
+k2020,90,Registered-interval AUCtau (days 112 to 126) / true steady-state AUCtau (x 100),reg_over_true,99.2943931079333,99.2636171649142,94.4084140223767,100.100019154337
+k2016,60,f_TM at Cavg at true steady state (%),ftm_cavg_true,17.4212352959642,17.3181514782038,11.2860569281267,26.3589007600628
+k2016,75,f_TM at Cavg at true steady state (%),ftm_cavg_true,20.3887771120509,20.2682080941131,13.208620496693,30.8484572558997
+k2016,90,f_TM at Cavg at true steady state (%),ftm_cavg_true,23.1848612110978,23.0478429925376,15.0201410116764,35.078397619742
+k2020,60,f_TM at Cavg at true steady state (%),ftm_cavg_true,16.4318165766141,16.3179619487258,9.73347318304536,26.9325163880948
+k2020,75,f_TM at Cavg at true steady state (%),ftm_cavg_true,19.2565950300835,19.1228751446208,11.4068546116517,31.5616515381069
+k2020,90,f_TM at Cavg at true steady state (%),ftm_cavg_true,21.9213939883479,21.768831247242,12.9855075064471,35.9282249954717
+k2016,60,f_TM at Ctrough at true steady state (%),ftm_trough_true,20.2483384639259,20.2421805081849,13.0212862665642,32.1103054556205
+k2016,75,f_TM at Ctrough at true steady state (%),ftm_trough_true,23.6973653731305,23.6902226368771,15.2393866982265,37.5787227915591
+k2016,90,f_TM at Ctrough at true steady state (%),ftm_trough_true,26.9470853277331,26.9390374588207,17.3293560966402,42.7306064040234
+k2020,60,f_TM at Ctrough at true steady state (%),ftm_trough_true,18.9341906872298,18.8312581259195,11.2247469662287,32.0011751049321
+k2020,75,f_TM at Ctrough at true steady state (%),ftm_trough_true,22.189076947076,22.0683303353651,13.1544076406476,37.5015937063871
+k2020,90,f_TM at Ctrough at true steady state (%),ftm_trough_true,25.2595991521296,25.1220094490049,14.9748010114417,42.6900301064109
+k2016,60,Mass balance (F x Dose / Vc - Vm x tau) / ke versus the solved AUCtau (relative difference x 100),mb_rel,-0.00212673494270899,-0.00209703631476321,-0.00627206056236007,-0.000769909189243801
+k2016,75,Mass balance (F x Dose / Vc - Vm x tau) / ke versus the solved AUCtau (relative difference x 100),mb_rel,-0.00313612912814509,-0.00310576850898747,-0.00966248894735011,-0.00109526335078547
+k2016,90,Mass balance (F x Dose / Vc - Vm x tau) / ke versus the solved AUCtau (relative difference x 100),mb_rel,-0.00435870538242344,-0.00435122961618961,-0.0140688650724996,-0.00146874180463774
+k2020,60,Mass balance (F x Dose / Vc - Vm x tau) / ke versus the solved AUCtau (relative difference x 100),mb_rel,-0.00194333039846839,-0.00191732217929563,-0.00637800091508545,-0.000642482170902792
+k2020,75,Mass balance (F x Dose / Vc - Vm x tau) / ke versus the solved AUCtau (relative difference x 100),mb_rel,-0.00286041372361545,-0.00284138107653487,-0.0100892365930755,-0.000921960937182442
+k2020,90,Mass balance (F x Dose / Vc - Vm x tau) / ke versus the solved AUCtau (relative difference x 100),mb_rel,-0.00396641251872998,-0.00395493664400171,-0.0145273191552148,-0.00125002004827401

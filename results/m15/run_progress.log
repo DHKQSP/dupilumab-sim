@@ -329,3 +329,9 @@ Execution halted
 10: k2020 75    ke  1.2         -16.666018          -19.865100 1000 ke +20%
 11: k2020 75     F  0.8         -25.233474          -26.433565 1000  F -20%
 12: k2020 75     F  1.2          25.180819           26.331645 1000  F +20%
+2026-10-21T10:42:30Z note: post hoc tmx second attempt failed by the solver floor (plan 17.11 item 4); third attempt at the section 4.3 tolerances at commit 65a7037
+2026-10-21T10:42:30Z start scripts/78_m15_tm_fraction.R ssx 4
+2026-10-21T10:46:59Z done scripts/78_m15_tm_fraction.R ssx 4 in 269s
+2026-10-21T10:46:59Z start scripts/78_m15_tm_fraction.R report
+2026-10-21T10:47:26Z done scripts/78_m15_tm_fraction.R report in 27s
+2026-10-21T10:47:26Z stage tmx complete
