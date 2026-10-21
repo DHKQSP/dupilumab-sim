@@ -89,7 +89,7 @@ if (mode == "sets") {
     if (file.exists(f)) next
     t0 <- Sys.time()
     sk <- seeds_of()                                                                           # 모든 세트가 같은 대상자(제어 변량 보정)
-    R <- parallel::mclapply(ss_, function(s) { st <- pu_param_set(p, E, s, MS)
+    R <- parallel::mclapply(ss_, function(s) { st <- pu_param_set(p, E, s, MS, max_redraw = as.integer(AU$redraw$max))
       wr <- wratio(st$p)
       rbindlist(lapply(PV, function(pv) { ss <- set_inputs(st$p, POPS[[pv]], sk, NSUB)
         w <- wr[population == pv]

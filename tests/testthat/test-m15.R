@@ -302,6 +302,7 @@ test_that("요청자 NCA 규칙(개정 1, m15_nca_blq0): 투여 뒤 BLQ = 0, 마
 
 test_that("파라미터 불확실성(개정 1, R/pu.R): SE 규칙, 차용, 세트 0 = config, 같은 이름은 같은 z", {
   source(proj_path("R", "pu.R"), local = TRUE)
+  expect_error(pu_param_set(load_params("k2016"), transform(pu_entries_k2016(pu_cfg()), estimate = ifelse(group == "omega2", -1, estimate)), 1, 20261020L), "10")   # 등록 다시 뽑기 최대 10회(r1~r10)
   PU <- pu_cfg(); E16 <- pu_entries_k2016(PU)
   v <- E16[group == "theta" & name == "Vc"]; expect_equal(v$sd_log, (log(2.97) - log(2.61)) / 3.29)
   w <- E16[group == "theta" & name == "theta_WT"]; expect_equal(w$se_lin, (0.840 - 0.576) / 3.29)
@@ -333,5 +334,7 @@ test_that("분석계획서 16절(개정 1)의 등록 수치가 설정 블록 ame
   labs <- vapply(A$ppc$mappings, `[[`, "", "label"); expect_setequal(labs, c("a_model1", "a_k2016")); for (l in labs) expect_true(grepl(l, x, fixed = TRUE), info = l)   # 정정: 등록 두 모델만
   expect_identical(A$labels$in_sample$k2020[["PKM12350"]], "out-of-sample"); expect_true(grepl("PKM12350, PKM14271 and R668-HV-1108 out-of-sample (FDA 2017 review, section 4.6)", x, fixed = TRUE))
   expect_identical(A$ppc$between_arm_check$present_if, "Cochran Q p-value < 0.10"); expect_true(grepl("Cochran Q p-value is below 0.10", x, fixed = TRUE))
-  expect_setequal(names(A$param_uncertainty$sets), c("k2016", "k2016_thetas", "k2020_b16")); expect_false(grepl("42.3 to 175.4 kg (FDA review Table 3.3.3", x, fixed = TRUE))
+  expect_setequal(names(A$param_uncertainty$sets), c("k2016", "k2016_thetas", "k2020_b16")); expect_null(A$applicability$request_range_kg); expect_true(grepl("belongs to the phase 3 data of Models 3 and 4 and is withdrawn (correction of 2026-10-21)", x, fixed = TRUE))
+  expect_identical(A$ppc$between_arm_check$present_p_below, 0.10); expect_true(grepl("below 0.10 (fixed here, before Q is computed)", x, fixed = TRUE))
+  expect_equal(A$param_uncertainty$redraw$max, 10L)
 })

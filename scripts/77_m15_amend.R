@@ -371,11 +371,11 @@ if (mode == "ppcstored") {
   q0 <- qstat(vapply(oo, function(o) as.numeric(o$AUClast_mean), 1), vapply(oo, function(o) as.numeric(o$AUClast_sd), 1), nn6)
   sims <- rbindlist(lapply(c("k2020", "k2016"), function(m) { z <- REP[pk_model == m & wmode == "primary" & arm %in% ha]
     qq <- z[, { o_ <- match(ha, arm); as.list(qstat(AUClast_mean[o_], AUClast_cv[o_] / 100 * AUClast_mean[o_], n[o_])) }, by = rep]
-    data.table(pk_model = m, sim_share_Q_ge_observed_pct = 100 * mean(qq$Q >= q0[["Q"]]), sim_Q_median = median(qq$Q), sim_Q_p95 = q_(qq$Q, 0.95), n_rep = nrow(qq)) }))
-  pval <- 1 - pchisq(q0[["Q"]], q0[["df"]])
+    data.table(pk_model = m, sim_share_Q_ge_observed_pct = 100 * mean(qq$Q >= q0[["Q"]]), sim_share_p_below_threshold_pct = 100 * mean(1 - pchisq(qq$Q, qq$df) < PTH), sim_Q_median = median(qq$Q), sim_Q_p95 = q_(qq$Q, 0.95), n_rep = nrow(qq)) }))
+  pval <- 1 - pchisq(q0[["Q"]], q0[["df"]]); PTH <- as.numeric(HC$present_p_below); stopifnot(length(PTH) == 1, is.finite(PTH))
   HCT <- data.table(arms = paste(ha, collapse = ";"), n_arms = length(ha), n_subj = sum(nn6), cochran_Q = q0[["Q"]], df = q0[["df"]], p_value = pval, I2_pct = 100 * max(0, (q0[["Q"]] - q0[["df"]]) / q0[["Q"]]),
                     tau2_DL = q0[["tau2"]], tau_cv_pct = 100 * sqrt(exp(q0[["tau2"]]) - 1), var_log_arm_means = q0[["var_y"]], mean_within_arm_var = q0[["mean_v"]], ratio_observed_to_expected = q0[["var_y"]] / q0[["mean_v"]],
-                    present = pval < 0.10, criterion = as.character(HC$present_if), note = "the two arms of a study are different products, so the variation includes product and study differences")
+                    present = pval < PTH, p_threshold = PTH, criterion = as.character(HC$present_if), note = "the two arms of a study are different products, so the variation includes product and study differences")
   HCT <- cbind(HCT[rep(1, nrow(sims))], sims)
   m15_fwrite_cond(HCT, file.path(PD2, "between_arm_check.csv"), "")
   print(HCT)
@@ -385,6 +385,7 @@ if (mode == "ppcstored") {
 
 # ---------------------------------------------------------------- 공통 서식 ----------------------------------------------------------------
 fmt <- function(x, d = 1) ifelse(is.na(x), "-", formatC(x, format = "f", digits = d, big.mark = ","))
+sg <- function(x, d = 2) ifelse(is.na(x), "-", ifelse(x == 0 | abs(x) >= 0.01, formatC(x, format = "f", digits = d, big.mark = ","), formatC(x, format = "g", digits = 3)))   # 0.01 미만은 유효숫자 3자리(항약물항체 후보일 농도)
 ci_ <- function(x, lo, hi, d = 1, unit = "") ifelse(is.na(x), "-", sprintf("%s%s (%s to %s)", fmt(x, d), unit, fmt(lo, d), fmt(hi, d)))
 MLAB <- c(k2020 = "Model 1", k2016 = "Kovalenko 2016"); PLAB <- c(S1 = "global", S2 = "Korean")
 SLAB <- c(B0 = "confirmed schedule", RM36_50 = "reduced schedule (Days 36 to 50 removed)", ADD64_71 = "extended schedule (Days 64 and 71 added)")
@@ -456,7 +457,7 @@ if (mode == "p1report") {
                 class = { mm <- meets[pk_model == "k2020"]; kk <- meets[pk_model == "k2016"]; if (mm && kk) "both meet" else if (!mm && !kk) "neither meets" else "one meets" },
                 m1_text = sprintf("%s%% (%s to %s); n for 90%%: %d", fmt(power[pk_model == "k2020"]), fmt(lo[pk_model == "k2020"]), fmt(hi[pk_model == "k2020"]), n_rand_90[pk_model == "k2020"]),
                 k16_text = sprintf("%s%% (%s to %s); n for 90%%: %d", fmt(power[pk_model == "k2016"]), fmt(lo[pk_model == "k2016"]), fmt(hi[pk_model == "k2016"]), n_rand_90[pk_model == "k2016"])), by = population][, population := NULL]
-  ROB[, `:=`(m1_text = ci_(m1_diff, m1_lo, m1_hi, if (unit == "pp") 1 else 3), k16_text = ci_(k16_diff, k16_lo, k16_hi, if (unit == "pp") 1 else 3))]
+  ROB[, `:=`(m1_text = ci_(m1_diff, m1_lo, m1_hi, if (unit[1] == "pp") 1 else 3), k16_text = ci_(k16_diff, k16_lo, k16_hi, if (unit[1] == "pp") 1 else 3)), by = unit]
   ROB <- rbind(ROB, SSR, fill = TRUE)
   ROB[, corrected_mapping := as.character(RB$corrected_mapping_column)]
   m15_fwrite_cond(ROB, file.path(PD1, "robustness_p1.csv"), COND)
@@ -466,7 +467,7 @@ if (mode == "p1report") {
   # ---------------- P1 결과 표 1개(두 모델 나란히; 값은 amend1/p1/*.csv에서) ----------------
   SS <- fread(file.path(PD1, "sampling_schedule.csv")); CR <- fread(file.path(PD1, "crossings.csv")); CV <- fread(file.path(PD1, "coverage.csv")); AD_ <- fread(file.path(PD1, "ada.csv"))
   CD <- fread(file.path(PD1, "cell_detail.csv")); PC <- fread(file.path(PD1, "population_contrast.csv")); VD <- fread(file.path(AD, "variance_decomposition.csv"))
-  WC <- fread(file.path(AD, "weight_check.csv")); WD <- fread(file.path(AD, "weight_ratio_diagnostic.csv"))
+  WC <- fread(file.path(AD, "weight_check.csv"))
   T <- list(); addt <- function(sec, item, v1, v2, src) T[[length(T) + 1]] <<- data.table(section = sec, item = item, model_1 = v1, kovalenko_2016 = v2, source = src)
   bypop <- function(f) paste(sprintf("%s: %s", PLAB, vapply(c("S1", "S2"), f, "")), collapse = "; ")
   for (sn in c("B0", "ADD64_71", "RM36_50")) {
@@ -493,8 +494,8 @@ if (mode == "p1report") {
   addt("Coverage", "Day 57 sample quantifiable, confirmed schedule (% of subjects)", cvv("k2020", 56), cvv("k2016", 56), "amend1/p1/coverage.csv")
   for (dd in c(63, 70)) addt("Coverage", sprintf("Day %d sample quantifiable, extended schedule (%% of subjects)", dd + 1), cvv("k2020", dd, "ADD64_71"), cvv("k2016", dd, "ADD64_71"), "amend1/p1/coverage.csv")
   for (sd_ in unique(AD_$study_day)) addt("Anti-drug antibody sampling", sprintf("Day %d true serum concentration (mg/L): median (5th to 95th percentile); below LLOQ %%", sd_),
-    bypop(function(pv) { z <- AD_[pk_model == "k2020" & population == pv & study_day == sd_]; sprintf("%s (%s to %s); %s", fmt(z$true_median, 2), fmt(z$true_p05, 2), fmt(z$true_p95, 2), fmt(z$true_below_lloq_pct)) }),
-    bypop(function(pv) { z <- AD_[pk_model == "k2016" & population == pv & study_day == sd_]; sprintf("%s (%s to %s); %s", fmt(z$true_median, 2), fmt(z$true_p05, 2), fmt(z$true_p95, 2), fmt(z$true_below_lloq_pct)) }), "amend1/p1/ada.csv")
+    bypop(function(pv) { z <- AD_[pk_model == "k2020" & population == pv & study_day == sd_]; sprintf("%s (%s to %s); %s", sg(z$true_median), sg(z$true_p05), sg(z$true_p95), fmt(z$true_below_lloq_pct)) }),
+    bypop(function(pv) { z <- AD_[pk_model == "k2016" & population == pv & study_day == sd_]; sprintf("%s (%s to %s); %s", sg(z$true_median), sg(z$true_p05), sg(z$true_p95), fmt(z$true_below_lloq_pct)) }), "amend1/p1/ada.csv")
   wr <- function(m, pv) { z <- WC[pk_model == m & dose_mg == DOSE & population == pv & metric == "AUCinf" & prob %in% c(0.05, 0.95)][order(prob)]; sprintf("%s / %s (exponent %s)", fmt(z$recomputed[1], 6), fmt(z$recomputed[2], 6), fmt(z$theta_WT[1], 3)) }
   addt("Body weight", "Typical AUC0-inf ratio to 75 kg at the 5th / 95th percentile weight (independent recomputation of the stored values)", bypop(function(pv) wr("k2020", pv)), bypop(function(pv) wr("k2016", pv)), "amend1/weight_check.csv")
   addt("Body weight", "Stored weight ratios reproduced (all doses, populations, metrics, percentiles)", sprintf("%d of %d rows within 1e-6; all within the registered solver tolerance", WC[pk_model == "k2020", sum(pass)], WC[pk_model == "k2020", .N]),
@@ -512,14 +513,17 @@ if (mode == "p1report") {
     addt("Korean against global population", sprintf("%s: global; Korean; Korean minus global", q), sprintf("%s; %s; %s", ci_(z("k2020")$S1, z("k2020")$S1_lo, z("k2020")$S1_hi, d_), ci_(z("k2020")$S2, z("k2020")$S2_lo, z("k2020")$S2_hi, d_), ci_(z("k2020")$diff_S2_minus_S1, z("k2020")$diff_lo, z("k2020")$diff_hi, d_)),
          sprintf("%s; %s; %s", ci_(z("k2016")$S1, z("k2016")$S1_lo, z("k2016")$S1_hi, d_), ci_(z("k2016")$S2, z("k2016")$S2_lo, z("k2016")$S2_hi, d_), ci_(z("k2016")$diff_S2_minus_S1, z("k2016")$diff_lo, z("k2016")$diff_hi, d_)), "amend1/p1/population_contrast.csv") }
   B7S <- fread(file.path(AD, "ppc", "seven_arm_bias.csv")); HCT <- fread(file.path(AD, "ppc", "between_arm_check.csv")); ATS <- fread(file.path(AD, "ppc", "arm_table.csv"))
-  b7r <- function(m, st, md = "primary") { z <- B7S[pk_model == m & wmode == md & grepl(st, arm_set)]; stopifnot(nrow(z) == 1); sprintf("%s (95%% PI %s to %s)", fmt(z$ratio_median, 3), fmt(z$ratio_pi95_lo, 3), fmt(z$ratio_pi95_hi, 3)) }
+  b7r <- function(m, st, md = "primary") { z <- B7S[pk_model == m & wmode == md & grepl(st, arm_set)]; stopifnot(nrow(z) == 1); sprintf("%s (95%% prediction interval %s to %s)", fmt(z$ratio_median, 3), fmt(z$ratio_pi95_lo, 3), fmt(z$ratio_pi95_hi, 3)) }
   addt("Posterior predictive check", "Pooled 300 mg AUC0-last predicted/observed, six arms with observed values (n 102), fixed weight assumption", b7r("k2020", "^six"), b7r("k2016", "^six"), "amend1/ppc/seven_arm_bias.csv")
   addt("Posterior predictive check", "Same, four arms without PKM12350; reading", sprintf("%s; %s", b7r("k2020", "^four"), B7S[pk_model == "k2020", reading][1]), sprintf("%s; %s", b7r("k2016", "^four"), B7S[pk_model == "k2016", reading][1]), "amend1/ppc/seven_arm_bias.csv")
-  addt("Posterior predictive check", "Between-arm variation of the six observed arm means (Cochran Q, p-value, I2; share of model replicates with Q at least the observed)",
-       sprintf("Q %s on %d df, p %s, I2 %s%%: %s; replicates %s%%", fmt(HCT$cochran_Q[1], 2), as.integer(HCT$df[1]), formatC(HCT$p_value[1], format = "f", digits = 3), fmt(HCT$I2_pct[1], 0), if (isTRUE(HCT$present[1])) "present" else "not detected", fmt(HCT[pk_model == "k2020", sim_share_Q_ge_observed_pct])),
-       sprintf("replicates %s%%", fmt(HCT[pk_model == "k2016", sim_share_Q_ge_observed_pct])), "amend1/ppc/between_arm_check.csv")
-  pk7 <- function(m) { z <- ATS[pk_model == m & wmode == "primary" & arm == "pkm14161_T" & endpoint == "AUClast"]; sprintf("observed %s, predicted %s (99%% PI %s to %s), ratio %s; %s", fmt(z$observed_mean, 0), fmt(z$pred_median, 0), fmt(z$pi99_lo, 0), fmt(z$pi99_hi, 0), fmt(z$ratio_pred_obs, 3), z$in_sample_status) }
-  addt("Posterior predictive check", "PKM14161 test arm (product #7, commercial prefilled syringe; closest to the EU reference product), AUC0-last", pk7("k2020"), pk7("k2016"), "amend1/ppc/arm_table.csv")
+  addt("Posterior predictive check", "Between-arm variation of the six observed arm means (Cochran Q, p-value, I-squared; share of model replicates with Q at least the observed; share of model replicates with p below the threshold)",
+       sprintf("Q %s on %d degrees of freedom, p %s, I-squared %s%%: %s; replicates %s%%; p below %s in %s%% of replicates", fmt(HCT$cochran_Q[1], 2), as.integer(HCT$df[1]), formatC(HCT$p_value[1], format = "f", digits = 3), fmt(HCT$I2_pct[1], 0), if (isTRUE(HCT$present[1])) "present" else "not detected",
+               fmt(HCT[pk_model == "k2020", sim_share_Q_ge_observed_pct]), fmt(HCT$p_threshold[1], 2), fmt(HCT[pk_model == "k2020", sim_share_p_below_threshold_pct])),
+       sprintf("replicates %s%%; p below %s in %s%% of replicates", fmt(HCT[pk_model == "k2016", sim_share_Q_ge_observed_pct]), fmt(HCT$p_threshold[1], 2), fmt(HCT[pk_model == "k2016", sim_share_p_below_threshold_pct])), "amend1/ppc/between_arm_check.csv")
+  pk7 <- function(m) { z <- ATS[pk_model == m & wmode == "primary" & arm == "pkm14161_T" & endpoint == "AUClast"]; sprintf("observed %s, predicted %s (99%% prediction interval %s to %s), ratio %s; %s; assay %s", fmt(z$observed_mean, 0), fmt(z$pred_median, 0), fmt(z$pi99_lo, 0), fmt(z$pi99_hi, 0), fmt(z$ratio_pred_obs, 3), z$in_sample_status, z$assay) }
+  addt("Posterior predictive check", "PKM14161 test arm (product #7, commercial prefilled syringe; closest to the European Union reference product), AUC0-last", pk7("k2020"), pk7("k2016"), "amend1/ppc/arm_table.csv")
+  pa_ <- unique(ATS[pk_model == "k2020" & wmode == "primary" & endpoint == "AUClast" & is.finite(observed_mean) & dose_mg == DOSE, .(study, arm, product, assay)])
+  addt("Posterior predictive check", "Product and assay of the 300 mg arms with an observed AUC0-last (FDA 2017 review Tables 4.1.1.a, 4.2.a and 4.2.b, as supplied)", paste(sprintf("%s: %s; assay %s", pa_$arm, pa_$product, pa_$assay), collapse = " | "), "same arms", "amend1/ppc/arm_table.csv")
   TAB <- rbindlist(T); m15_fwrite_cond(TAB, file.path(PD1, "p1_results_table.csv"), COND)
 
   # ---------------- 핵심 결론 5줄(16.3절 4 보수적 쪽 규칙, 16.6절 범주) ----------------
@@ -536,28 +540,36 @@ if (mode == "p1report") {
   worst <- function(col, m_better = "higher", sn = "B0", pv = "S1") { v <- SS[population == pv & schedule == sn][[col]]; names(v) <- SS[population == pv & schedule == sn, pk_model]
     if (m_better == "higher") v[which.min(v)] else v[which.max(abs(v))] }
   d57 <- CV[schedule == "B0" & planned_elapsed_day == 56]
+  el5 <- function(m) { z <- WC[pk_model == m & dose_mg == DOSE & population == "S1" & metric == "AUCinf" & prob == 0.05]; stopifnot(nrow(z) == 1); -log(z$recomputed) / log(z$WT / as.numeric(CFG$weight_effect$reference_kg)) }   # 체중 탄력성(결과 파일)
   b6m1 <- B7S[pk_model == "k2020" & wmode == "primary" & grepl("^six", arm_set)]; stopifnot(nrow(b6m1) == 1)
-  why3 <- sprintf("the coverage basis registered in section 16.3 item 4; Model 1 pooled 300 mg AUC0-last predicted/observed in the healthy-volunteer studies %s (95%% PI %s to %s)", fmt(b6m1$ratio_median, 3), fmt(b6m1$ratio_pi95_lo, 3), fmt(b6m1$ratio_pi95_hi, 3))
+  b6k16 <- B7S[pk_model == "k2016" & wmode == "primary" & grepl("^six", arm_set)]; stopifnot(nrow(b6k16) == 1)
+  why3 <- sprintf("the coverage basis registered in section 16.3 item 4; pooled 300 mg AUC0-last predicted/observed in the healthy-volunteer studies %s (95%% prediction interval %s to %s) for Kovalenko 2016 against %s (%s to %s) for Model 1",
+                  fmt(b6k16$ratio_median, 3), fmt(b6k16$ratio_pi95_lo, 3), fmt(b6k16$ratio_pi95_hi, 3), fmt(b6m1$ratio_median, 3), fmt(b6m1$ratio_pi95_lo, 3), fmt(b6m1$ratio_pi95_hi, 3))
+  hiw <- function(dd) { z <- dcast(AD_[study_day == dd], population ~ pk_model, value.var = "true_median"); h <- ifelse(z$k2020 > z$k2016, "Model 1", "Kovalenko 2016"); if (length(unique(h)) == 1) sprintf("higher in %s", h[1]) else "the higher model differs by population" }
+  adt <- function(dd) sprintf("%s mg/L at Day %d (%s)", paste(sg(range(AD_[study_day == dd, true_median])), collapse = " to "), dd, hiw(dd))
   C <- c(
     sprintf("1. Extended schedule (Days 64 and 71 added) against the confirmed schedule, global population, 300 mg: %s.", cls_txt(ids_s("ADD64_71"))),
     sprintf("2. Reduced schedule (Days 36 to 50 removed) against the confirmed schedule, global population, 300 mg: %s.", cls_txt(ids_s("RM36_50"))),
     { kv <- function(m, pv, col) SS[pk_model == m & population == pv & schedule == "B0"][[col]]; dv <- function(m, pv) d57[pk_model == m & population == pv, used_pct]
-      sprintf("3. Coverage on the confirmed schedule (Kovalenko 2016, with Model 1 in parentheses; %s): the Day 57 sample is retained as quantifiable in the NCA for %s%% (%s%%) of global and %s%% (%s%%) of Korean subjects; AUC0-inf is estimable with extrapolation below 20%% for %s%% (%s%%) and %s%% (%s%%), and %s%% (%s%%) and %s%% (%s%%) of subjects have a reliable terminal phase. For anti-drug antibody samples, the median true serum concentration across models and populations is %s mg/L at Day 29, %s mg/L at Day 57 and %s mg/L at Day 85 (higher values from Model 1), with up to %s%% of Day 85 values below the LLOQ.",
+      sprintf("3. Coverage on the confirmed schedule (Kovalenko 2016, with Model 1 in parentheses; %s): the Day 57 sample is retained as quantifiable in the NCA for %s%% (%s%%) of global and %s%% (%s%%) of Korean subjects; AUC0-inf is estimable with extrapolation below 20%% for %s%% (%s%%) and %s%% (%s%%), and %s%% (%s%%) and %s%% (%s%%) of subjects have a reliable terminal phase. For anti-drug antibody samples, the median true serum concentration across models and populations is %s, %s and %s, with up to %s%% of Day 85 values below the LLOQ.",
             why3, fmt(dv("k2016", "S1")), fmt(dv("k2020", "S1")), fmt(dv("k2016", "S2")), fmt(dv("k2020", "S2")), fmt(kv("k2016", "S1", "lambda_z_success_pct")), fmt(kv("k2020", "S1", "lambda_z_success_pct")),
             fmt(kv("k2016", "S2", "lambda_z_success_pct")), fmt(kv("k2020", "S2", "lambda_z_success_pct")), fmt(kv("k2016", "S1", "reliable_terminal_phase_pct")), fmt(kv("k2020", "S1", "reliable_terminal_phase_pct")),
             fmt(kv("k2016", "S2", "reliable_terminal_phase_pct")), fmt(kv("k2020", "S2", "reliable_terminal_phase_pct")),
-            paste(fmt(range(AD_[study_day == 29, true_median]), 1), collapse = " to "), paste(fmt(range(AD_[study_day == 57, true_median]), 2), collapse = " to "), paste(fmt(range(AD_[study_day == 85, true_median]), 2), collapse = " to "),
+            adt(29), adt(57), adt(85),
             fmt(max(AD_[study_day == 85, true_below_lloq_pct]))) },
-    sprintf("4. Body weight: the weight effect is not a defect; each model runs with its own exponent (0.711 and 0.705; typical AUC0-inf ratio at the global 5th percentile weight %s for Model 1 and %s for Kovalenko 2016, near-equal because exponent times exposure sensitivity is about 1.11 in both). Log weight explains %s to %s of the variance of log AUC0-last; the 75 kg stratum term absorbs %s to %s%% of that share in the global and %s to %s%% in the Korean population. Stratified against unstratified analysis: %s; median against 75 kg boundary: %s.",
+    sprintf("4. Body weight: the weight effect is not a defect; each model runs with its own exponent (%s for Model 1 and %s for Kovalenko 2016; typical AUC0-inf ratio at the global 5th percentile weight %s and %s, implied weight elasticity of AUC0-inf %s and %s, so the near-equality is a coincidence of exponent and exposure sensitivity). Log weight explains %s to %s of the variance of log AUC0-last; the 75 kg stratum term absorbs %s to %s%% of that share in the global and %s to %s%% in the Korean population. Stratified against unstratified analysis: %s; median against 75 kg boundary: %s.",
+            fmt(WC[pk_model == "k2020", theta_WT][1], 3), fmt(WC[pk_model == "k2016", theta_WT][1], 3),
             fmt(WC[pk_model == "k2020" & dose_mg == DOSE & population == "S1" & metric == "AUCinf" & prob == 0.05, recomputed], 6), fmt(WC[pk_model == "k2016" & dose_mg == DOSE & population == "S1" & metric == "AUCinf" & prob == 0.05, recomputed], 6),
+            fmt(el5("k2020"), 3), fmt(el5("k2016"), 3),
             fmt(min(VD$r2_log_weight), 3), fmt(max(VD$r2_log_weight), 3), fmt(100 * min(VD[population == "S1" & boundary == "fixed75", stratum_share_of_weight_r2]), 0), fmt(100 * max(VD[population == "S1" & boundary == "fixed75", stratum_share_of_weight_r2]), 0),
             fmt(100 * min(VD[population == "S2" & boundary == "fixed75", stratum_share_of_weight_r2]), 0), fmt(100 * max(VD[population == "S2" & boundary == "fixed75", stratum_share_of_weight_r2]), 0),
             cls_txt("strat_term_S1"), cls_txt("strat_boundary_S1")),
     sprintf("5. Korean against global population (300 mg, confirmed schedule): %s.", cls_txt(c("pop_power", "pop_auroc", paste0("pop_cross_", rep(c("F", "ke", "Vmax"), each = 2), "_", c("down", "up"))))))
   stopifnot(length(C) <= 5)
-  HDRQ <- "Model identity (confirmed on 2026-10-21, amendment section 16.14): Model 1 is Kovalenko 2020 Table 1 Model 1, the initial base structural model of section 4.6 of the FDA 2017 clinical pharmacology review, developed from R668-AS-0907, TDU12265, PKM14161 and R668-AD-1117; Kovalenko 2016 is the sensitivity model."
-  md <- c("# P1 report (amendment 1, plan section 16)", "", HDRQ, "", if (nzchar(COND)) c(COND, "") else NULL,
-          "## Key conclusions (P1; conservative-side rule of section 16.3 item 4; classes of section 16.10)", "", C, "",
+  ABP <- "Abbreviations: ADA, anti-drug antibody; AUC0-inf, area under the concentration-time curve from time zero to infinity; AUC0-last, area under the concentration-time curve from time zero to the last quantifiable concentration; AUROC, area under the receiver operating characteristic curve; CI, confidence interval; Cmax, maximum concentration; CV, coefficient of variation; F, bioavailability; FDA, US Food and Drug Administration; GMR, geometric mean ratio; ka, absorption rate constant; ke, linear elimination rate constant; lambda_z, terminal elimination rate constant; LLOQ, lower limit of quantification; NCA, non-compartmental analysis; pp, percentage points; RMSE, root mean square error; Vmax, maximum Michaelis-Menten elimination rate."
+  HDRQ <- "Model identity (confirmed on 2026-10-21, amendment section 16.14): Model 1 is Kovalenko 2020 Table 1 Model 1, the initial base structural model of section 4.6 of the 2017 clinical pharmacology review by the US Food and Drug Administration (FDA), developed from R668-AS-0907, TDU12265, PKM14161 and R668-AD-1117; Kovalenko 2016 is the sensitivity model."
+  md <- c("# P1 report (amendment 1, plan section 16)", "", ABP, "", HDRQ, "", if (nzchar(COND)) c(COND, "") else NULL,
+          "## Key conclusions (P1; rule for sampling conclusions of section 16.3 item 4: coverage on the Kovalenko 2016 basis, other levels from the less favourable model; classes of section 16.10)", "", C, "",
           "## P1 results table (both models side by side; every value from the file in the last column)", "",
           "| Section | Item | Model 1 (primary) | Kovalenko 2016 (sensitivity) | Source |", "|---|---|---|---|---|", sprintf("| %s | %s | %s | %s | results/m15/%s |", TAB$section, TAB$item, TAB$model_1, TAB$kovalenko_2016, TAB$source), "",
           "## Robustness classification (section 16.10; primary scenario cell and the Korean cell)", "",
@@ -565,7 +577,7 @@ if (mode == "p1report") {
           sprintf("| %s | %s | %s | %s | %s | %s | %s |", ROB$contrast, ROB$metric, ROB$cell, ROB$m1_text, ROB$k16_text, ROB$class, fifelse(is.na(ROB$other_cells_same_class), "-", ROB$other_cells_same_class)))
   pl <- readLines(proj_path("plans", "M15_analysis_plan_20261020.md"), warn = FALSE); i0 <- grep("^### 16\\.13 ", pl); tl <- pl[(i0 + 1):length(pl)]; tl <- tl[seq_len(which(!grepl("^\\||^$", tl))[1] - 1)]
   md <- c(md, "", "## Departures from the request (plan section 16.13)", tl[nzchar(tl)])
-  writeLines(md, file.path(PD1, "p1_report.md")); writeLines(c("# P1 key conclusions", "", HDRQ, "", C), file.path(PD1, "p1_key_conclusions.md"))
+  writeLines(md, file.path(PD1, "p1_report.md")); writeLines(c("# P1 key conclusions", "", ABP, "", HDRQ, "", C), file.path(PD1, "p1_key_conclusions.md"))
   source(proj_path("regulatory", "src", "reg_helpers.R"), local = TRUE); for (ff in c(file.path(PD1, "p1_report.md"), file.path(PD1, "p1_key_conclusions.md"), file.path(PD1, "p1_results_table.csv"), file.path(PD1, "robustness_p1.csv"))) check_english(ff)
   cat(C, sep = "\n"); append_run_log(lf, "P1 report written")
 }
@@ -652,10 +664,11 @@ if (mode == "appendix") {
       sprintf("%s / %s", fmt(a$auroc_F10_pooled, 3), fmt(b$auroc_F10_pooled, 3))) }))
   d57 <- CV[schedule == "B0" & planned_elapsed_day == 56]
   ada_rows <- lapply(sort(unique(ADA$study_day)), function(sd_) { z <- ADA[study_day == sd_]
-    c(sprintf("Day %d", sd_), sprintf("%s to %s", fmt(min(z$true_median), 2), fmt(max(z$true_median), 2)), sprintf("%s to %s", fmt(min(z$true_p05), 2), fmt(max(z$true_p95), 2)), sprintf("%s to %s", fmt(min(z$true_below_lloq_pct)), fmt(max(z$true_below_lloq_pct)))) })
+    c(sprintf("Day %d", sd_), sprintf("%s to %s", sg(min(z$true_median)), sg(max(z$true_median))), sprintf("%s to %s", sg(min(z$true_p05)), sg(max(z$true_p95))), sprintf("%s to %s", fmt(min(z$true_below_lloq_pct)), fmt(max(z$true_below_lloq_pct)))) })
   L <- c(L, "### 5.2 Sampling evaluation (300 mg; Model 1 / Kovalenko 2016)", "",
          tbl(c("Population", "Schedule", "Power at GMR 0.95 (%)", "AUC0-inf estimable, extrapolation below 20% (%)", "Reliable terminal phase (%)", "AUC0-last median error vs dense truth (%)", "AUROC, 10% F difference"), do.call(c, sr)), "",
-         sprintf("Day 57 sample on the confirmed schedule: quantifiable and retained in the NCA for %s to %s%% of subjects (both models, both populations). Rows with a confidence interval are compared between models in section 6.", fmt(min(d57$used_pct)), fmt(max(d57$used_pct))), "",
+         sprintf("Day 57 sample on the confirmed schedule, quantifiable and retained in the NCA (Kovalenko 2016, with Model 1 in parentheses, because the coverage statements use the model whose pooled healthy-volunteer 300 mg prediction is closer to the observations; plan section 16.3 item 4): %s%% (%s%%) of global and %s%% (%s%%) of Korean subjects. Rows with a confidence interval are compared between models in section 6.",
+                 fmt(d57[pk_model == "k2016" & population == "S1", used_pct]), fmt(d57[pk_model == "k2020" & population == "S1", used_pct]), fmt(d57[pk_model == "k2016" & population == "S2", used_pct]), fmt(d57[pk_model == "k2020" & population == "S2", used_pct])), "",
          "Predicted true serum concentrations at candidate anti-drug antibody sampling days (single 300 mg dose; range over both models and both populations; 20,000 subjects each):", "",
          tbl(c("Study day", "Median (mg/L)", "5th to 95th percentile (mg/L)", "Below the LLOQ (%)"), ada_rows), "")
   ssr <- lapply(c("S1", "S2"), function(pv) lapply(c("k2020", "k2016"), function(m) { pa <- PAN[pk_model == m & population == pv & dose_mg == DOSE & schedule == "B0" & boundary == "fixed75" & model == "M1" & n_rand == NBASE & abs(true_gmr - G) < 1e-9]; p95 <- cellr(m, pv, 0.95)
@@ -671,7 +684,9 @@ if (mode == "appendix") {
            c("Part of it absorbed by a 75 kg stratum term (global; Korean)", sprintf("%s%%; %s%%", fmt(100 * VD[pk_model == "k2020" & population == "S1" & boundary == "fixed75", stratum_share_of_weight_r2], 0), fmt(100 * VD[pk_model == "k2020" & population == "S2" & boundary == "fixed75", stratum_share_of_weight_r2], 0)),
              sprintf("%s%%; %s%%", fmt(100 * VD[pk_model == "k2016" & population == "S1" & boundary == "fixed75", stratum_share_of_weight_r2], 0), fmt(100 * VD[pk_model == "k2016" & population == "S2" & boundary == "fixed75", stratum_share_of_weight_r2], 0))),
            c("Share of enrolled subjects above 75 kg (global; Korean)", sprintf("%s%%; %s%%", fmt(CD[pk_model == "k2020" & population == "S1" & boundary == "fixed75", share_upper_stratum_pct][1]), fmt(CD[pk_model == "k2020" & population == "S2" & boundary == "fixed75", share_upper_stratum_pct][1])), "same populations"))), "",
-         "The two models' weight ratios are near-equal by coincidence: weight acts only on the central volume in both, and the weight exponent times the sensitivity of exposure to bioavailability is 1.110 for Model 1 and 1.107 for Kovalenko 2016. Each model was confirmed to run with its own exponent.", "")
+         { el_ <- function(m) { z <- WC[pk_model == m & dose_mg == DOSE & population == "S1" & metric == "AUCinf" & prob == 0.05]; stopifnot(nrow(z) == 1); -log(z$recomputed) / log(z$WT / as.numeric(CFG$weight_effect$reference_kg)) }
+           sprintf("The two models' weight ratios are near-equal by coincidence: weight acts only on the central volume in both models, with exponents %s (Model 1) and %s (Kovalenko 2016), and the implied weight elasticity of AUC0-inf at the global 5th percentile weight is %s and %s. Each model was confirmed to run with its own exponent (independent recomputation of every stored ratio).",
+                   fmt(WC[pk_model == "k2020", theta_WT][1], 3), fmt(WC[pk_model == "k2016", theta_WT][1], 3), fmt(el_("k2020"), 3), fmt(el_("k2016"), 3)) }, "")
   # 8 비교(robustness) + 본문 결론
   rb <- ROB[!grepl("^dose", contrast) & !grepl("^samplesize", row_id)]
   L <- c(L, "## 6. Comparison between the two models", "",
@@ -700,7 +715,7 @@ if (mode == "appendix") {
            c("Immunogenicity", "Anti-drug antibodies are not modelled; the concentrations in section 5.2 are inputs for setting the assay drug tolerance."),
            c("200 mg presentation", "Excluded from this appendix (known AUC0-last under-prediction for that presentation)."),
            c("Disagreement between the models", { r4 <- rb[substr(class, 1, 1) == "4"]; if (nrow(r4)) paste(sprintf("%s, %s: Model 1 %s; Kovalenko 2016 %s", sub(" \\(.*", "", r4$contrast), sub(" \\(.*", "", r4$metric), r4$m1_text, r4$k16_text), collapse = "; ") else "No design contrast changes in opposite directions in the two models (class 4)." }))), "")
-  abl <- "Abbreviations: AUC0-inf, area under the concentration-time curve from time zero to infinity; AUC0-last, area to the last quantifiable concentration; AUROC, area under the receiver operating characteristic curve; CI, confidence interval; Cmax, maximum concentration; CV, coefficient of variation; EU, European Union; F, bioavailability; FDA, US Food and Drug Administration; GMR, geometric mean ratio; ka, absorption rate constant; ke, linear elimination rate constant; lambda_z, terminal elimination rate constant; LLOQ, lower limit of quantification; NCA, non-compartmental analysis; PK, pharmacokinetic; RMSE, root mean square error; SD, standard deviation; Vmax, maximum Michaelis-Menten elimination rate."
+  abl <- "Abbreviations: AUC0-inf, area under the concentration-time curve from time zero to infinity; AUC0-last, area to the last quantifiable concentration; AUROC, area under the receiver operating characteristic curve; CI, confidence interval; Cmax, maximum concentration; CV, coefficient of variation; EU, European Union; F, bioavailability; FDA, US Food and Drug Administration; GMR, geometric mean ratio; I2, I-squared, the share of the variation between arm means beyond within-arm sampling error; ka, absorption rate constant; ke, linear elimination rate constant; lambda_z, terminal elimination rate constant; LLOQ, lower limit of quantification; NCA, non-compartmental analysis; PK, pharmacokinetic; RMSE, root mean square error; SD, standard deviation; Vmax, maximum Michaelis-Menten elimination rate."
   L <- c(L, abl)
   fm <- file.path(APD, "M15_MS_appendix_draft.md"); writeLines(L, fm)
   fd <- file.path(APD, "M15_MS_appendix_draft.docx")
@@ -771,11 +786,10 @@ if (mode == "ppc") {
   RES <- list()
   for (nr in names(RS)) for (lab in names(MAPS)) for (md in unique(RS[[nr]][pk_model == lab, wmode])) for (ug in if (BSF_ON) c(FALSE, TRUE) else FALSE) {
     rm <- MAPS[[lab]]$rule_model; UR <- UR_of(RS[[nr]], lab, md)
-    ev <- eval_rules(UR, rm, ug, DEFS); dx <- !(MAPS[[lab]]$model %in% c(CFG$models$primary, CFG$models$sensitivity))
-    R <- rbind(ev$R, union_row(ev, c("R1", "R2", "R4", "R5"), "any (registered rule)"), union_row(ev, c("R1", "R2", "R5"), "any of R1, R2, R5 (diagnostic-mapping rule)"))
+    ev <- eval_rules(UR, rm, ug, DEFS); stopifnot(MAPS[[lab]]$model %in% c(CFG$models$primary, CFG$models$sensitivity))      # 정정: 등록 두 모델만
+    R <- rbind(ev$R, union_row(ev, c("R1", "R2", "R4", "R5"), "any (registered rule)"))
     for (w14 in c(FALSE, TRUE)) { e2 <- eval_rules(UR, rm, ug, ps_defs(w14)); R <- rbind(R, union_row(e2, names(ps_defs(w14)), if (w14) "per-study rule with PKM14271 (9 comparisons)" else "per-study rule (7 comparisons)")) }
-    R[, decides := fifelse(dx, rule == "any of R1, R2, R5 (diagnostic-mapping rule)", rule == "any (registered rule)")]
-    R[rule == "R4" & dx, rule := "R4 (Model 1 units, descriptive)"]
+    R[, decides := rule == "any (registered rule)"]
     RES[[length(RES) + 1]] <- R[, `:=`(mapping = lab, model = MAPS[[lab]]$model, role = MAPS[[lab]]$role, wmode = md, nca_rule = nr, between_study_cv_pct = if (ug) as.numeric(PPC$between_study_factor$cv_pct) else 0, n_rep = ev$nmax)] }
   RT <- rbindlist(RES, fill = TRUE); setcolorder(RT, c("mapping", "model", "role", "wmode", "nca_rule", "between_study_cv_pct", "rule"))
   # 등록 모델, 등록 NCA 규칙, 인자 없음: 저장된 판정·오경보율과 같아야 한다
@@ -791,7 +805,7 @@ if (mode == "ppc") {
       data.table(mapping = lab, model = m, arm = z$arm[1], wmode = z$wmode[1], study = a$study, dose_mg = a$dose_mg, n_subj = a$n_subj, endpoint = e,
                  in_sample_status = if (m %in% names(L_)) L_[[m]][[a$study]] else as.character(L_$diagnostic), observed_mean = o, pred_median = median(x), pi99_lo = q_(x, 0.005), pi99_hi = q_(x, 0.995),
                  ratio_pred_obs = median(x) / o, outside_pi99 = if (is.finite(o)) o < q_(x, 0.005) | o > q_(x, 0.995) else NA) })) }))
-  m15_fwrite_cond(AT, file.path(PD2, "arm_table_mappings.csv"), "")
+  m15_fwrite_cond(AT, file.path(PD2, "arm_table_by_nca_rule.csv"), "")
   SA <- PPC$seven_arms; arms <- unlist(SA$arms); oa <- arms[vapply(arms, function(aid) { o <- ob_arm(aid); !is.null(o) && is.finite(o$AUClast_mean) }, TRUE)]
   nn <- vapply(oa, function(aid) as.numeric(V$arms[[aid]]$n_subj), 1); obs7 <- sum(nn * vapply(oa, function(aid) ob_arm(aid)$AUClast_mean, 1)) / sum(nn)
   B7 <- rbindlist(lapply(names(RS), function(nr) rbindlist(lapply(names(MAPS), function(lab) rbindlist(lapply(unique(RS[[nr]][pk_model == lab, wmode]), function(md) {
@@ -800,7 +814,7 @@ if (mode == "ppc") {
     data.table(mapping = lab, model = MAPS[[lab]]$model, wt_ref_kg = if (is.null(MAPS[[lab]]$wt_ref)) 75 else as.numeric(MAPS[[lab]]$wt_ref), wmode = md, nca_rule = nr, observed_mean_6arms = obs7,
                ratio_median = median(pr) / obs7, ratio_pi95_lo = q_(pr, 0.025) / obs7, ratio_pi95_hi = q_(pr, 0.975) / obs7, ratio_pi99_lo = q_(pr, 0.005) / obs7, ratio_pi99_hi = q_(pr, 0.995) / obs7,
                pct_rank_observed = 100 * mean(pr <= obs7), realized_mean_weight_kg = mean(wt), n_rep = length(pr)) }))))))
-  m15_fwrite_cond(B7, file.path(PD2, "seven_arm_bias_mappings.csv"), "")
+  m15_fwrite_cond(B7, file.path(PD2, "seven_arm_bias_by_nca_rule.csv"), "")
   if (file.exists(file.path(VA, "nca_rule_difference.csv"))) file.copy(file.path(VA, "nca_rule_difference.csv"), file.path(PD2, "nca_rule_difference.csv"), overwrite = TRUE)
   # 결론 1 고정 서식(16.7절 7, 정정 반영): 고정 체중 가정, 등록 NCA 규칙. FP = 인자 민감도를 계산했으면 FP10, 아니면 FP0
   TH <- as.numeric(PPC$conclusion_template$threshold_fp10_pct); CVF <- as.numeric(PPC$between_study_factor$cv_pct)
@@ -819,7 +833,7 @@ if (mode == "ppc") {
             dev_k(m), MLAB[[m]], MLAB[[m]], if (r0$met) "met" else "did not meet", sub("^fails under", "met under", sub("^passes under", "not met under", outc[pk_model == m, outcome])), thr_txt, MLAB[[m]], fmt(r0$false_positive_pct),
             if (BSF_ON) sprintf(" without and %s%% with %g%% between-study exposure variation", fmt(r10$false_positive_pct), CVF) else "",
             fmt(min(r0$detect_x0.75_pct, r0$detect_x1.25_pct), 0), if (BSF_ON) sprintf(" and %s%%", fmt(min(r10$detect_x0.75_pct, r10$detect_x1.25_pct), 0)) else "",
-            formatC(HCT$p_value[1], format = "f", digits = 3), if (BSF_ON) "present" else "not detected", fmt(b6$ratio_median, 3), fmt(b4$ratio_median, 3), sub(" over-prediction", "", b6$reading), cat_) }, "")
+            formatC(HCT$p_value[1], format = "f", digits = 3), if (BSF_ON) "present" else "not detected", fmt(b6$ratio_median, 3), fmt(b4$ratio_median, 3), c(`systematic over-prediction` = "systematic", `over-prediction driven by PKM12350` = "driven by PKM12350", `over-prediction not shown` = "not shown")[[b6$reading]], cat_) }, "")
   writeLines(c("# Conclusion 1 (fixed template of plan section 16.7 item 7)", "", paste0("- ", C1)), file.path(PD2, "conclusion1.md"))
   source(proj_path("regulatory", "src", "reg_helpers.R"), local = TRUE); for (ff in list.files(PD2, "\\.(csv|md)$", full.names = TRUE)) check_english(ff)
   print(RT[decides == TRUE & between_study_cv_pct %in% c(0, 10) & wmode == "primary", .(mapping, nca_rule, between_study_cv_pct, met, false_positive_pct, detect_x0.75_pct, detect_x1.25_pct)]); cat(C1, sep = "\n")
@@ -882,9 +896,9 @@ if (mode == "final") {
   as_ <- function(sid, pv, nr) { z <- ASR[set_id == sid & population == pv & n_rand == nr]; stopifnot(nrow(z) == 1); sprintf("%s%% (2.5th to 97.5th percentile %s to %s; sets at least 90%%: %s%%)", fmt(z$assurance_param_pct), fmt(z$p025_pct), fmt(z$p975_pct), fmt(z$share_sets_ge90_pct)) }
   for (nr in c(107, 130)) for (pv in c("S1", "S2")) addt(sprintf("Assurance over parameter uncertainty, %d randomized per arm, %s population (Model 1: borrowed Kovalenko 2016 relative widths on eight structural parameters; Kovalenko 2016: bootstrap percentiles, all parameters)", nr, PLAB[[pv]]),
                                                          as_("k2020_b16", pv, nr), as_("k2016", pv, nr), "amend1/param_assurance/assurance_param.csv")
-  for (nr in c(107, 130)) addt(sprintf("Assurance, matched scope (eight structural parameters only), %d per arm, global population", nr), as_("k2020_b16", "S1", nr), as_("k2016_thetas", "S1", nr), "amend1/param_assurance/assurance_param.csv")
+  for (nr in c(107, 130)) addt(sprintf("Assurance, matched scope (eight structural parameters only; Model 1: borrowed uncertainty, Kovalenko 2016 relative widths), %d per arm, global population", nr), as_("k2020_b16", "S1", nr), as_("k2016_thetas", "S1", nr), "amend1/param_assurance/assurance_param.csv")
   wp <- function(sid) { z <- WRP[set_id == sid & population == "S1" & metric == "AUCinf"][order(prob)]; sprintf("%s (%s to %s) / %s (%s to %s)", fmt(z$set0[1], 3), fmt(z$p025[1], 3), fmt(z$p975[1], 3), fmt(z$set0[2], 3), fmt(z$p025[2], 3), fmt(z$p975[2], 3)) }
-  addt("Weight effect, global 5th / 95th percentile weight, typical AUC0-inf ratio with parameter-uncertainty interval", wp("k2020_b16"), wp("k2016"), "amend1/param_assurance/weight_ratio_param.csv")
+  addt("Weight effect, global 5th / 95th percentile weight, typical AUC0-inf ratio with parameter-uncertainty interval (Model 1: borrowed uncertainty, Kovalenko 2016 relative widths)", wp("k2020_b16"), wp("k2016"), "amend1/param_assurance/weight_ratio_param.csv")
   ap <- function(m) paste(APL[model == m, sprintf("%s %s%%", PLAB[population], fmt(outside_pct))], collapse = "; ")
   addt("Enrolled weights outside the documented range", ap("Model 1"), ap("Kovalenko 2016"), "amend1/final/applicability_amend1.csv")
   cl <- ROB[, .N, by = .(k = substr(class, 1, 1))]

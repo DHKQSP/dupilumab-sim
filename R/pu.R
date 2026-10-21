@@ -49,7 +49,7 @@ pu_check_estimates <- function(p, E) {
 
 # 세트 s의 파라미터: z는 derive_seed(ms, "pset", s)에서 PU_NAMES 순서로(모델·세트와 무관), 로그 척도는 estimate x exp(z sd_log), 선형은 estimate + z se_lin.
 # 분산 또는 잔차가 0 이하이거나 F >= 1이면 세트 전체를 하위 흐름 "r1", "r2", ...로 다시 뽑고 횟수를 센다. s = 0은 추정값 그대로(config와 같음).
-pu_param_set <- function(p, E, s, ms) {
+pu_param_set <- function(p, E, s, ms, max_redraw = 10L) {
   key <- paste(E$group, E$name, sep = "."); r <- 0L
   repeat {
     z <- if (s == 0) setNames(rep(0, length(PU_NAMES)), PU_NAMES) else
@@ -57,7 +57,7 @@ pu_param_set <- function(p, E, s, ms) {
     val <- ifelse(E$scale == "log", E$estimate * exp(z[key] * E$sd_log), E$estimate + z[key] * E$se_lin)
     Fv <- if (any(key == "theta.F")) val[key == "theta.F"] else p$theta[["F"]]
     if (all(val[E$group %in% c("omega2", "sigma")] > 0) && Fv > 0 && Fv < 1) break
-    r <- r + 1L; if (r > 20) stop("세트 ", s, ": 다시 뽑기 20회 초과")
+    r <- r + 1L; if (r > max_redraw) stop("세트 ", s, ": 다시 뽑기 ", max_redraw, "회 초과(등록 r1~r", max_redraw, ")")
   }
   ps <- p
   for (i in seq_len(nrow(E))) { g <- E$group[i]; nm <- E$name[i]; v <- val[i]
