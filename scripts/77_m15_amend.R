@@ -12,12 +12,13 @@
 #   p1report                  P1 보고(16.12절): robustness 분류(16.10절, Model 1 대 Kovalenko 2016), P1 결과 표 1개, 핵심 결론 5줄 → amend1/p1/
 #   appendix                  브리핑 부록 초안(16.6절, 영문, ICH M15 구성, 표 위주) → amend1/appendix/M15_MS_appendix_draft.md, .docx(pandoc markdown-smart); 영문·ASCII 점검
 #   postcheck <before_dir>    표기 반영 사후 단계 재실행 점검(16.1절): summary, samplesize, weight, figures의 CSV를 재실행 전 사본과 열마다 비교(숫자 열 동일, 바뀐 표기 열만 허용)
+#   final                     최종(16.10절): robustness 표(세 열), 적용 가능성(16.9절), 요약 표 1개, 결론 5줄 이내 → amend1/final/
 #   ppc                       P2 사후 예측 점검 진단(16.7절 4~7): 대안 매핑 군 표·7개 군 편향, 판정 규칙 오경보율(두 NCA 규칙, 연구 간 인자 CV 0·10%), 검출 확률,
 #                             연구별 규칙, 넓힌 한계로 본 관측 판정, 결론 1 고정 서식 → amend1/ppc/
 # 사용법: nice -n 5 Rscript scripts/77_m15_amend.R <mode> ...
 source("R/00_setup.R"); source_project(); source(proj_path("R", "m15.R"))
 args <- commandArgs(trailingOnly = TRUE)
-MODES <- c("mechcheck", "mechx", "weightcheck", "extract", "ppcstored", "p1report", "appendix", "ppc", "postcheck")
+MODES <- c("mechcheck", "mechx", "weightcheck", "extract", "ppcstored", "p1report", "appendix", "ppc", "postcheck", "final")
 if (!length(args) || !args[1] %in% MODES) stop("사용법: Rscript scripts/77_m15_amend.R <", paste(MODES, collapse = "|"), "> ...")
 mode <- args[1]
 CFG <- m15_cfg(); MS <- as.integer(CFG$master_seed); stopifnot(MS == 20261020L)
@@ -788,4 +789,71 @@ if (mode == "postcheck") {
   R[, ok := status %in% c("identical", "columns differ (plan-derived table)", "rows differ (plan-derived table)") | (status == "text differs only" & vapply(strsplit(text_columns_changed, ";"), function(x) all(x %in% ALLOWED_TXT), TRUE))]
   fwrite(R, file.path(AD, "post_rerun_check.csv")); print(R[status != "identical"]); append_run_log(lf, sprintf("post re-run check: %d files, %d identical, all ok %s", nrow(R), sum(R$status == "identical"), all(R$ok)))
   if (!all(R$ok)) quit(status = 3)
+}
+
+# ---------------------------------------------------------------- final: robustness 표, 적용 가능성, 요약 표, 결론(16.9·16.10절) ----------------------------------------------------------------
+if (mode == "final") {
+  lf <- start_run_log("m15_amend_final", master_seed = MS, run_mode = "final")
+  FD_ <- file.path(AD, "final"); dir.create(FD_, showWarnings = FALSE); PD1 <- file.path(AD, "p1"); PD2 <- file.path(AD, "ppc"); PAD <- file.path(AD, "param_assurance"); DOSE <- 300
+  ROB <- fread(file.path(PD1, "robustness_p1.csv")); RT <- fread(file.path(PD2, "rule_false_positive.csv")); B7 <- fread(file.path(PD2, "seven_arm_bias_mappings.csv"))
+  ASR <- fread(file.path(PAD, "assurance_param.csv")); WRP <- fread(file.path(PAD, "weight_ratio_param.csv")); C1 <- readLines(file.path(PD2, "conclusion1.md"), warn = FALSE)
+  SS <- fread(file.path(PD1, "sampling_schedule.csv")); WC <- fread(file.path(AD, "weight_check.csv"))
+  # 1) robustness 표(16.10절): Model 1 현재 구현, Model 1 수정 매핑(P3 미발동이면 '해당 없음'), Kovalenko 2016, 범주
+  RF <- ROB[, .(contrast, metric, cell, model_1_as_implemented = m1_text, model_1_corrected_mapping = corrected_mapping, kovalenko_2016 = k16_text, class, other_cells_same_class)]
+  m15_fwrite_cond(RF, file.path(FD_, "robustness_table.csv"), COND)
+  # 2) 적용 가능성(16.9절): 등록 집단 200,000명(scripts/75와 같은 시드) 중 문서화된 범위 밖 비율
+  AP <- AM$applicability; PP <- CFG$populations
+  rng <- function(lst) { v <- Filter(Negate(is.null), lst); c(min(vapply(v, function(z) as.numeric(z[[1]]), 1)), max(vapply(v, function(z) as.numeric(z[[2]]), 1))) }
+  APL <- rbindlist(lapply(c("S1", "S2"), function(pv) { wt <- m15_subjects(200000L, PP[[pv]], CFG$inclusion, as.numeric(PP$weight_height_rho), as.numeric(PP$sex_ratio_male), derive_seed(MS, "popq"))$WT
+    rbindlist(list(
+      { r <- rng(AP$k2020_documented); data.table(model = "Model 1", range_basis = "documented ranges of recorded development studies (R668-AS-0907, TDU12265; PKM14161 and R668-AD-1117 not recorded)", lo_kg = r[1], hi_kg = r[2]) },
+      { r <- rng(AP$k2016_documented); data.table(model = "Kovalenko 2016", range_basis = "only documented healthy-volunteer range (R668-AS-0907)", lo_kg = r[1], hi_kg = r[2]) },
+      data.table(model = "covariate and base models (diagnostic); Model 1 as the requester's range", range_basis = as.character(AP$request_range_source), lo_kg = as.numeric(AP$request_range_kg[[1]]), hi_kg = as.numeric(AP$request_range_kg[[2]]))))[,
+      `:=`(population = pv, enrolled_min_kg = min(wt), enrolled_max_kg = max(wt), outside_pct = vapply(seq_len(.N), function(i) 100 * mean(wt < lo_kg[i] | wt > hi_kg[i]), 1), label = as.character(AP$label))] }))
+  APL[, disease_dimension := fifelse(grepl("diagnostic", model), "healthy volunteers (EASI 0): outside the patient EASI range if the development data had no healthy volunteers; EASI coding unknown otherwise (undetermined, section 16.5)", "no disease covariate in the model")]
+  m15_fwrite_cond(APL, file.path(FD_, "applicability_amend1.csv"), COND)
+  # 3) 요약 표 1개
+  T <- list(); addt <- function(item, v1, v2, src) T[[length(T) + 1]] <<- data.table(item = item, model_1 = v1, kovalenko_2016 = v2, source = src)
+  fp <- function(lab, ug, nr = "registered") { r <- RT[mapping == lab & wmode == "primary" & nca_rule == nr & between_study_cv_pct == ug & rule == "any (registered rule)"]; stopifnot(nrow(r) == 1); r }
+  addt("Posterior predictive check: misfit rule met on the observed data (fixed weight assumption)", ifelse(fp("a_model1", 0)$met, "met", "not met"), ifelse(fp("a_k2016", 0)$met, "met", "not met"), "amend1/ppc/rule_false_positive.csv")
+  addt("False-positive rate of the misfit rule when the model is correct, without / with 10% between-study variation (registered NCA rule)", sprintf("%s%% / %s%%", fmt(fp("a_model1", 0)$false_positive_pct), fmt(fp("a_model1", 10)$false_positive_pct)),
+       sprintf("%s%% / %s%%", fmt(fp("a_k2016", 0)$false_positive_pct), fmt(fp("a_k2016", 10)$false_positive_pct)), "amend1/ppc/rule_false_positive.csv")
+  addt("Same, request's NCA rule (post-dose BLQ = 0)", sprintf("%s%% / %s%%", fmt(fp("a_model1", 0, "request")$false_positive_pct), fmt(fp("a_model1", 10, "request")$false_positive_pct)),
+       sprintf("%s%% / %s%%", fmt(fp("a_k2016", 0, "request")$false_positive_pct), fmt(fp("a_k2016", 10, "request")$false_positive_pct)), "amend1/ppc/rule_false_positive.csv")
+  b7 <- function(lab) { z <- B7[mapping == lab & wmode == "primary" & nca_rule == "registered"]; sprintf("%s (%s to %s)", fmt(z$ratio_median, 3), fmt(z$ratio_pi95_lo, 3), fmt(z$ratio_pi95_hi, 3)) }
+  addt("Pooled 300 mg AUC0-last, predicted/observed (95% prediction interval of the ratio)", b7("a_model1"), b7("a_k2016"), "amend1/ppc/seven_arm_bias_mappings.csv")
+  dxl <- unique(B7[!(model %in% c("k2020", "k2016")) & wmode == "primary" & nca_rule == "registered", mapping])
+  addt("Diagnostic mappings (not registered): pooled ratio by mapping", paste(vapply(dxl, function(l) sprintf("%s %s", l, fmt(B7[mapping == l & wmode == "primary" & nca_rule == "registered", ratio_median], 3)), ""), collapse = "; "), "", "amend1/ppc/seven_arm_bias_mappings.csv")
+  as_ <- function(sid, pv, nr) { z <- ASR[set_id == sid & population == pv & n_rand == nr]; stopifnot(nrow(z) == 1); sprintf("%s%% (2.5th to 97.5th percentile %s to %s; sets at least 90%%: %s%%)", fmt(z$assurance_param_pct), fmt(z$p025_pct), fmt(z$p975_pct), fmt(z$share_sets_ge90_pct)) }
+  for (nr in c(107, 130)) for (pv in c("S1", "S2")) addt(sprintf("Assurance over parameter uncertainty, %d randomized per arm, %s population (Model 1: borrowed covariate-model standard errors; Kovalenko 2016: bootstrap percentiles)", nr, PLAB[[pv]]),
+                                                         as_("k2020_cov", pv, nr), as_("k2016", pv, nr), "amend1/param_assurance/assurance_param.csv")
+  for (nr in c(107, 130)) addt(sprintf("Assurance, sensitivity sets, %d per arm, global population (Model 1 with Vm, F and ka from Kovalenko 2016; Kovalenko 2016 matched scope)", nr), as_("k2020_cov16", "S1", nr), as_("k2016_matched", "S1", nr), "amend1/param_assurance/assurance_param.csv")
+  wp <- function(sid) { z <- WRP[set_id == sid & population == "S1" & metric == "AUCinf"][order(prob)]; sprintf("%s (%s to %s) / %s (%s to %s)", fmt(z$set0[1], 3), fmt(z$p025[1], 3), fmt(z$p975[1], 3), fmt(z$set0[2], 3), fmt(z$p025[2], 3), fmt(z$p975[2], 3)) }
+  addt("Weight effect, global 5th / 95th percentile weight, typical AUC0-inf ratio with parameter-uncertainty interval", wp("k2020_cov"), wp("k2016"), "amend1/param_assurance/weight_ratio_param.csv")
+  ap <- function(m) paste(APL[model == m, sprintf("%s %s%%", PLAB[population], fmt(outside_pct))], collapse = "; ")
+  addt("Enrolled weights outside the documented range", ap("Model 1"), ap("Kovalenko 2016"), "amend1/final/applicability_amend1.csv")
+  cl <- ROB[, .N, by = .(k = substr(class, 1, 1))]
+  addt("Robustness classification of design contrasts (rows by class)", paste(sprintf("class %s: %d", cl$k, cl$N), collapse = "; "), "", "amend1/final/robustness_table.csv")
+  TAB <- rbindlist(T); m15_fwrite_cond(TAB, file.path(FD_, "summary_table.csv"), COND)
+  # 4) 결론 5줄 이내
+  P1C <- readLines(file.path(PD1, "p1_key_conclusions.md"), warn = FALSE); p1c <- grep("^[1-5]\\. ", P1C, value = TRUE); stopifnot(length(p1c) == 5)
+  a130 <- ASR[n_rand == 130 & population == "S1" & set_id %in% c("k2020_cov", "k2016")]; a107 <- ASR[n_rand == 107 & population == "S1" & set_id %in% c("k2020_cov", "k2016")]
+  C <- c(sub("^- ", "1. ", C1[grepl("^- Posterior predictive check", C1)][1]),
+         sub("^1\\. ", "2. ", p1c[1]),
+         sub("^2\\. ", "3. ", p1c[2]),
+         sprintf("4. Sample size (global population, 300 mg, confirmed schedule, stratified analysis, true GMR 0.95): assurance over parameter uncertainty is %s%% (Model 1, borrowed standard errors) and %s%% (Kovalenko 2016) at 130 randomized per arm, and %s%% and %s%% at 107; %s.",
+                 fmt(a130[set_id == "k2020_cov", assurance_param_pct]), fmt(a130[set_id == "k2016", assurance_param_pct]), fmt(a107[set_id == "k2020_cov", assurance_param_pct]), fmt(a107[set_id == "k2016", assurance_param_pct]),
+                 paste(ROB[grepl("^samplesize", row_id), sprintf("simulated power at 130 per arm, %s population: %s", sub(" population.*", "", cell), class)], collapse = "; ")),
+         sub("^4\\. ", "5. ", p1c[4]))
+  stopifnot(length(C) <= 5)
+  writeLines(c("# Final key conclusions (amendment 1; at most five; generated from the result files)", "", if (nzchar(COND)) c(COND, "") else NULL, C), file.path(FD_, "key_conclusions.md"))
+  md <- c("# Amendment 1 final summary", "", "## Summary table", "", "| Item | Model 1 | Kovalenko 2016 | Source |", "|---|---|---|---|", sprintf("| %s | %s | %s | results/m15/%s |", TAB$item, TAB$model_1, TAB$kovalenko_2016, TAB$source), "",
+          "## Robustness table", "", "| Contrast | Metric | Cell | Model 1 as implemented | Model 1 with a corrected mapping | Kovalenko 2016 | Class |", "|---|---|---|---|---|---|---|",
+          sprintf("| %s | %s | %s | %s | %s | %s | %s |", RF$contrast, RF$metric, RF$cell, RF$model_1_as_implemented, RF$model_1_corrected_mapping, RF$kovalenko_2016, RF$class), "",
+          "## Applicability (section 16.9)", "", "| Population | Model | Range basis | Range (kg) | Enrolled (kg) | Outside (%) | Disease dimension |", "|---|---|---|---|---|---|---|",
+          sprintf("| %s | %s | %s | %s to %s | %s to %s | %s | %s |", PLAB[APL$population], APL$model, APL$range_basis, fmt(APL$lo_kg), fmt(APL$hi_kg), fmt(APL$enrolled_min_kg), fmt(APL$enrolled_max_kg), fmt(APL$outside_pct), APL$disease_dimension), "",
+          "## Key conclusions", "", C)
+  writeLines(md, file.path(FD_, "final_summary.md"))
+  source(proj_path("regulatory", "src", "reg_helpers.R"), local = TRUE); for (ff in list.files(FD_, "\\.(csv|md)$", full.names = TRUE)) check_english(ff)
+  cat(C, sep = "\n"); append_run_log(lf, "final outputs written")
 }
