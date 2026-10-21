@@ -376,6 +376,12 @@ test_that("단회 투여 지표(추록 1, m15_tm_single): AUC0-last 몫이 수�
   expect_equal(o[id == 1, share_50], num / Af(Te), tolerance = 1e-6)
   expect_equal(o[id == 1, AUClast], Af(Te), tolerance = 1e-6)
   expect_identical(o[id == 2, status_50], "throughout"); expect_equal(o[id == 2, share_50], 1); expect_equal(o[id == 2, t_50], 0)
+  tmx <- optimize(Cf, c(0, 30), maximum = TRUE)$maximum                                 # Cmax 뒤 몫(보충): crossed = t_50 뒤 AUC, throughout = Tmax 뒤 AUC
+  t50_ <- uniroot(function(t) Cf(t) - cs, c(tmx, 140), tol = 1e-12)$root
+  expect_equal(o[id == 1, share_post_50], (Af(Te) - Af(t50_)) / Af(Te), tolerance = 1e-6)
+  Te2 <- min(uniroot(function(t) Cf(t) / 10 - lloq, c(20, 140), tol = 1e-12)$root, 56)   # 대상자 2(농도 1/10)는 참 Tlast가 더 이르다
+  expect_equal(o[id == 2, AUClast], Af(Te2) / 10, tolerance = 1e-6)
+  expect_equal(o[id == 2, share_post_50], (Af(Te2) - Af(tmx)) / Af(Te2), tolerance = 2e-3)   # Tmax는 0.01일 격자 점(포물선 보정 전)
   t50 <- uniroot(function(t) Cf(t) - cs, c(optimize(Cf, c(0, 30), maximum = TRUE)$maximum, 140), tol = 1e-12)$root
   expect_equal(o[id == 1, t_50], t50, tolerance = 1e-6)
   expect_equal(o[id == 1, ftm_cmax], m15_ftm(optimize(Cf, c(0, 30), maximum = TRUE)$objective, 1.07, 0.0534, 0.01), tolerance = 1e-6)
@@ -401,10 +407,12 @@ test_that("투여 일정 풀이(추록 1, m15_solve_regimen): 단회 투여는 �
   tt <- c(0.25, 1, 3, 7, 14, 28, 56, 400)
   a <- m15_solve_regimen(ip, p$model_id, 0, 300, tt); b <- .solve_param_table(get_model(p$model_id), prm, tt, 300)
   expect_equal(a$C, b$C, tolerance = 1e-12); expect_equal(a$auc, b$auc, tolerance = 1e-12); expect_equal(a$id, as.integer(b$id))
-  m <- m15_solve_regimen(ip, p$model_id, c(0, 14), c(600, 300), c(1, 7, 13.99, 20))
-  s6 <- m15_solve_regimen(ip, p$model_id, 0, 600, c(1, 7, 13.99))
-  expect_equal(m[time < 14, C], s6$C, tolerance = 1e-10)
-  expect_true(all(m[time == 20, resid] > s6[time == 13.99, resid] * 0))
+  m <- m15_solve_regimen(ip, p$model_id, c(0, 14), c(600, 300), c(1, 7, 13.99, 14 - 1e-6, 14 + 1e-6, 20))
+  s6 <- m15_solve_regimen(ip, p$model_id, 0, 600, c(1, 7, 13.99, 20))
+  expect_equal(m[time < 13.995, C], s6[time < 13.995, C], tolerance = 1e-10)           # 두 번째 투여 전에는 첫 투여만
+  jm <- m[time > 13.995 & time < 14.005][order(id, time)][, .(jump = diff(resid)), by = id]
+  expect_equal(jm$jump, 300 * ip$F, tolerance = 1e-4)                                     # 두 번째 투여: 몸 안 총량이 300 x F만큼 는다
+  expect_true(all(m[time == 20, C] > s6[time == 20, C] + 1))                              # 두 번째 투여 뒤 농도가 첫 투여만보다 높다
 })
 
 test_that("추록 1 설정(addendum_tm_20261021)과 계획서 17절이 일치하고 채혈일 환산이 등록 일정과 같다", {
@@ -416,6 +424,9 @@ test_that("추록 1 설정(addendum_tm_20261021)과 계획서 17절이 일치하
   expect_equal(as.integer(unlist(A$sampling_days$study_day)), c(0L, 1L, 2L, 4L, 6L, 8L, 11L, 15L, 22L, 29L, 36L, 43L, 50L, 57L))
   expect_equal(as.numeric(unlist(A$scenarios$B$dose_times)), c(0, seq(14, 112, by = 14))); expect_equal(as.numeric(unlist(A$scenarios$B$dose_mg)), c(600, rep(300, 8)))
   expect_equal(as.numeric(unlist(A$scenarios$B$ss_interval)), c(112, 126)); expect_true(grepl("days 112 to 126 after the first dose", x, fixed = TRUE))
+  expect_equal(as.numeric(unlist(A$scenarios$A$grid$fine)), c(0.01, 100, 0.01)); expect_true(grepl("Every 0.01 day to day 100, every 0.05 day to day 140", x, fixed = TRUE))
+  expect_equal(A$mc_error$n_boot, 1000L); expect_true(grepl("1,000 resamples, derive_seed(20261020, \"tm_boot\")", x, fixed = TRUE))
+  expect_setequal(names(A$checks), letters[1:7])
   expect_equal(as.numeric(unlist(A$elasticity$multipliers)), c(0.8, 1.2)); expect_identical(as.character(unlist(A$elasticity$parameters)), c("Vmax", "ke", "F"))
   expect_true(grepl("n = 1,000 virtual subjects", x, fixed = TRUE)); expect_true(grepl("derive_seed(20261020, \"tm\")", x, fixed = TRUE))
   expect_true(grepl("60, 75 and 90 kg", x, fixed = TRUE)); expect_equal(as.numeric(A$lloq_mg_L), study_lloq())

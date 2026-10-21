@@ -518,7 +518,7 @@ m15_solve_regimen <- function(ip, model_id, dose_times, dose_amts, times) {
 
 # 단회 투여(시나리오 A) 대상자별 지표. s: m15_solve_regimen 출력(t_inf 행 제외 가능), pr: data.table(id, Vm, ke, Km), xs: 문턱(f_TM 비율).
 # AUC0-last = 0부터 min(연속 시간 참 Tlast(LLOQ), t_end)까지의 모델 AUC(계획서 8.2(a) 조밀 채혈 참값과 같은 정의). share_x = 그 AUC 중 f_TM >= x(C <= C_x)인 시간에 쌓인 몫.
-# 교차 시각 t_x = f_TM이 끝까지 x 이상으로 남는 시각(하강 교차; throughout이면 0). amt_tm_share = 0~t_end 소실량 중 MM 경로 몫(보충).
+# 교차 시각 t_x = f_TM이 끝까지 x 이상으로 남는 시각(하강 교차; throughout이면 0). share_post_x = share_x 중 Cmax 뒤에 쌓인 부분(보충). amt_tm_share = 0~t_end 소실량 중 MM 경로 몫(보충).
 m15_tm_single <- function(s, pr, xs, lloq, t_end = 56, t_max = 140) {
   te_ <- t_end; tm_ <- t_max; xs_ <- xs
   g <- rbind(data.table(id = unique(s$id), time = 0, C = 0, auc = 0), s[time <= tm_ + 1e-9, .(id, time, C, auc)])
@@ -530,7 +530,7 @@ m15_tm_single <- function(s, pr, xs, lloq, t_end = 56, t_max = 140) {
     k_end <- which(abs(time - te_) < 1e-6); stopifnot(length(k_end) == 1L)
     w <- seq_len(k_end); rt <- Vm[1] * C[w] / (Km[1] + C[w]); rl <- ke[1] * C[w]; dt <- diff(time[w])
     a_tm <- sum(dt * (rt[-1] + rt[-length(w)]) / 2); a_ln <- sum(dt * (rl[-1] + rl[-length(w)]) / 2)
-    r <- list(Cmax = cmax, Tmax = time[i], ftm_cmax = m15_ftm(cmax, Vm[1], ke[1], Km[1]), C_star = m15_tm_conc(0.5, Vm[1], ke[1], Km[1]),
+    r <- list(Cmax = cmax, Tmax = time[i], auc_tmax = auc[i], ftm_cmax = m15_ftm(cmax, Vm[1], ke[1], Km[1]), C_star = m15_tm_conc(0.5, Vm[1], ke[1], Km[1]),
               auc_end = auc[k_end], amt_tm_share = a_tm / (a_tm + a_ln))
     for (x in xs_) {
       cx <- m15_tm_conc(x, Vm[1], ke[1], Km[1]); z <- .m15_tm_cross(time, C, auc, cx); tag <- sprintf("%02d", round(100 * x))
@@ -547,6 +547,9 @@ m15_tm_single <- function(s, pr, xs, lloq, t_end = 56, t_max = 140) {
     tail_part <- ifelse(st == "crossed" & tx < out$T_auc, out$AUClast - dn, 0)
     sh <- ifelse(st == "throughout", 1, ifelse(st == "never", 0, (up + tail_part) / out$AUClast))
     set(out, j = paste0("share_", tag), value = sh)
+    # 보충: 그 몫 중 Cmax 뒤(하강기)에 쌓인 부분. crossed = t_x 뒤 AUC, throughout = Tmax 뒤 AUC, censored·never = 0. 나머지(share - share_post)는 흡수기(C가 처음 C_x를 넘기 전)
+    post <- ifelse(st == "throughout", (out$AUClast - out$auc_tmax) / out$AUClast, ifelse(st == "crossed", tail_part / out$AUClast, 0))
+    set(out, j = paste0("share_post_", tag), value = post)
   }
   out[, c("auc_end", "auc_true_last") := NULL]
   setorder(out, id)[]

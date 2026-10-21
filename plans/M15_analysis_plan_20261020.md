@@ -499,7 +499,7 @@ Every run writes a log (`R/logging.R`) with the seed rule, the git commit, the l
 | B43 | Between-study exposure variation in the posterior predictive check | Log-normal factor per study, CV 10%, median 1; used only when between-arm variation is found (section 16.7 item 3) | Request of 2026-10-21 and its correction | False-positive and detection probabilities with and without the factor, if run | None |
 | B44 | NCA convention of the Li 2020 values | Unknown; the registered project rule decides, the request's rule (post-dose BLQ = 0) is reported beside it | Publications not accessible | Both rules reported | Confirm the convention |
 | B45 | Product of each Li 2020 arm | Recorded only for the PKM14161 test arm (product #7, C2P1 prefilled syringe); assay AV-09095 for PKM12350 and R668-HV-1108, AV-13074 for PKM14161 and PKM14271 | Requester, from FDA 2017 review Tables 4.1.1.a, 4.2.a and 4.2.b (review not accessible) | Descriptive columns only | Supply the product of each arm |
-| B46 | Target-mediated share of elimination (addendum 1) | Instantaneous share of the MM pathway in central elimination, f_TM = [Vm / (Km + C)] / [Vm / (Km + C) + ke] | Model structure: MM approximation of target-mediated elimination, Km fixed (B07), no elimination from the peripheral compartment | Both models reported (section 17) | None |
+| B46 | Target-mediated share of elimination (addendum 1) | Instantaneous share of the MM pathway in central elimination, f_TM = [Vm / (Km + C)] / [Vm / (Km + C) + ke] | Model structure: MM approximation of target-mediated elimination, Km fixed (B07), no elimination from the peripheral compartment | Both models reported (section 17); neither model has an ethnic effect on Vm, ke or Km (section 17.10) | None |
 | B47 | Simulation inputs of addendum 1 | 1,000 subjects per scenario with each model's own IIV, fixed weights 60, 75 and 90 kg, no residual error, no anti-drug antibodies; the 600 mg loading dose as one dose | Request of 2026-10-21 (section 17.9) | Typical subject reported beside the population summaries | None |
 | B48 | Steady-state interval of addendum 1 | Days 112 to 126 after the first dose of 600 mg then 300 mg every 2 weeks | Request ("one dosing interval at steady state after week 16") | Steady-state check reported (section 17.5 item 5) | None |
 
@@ -792,17 +792,17 @@ evaluated with each subject's own Vm, ke and Km.
 
 ### 17.4 Simulation
 
-- **Subjects.** n = 1,000 virtual subjects per scenario. Their standard normal scores, an n x 9 matrix in the order of `M15_ETA_NAMES`, are drawn once with derive_seed(20261020, "tm"). The same scores are used for every scenario, weight, model and parameter change (common random numbers).
+- **Subjects.** n = 1,000 virtual subjects per scenario. Their standard normal scores, an n x 9 matrix filled by column with with_seed(derive_seed(20261020, "tm"), matrix(rnorm(n x 9), n)), have columns in the order of `M15_ETA_NAMES` (Vc, ke, ka, Vmax, MTT, k12, k21, Km, F); only the columns with non-zero IIV in a model are used. The same scores are used for every scenario, weight, model and parameter change (common random numbers).
 - **Weights.** Each scenario is run at fixed weights of 60, 75 and 90 kg.
 - **Typical subject.** The typical subject (all random effects zero) at each weight is reported beside the population summaries.
 - **Scenario A.** One 300 mg SC dose at time 0.
 - **Scenario B.** 600 mg at time 0, then 300 mg every 2 weeks from day 14 to day 112 (weeks 2 to 16). The 600 mg loading dose is one dose; two 300 mg injections given together give the same result in these models.
   - The steady-state dosing interval is days 112 to 126 after the first dose. This is the interval that starts with the week 16 dose: study Days 113 to 127.
   - The steady-state check (section 17.5 item 5) uses the preceding interval, days 98 to 112.
-- **Solver.** rxode2 with the truth tolerances of section 8 (absolute 1e-8, relative 1e-6).
-- **Grid, scenario A.** Every 0.01 day to day 60, every 0.05 day to day 140, and day 400 for AUC0-inf. If the amount in the body at day 400 exceeds 1e-7 of the last dose, the solve is repeated to day 2,000. The 4,000 days of section 8 are not used, because the transit model underflows after about 2,700 days.
+- **Solver.** rxode2 with the truth tolerances of decision D-042 (absolute 1e-8, relative 1e-6; `TRUTH_ATOL` and `TRUTH_RTOL` in `R/oc.R`), as used for the truths of section 8 and by the registered single-dose solver. This departs from the setting of section 4.3 (1e-10 and 1e-8).
+- **Grid, scenario A.** Every 0.01 day to day 100, every 0.05 day to day 140, and day 400 for AUC0-inf. If the amount in the body at day 400 exceeds 1e-7 of the last dose, the solve is repeated to day 2,000. The 4,000 days of section 8 are not used, because the transit model underflows after about 2,700 days.
 - **Grid, scenario B.** Day 98, every 0.01 day from day 112 to day 126, and day 512 (fallback 2,112).
-- **Expected run time.** About 20 to 30 minutes on 4 cores (84 jobs of 1,001 subjects), so no pilot run is planned (section 11).
+- **Expected run time.** About 30 to 40 minutes on 4 cores (84 jobs of 1,001 subjects), so no pilot run is planned (section 11).
 
 ### 17.5 Quantities
 
@@ -810,25 +810,28 @@ evaluated with each subject's own Vm, ke and Km.
    - The median and the 90% prediction interval (5th to 95th percentiles, quantile type 7) of f_TM are computed at each time.
    - Scenario A: from the dose to 56 days after it (study Day 57), at each weight.
    - Scenario B: over the steady-state interval, at each weight. Figure 1 shows 75 kg.
-   - Figure 1 marks the confirmed sampling days with vertical lines: Day 0 (pre-dose, drawn at the dose time), Day 1 (0.25 day after the dose, the placeholder of assumption B02), and Days 2, 4, 6, 8, 11, 15, 22, 29, 36, 43, 50 and 57 (study Day d = d - 1 days after the dose; schedule B0 of `config/trial_design.yaml`).
+   - Figure 1 marks the confirmed sampling days with vertical lines: Day 0 (pre-dose, drawn at the dose time), Day 1 (0.25 day after the dose, the placeholder of assumption B02), and Days 2, 4, 6, 8, 11, 15, 22, 29, 36, 43, 50 and 57 (study Day d = d - 1 days after the dose; schedule B0 of `config/trial_design.yaml`). It has a second axis in study Days.
+   - Figure 1 also marks the 5th to 95th percentile and the median of the true Tlast at the study LLOQ in each scenario A panel. Later f_TM values are at concentrations that cannot be measured, where f_TM approaches Vm / (Vm + ke Km).
+   - Table 1 reports the true Tlast at the LLOQ (study Day). The share of subjects with a true concentration at or above the LLOQ at each sampling day is written to `tm_quantifiable_by_day.csv`.
 2. **C\* and the crossing times.**
    - C\*, C_80 and C_95 are reported for the typical subject and as the median and 90% prediction interval over subjects.
    - The crossing time t_x, for x = 50%, 80% and 95%, is the time after which f_TM stays at or above x to the end of the grid. It is the last time at which C exceeds C_x, with log-linear interpolation between grid points.
    - If Cmax <= C_x, f_TM is at or above x from the dose onward; t_x is then 0, and the share of such subjects is reported.
    - If C still exceeds C_x at day 140, t_x is "not reached", and the share of such subjects is reported.
-   - Times are reported as study Days (days after the dose + 1).
-   - The concentration at t_x equals C_x by construction and is reported as such.
+   - Times are reported as study Days (days after the dose + 1); Day 1.0 then means the dose time, not the Day 1 sample.
+   - The crossing Day is summarized over all subjects and, separately, over the subjects whose f_TM falls below x (with their number).
+   - The concentration at t_x equals C_x by construction. It is reported over the subjects whose f_TM falls below x and rises back above it.
    - The minimum of f_TM, reached at Cmax, is reported with Cmax.
 3. **Share of AUC0-last.**
    - AUC0-last is the model AUC from the dose to the earlier of two times: the continuous-time true Tlast at the study LLOQ (0.078 mg/L), and 56 days after the dose (study Day 57). This is the dense-sampling truth of section 8.2(a), the same definition as AUClast_dense_B0.
    - The reported share is the part of AUC0-last that accrues while f_TM >= 50% (C <= C\*). It includes the rising phase before C first exceeds C\* as well as the phase after t_50.
-   - The same share for 80% and 95% is reported as supplementary.
+   - Supplementary: the part of that share accrued after Cmax (for subjects whose f_TM falls below 50%, the AUC after t_50; for the others, the AUC after Tmax), and the same share for 80% and 95%.
 4. **Percentage changes.**
    - The typical value of Vm, ke or F is multiplied by 0.8 or 1.2, one parameter at a time, in both scenarios, with the same subjects and random effects.
    - Endpoints, scenario A: AUC0-last, Cmax and AUC0-inf (reference).
-   - Endpoints, scenario B: AUCtau,ss, Cmax,ss, Ctrough,ss, and the AUC from the week 16 dose to infinity with no further dose (reference; the steady-state counterpart of AUC0-inf).
+   - Endpoints, scenario B: AUCtau,ss and Cmax,ss (read for the requested AUC0-last and Cmax), Ctrough,ss (added, not requested), and the AUC from the week 16 dose to infinity with dosing stopped (reference). The last includes the washout of drug from all earlier doses and is not an NCA endpoint; the steady-state counterpart of the single-dose AUC0-inf is AUCtau,ss.
    - Summary: the percentage change in the geometric mean over the 1,000 subjects, 100 x (exp(mean log ratio) - 1).
-   - The main table uses 75 kg. The full file adds 60 and 90 kg, the median individual change, its 5th and 95th percentiles, and the typical subject.
+   - The main table uses 75 kg. The full file adds 60 and 90 kg, the Monte Carlo standard error (delta method), the median individual change, its 5th and 95th percentiles, and the typical subject.
 5. **f_TM at steady state.** Scenario B, typical subject and median with 90% prediction interval:
    - f_TM at Ctrough,ss: the concentration at day 126, before the next dose.
    - f_TM at Cavg,ss: AUCtau,ss / 14 days.
@@ -840,14 +843,17 @@ evaluated with each subject's own Vm, ke and Km.
 Supplementary, not requested, reported only in the full files and the report:
 
 - the share of the eliminated amount that goes through the target-mediated pathway (scenario A, days 0 to 56; scenario B, the steady-state interval);
-- the time-averaged f_TM over the B interval.
+- the time-averaged f_TM over the B interval;
+- AUCtau,ss as a percentage of the same subject's single-dose AUC0-inf in scenario A (100 under linear PK), a descriptive index of the nonlinearity.
 
 ### 17.6 Presentation
 
 - Table 1 covers items 2, 3 and 5; Table 2 covers item 4.
 - Figure 1 shows item 1 (curves with the sampling days). Figure 2 shows item 4, as bars with scenarios A and B side by side.
 - Every displayed number has one decimal, as requested; the CSV files keep full precision.
-- Model 1 and Kovalenko 2016 are shown side by side.
+- Model 1 and Kovalenko 2016 are shown together in every output (one block, row or facet per model).
+- One-decimal display follows the request and does not imply that precision. Monte Carlo standard errors are written to the CSV files: a subject bootstrap of every Table 1 percentile (1,000 resamples, derive_seed(20261020, "tm_boot"), the same indices for all rows), the binomial error for the shares of subjects, and the delta-method error of the Table 2 geometric means.
+- The tables and figures follow the model roles of the request. The addendum itself draws no sampling conclusion. Any coverage statement taken from it (true Tlast, quantifiable shares) follows section 16.3 item 4: Kovalenko 2016 first, with Model 1 in parentheses. Any other sampling-rationale sentence quoting f_TM gives both models.
 - The outputs are in English and are written to `results/m15/tm/`.
 
 ### 17.7 Verification
@@ -859,7 +865,8 @@ The script stops if any of these checks fails (results/m15/tm/tm_checks.csv):
 - (c) f_TM(C_x) = x and f_TM(C\*) = 0.5 for every subject, absolute 1e-12.
 - (d) In scenario A, each C_x has at most one rising and one falling crossing per subject (single-peaked concentration).
 - (e) The concentration re-solved with the registered solver at t_x equals C_x, relative 1e-4. This uses Model 1 at 75 kg and the first 20 crossing subjects for each threshold.
-- (f) All reported values are finite, and the amount in the body at the AUC0-inf time is at most 1e-7 of the last dose.
+- (f) All reported values are finite (every listed column must be present), and the amount in the body at the AUC0-inf time is at most 1e-7 of the last dose.
+- (g) Scenario B: the regimen solve equals rxode2 solved with an independently built event table (Model 1, 75 kg, first 5 subjects; concentration and AUC at days 98, 112, 119 and 126; relative 1e-10). The amount in the body also rises by the dose times F across each repeat dose (plus or minus 1e-6 day; relative 1e-4).
 
 Unit tests in `tests/testthat/test-m15.R` check:
 
@@ -867,7 +874,7 @@ Unit tests in `tests/testthat/test-m15.R` check:
 - the crossing time and the cumulative AUC on an analytic profile;
 - the AUC0-last share against numerical integration;
 - the steady-state quantities on a constant profile;
-- identity (a);
+- identity (a), and the repeat doses of scenario B (amount jump at a dose, exposure above the first dose alone);
 - this section against the configuration block.
 
 ### 17.8 Known before registration
@@ -875,22 +882,29 @@ Unit tests in `tests/testthat/test-m15.R` check:
 - While the requester's instruction was being planned, the typical C\* values were computed directly from the published estimates (Model 1 20.0 mg/L, Kovalenko 2016 21.1 mg/L) and told to the requester.
 - No simulation of this section was run before its registration.
 - A probe of the rxode2 event-table syntax and of the solver time used a dummy population: weight 75 kg, a random effect on Vc only, not the registered draws. It printed only the event table and the elapsed time.
+- An adversarial review of the draft registration (commits 3376f12 and cc84105) ran the new functions, and a copy of the script, on synthetic subjects: at most 20 subjects from other seed tags or other seeds, and hand-set scores; never the registered draws. Its reports contained typical-subject values, which the registered run will reproduce because they do not depend on the draws. Examples: for Model 1 at 75 kg, a share of AUC0-last at f_TM >= 50% of 35.5% (2.9 percentage points of it in the absorption phase), and a crossing of 50% 16.9 days after the dose. The reports also gave the ratio of the B reference AUC to AUCtau,ss (2.13 for Model 1, 2.10 for Kovalenko 2016), AUCtau,ss / AUC0-inf (1.85, Model 1), and the change with ke x 0.8 and x 1.2. Registered results of section 8 (true Tlast, quantifiable shares) were also cited.
+- After the review, before the first run, these changes were made: the true-Tlast marking and the quantifiable shares (item 1); the summaries over the subjects whose f_TM falls below x (item 2); the after-Cmax part of the share (item 3, supplementary); the relabelling of the B reference AUC and of Ctrough,ss (item 4); the Cmin,ss and C(126) / C(112) rows (item 5); the Monte Carlo errors and the model-role statement (17.6); the 0.01-day grid extended from day 60 to day 100 (17.4), so that the accuracy of check (e) does not depend on where a late crossing falls; check (g); and the limitations of 17.10. No requested quantity was changed in its definition.
+- To test the revised code before registration, the author ran the same copy of the script end to end on 20 synthetic subjects (seed tag "tm_selftest_probe", not the registered draws; output in the session scratch directory, not in the repository). All checks of section 17.7 passed. The tables and figures were looked at only to correct their layout: the 100% label of the y axis was removed and the panel spacing widened. Their values, and the typical-subject values, were therefore seen before registration; no definition was changed after that.
 
 ### 17.9 Interpretations of the request
 
-1. "The 2020 model of the FDA review" is Model 1 (section 16.2).
-2. Day 0 is the pre-dose sample. "AUC0-last (Day 57)" ends 56 days after the dose.
+1. "The 2020 model of the FDA review" is Model 1 (section 16.2): "2020" refers to the Kovalenko 2020 publication, and the review is the FDA review of BLA 761055 cited in this plan as the FDA 2017 review.
+2. Day 0 is the pre-dose sample. "AUC0-last (Day 57)" ends at the earlier of the true Tlast at the LLOQ and 56 days after the dose (study Day 57), as the dense-sampling truth of section 8.2(a).
 3. "One dosing interval at steady state after week 16" is days 112 to 126 after the first dose.
 4. Scenario B has no stated weight, so it uses the three weights of scenario A; the main table of item 4 and Figure 1 use 75 kg.
-5. "AUC0-inf (reference)" in scenario B is the AUC from the week 16 dose to infinity with no further dose.
-6. "The time at which f_TM exceeds x" is the rise above x after the peak.
+5. "AUC0-inf (reference)" in scenario B is the AUC from the week 16 dose to infinity with no further dose. It includes the washout of drug from all earlier doses and is not an NCA endpoint; the steady-state counterpart of the single-dose AUC0-inf is AUCtau,ss, shown beside it.
+6. "The time at which f_TM exceeds x" is the time after Cmax (the minimum of f_TM) from which f_TM stays at or above x; it is 0 (study Day 1.0, the dose time) if Cmax <= C_x.
 7. "Percentage change" is summarized by the geometric mean over the same subjects.
 8. "n = 1,000 per scenario" is met with the same 1,000 subjects in every scenario.
+9. In scenario B, the AUC0-last and Cmax of request item 4 are read as AUCtau,ss and Cmax,ss; Ctrough,ss is added (not requested).
+10. "The interval with f_TM >= 50%" of request item 3 is every time with f_TM >= 50%, the absorption phase included; the part after Cmax is shown beside it.
 
 ### 17.10 Limitations
 
-- f_TM is a model-derived quantity, not an observation. It rests on the MM approximation of target-mediated elimination with Km fixed at 0.01 mg/L, and its absolute level depends on that fixed value.
-- Model 1 over-predicts healthy-volunteer 300 mg exposure (pooled predicted-to-observed ratio of section 16.7: 1.115, 95% prediction interval 1.026 to 1.209). Higher concentrations give lower f_TM and later crossings than the observed exposure would. Kovalenko 2016, whose pooled ratio is 1.027, is reported beside it.
+- f_TM is a model-derived quantity, not an observation. It rests on the MM approximation of target-mediated elimination. With Km fixed at 0.01 mg/L, far below the LLOQ, the MM pathway is saturated at every quantifiable concentration and f_TM is set by Vm / ke; a larger true Km, which the source data could not estimate, would lower f_TM at low concentrations. Below the LLOQ, f_TM approaches Vm / (Vm + ke Km) and so depends on the fixed Km.
+- Neither model has a race or ethnicity effect on Vm, ke, Km or any other parameter (sections 4.1 and 4.2). In this analysis, differences in f_TM between weights, and so between populations, arise only through body weight on Vc and the resulting concentrations. The results cannot show an ethnic difference in target-mediated elimination itself.
+- The results are conditional on the published point estimates. Parameter uncertainty (section 9; the parameter sets of section 16.8) is not applied here, so the 5th to 95th percentiles describe between-subject variability only. The spread of C_x and t_x assumes no correlation between Vm and ke (diagonal IIV, section 17.2).
+- Model 1 predicts higher healthy-volunteer 300 mg exposure than observed. The pooled predicted-to-observed AUC0-last ratio of section 16.7 is 1.115 (95% prediction interval 1.026 to 1.209) with PKM12350 and 1.068 (0.968 to 1.175) without it; the registered reading is an over-prediction driven by PKM12350. For Kovalenko 2016 the ratios are 1.027 and 0.983, and no over-prediction is shown. If the excess exposure comes from F, Vc or an under-estimated Vm, Model 1 under-states f_TM and gives later crossings; if it comes from ke, the direction is not determined. Kovalenko 2016 is reported beside Model 1.
 - Fixed weights, no residual error and no anti-drug antibodies.
 
 ## Appendix A. Abbreviations

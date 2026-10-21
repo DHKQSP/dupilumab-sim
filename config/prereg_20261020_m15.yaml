@@ -425,7 +425,7 @@ addendum_tm_20261021:
   models: {primary: k2020, sensitivity: k2016}     # 요청의 'FDA 검토 2020 모델' = Model 1(16.2절), '2016 모델' = Kovalenko 2016. 공개 구조·추정값 그대로
   definition: "f_TM = [Vm/(Km + C)] / [Vm/(Km + C) + ke], C = central concentration; f_TM >= x if and only if C <= C_x = Vm (1 - x) / (x ke) - Km; C* = C_50 = Vm/ke - Km"
   n_subjects: 1000                                 # 시나리오당
-  seed: "derive_seed(20261020, 'tm')"              # n x 9 표준 정규 점수(M15_ETA_NAMES 순서), 모든 시나리오·체중·모델·파라미터 변화가 공유(공통 난수)
+  seed: "derive_seed(20261020, 'tm')"              # n x 9 표준 정규 점수: with_seed(seed, matrix(rnorm(n * 9), n)), 열 순서 M15_ETA_NAMES(Vc, ke, ka, Vmax, MTT, k12, k21, Km, F; IIV가 0이 아닌 열만 사용), 모든 시나리오·체중·모델·파라미터 변화가 공유(공통 난수); 전형 대상자 id 0은 모두 0
   iiv: "each model's own diagonal between-subject variability (Model 1: Vc, ke, ka, Vmax, MTT; Kovalenko 2016: its configured variances)"
   residual_error: false
   ada: false
@@ -435,35 +435,40 @@ addendum_tm_20261021:
   thresholds: [0.50, 0.80, 0.95]
   lloq_mg_L: 0.078                                 # study_lloq()와 같아야 한다(AUC0-last의 참 Tlast)
   scenarios:
-    A: {label: "300 mg single subcutaneous dose", dose_times: [0], dose_mg: [300], grid: {fine: [0.01, 60, 0.01], coarse: [60.05, 140, 0.05]},
+    A: {label: "300 mg single subcutaneous dose", dose_times: [0], dose_mg: [300], grid: {fine: [0.01, 100, 0.01], coarse: [100.05, 140, 0.05]},
         auc_last_end: 56, aucinf_time: 400, aucinf_fallback: 2000}
     B: {label: "600 mg loading dose, then 300 mg every 2 weeks", dose_times: [0, 14, 28, 42, 56, 70, 84, 98, 112], dose_mg: [600, 300, 300, 300, 300, 300, 300, 300, 300],
         ss_interval: [112, 126], previous_interval: [98, 112], grid_step: 0.01, aucinf_time: 512, aucinf_fallback: 2112}
-  solver: "rxode2 LSODA, atol 1e-8, rtol 1e-6 (truth tolerances of section 8); fallback time used when the amount in the body at the AUC0-inf time exceeds 1e-7 of the last dose"
+  solver: "rxode2 LSODA with the truth tolerances of decision D-042 (R/oc.R TRUTH_ATOL 1e-8, TRUTH_RTOL 1e-6), as used for the section 8 truths and the registered single-dose solver, instead of the section 4.3 setting (1e-10, 1e-8); fallback time used when the amount in the body at the AUC0-inf time exceeds 1e-7 of the last dose"
   sampling_days:                                   # 그림 1 세로선: 확정 일정 B0 + 투여 전 Day 0(연구일 d = 경과일 d - 1, Day 1 = 0.25일 자리표시자, 가정 B02)
     study_day: [0, 1, 2, 4, 6, 8, 11, 15, 22, 29, 36, 43, 50, 57]
     elapsed:   [0, 0.25, 1, 3, 5, 7, 10, 14, 21, 28, 35, 42, 49, 56]
     note: "Day 0 = pre-dose (drawn at the dose time); Day 1 = 0.25 day after the dose (assumption B02); Day d = d - 1 days after the dose"
   crossing: "t_x = last time with C > C_x, log-linear interpolation between grid points (f_TM stays >= x afterwards); 0 if Cmax <= C_x (f_TM >= x from the dose onward); not reached if C > C_x at day 140"
-  auc_share: "AUC0-last = model AUC from 0 to min(continuous true Tlast at the LLOQ, 56 days) (dense-sampling truth of section 8.2(a)); share = part of it accrued while f_TM >= x (C <= C_x), rising phase included"
+  auc_share: "AUC0-last = model AUC from 0 to min(continuous true Tlast at the LLOQ, 56 days) (dense-sampling truth of section 8.2(a)); share = part of it accrued while f_TM >= x (C <= C_x), absorption phase included; supplementary split: part accrued after Cmax (crossed: after t_x; throughout: after Tmax)"
   elasticity:
     parameters: [Vmax, ke, F]                     # 전형값(theta)에 곱한다; 개인값은 같은 η로 같은 배율
     multipliers: [0.8, 1.2]
     summary: "percent change in the geometric mean over the same subjects, 100 (exp(mean log ratio) - 1); median individual change and typical subject in the full file"
     metrics_A: [AUClast, Cmax, AUCinf]
-    metrics_B: [AUCtau_ss, Cmax_ss, Ctrough, AUC_w16_inf]
+    metrics_B: [AUCtau_ss, Cmax_ss, Ctrough, AUC_w16_inf]   # 요청의 AUC0-last·Cmax = AUCtau,ss·Cmax,ss; Ctrough,ss는 추가(요청 외); AUC_w16_inf = 16주 투여부터 투여 중단 뒤 무한대(이전 투여의 잔류 포함, NCA 지표 아님)
+    labels: {Ctrough: "B: Ctrough,ss (added, not requested)", AUC_w16_inf: "B: AUC from the Week 16 dose to infinity, dosing stopped (reference)"}
   steady_state: {Ctrough: "C at day 126 (before the next dose)", Cavg: "AUCtau,ss / 14 days", Cmax: "grid maximum with the three-point parabola", Cmin: "grid minimum in the interval",
                  check: "AUCtau(112 to 126) / AUCtau(98 to 112) and C(126) / C(112), descriptive; the interval is used as requested whatever the check shows"}
+  quantifiable: "true Tlast at the LLOQ (study Day) in Table 1; share of subjects with a true concentration >= LLOQ at each sampling day (tm_quantifiable_by_day.csv); Figure 1 marks the 5th to 95th percentile and median of the true Tlast"
+  model_roles: "tables and figures follow the request (Model 1 primary, Kovalenko 2016 beside it); the addendum draws no sampling conclusion; any coverage statement taken from it (true Tlast, quantifiable shares) follows section 16.3 item 4 (Kovalenko 2016 first, Model 1 in parentheses)"
+  mc_error: {n_boot: 1000, seed: "derive_seed(20261020, 'tm_boot')", method: "subject bootstrap of every percentile in Table 1 (same indices for all rows); share rows binomial; Table 2 geometric mean delta method", display: "one decimal as requested; standard errors in the CSV files"}
   percentiles: [0.05, 0.50, 0.95]
   quantile_type: 7
   display_decimals: 1
-  supplementary: "share of the eliminated amount through the target-mediated pathway (A days 0 to 56; B the steady-state interval) and the time-averaged f_TM over the B interval (not requested; full files and the report only)"
+  supplementary: "share of the eliminated amount through the target-mediated pathway (A days 0 to 56; B the steady-state interval), the time-averaged f_TM over the B interval, the part of the AUC0-last share accrued after Cmax, the 80% and 95% AUC0-last shares, and AUCtau,ss / single-dose AUC0-inf (A) of the same subject (100 under linear PK); not requested; marked supplementary"
   checks:
     a: "single-dose call of the regimen solver equals the registered single-dose solver (.solve_param_table), relative 1e-12"
     b: "typical-subject AUC0-inf, Cmax and AUC0-last at 75 kg equal m15_typical_metrics (section 8.6), relative 1e-5, both models"
     c: "f_TM(C_x) = x and f_TM(C*) = 0.5 for every subject, absolute 1e-12"
     d: "at most one rising and one falling crossing of each C_x per subject in scenario A"
     e: "concentration re-solved with solve_model at t_x equals C_x within relative 1e-4 (Model 1, 75 kg, first 20 crossing subjects per threshold)"
-    f: "all reported values finite; amount in the body at the AUC0-inf time at most 1e-7 of the last dose"
+    f: "all reported values finite (every listed column present); amount in the body at the AUC0-inf time at most 1e-7 of the last dose"
+    g: "scenario B regimen solve equals rxSolve with an independently built data.frame event table (Model 1, 75 kg, first 5 subjects; C and auc at days 98, 112, 119, 126; relative 1e-10), and the amount in the body rises by dose x F across each repeat dose (plus or minus 1e-6 day; relative 1e-4)"
   outputs: [tm_subjects.csv.gz, tm_typical.csv, tm_curves.csv, tm_checks.csv, tm_table1.csv, tm_table1.md, tm_table2.csv, tm_table2.md, tm_elasticity_full.csv,
-            tm_fig1_ftm_curves.png, tm_fig2_elasticity.png, tm_fig2_data.csv, tm_report.md]
+            tm_fig1_ftm_curves.png, tm_fig2_elasticity.png, tm_fig2_data.csv, tm_quantifiable_by_day.csv, tm_report.md, summary_rerun_check.csv]
