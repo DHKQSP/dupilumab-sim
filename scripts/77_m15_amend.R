@@ -944,7 +944,9 @@ if (mode == "final") {
   ASR <- fread(file.path(PAD, "assurance_param.csv")); WRP <- fread(file.path(PAD, "weight_ratio_param.csv")); C1 <- readLines(file.path(PD2, "conclusion1.md"), warn = FALSE)
   SS <- fread(file.path(PD1, "sampling_schedule.csv")); WC <- fread(file.path(AD, "weight_check.csv"))
   # 1) robustness 표(16.10절): Model 1 현재 구현, Model 1 수정 매핑(P3 미발동이면 '해당 없음'), Kovalenko 2016, 범주
-  RF <- ROB[, .(contrast, metric, cell, model_1_as_implemented = m1_text, model_1_corrected_mapping = corrected_mapping, kovalenko_2016 = k16_text, class, other_cells_same_class)]
+  # P3 발동(16.10절): 등록 모델의 구현 오류가 원문 발췌나 코드 결함으로 확인될 때만. 이 날짜까지 확인된 오류가 없으면 발동하지 않고 그렇게 적는다
+  P3_TRIGGERED <- FALSE
+  RF <- ROB[, .(contrast, metric, cell, model_1_as_implemented = m1_text, model_1_corrected_mapping = if (P3_TRIGGERED) corrected_mapping else "not applicable (no implementation error found; P3 not triggered)", kovalenko_2016 = k16_text, class, other_cells_same_class)]
   m15_fwrite_cond(RF, file.path(FD_, "robustness_table.csv"), COND)
   # 2) 적용 가능성(16.9절): 등록 집단 200,000명(scripts/75와 같은 시드) 중 문서화된 범위 밖 비율
   AP <- AM$applicability; PP <- CFG$populations
@@ -959,6 +961,7 @@ if (mode == "final") {
   # 3) 요약 표 1개
   T <- list(); addt <- function(item, v1, v2, src) T[[length(T) + 1]] <<- data.table(item = item, model_1 = v1, kovalenko_2016 = v2, source = src)
   fp <- function(lab, ug, nr = "registered") { r <- RT[mapping == lab & wmode == "primary" & nca_rule == nr & between_study_cv_pct == ug & rule == "any (registered rule)"]; stopifnot(nrow(r) == 1); r }
+  addt("P3 re-run after an implementation error (plan section 16.10)", "not triggered: no implementation error of the registered models was found (no source excerpt or code defect showing one; the weight-effect check and the identity checks passed)", "not triggered", "plan section 16.10; amend1/weight_check.csv; amend1/mechsuppx_identity_check.csv")
   addt("Posterior predictive check: misfit rule met on the observed data (fixed weight assumption)", ifelse(fp("a_model1", 0)$met, "met", "not met"), ifelse(fp("a_k2016", 0)$met, "met", "not met"), "amend1/ppc/rule_false_positive.csv")
   ON10 <- any(RT$between_study_cv_pct == 10)
   fpt <- function(lab, nr) if (ON10) sprintf("%s%% / %s%%", fmt(fp(lab, 0, nr)$false_positive_pct), fmt(fp(lab, 10, nr)$false_positive_pct)) else sprintf("%s%% (between-study sensitivity not run: no between-arm variation detected)", fmt(fp(lab, 0, nr)$false_positive_pct))
