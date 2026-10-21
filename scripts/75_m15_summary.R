@@ -292,13 +292,13 @@ if (mode == "figures") {
   U[, `:=`(model_lab = factor(MODS[pk_model], MODS), weight_lab = fifelse(wmode == "primary", "Fixed weight assumption", "Uncertain-mean weight assumption"),
            metric_lab = c(AUClast_mean = "AUC0-last mean (mg x day/L)", AUClast_cv_within = "AUC0-last within-arm CV (%)", Cmax_mean = "Cmax mean (mg/L)")[metric])]
   ULAB <- c(tdu12265_300 = "TDU12265 300 mg", tdu12265_600 = "TDU12265 600 mg", PKM12350 = "PKM12350", PKM14161 = "PKM14161", `R668-HV-1108` = "R668-HV-1108"); stopifnot(all(U$unit %in% names(ULAB)))
-  U[, unit_lab := paste0(ULAB[unit], fifelse(dev_status == "external", " (external)", ""))]   # 개발 자료 여부는 모델마다 달라 행마다 y 눈금을 따로 둔다
+  U[, unit_lab := paste0(ULAB[unit], fifelse(dev_status == "external", " (not in recorded development data)", ""))]   # 개발 자료 여부는 모델마다 달라 행마다 y 눈금을 따로 둔다(개정 1 표기, 계획서 16.5절)
   U[, unit_lab := factor(unit_lab, unique(unit_lab[order(match(unit, rev(names(ULAB))))]))]
   g1 <- ggplot(U, aes(y = unit_lab)) + geom_errorbarh(aes(xmin = pi_lo, xmax = pi_hi, colour = weight_lab), height = 0.25, position = position_dodge(width = 0.5)) +
     geom_point(aes(x = pred_median, colour = weight_lab), position = position_dodge(width = 0.5), size = 1.8) + geom_point(aes(x = observed), shape = 4, size = 2.6, stroke = 1, colour = VIZ$ink) +
     facet_grid(model_lab ~ metric_lab, scales = "free") + scale_colour_manual(values = COLS3[1:2], name = NULL) + labs(x = "Predicted median and 95% prediction interval; cross = observed", y = NULL,
-    title = "External validation against the Li 2020 healthy-volunteer studies",
-    subtitle = "Five rule units; parallel-group studies pool both arms; rule R4 judges external units against the 99% interval") + theme_dupi()
+    title = "Posterior predictive check (Li 2020 healthy-volunteer studies)",
+    subtitle = "Five rule units; parallel-group studies pool both arms; rule R4 judges units outside the recorded development data against the 99% interval") + theme_dupi()
   save_fig(g1, "fig1_validation", 12, 6.5, U)
   # fig2: [3] OC 곡선(130명, M1, 75 kg 경계)
   OCP <- fread(file.path(SD, "oc_pass.csv"))[n_rand == NBASE & model == "M1" & boundary == "fixed75"]
@@ -385,6 +385,9 @@ if (mode == "figures") {
 if (mode == "summary") {
   lf <- start_run_log("m15_summary", master_seed = MS, run_mode = "final")
   RULE <- fread(file.path(RD, "validation", "validation_rule.csv"))
+  # 개정 1(계획서 16.5절): '실패 규칙' -> 'misfit rule' 표기. 등록 산출물(validation/)의 결과 범주 문자열은 그대로 두고 여기서 바꿔 쓴다
+  oc_word <- function(x) sub("^passes under both weight assumptions$", "does not meet the misfit rule under either weight assumption",
+                             sub("^fails under ", "meets the misfit rule under ", x))
   OCP <- fread(file.path(SD, "oc_pass.csv")); CR <- fread(file.path(SD, "oc_consumer_risk.csv")); PD <- fread(file.path(SD, "oc_paired_diff.csv"), na.strings = c("", "NA"))
   CRT <- fread(file.path(SD, "mech_crossing.csv")); AUR <- fread(file.path(SD, "auroc.csv"))
   SY <- fread(file.path(RD, "samplesize", "syneos_comparison.csv")); PAN <- fread(file.path(RD, "samplesize", "power_analytic.csv"))
@@ -393,8 +396,8 @@ if (mode == "summary") {
   pick <- function(d, pm, extra = list()) { s <- c(base, extra); z <- d[d$pk_model == pm]; for (nm in intersect(names(s), names(z))) z <- z[z[[nm]] == s[[nm]]]; z }
   gsel <- function(z, gg) z[abs(z$g - gg) < 1e-9]
   rows <- list(); addr <- function(item, k2020, k2016, src) rows[[length(rows) + 1]] <<- data.table(item = item, model_1 = k2020, kovalenko_2016 = k2016, source = src)
-  vo <- function(pm) { r <- RULE[pk_model == pm & wmode == "primary" & rule == "any"]; sprintf("%s (fixed weight); %s", if (r$failure) "failure rule met" else "failure rule not met", RULE[pk_model == pm, outcome][1]) }
-  addr("External validation outcome (section 6.2)", vo("k2020"), vo("k2016"), "results/m15/validation/validation_rule.csv")
+  vo <- function(pm) { r <- RULE[pk_model == pm & wmode == "primary" & rule == "any"]; sprintf("%s (fixed weight); %s", if (r$failure) "misfit rule met" else "misfit rule not met", oc_word(RULE[pk_model == pm, outcome][1])) }
+  addr("Posterior predictive check outcome (Li 2020 healthy-volunteer studies; section 6.2)", vo("k2020"), vo("k2016"), "results/m15/validation/validation_rule.csv")
   cell <- function(pm, gg, col = "pass", d = OCP) { z <- gsel(pick(d, pm), gg); if (!nrow(z)) return("-"); sprintf("%s%% (%s to %s)", fmt(z[[paste0(col, "_pct")]]), fmt(z[[paste0(col, "_lo")]]), fmt(z[[paste0(col, "_hi")]])) }
   for (gg in c(0.95, 1.00)) addr(sprintf("Power at true GMR %.2f, primary scenario", gg), cell("k2020", gg), cell("k2016", gg), "results/m15/summary/oc_pass.csv")
   NCR <- unique(CR[pk_model == PRIMARY, n_trials]); stopifnot(length(NCR) == 1, NCR == NT_EXT)       # 소비자 위험 연구 수는 파일에서
@@ -455,9 +458,9 @@ if (mode == "summary") {
   m15_fwrite_cond(APL, file.path(SD, "m15_applicability.csv"), COND)
   ap <- function(pm) { z <- APL[pk_model == pm]; paste(sprintf("%s population %s to %s kg: %s%% outside %s (%s to %s kg)", c(S1 = "global", S2 = "Korean")[z$population], fmt(z$enrolled_min_kg), fmt(z$enrolled_max_kg),
                                                        fmt(z$outside_known_pct), z$internal_studies_with_known_range, fmt(z$known_range_lo_kg), fmt(z$known_range_hi_kg)), collapse = "; ") }
-  addr("Applicability: enrolled weights outside the weight ranges of internal studies with known ranges (reported as extrapolation; the full development-data range is not recorded)", ap("k2020"), ap("k2016"),
+  addr("Applicability: enrolled weights outside the documented weight ranges of development studies (reported as outside the documented range; the full development-data range is not recorded; amendment section 16.9)", ap("k2020"), ap("k2016"),
        "results/m15/summary/m15_applicability.csv")
-  if (RULE[pk_model == PRIMARY & wmode == "primary", failure][1]) addr("Conditionality", "All results conditional on a primary model that did not pass the pre-specified external check (plan section 6.2)", "",
+  if (RULE[pk_model == PRIMARY & wmode == "primary", failure][1]) addr("Conditionality", "All results conditional on a primary model that met the pre-specified misfit rule of the posterior predictive check (plan section 6.2; cause under diagnosis, amendment section 16.7)", "",
                                                                          "results/m15/validation/validation_rule.csv")
   TAB <- rbindlist(rows); fwrite(TAB, file.path(SD, "m15_summary_table.csv"))
   # 약어: 문서에 나오는 것만, 처음 나오는 순서로(본문 앞에 한 줄)
@@ -475,16 +478,16 @@ if (mode == "summary") {
              "| Item | Kovalenko 2020 Model 1 (primary) | Kovalenko 2016 (sensitivity) | Source |", "|---|---|---|---|",
              sprintf("| %s | %s | %s | %s |", TAB$item, TAB$model_1, TAB$kovalenko_2016, TAB$source))
   md <- c("# Results summary table (model analysis plan 2026-10-20)", "", abbr_line(body_), body_)
-  if (RULE[pk_model == PRIMARY & wmode == "primary", failure][1]) md <- c(md, "", "All results are conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).")
-  md <- c(md, "", "Parameter uncertainty was not propagated (no relative standard errors are recorded); every value is conditional on the published parameter point estimates.")
+  if (RULE[pk_model == PRIMARY & wmode == "primary", failure][1]) md <- c(md, "", "All results are conditional on a primary model that met the pre-specified misfit rule of the posterior predictive check (plan section 6.2; cause under diagnosis, amendment section 16.7).")
+  md <- c(md, "", "Parameter uncertainty is not propagated in this table; every value is conditional on the published parameter point estimates. Parameter uncertainty is evaluated separately (plan section 16.8, results/m15/amend1/param_assurance).")
   # 이탈·사후 분석 표(계획서 13.1절): 계획서 13.3·13.4절의 번호 항목 첫 문장을 자동으로 옮긴다
   sec_items <- function(h0, h1, type) { i0 <- grep(h0, pl_); i1 <- grep(h1, pl_); stopifnot(length(i0) == 1, length(i1) == 1, i1 > i0)
     x <- pl_[(i0 + 1):(i1 - 1)]; it <- grep("^[0-9]+\\. ", x, value = TRUE)
     first2 <- vapply(strsplit(sub("^[0-9]+\\. ", "", it), "(?<=\\.)\\s+(?=[A-Z])", perl = TRUE), function(z) paste(head(z, 2), collapse = " "), "")   # 첫 두 문장
-    data.table(number = as.integer(sub("^([0-9]+)\\..*", "\\1", it)), type = type, summary = first2) }
+    data.table(number = as.integer(sub("^([0-9]+)\\..*", "\\1", it)), type = type, summary = first2, d069 = grepl("D-069|[Aa]mendment 1", it)) }
   pl_ <- readLines(proj_path("plans", "M15_analysis_plan_20261020.md"), warn = FALSE)
   DEV <- rbind(sec_items("^### 13\\.3 ", "^### 13\\.4 ", "deviation after registration"), sec_items("^### 13\\.4 ", "^## 14\\. ", "post hoc analysis"))
-  DEV[, `:=`(plan_section = fifelse(type == "post hoc analysis", "13.4", "13.3"), decision_log = "D-068")]
+  DEV[, `:=`(plan_section = fifelse(type == "post hoc analysis", "13.4", "13.3"), decision_log = fifelse(d069, "D-069", "D-068"))][, d069 := NULL]   # 개정 1 항목은 D-069
   m15_fwrite_cond(DEV, file.path(SD, "m15_deviations.csv"), COND)
   md <- c(md, "", "## Deviations and post hoc analyses (plan sections 13.3 and 13.4; full text in the plan)", "", "| Section | Number | Type | Summary |", "|---|---|---|---|",
           sprintf("| %s | %d | %s | %s |", DEV$plan_section, DEV$number, DEV$type, DEV$summary))
@@ -495,8 +498,19 @@ if (mode == "summary") {
   p95 <- pz(0.95); c80 <- crz(0.80); c125 <- crz(1.25); stopifnot(nrow(p95) == 1, nrow(c80) == 1, nrow(c125) == 1)
   adequate <- p95$pass_pct >= 90 & max(c80$pass_hi, c125$pass_hi) <= 5
   rv <- RULE[pk_model == PRIMARY & wmode == "primary" & rule == "any"]
-  det25 <- min(rv$detect_x0.75_pct, rv$detect_x1.25_pct)
-  vword <- if (rv$failure) "did not pass" else if (det25 >= 50) "reproduced" else "was not contradicted by"
+  # 결론 1(개정 1, 계획서 16.5절): 2.1절 3번(검출 확률에 따른 'reproduced'/'not contradicted')은 16.7절 완료까지 중지. 중간 문구는 결과 파일에서 생성
+  MLAB <- c(k2020 = "Model 1", k2016 = "Kovalenko 2016"); RMET <- c(AUClast_mean = "AUC0-last mean", AUClast_cv_within = "within-arm CV of AUC0-last", Cmax_mean = "Cmax mean")
+  ULB <- c(tdu12265_300 = "TDU12265 300 mg", tdu12265_600 = "TDU12265 600 mg")
+  met_txt <- function(pm, md) { r <- RULE[pk_model == pm & wmode == md & rule != "any" & met == TRUE]
+    if (!nrow(r)) return("")
+    paste(sprintf("rule %s: the %s %s %s outside %s %d%% prediction interval", r$rule, vapply(strsplit(r$units_outside, ";"), function(u) paste(fifelse(u %in% names(ULB), ULB[u], u), collapse = " and "), ""),
+                  RMET[r$metric], fifelse(r$n_outside > 1, "are", "is"), fifelse(r$n_outside > 1, "their", "its"), round(100 * r$pi_level)), collapse = "; ") }
+  cat_txt <- function(pm, ko = FALSE) { f1 <- RULE[pk_model == pm & wmode == "primary", failure][1]; f2 <- RULE[pk_model == pm & wmode == "wunc", failure][1]
+    if (ko) return(if (f1 && f2) "두 체중 가정 모두에서 충족" else if (f1) "고정 체중 가정에서만 충족" else if (f2) "평균 불확실 체중 가정에서만 충족" else "두 가정 모두에서 미충족")
+    if (f1 && f2) sprintf("met the misfit rule under both weight assumptions (%s)", met_txt(pm, "primary")) else
+      if (f1) sprintf("met the misfit rule under the fixed weight assumption only (%s) and did not meet it under the uncertain-mean weight assumption", met_txt(pm, "primary")) else
+      if (f2) sprintf("met the misfit rule under the uncertain-mean weight assumption only (%s)", met_txt(pm, "wunc")) else "did not meet it under either weight assumption" }
+  OTHER <- setdiff(unique(RULE$pk_model), PRIMARY); stopifnot(length(OTHER) == 1)
   # 결론 3: 설계 요인별로 기준을 충족한 칸 수(주 모델, 참 GMR 0.95, 130명)와 기본 시나리오 칸의 충족 여부
   pd95 <- PD[pk_model == PRIMARY & abs(g - 0.95) < 1e-9]
   is_base <- function(z) (is.na(z$population) | z$population == base$population) & (is.na(z$dose_mg) | z$dose_mg == base$dose_mg) & (is.na(z$schedule) | z$schedule == base$schedule) &
@@ -535,12 +549,12 @@ if (mode == "summary") {
   c5_ko <- sprintf("5. 축소 일정은 기본 시나리오 검정력을 확정 일정 대비 %s%%p(짝 95%% 구간 %s~%s) 바꾼다. 모델 AUC0-last CV %s%% 대 %s%%, 조밀 참값 대비 AUC0-last 중앙 오차 %s%% 대 %s%%, 신뢰할 AUC0-inf 비율 %s%% 대 %s%%, 생체이용률 10%% 차이(양방향 합침)의 AUC0-inf AUROC %s 대 %s%s.",
                    fmt(rs$diff_pp), fmt(rs$lo_pp), fmt(rs$hi_pp), fmt(q5$RM36_50$cv), fmt(q5$B0$cv), fmt(q5$RM36_50$bias), fmt(q5$B0$bias), fmt(q5$RM36_50$rel, 0), fmt(q5$B0$rel, 0),
                    fmt(q5$RM36_50$auroc, 3), fmt(q5$B0$auroc, 3), if (shorter) ". 검정력 증가는 더 짧고 덜 변하는 AUC0-last 때문이지 더 나은 측정 때문이 아니다" else "")
-  HDR <- if (rv$failure) "All results are conditional on a primary model that did not pass the pre-specified external check (plan section 6.2) and on the published parameter point estimates (no relative standard errors are recorded, so parameter uncertainty was not propagated)." else
-    "All results are conditional on the published parameter point estimates (no relative standard errors are recorded, so parameter uncertainty was not propagated)."
-  HDR_KO <- if (rv$failure) "주의: 모든 결과는 사전 등록 외부 점검을 통과하지 못한 주 모델(Kovalenko 2020 Model 1, 고정 체중 가정; 계획서 6.2절, D-068)과 공개 파라미터 점추정값에 조건부다(RSE가 없어 파라미터 불확실성은 전파하지 않았다)." else
-    "주의: 모든 결과는 공개 파라미터 점추정값에 조건부다(RSE가 없어 파라미터 불확실성은 전파하지 않았다)."
-  C <- c(sprintf("1. The primary model %s the original healthy-volunteer studies under the pre-specified rule (outcome: %s; detection probability of the combined rule at a 25%% bias %s%%).",
-                 vword, RULE[pk_model == PRIMARY, outcome][1], fmt(det25, 0)),
+  HDR <- if (rv$failure) "All results are conditional on a primary model that met the pre-specified misfit rule of the posterior predictive check (plan section 6.2; cause under diagnosis, amendment section 16.7) and on the published parameter point estimates (parameter uncertainty is evaluated separately in amendment section 16.8)." else
+    "All results are conditional on the published parameter point estimates (parameter uncertainty is evaluated separately in amendment section 16.8)."
+  HDR_KO <- if (rv$failure) "주의: 모든 결과는 사후 예측 점검(Li 2020 건강인 시험)의 사전 등록 misfit 규칙을 충족한 주 모델(Kovalenko 2020 Model 1, 고정 체중 가정; 계획서 6.2절, 원인 진단 중 16.7절)과 공개 파라미터 점추정값에 조건부다(파라미터 불확실성은 개정 16.8절에서 따로 평가)." else
+    "주의: 모든 결과는 공개 파라미터 점추정값에 조건부다(파라미터 불확실성은 개정 16.8절에서 따로 평가)."
+  C <- c(sprintf("1. Posterior predictive check (Li 2020 healthy-volunteer studies): %s %s; %s %s. The cause is under diagnosis (amendment section 16.7).",
+                 MLAB[[PRIMARY]], cat_txt(PRIMARY), MLAB[[OTHER]], cat_txt(OTHER)),
          sprintf("2. At 130 randomized per arm (primary scenario) the simulated power at a true GMR of 0.95 is %s%% and the joint consumer risk is %s%% at 0.80 and %s%% at 1.25 (single-endpoint maxima %s%% and %s%%); the design %s the pre-specified adequacy reading.",
                  fmt(p95$pass_pct), fmt(c80$pass_pct), fmt(c125$pass_pct), fmt(max(c80$auc_only_pct, c80$cmax_only_pct)), fmt(max(c125$auc_only_pct, c125$cmax_only_pct)), if (adequate) "meets" else "does not meet"),
          sprintf("3. Design factors that change power at a true GMR of 0.95 by at least 2 percentage points (pp) with a paired 95%% CI excluding 0 (primary model, 130 per arm; cells counted over populations, doses, schedules, boundaries and analysis models): %s.", sig_txt),
@@ -552,7 +566,7 @@ if (mode == "summary") {
   # 한국어 요약(내부용): 같은 수치
   K <- c("# M15 분석 결과 요약 (내부용, 수치는 results/m15의 결과 파일에서 자동 생성)", "",
          HDR_KO, "",
-         sprintf("1. 외부 검증: 주 모델 결과 범주 '%s', 결합 규칙의 25%% 편향 검출 확률 %s%%. 민감도 모델 결과 범주 '%s'.", RULE[pk_model == PRIMARY, outcome][1], fmt(det25, 0), RULE[pk_model != PRIMARY, outcome][1]),
+         sprintf("1. 사후 예측 점검(Li 2020 건강인 시험): 주 모델은 misfit 규칙을 %s, 민감도 모델은 %s. 원인은 진단 중(개정 16.7절).", cat_txt(PRIMARY, TRUE), cat_txt(OTHER, TRUE)),
          sprintf("2. 기본 시나리오(S1, 300 mg, 확정 일정, 75 kg 경계, 군당 130명, 층 포함 분석): 참 GMR 0.95 검정력 %s%%, 결합 소비자 위험 0.80에서 %s%%, 1.25에서 %s%%(단일 평가변수 최대 %s%%, %s%%) → 사전 해석 기준 %s.",
                  fmt(p95$pass_pct), fmt(c80$pass_pct), fmt(c125$pass_pct), fmt(max(c80$auc_only_pct, c80$cmax_only_pct)), fmt(max(c125$auc_only_pct, c125$cmax_only_pct)), if (adequate) "충족" else "미충족"),
          sprintf("3. 참 GMR 0.95 검정력을 2%%p 이상 바꾸고 짝 95%% 구간이 0을 포함하지 않는 설계 요인(주 모델, 군당 130명; 집단·용량·일정·경계·분석 모형 칸 수): %s.", sig_txt_ko),

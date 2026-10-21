@@ -251,3 +251,85 @@ test_that("conditional writer adds the 200 mg limitation column only where 200 m
   expect_identical(data.table::fread(f)$limitation, M15_LIM200)
   m15_fwrite_cond(data.table::data.table(dose_mg = 300), f, ""); expect_false("limitation" %in% names(data.table::fread(f)))
 })
+
+test_that("체중 효과(개정 1, 계획서 16.4절 1): 모델마다 자기 지수를 쓰고, Vmax가 0에 가까우면 (w/75)^-theta_WT, 두 모델의 비는 다르다", {
+  ratio <- function(p, w, dose = 300) {
+    ip <- individual_params(p, data.table(id = 1:2, WT = c(w, 75)))
+    s <- solve_model(ip, CJ(id = 1:2, time = c(seq(0, 400, by = 0.5), 2000, 4000)), dose, model_id = p$model_id)
+    a <- s[time == 4000, auc]; a[1] / a[2] }
+  p16 <- load_params("k2016"); p20 <- load_params("k2020")
+  expect_equal(p16$cov$theta_WT, 0.705); expect_equal(p20$cov$theta_WT, 0.711)
+  lin <- list()
+  for (m in c("k2016", "k2020")) { q <- load_params(m); q$theta["Vmax"] <- q$theta[["Vmax"]] * 1e-9          # (a) 선형 소실이면 해석해
+    lin[[m]] <- ratio(q, 63.2); expect_equal(lin[[m]], (63.2 / 75)^(-q$cov$theta_WT), tolerance = 1e-6) }
+  expect_gt(abs(lin$k2020 - lin$k2016), 5e-4)                                            # (b) 선형 소실에서 두 모델의 비는 5e-4보다 더 다르다
+  r16 <- ratio(p16, 63.2); r20 <- ratio(p20, 63.2); expect_gt(abs(r20 - r16), 1e-5)       # 전체 모델: 다른 비(1.206 근처로 가까운 것은 부분 상쇄)
+  for (p in list(p16, p20)) { q <- p; q$cov$theta_WT <- q$cov$theta_WT + 0.01; expect_gt(abs(ratio(q, 63.2) - ratio(p, 63.2)), 1e-3) }   # (c) 지수 +0.01이면 비가 1e-3보다 더 바뀐다
+  wr <- fread(proj_path("results", "m15", "weight", "weight_ratio.csv"))
+  skip_if(!nrow(wr))
+  for (m in c("k2016", "k2020")) for (pv in c("S1", "S2")) for (pr in c(0.05, 0.95)) {                    # (d) 저장된 비 = 독립 재계산(1e-6)
+    z <- wr[pk_model == m & dose_mg == 300 & population == pv & abs(prob - pr) < 1e-9 & metric == "AUCinf"]
+    expect_equal(nrow(z), 1L); expect_equal(ratio(load_params(m), z$WT), z$typical_ratio, tolerance = 1e-6) }
+})
+
+test_that("진단 모델(개정 1): k2020cov·k2020base는 Model 1 구조, 공변량·IIV 차용, ke_cov 열이 ke에 곱해지고 기존 모델은 그대로", {
+  pc <- load_params("k2020cov"); pb <- load_params("k2020base"); p1 <- load_params("k2020")
+  expect_equal(pc$model_id, p1$model_id); expect_equal(pc$cov$theta_WT, 0.817); expect_equal(pb$cov$theta_WT, 0.919)
+  expect_equal(pc$omega2, p1$omega2); expect_equal(pc$sigma, p1$sigma); expect_true(all(pc$status$status == "assumption"))
+  e <- data.table(id = 1:2, WT = 75, ke_cov = c(1, 1.123))
+  ip <- individual_params(pc, e); expect_equal(ip$ke[2] / ip$ke[1], 1.123); expect_true("ktr" %in% names(ip))
+  ip1 <- individual_params(p1, data.table(id = 1:2, WT = 75)); expect_equal(ip1$ke, rep(0.0534, 2))
+})
+
+test_that("등록 모델 불변(개정 1): k2016·k2020의 파라미터와 개체 파라미터가 커밋 4a948df와 같다(digest)", {
+  CFG <- m15_cfg()
+  pin <- list(k2016 = c("f39187e7ea23af7997915d219e88a3ac", "9f3ec6f4beb733831f55b8a20a2c83b2"), k2020 = c("5a0593014e273f8a16367a84bdaea398", "2787ed7aba27826aef0c3586dd094cff"))
+  for (m in names(pin)) { p <- load_params(m)
+    s <- m15_subjects(1000L, CFG$populations$S1, CFG$inclusion, 0.513, 0.5, 20261021L)
+    ip <- individual_params(p, m15_eta_table(s, p))
+    expect_identical(digest::digest(unclass(p)[c("theta", "cov", "omega2", "omega", "sigma", "model_id")]), pin[[m]][1], info = m)
+    expect_identical(digest::digest(as.data.frame(ip)), pin[[m]][2], info = m) }
+})
+
+test_that("요청자 NCA 규칙(개정 1, m15_nca_blq0): 투여 뒤 BLQ = 0, 마지막 양의 농도까지, 잘라내기 없음", {
+  d <- data.table(id = c(1, 1, 1, 1, 1, 2, 2), time = c(0, 1, 2, 3, 4, 0, 1), conc = c(NA, 4, NA, 2, NA, NA, NA))
+  r <- m15_nca_blq0(d)
+  expect_equal(r[id == 1, Cmax], 4); expect_equal(r[id == 1, Tlast], 3)
+  expect_equal(r[id == 1, AUClast], 0.5 * 4 + 0.5 * 4 + 0.5 * 2)                       # 0->4 선형, 4->0 선형(0 끝점), 0->2 선형
+  expect_true(is.na(r[id == 2, AUClast]))
+  b <- m15_nca_basic(d); expect_equal(b[id == 1, AUClast], 0.5 * 4 + (4 - 2) / log(2) * 2)   # 등록 규칙: 중간 BLQ 제외, 4->2 로그 하강
+})
+
+test_that("파라미터 불확실성(개정 1, R/pu.R): SE 규칙, 차용, 세트 0 = config, 같은 이름은 같은 z", {
+  source(proj_path("R", "pu.R"), local = TRUE)
+  PU <- pu_cfg(); E16 <- pu_entries_k2016(PU)
+  v <- E16[group == "theta" & name == "Vc"]; expect_equal(v$sd_log, (log(2.97) - log(2.61)) / 3.29)
+  w <- E16[group == "theta" & name == "theta_WT"]; expect_equal(w$se_lin, (0.840 - 0.576) / 3.29)
+  o <- E16[group == "omega2" & name == "ke"]; expect_equal(o$se_lin, (0.191 - 0.0738) / 3.29)
+  E20 <- pu_entries_k2020(PU, "borrowed_covariate_model"); expect_setequal(E20$name, c("Vc", "ke", "theta_WT"))
+  expect_equal(E20[name == "Vc", sd_log], 0.021 / 2.74); expect_equal(E20[name == "theta_WT", se_lin], 0.031)
+  E20b <- pu_entries_k2020(PU, "borrowed_covariate_model_and_k2016"); expect_setequal(E20b$name, c("Vc", "ke", "theta_WT", "Vmax", "F", "ka"))
+  expect_equal(E20b[name == "F", sd_log], E16[group == "theta" & name == "F", sd_log])
+  for (m in c("k2016", "k2020")) { p <- load_params(m); E <- if (m == "k2016") E16 else E20b; pu_check_estimates(p, E)
+    s0 <- pu_param_set(p, E, 0, 20261020L); expect_identical(unclass(s0$p)[c("theta", "cov", "omega2", "omega", "sigma")], unclass(p)[c("theta", "cov", "omega2", "omega", "sigma")]) }
+  a <- pu_param_set(load_params("k2016"), E16, 7, 20261020L); b <- pu_param_set(load_params("k2020"), E20b, 7, 20261020L)
+  z16 <- log(a$values[["theta.Vc"]] / 2.74) / E16[group == "theta" & name == "Vc", sd_log]; z20 <- log(b$values[["theta.Vc"]] / 2.48) / E20b[name == "Vc", sd_log]
+  expect_equal(z16, z20, tolerance = 1e-10)                                            # 같은 이름(Vc)은 모델 간에 같은 점수
+  expect_equal(a$p$omega[["ke"]], sqrt(a$p$omega2[["ke"]]))
+})
+
+test_that("분석계획서 16절(개정 1)의 등록 수치가 설정 블록 amendment_20261021과 일치", {
+  f <- proj_path("plans", "M15_analysis_plan_20261020.md"); skip_if_not(file.exists(f))
+  x <- paste(readLines(f, warn = FALSE), collapse = " "); A <- read_cfg("prereg_20261020_m15.yaml")$amendment_20261021
+  expect_true(grepl("## 16. Amendment 1 (2026-10-21)", x, fixed = TRUE))
+  expect_equal(as.numeric(unlist(A$mechsuppx$multipliers)), c(0.60, 0.70, 1.30, 1.40, 1.50)); expect_true(grepl("multipliers 0.60, 0.70, 1.30, 1.40 and 1.50", x))
+  expect_equal(as.numeric(unlist(A$mechsuppx$appended[[1]]$multipliers)), c(1.75, 2.00)); expect_true(grepl("ka also at 1.75 and 2.00", x))
+  expect_equal(as.numeric(unlist(A$ada$elapsed_days)), c(14, 28, 56, 63, 70, 84)); expect_true(grepl("elapsed days 14, 28, 56, 63, 70 and 84", x))
+  expect_equal(A$ppc$between_study_factor$cv_pct, 10); expect_true(grepl("CV 10% (median 1", x, fixed = TRUE))
+  expect_equal(A$ppc$conclusion_template$threshold_fp10_pct, 10); expect_true(grepl("FP10 at most 10%", x))
+  expect_equal(A$param_uncertainty$n_sets, 1000L); expect_equal(A$param_uncertainty$n_subj_per_set, 2000L); expect_equal(as.integer(unlist(A$param_uncertainty$n_randomized_per_arm)), c(107L, 130L))
+  expect_true(grepl("at 107 and 130 randomized per arm (96.3 and 117 evaluable)", x, fixed = TRUE))
+  expect_equal(A$robustness$thresholds$pp, 2); expect_equal(A$robustness$thresholds$auroc, 0.02); expect_true(grepl("at least 2 percentage points", x)); expect_true(grepl("at least 0.02 (AUROC, RMSE of the log ratio)", x, fixed = TRUE))
+  hv <- unlist(A$ppc$race_scenarios$hv80); expect_equal(hv[["R668-AS-0907"]], 0.25); expect_true(grepl("R668-AS-0907 25% white", x))
+  labs <- vapply(A$ppc$mappings, `[[`, "", "label"); for (l in labs) expect_true(grepl(l, x, fixed = TRUE), info = l)
+})

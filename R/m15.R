@@ -56,6 +56,7 @@ m15_eta_table <- function(subj, p) {
     e[, (paste0("eta_", nm)) := if (s > 0) { if (!zc %in% names(subj)) stop("표준 정규 점수 없음: ", nm); s * subj[[zc]] } else 0]
   }
   e[, ada := 0]
+  if ("ke_cov" %in% names(subj)) e[, ke_cov := subj$ke_cov]          # 대상자별 ke 공변량 인자(진단 모델, 계획서 16.7절); 기존 모델에는 열이 없다
   e[]
 }
 
@@ -117,6 +118,24 @@ m15_nca_basic <- function(sim) {
   d <- preprocess_blq(sim)
   s <- d[conc > 0, { i <- which.max(conc); .(Cmax = conc[i], Tlast = time[.N]) }, by = id]
   setorder(d, id, time)
+  d[, `:=`(t_prev = shift(time), c_prev = shift(conc)), by = id]
+  auc <- d[!is.na(t_prev), .(AUClast = sum(.seg_auc(t_prev, c_prev, time, conc, "linear_up_log_down"))), by = id]
+  s <- merge(s, auc, by = "id", all.x = TRUE); s[is.na(AUClast), AUClast := 0]
+  none <- setdiff(ids, s$id)
+  if (length(none)) s <- rbind(s, data.table(id = none, Cmax = NA_real_, Tlast = NA_real_, AUClast = NA_real_))
+  setorder(s, id)[]
+}
+
+# 개정 1(계획서 16.7절 5, D-069): 요청자의 반복 NCA 규칙. 투여 뒤 BLQ(NA)는 모두 0, 잘라내기 없음; AUC0-last는 마지막 양의 농도(Tlast)까지
+# Linear Up Log Down(0이 끝점인 선분은 선형), Cmax는 최댓값. 정량값이 없으면 NA. 등록 규칙(m15_nca_basic)과 나란히 보고한다.
+m15_nca_blq0 <- function(sim) {
+  ids <- sort(unique(sim$id))
+  d <- sim[time >= 0, .(id, time, conc = fifelse(is.na(conc), 0, conc))]
+  miss0 <- setdiff(ids, d[time == 0, unique(id)]); if (length(miss0)) d <- rbind(d, data.table(id = miss0, time = 0, conc = 0))
+  setorder(d, id, time); d[time == 0, conc := 0]
+  d[, last_pos := if (any(conc > 0)) max(which(conc > 0)) else NA_integer_, by = id]
+  d <- d[!is.na(last_pos)][, k := seq_len(.N), by = id][k <= last_pos]
+  s <- d[, { i <- which.max(conc); .(Cmax = conc[i], Tlast = time[.N]) }, by = id]
   d[, `:=`(t_prev = shift(time), c_prev = shift(conc)), by = id]
   auc <- d[!is.na(t_prev), .(AUClast = sum(.seg_auc(t_prev, c_prev, time, conc, "linear_up_log_down"))), by = id]
   s <- merge(s, auc, by = "id", all.x = TRUE); s[is.na(AUClast), AUClast := 0]
@@ -439,7 +458,7 @@ m15_wilson <- function(x, n, conf = 0.95) { w <- wilson_ci(x, n, conf); list(pct
 m15_conditional_label <- function(rd, primary) {
   f <- file.path(rd, "validation", "validation_rule.csv"); if (!file.exists(f)) return("")
   r <- data.table::fread(f); r <- r[r$pk_model == primary & r$wmode == "primary"]
-  if (isTRUE(r$failure[1])) "Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2)." else ""
+  if (isTRUE(r$failure[1])) "Conditional on a primary model that met the pre-specified misfit rule of the posterior predictive check (plan section 6.2; cause under diagnosis, amendment section 16.7)." else ""   # 개정 1 표기(16.5절)
 }
 M15_LIM200 <- "Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3)."
 m15_fwrite_cond <- function(tab, path, cond) {                       # 호출자 표는 바꾸지 않는다(복사본에 열 추가)

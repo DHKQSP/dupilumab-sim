@@ -53,12 +53,14 @@ individual_params <- function(p, eta) {
   ip <- data.table(
     id = eta$id, WT = WT,
     Vc_i = individual_Vc(th[["Vc"]], WT, p$cov$theta_WT, p$cov$WT_ref, g("eta_Vc")),
-    ke = th[["ke"]] * exp(g("eta_ke")) * (if (!is.null(p$cov$ke_bmi_exp) && p$cov$ke_bmi_exp != 0) { if (!"BMI" %in% names(eta)) stop("ke~BMI 공변량에 BMI 열이 필요합니다"); (eta$BMI / p$cov$BMI_ref)^p$cov$ke_bmi_exp } else 1), k12 = th[["k12"]] * exp(g("eta_k12")), k21 = th[["k21"]] * exp(g("eta_k21")),
+    ke = th[["ke"]] * exp(g("eta_ke")) * (if (!is.null(p$cov$ke_bmi_exp) && p$cov$ke_bmi_exp != 0) { if (!"BMI" %in% names(eta)) stop("ke~BMI 공변량에 BMI 열이 필요합니다"); (eta$BMI / p$cov$BMI_ref)^p$cov$ke_bmi_exp } else 1) *
+      (if ("ke_cov" %in% names(eta)) eta$ke_cov else 1), k12 = th[["k12"]] * exp(g("eta_k12")), k21 = th[["k21"]] * exp(g("eta_k21")),
     Vmax = th[["Vmax"]] * exp(g("eta_Vmax")), Km = th[["Km"]] * exp(g("eta_Km")), ka = th[["ka"]] * exp(g("eta_ka")),
     F = plogis(qlogis(th[["F"]]) + g("eta_F")),
     ada = if ("ada" %in% names(eta)) as.numeric(eta$ada) else 0,
     t_ada = p$ada$onset_day, ada_mult = p$ada$ke_multiplier)
-  if (p$model == "k2020") { mtt_i <- th[["MTT"]] * exp(g("eta_MTT")); ip[, ktr := (th[["n_transit"]] + 1) / mtt_i] }   # MTT IIV(D-029)
+  if (identical(p$model_id, "k2020_model1_transit")) { mtt_i <- th[["MTT"]] * exp(g("eta_MTT")); ip[, ktr := (th[["n_transit"]] + 1) / mtt_i] }   # MTT IIV(D-029); transit 구조 모델 모두
+  # ke_cov: 대상자별 ke 공변량 인자(진단 모델의 인종 등, 계획서 16.7절); 열이 없으면 1
   ip[]
 }
 

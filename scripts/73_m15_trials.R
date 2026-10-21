@@ -7,13 +7,15 @@
 #   ocshape  <model> <pop> <dose> [from] [to] [cores]   체중 모양 민감도: 균등 집단, k2020, 300 mg, 확정 일정, g = 0.80, 0.95, 1.00, 1.25
 #   mech     <model> <pop> <dose> [from] [to] [cores]   기전 판 33개(층 경계 75 kg) → 표본 수별 통과 수, 130명에서 시험별 통과·M1 추정 log GMR·부분 AUC 산술 평균
 #   mechsupp <model> <pop> <dose> [from] [to] [cores]   보충 배율(ke, Vmax, ka x 0.60, 0.70, 1.30, 1.40, 1.50; k2020, 300 mg, 확정 일정)
+#   mechsuppx <model> <pop> <dose> [from] [to] [cores]  개정 1(계획서 16.3절 5, D-069): 두 모델, 300 mg, 세 일정, ke·Vmax·ka x 0.60~1.50(+ ka 1.75, 2.00); 판 순서는 mechsupp와 같고
+#                                                      새 판은 뒤에 붙는다. k2020 확정 일정 행은 저장된 mechsupp와 같아야 한다(일치 점검; 저장값을 쓴다)
 #   pilotcheck <model> <pop> <dose> [from] [to]         11절 예비 실행 점검(oc g = 1.00 대 mech 항등의 시험별 일치, 분석식 검정력 대조, 단조성) → pilot_check_*.csv
 # 시험 j의 대상자·배정·탈락·채혈 시각·잔차 시드는 m15_trial_seeds(master, 10,000)의 (j, 흐름)이며 모델·용량·집단·일정·표본 수·g·판과 무관(공통 난수).
 # 묶음 파일(50회)은 임시 이름으로 쓴 뒤 바꾼다(이미 있는 묶음은 건너뜀 = 이어서 실행).
 # 사용법: nice -n 5 Rscript scripts/73_m15_trials.R <oc|ocext|ocshape|mech|mechsupp|pilotcheck> <model> <pop> <dose> [from] [to] [cores]
 source("R/00_setup.R"); source_project(); source(proj_path("R", "m15.R"))
 args <- commandArgs(trailingOnly = TRUE)
-MODES <- c("oc", "ocext", "ocshape", "mech", "mechsupp", "pilotcheck")
+MODES <- c("oc", "ocext", "ocshape", "mech", "mechsupp", "mechsuppx", "pilotcheck"); MM <- c("mech", "mechsupp", "mechsuppx")
 if (length(args) < 4 || !args[1] %in% MODES) stop("사용법: Rscript scripts/73_m15_trials.R <", paste(MODES, collapse = "|"), "> <model> <pop> <dose> [from] [to] [cores]")
 mode <- args[1]; model <- args[2]; popv <- args[3]; dose <- as.numeric(args[4])
 CFG <- m15_cfg(); MS <- as.integer(CFG$master_seed); stopifnot(MS == 20261020L)
@@ -26,22 +28,24 @@ POPS <- CFG$populations; INCL <- CFG$inclusion; RHO <- as.numeric(POPS$weight_he
 pmap <- list(S1 = c("S1", "weight"), S2 = c("S2", "weight"), S1_uniform = c("S1", "weight_sensitivity"), S2_uniform = c("S2", "weight_sensitivity"))
 stopifnot(popv %in% names(pmap)); POP <- POPS[[pmap[[popv]][1]]]; WKEY <- pmap[[popv]][2]
 # 모드별 등록 범위 점검
-EXT <- CFG$oc$extension; SHP <- CFG$oc$weight_shape_sensitivity; SUP <- CFG$mechanisms$supplementary
+EXT <- CFG$oc$extension; SHP <- CFG$oc$weight_shape_sensitivity; SUP <- CFG$mechanisms$supplementary; SUPX <- CFG$amendment_20261021$mechsuppx
 if (mode == "ocext") stopifnot(model == EXT$model, to <= NT_EXT, popv %in% c("S1", "S2"))
 if (mode == "ocshape") stopifnot(model == SHP$model, dose == as.numeric(SHP$dose_mg), popv %in% unlist(SHP$populations), to <= as.integer(SHP$n_trials))
 if (mode == "mechsupp") stopifnot(model == SUP$model, dose == as.numeric(SUP$dose_mg), popv %in% unlist(SUP$populations), to <= as.integer(SUP$n_trials))
+if (mode == "mechsuppx") stopifnot(!is.null(SUPX), model %in% unlist(SUPX$models), dose == as.numeric(SUPX$dose_mg), popv %in% unlist(SUPX$populations), to <= as.integer(SUPX$n_trials))
 if (mode %in% c("oc", "ocext", "mech", "pilotcheck")) stopifnot(popv %in% c("S1", "S2"))
 design <- read_cfg("trial_design.yaml"); LLOQ <- study_lloq(); stopifnot(isTRUE(all.equal(LLOQ, as.numeric(CFG$lloq_mg_L))))
 SCHED <- lapply(CFG$schedules, as.numeric)
 if (mode == "ocshape") SCHED <- SCHED[unlist(SHP$schedules)]
 if (mode == "mechsupp") SCHED <- SCHED[unlist(SUP$schedules)]
+if (mode == "mechsuppx") SCHED <- SCHED[unlist(SUPX$schedules)]
 GRID <- sort(unique(c(0, unlist(lapply(CFG$schedules, as.numeric))))); K <- length(GRID)    # 채혈 난수는 항상 세 일정의 합집합 격자(공통 난수)
 NPOOL <- as.integer(CFG$enrollment_pool); NGRID <- as.integer(unlist(CFG$n_randomized_per_arm)); NMAX <- max(NGRID)
 NBASE <- as.integer(CFG$mechanisms$base_n_randomized_per_arm); PDROP <- as.numeric(CFG$dropout$p)
 BND <- fread(proj_path(CFG$output_dir, "populations", "strata_boundaries.csv"))[population == popv]
 stopifnot(nrow(BND) == 2)
 BOUNDS <- setNames(BND$boundary_kg, BND$boundary)
-if (mode %in% c("mech", "mechsupp")) BOUNDS <- BOUNDS[CFG$mechanisms$boundary]
+if (mode %in% MM) BOUNDS <- BOUNDS[CFG$mechanisms$boundary]
 GALL <- m15_gmr_grid(CFG$oc$gmr_grid); stopifnot(length(GALL) == as.integer(CFG$oc$gmr_grid$n_total), any(GALL == 1))
 G <- switch(mode, oc = GALL, ocext = c(1, as.numeric(unlist(EXT$gmr))), ocshape = as.numeric(unlist(SHP$gmr)), NULL)
 if (!is.null(G)) stopifnot(sum(abs(G - 1) < 1e-12) == 1, length(G) <= 30)
@@ -117,6 +121,9 @@ run_oc_trial <- function(j) {
 VERS <- local({
   M <- CFG$mechanisms; v <- list(list(code = "identity", mult = list()))
   if (mode == "mechsupp") { for (pm in unlist(SUP$parameters)) for (m in as.numeric(unlist(SUP$multipliers))) v[[length(v) + 1]] <- list(code = sprintf("%s_%.2f", pm, m), mult = setNames(list(m), pm))
+  } else if (mode == "mechsuppx") {                                   # mechsupp와 같은 순서(판 1~16) 뒤에 추가 배율(ka 1.75, 2.00)
+    for (pm in unlist(SUPX$parameters)) for (m in as.numeric(unlist(SUPX$multipliers))) v[[length(v) + 1]] <- list(code = sprintf("%s_%.2f", pm, m), mult = setNames(list(m), pm))
+    for (ex in SUPX$appended) for (m in as.numeric(unlist(ex$multipliers))) v[[length(v) + 1]] <- list(code = sprintf("%s_%.2f", ex$parameter, m), mult = setNames(list(m), ex$parameter))
   } else for (pm in unlist(M$parameters)) for (m in as.numeric(unlist(M$multipliers))) v[[length(v) + 1]] <- list(code = sprintf("%s_%.2f", pm, m), mult = setNames(list(m), pm))
   v })
 PAUC <- names(INTERVALS)
@@ -207,7 +214,7 @@ if (mode == "pilotcheck") {
 }
 
 # 판 번호(vi)의 뜻: oc·ocext·ocshape는 g, mech·mechsupp는 기전·배율
-meta <- if (mode %in% c("mech", "mechsupp")) data.table(vi = seq_along(VERS), code = vapply(VERS, `[[`, "", "code"),
+meta <- if (mode %in% MM) data.table(vi = seq_along(VERS), code = vapply(VERS, `[[`, "", "code"),
                                                            mechanism = c("identity", vapply(VERS[-1], function(x) names(x$mult), "")),
                                                            multiplier = c(1, vapply(VERS[-1], function(x) as.numeric(x$mult[[1]]), 1))) else data.table(vi = seq_along(G), g = G)
 fwrite(meta, file.path(out_dir, "versions.csv"))
@@ -215,7 +222,7 @@ fwrite(meta, file.path(out_dir, "versions.csv"))
 # ---------------------------------------------------------------- 실행(50회 묶음) ----------------------------------------------------------------
 BATCH <- 50L
 starts <- seq((from - 1L) %/% BATCH * BATCH + 1L, to, by = BATCH)
-fun <- if (mode %in% c("mech", "mechsupp")) run_mech_trial else run_oc_trial
+fun <- if (mode %in% MM) run_mech_trial else run_oc_trial
 for (b0 in starts) {
   js <- max(b0, from):min(b0 + BATCH - 1L, to)
   f <- file.path(out_dir, sprintf("%s_%05d_%05d.csv.gz", mode, min(js), max(js)))
@@ -226,7 +233,7 @@ for (b0 in starts) {
   if (length(res) != length(js) || any(bad)) stop("시험 실패 또는 작업자 결과 없음: ", paste(js[bad], collapse = ","), " ",
                                                   if (is.null(res[bad][[1]])) "worker died" else conditionMessage(res[bad][[1]]))
   tmp <- file.path(out_dir, paste0("tmp_", basename(f)))
-  if (mode %in% c("mech", "mechsupp")) {
+  if (mode %in% MM) {
     cnt <- rbindlist(lapply(res, `[[`, "cnt"))[, .(n_trials = .N, n_pass = sum(pass), n_pass_auc = sum(pass_auc), n_pass_cmax = sum(pass_cmax)), by = .(schedule, vi, n_rand, model)]
     fc <- file.path(out_dir, paste0("cnt_", basename(f))); fct <- file.path(out_dir, paste0("tmp_cnt_", basename(f))); fwrite(cnt, fct)
     base <- rbindlist(lapply(res, `[[`, "base"), fill = TRUE)

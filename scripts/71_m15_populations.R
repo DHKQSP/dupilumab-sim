@@ -4,11 +4,12 @@
 # 모드
 #   populations                집단 S1, S2(및 균등 모양 민감도) 200,000명: 분위수, 층 경계 중앙값, 특성 → results/m15/populations/
 #   truth [cores]              모델 x 집단 x 용량 x 기전 판(33개, k2020 300 mg은 보충 15개 추가) 20,000명 참값과 짝지은 모집단 GMR → results/m15/truth/
+#   truthx [cores]             개정 1(계획서 16.3절 5, D-069): mechsuppx 판 가운데 truth_gmr.csv에 없는 판의 유도 참 GMR(같은 참값 대상자) → results/m15/truth/truth_gmr_ext.csv
 #   weight [cores]             [8] 백분위 체중의 전형 대상자 비, 개인 짝 비 90% 구간, 개인차 예측구간, 정규화 민감도 계수 → results/m15/weight/
 # 사용법: nice -n 5 Rscript scripts/71_m15_populations.R <populations|truth|weight> [cores]
 source("R/00_setup.R"); source_project(); source(proj_path("R", "m15.R"))
 args <- commandArgs(trailingOnly = TRUE)
-if (!length(args) || !args[1] %in% c("populations", "truth", "weight")) stop("사용법: Rscript scripts/71_m15_populations.R <populations|truth|weight> [cores]")
+if (!length(args) || !args[1] %in% c("populations", "truth", "truthx", "weight")) stop("사용법: Rscript scripts/71_m15_populations.R <populations|truth|truthx|weight> [cores]")
 mode <- args[1]; cores <- if (length(args) >= 2) as.integer(args[2]) else 4L
 CFG <- m15_cfg(); MS <- as.integer(CFG$master_seed); stopifnot(MS == 20261020L)
 design <- read_cfg("trial_design.yaml"); LLOQ <- study_lloq(); stopifnot(isTRUE(all.equal(LLOQ, as.numeric(CFG$lloq_mg_L))))
@@ -90,6 +91,34 @@ if (mode == "truth") {
   fwrite(G, file.path(od, "truth_gmr.csv")); fwrite(R, file.path(od, "truth_reference.csv")); fwrite(TL, file.path(od, "truth_tlast.csv"))
   print(G[metric %in% c("AUCinf", "Cmax", "AUClast_dense_B0") & multiplier %in% c(0.8, 1.2)]); print(TL)
   append_run_log(lf, sprintf("done in %s", format(Sys.time() - t0)))
+}
+
+if (mode == "truthx") {
+  od <- proj_path(CFG$output_dir, "truth"); X <- CFG$amendment_20261021$mechsuppx; stopifnot(!is.null(X))
+  NT <- as.integer(CFG$mechanisms$truth$n_subj); TG <- fread(file.path(od, "truth_gmr.csv")); REF0 <- fread(file.path(od, "truth_reference.csv"))
+  lf <- start_run_log("m15_truthx", master_seed = MS, run_mode = "final", extra = list(n = NT, cores = cores))
+  want <- rbind(CJ(mechanism = unlist(X$parameters), multiplier = as.numeric(unlist(X$multipliers))),
+                rbindlist(lapply(X$appended, function(ex) data.table(mechanism = ex$parameter, multiplier = as.numeric(unlist(ex$multipliers))))))
+  jobs <- CJ(pk_model = unlist(X$models), population = unlist(X$populations), dose = as.numeric(X$dose_mg), sorted = FALSE)
+  one <- function(k) {
+    m <- jobs$pk_model[k]; pop <- jobs$population[k]; dose <- jobs$dose[k]; p <- load_params(m)
+    have <- unique(TG[TG$pk_model == m & TG$population == pop & TG$dose_mg == dose, .(mechanism, multiplier)])
+    need <- want[!have, on = c("mechanism", "multiplier")]; if (!nrow(need)) return(NULL)
+    subj <- m15_subjects(NT, POPS[[pop]], INCL, RHO, SR, derive_seed(MS, "truth")); e <- m15_eta_table(subj, p)
+    ref <- m15_truth(individual_params(p, e), dose, p$model_id, SCHED, LLOQ, INTERVALS)
+    mets <- setdiff(names(ref), c("id", "t_true_last"))
+    r0 <- REF0[REF0$pk_model == m & REF0$population == pop & REF0$dose_mg == dose]                      # 항등 참값이 저장된 것과 같아야 한다
+    chk <- vapply(mets, function(mt) { x <- ref[[mt]]; abs(exp(mean(log(x[x > 0]))) / r0[metric == mt, geo_mean] - 1) }, 1); stopifnot(max(chk) < 1e-10)
+    rbindlist(lapply(seq_len(nrow(need)), function(i) { v <- need[i]; tt <- m15_truth(individual_params(apply_multipliers(p, setNames(list(v$multiplier), v$mechanism)), e), dose, p$model_id, SCHED, LLOQ, INTERVALS)
+      rbindlist(lapply(mets, function(mt) { r <- m15_paired_gmr(tt[[mt]], ref[[mt]])
+        data.table(pk_model = m, population = pop, dose_mg = dose, mechanism = v$mechanism, multiplier = v$multiplier, set = "supplementary_ext", metric = mt, gmr = r[["gmr"]], se_log = r[["se_log"]],
+                   n_used = r[["n"]], share_zero_test = mean(tt[[mt]] <= 0), share_true_tlast_ge56 = mean(tt$t_true_last >= 56)) })) }))
+  }
+  for (m in unique(jobs$pk_model)) invisible(get_model(load_params(m)$model_id))
+  res <- parallel::mclapply(seq_len(nrow(jobs)), one, mc.cores = cores, mc.preschedule = FALSE)
+  bad <- vapply(res, function(x) inherits(x, "try-error"), TRUE); if (length(res) != nrow(jobs) || any(bad)) stop("truthx 실패: ", paste(which(bad), collapse = ","))
+  GX <- rbindlist(res); fwrite(GX, file.path(od, "truth_gmr_ext.csv"))
+  print(GX[metric %in% c("AUCinf", "Cmax", "AUClast_dense_B0")]); append_run_log(lf, "done")
 }
 
 # ---------------------------------------------------------------- [8] 체중 효과 ----------------------------------------------------------------

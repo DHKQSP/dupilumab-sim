@@ -36,12 +36,15 @@ study_lloq_grid <- function() {
   g
 }
 
-load_params <- function(model = c("k2016", "k2020"), variant = "base") {
+# 모델 이름 -> 파라미터 파일. k2020cov, k2020base는 계획서 16절(개정 1)의 진단 전용 모델(Kovalenko 2020 3상 공변량·기본 모델, 요청자 제공 값; 설계 격자에는 쓰지 않는다)
+PARAM_FILES <- c(k2016 = "params_typical.yaml", k2020 = "params_k2020_model1.yaml", k2020cov = "params_k2020cov.yaml", k2020base = "params_k2020base.yaml")
+load_params <- function(model = names(PARAM_FILES), variant = "base") {
   model <- match.arg(model)
-  typ <- if (model == "k2016") read_cfg("params_typical.yaml") else read_cfg("params_k2020_model1.yaml")
+  typ <- read_cfg(PARAM_FILES[[model]])
+  transit <- identical(typ$model_id, "k2020_model1_transit")          # transit 흡수 구조(Model 1과 진단 모델): MTT, n_transit, MTT IIV
   var <- read_cfg("params_variability.yaml")
   st <- list()
-  th_names <- c("Vc", "ke", "k12", "k21", "ka", "Vmax", "Km", "F", if (model == "k2020") c("MTT", "n_transit"))
+  th_names <- c("Vc", "ke", "k12", "k21", "ka", "Vmax", "Km", "F", if (transit) c("MTT", "n_transit"))
   theta <- setNames(numeric(length(th_names)), th_names)
   for (nm in th_names) {
     e <- typ$theta[[nm]]; theta[nm] <- .num(e)
@@ -51,9 +54,13 @@ load_params <- function(model = c("k2016", "k2020"), variant = "base") {
   st[[length(st) + 1]] <- data.table(item = "cov.theta_WT", status = typ$covariates$WT_on_Vc$theta_WT$status, source = typ$covariates$WT_on_Vc$theta_WT$source)
   st[[length(st) + 1]] <- data.table(item = "cov.WT_ref", status = typ$covariates$WT_on_Vc$WT_ref$status, source = typ$covariates$WT_on_Vc$WT_ref$source)
   # k2016: params_variability.yaml(Kovalenko 2016). k2020: 자체 IIV·잔차(Supplementary Table 2, D-029), MTT IIV는 마지막(k2016 난수 순서 불변)
-  om_names <- c("Vc", "ke", "k12", "k21", "ka", "Vmax", "Km", "F", if (model == "k2020") "MTT")
+  om_names <- c("Vc", "ke", "k12", "k21", "ka", "Vmax", "Km", "F", if (transit) "MTT")
   omega2 <- setNames(numeric(length(om_names)), om_names)
-  if (model == "k2020") var <- list(iiv_omega2 = lapply(typ$iiv$sd, function(e) list(omega2 = e$omega2, status = "confirmed", source = typ$iiv$source)), residual = typ$residual)
+  if (transit) {                                                       # IIV·잔차: 자체 값, 또는 iiv_from 파일에서 차용(상태 assumption)
+    src <- if (!is.null(typ$iiv_from)) read_cfg(typ$iiv_from) else typ; ist <- if (is.null(typ$iiv_from)) "confirmed" else "assumption"
+    rs <- src$residual; if (!is.null(typ$iiv_from)) for (k in names(rs)) if (is.list(rs[[k]])) { rs[[k]]$status <- "assumption"; rs[[k]]$source <- paste("borrowed from", typ$iiv_from) }
+    var <- list(iiv_omega2 = lapply(src$iiv$sd, function(e) list(omega2 = e$omega2, status = ist, source = if (is.null(typ$iiv_from)) src$iiv$source else paste("borrowed from", typ$iiv_from))), residual = rs)
+  }
   for (nm in om_names) {
     e <- var$iiv_omega2[[nm]]; omega2[nm] <- as.numeric(e$omega2)
     st[[length(st) + 1]] <- data.table(item = paste0("omega2.", nm), status = e$status, source = e$source)

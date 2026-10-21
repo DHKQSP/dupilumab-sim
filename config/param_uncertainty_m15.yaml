@@ -1,0 +1,45 @@
+# 개정 1(계획서 16.8절, D-069) 파라미터 불확실성 입력: 요청자가 2026-10-21에 제공한 값. 이 파일을 커밋한 뒤에 scripts/76을 실행한다(동결 규칙).
+# 기존 config/param_uncertainty.yaml(scripts/67, Day 57 지시)은 그대로 둔다(형식이 다르다: RSE). 여기서는 P5/P95 또는 표준오차를 쓴다.
+# SE 규칙(요청자): 양수 파라미터는 로그 척도 (ln P95 - ln P5) / 3.29, 지수와 분산은 선형 척도 (P95 - P5) / 3.29; 독립.
+# 원문은 분석 환경에서 열 수 없어 대조하지 못했다(D-066). 추정값은 모델 config와 같아야 한다(scripts/76이 대조).
+status: registered
+registered_on: "2026-10-21"
+se_rule: {divisor: 3.29, log: "(ln P95 - ln P5) / 3.29 on the log scale", linear: "(P95 - P5) / 3.29 on the linear scale", independence: true}
+models:
+  k2016:
+    source: "Kovalenko 2016 Table 2, 'BLQ data included' column (the repository implementation, config/params_typical.yaml and params_variability.yaml); estimates with bootstrap 5th and 95th percentiles as supplied 2026-10-21"
+    theta:
+      Vc:       {estimate: 2.74,   p05: 2.61,   p95: 2.97,   scale: log,    paper_name: V2}
+      ke:       {estimate: 0.0459, p05: 0.0403, p95: 0.0503, scale: log}
+      k12:      {estimate: 0.0652, p05: 0.0431, p95: 0.0917, scale: log,    paper_name: k23}
+      k21:      {estimate: 0.129,  p05: 0.101,  p95: 0.166,  scale: log,    paper_name: k32}
+      ka:       {estimate: 0.254,  p05: 0.226,  p95: 0.315,  scale: log}
+      Vmax:     {estimate: 0.968,  p05: 0.836,  p95: 1.09,   scale: log,    paper_name: Vm}
+      F:        {estimate: 0.607,  p05: 0.537,  p95: 0.665,  scale: log}
+      theta_WT: {estimate: 0.705,  p05: 0.576,  p95: 0.840,  scale: linear, paper_name: "weight exponent on V2"}
+      Km:       {estimate: 0.01,   fixed: true}
+    omega2:
+      Vc:   {estimate: 0.0225, p05: 0.0152, p95: 0.0285, scale: linear}
+      ke:   {estimate: 0.131,  p05: 0.0738, p95: 0.191,  scale: linear}
+      ka:   {estimate: 0.251,  p05: 0.187,  p95: 0.345,  scale: linear}
+      Vmax: {estimate: 0.0428, p05: 0.0215, p95: 0.0663, scale: linear}
+    sigma:
+      prop: {estimate: 0.242,  p05: 0.221,  p95: 0.270,  scale: log, note: "proportional residual 24.2% (22.1, 27.0) as an SD fraction"}
+      add:  {estimate: 0.03,   fixed: true}
+    not_used_column: "BLQ data excluded column (V2 2.60, ke 0.0488, k23 0.104, k32 0.173, ka 0.261, Vm 1.06, F 0.623, WT 0.737; omega2 0.0295, 0.131, 0.230, 0.0379; proportional 18.2%, additive 0.871) recorded only; it is not the repository implementation"
+  k2020:
+    source: "no standard errors of Kovalenko 2020 Table 1 Model 1 are available; standard errors of the Kovalenko 2020 covariate model (Kovalenko 2021 Table 2 adult column, supplied 2026-10-21) are borrowed for the matching Model 1 parameters"
+    sets:
+      borrowed_covariate_model:                 # 주: 공변량 모델 표준오차 차용(상대 SE는 로그 척도, 지수는 절대 SE)
+        theta:
+          Vc:       {estimate: 2.48,  scale: log,    sd_log_from: {estimate: 2.74, se: 0.021},     label: "covariate model Vc 2.74 (SE 0.021)"}
+          ke:       {estimate: 0.0534, scale: log,   sd_log_from: {estimate: 0.0477, se: 0.00078}, label: "covariate model ke 0.0477 (SE 0.00078)"}
+          theta_WT: {estimate: 0.711, scale: linear, se: 0.031,                                     label: "covariate model weight exponent 0.817 (SE 0.031), absolute SE"}
+      borrowed_covariate_model_and_k2016:       # 민감도: 위 + Vm, F, ka에 Kovalenko 2016 붓스트랩 백분위수에서 얻은 로그 척도 SE
+        include: borrowed_covariate_model
+        theta:
+          Vmax: {estimate: 1.07,  scale: log, sd_log_borrow_k2016: Vmax}
+          F:    {estimate: 0.643, scale: log, sd_log_borrow_k2016: F}
+          ka:   {estimate: 0.256, scale: log, sd_log_borrow_k2016: ka}
+    fixed_in_all_sets: [k12, k21, MTT, n_transit, Km, "all omega2", "sigma prop", "sigma add"]
+    not_used: "albumin, BMI, EASI and race coefficient standard errors (no counterpart in Model 1)"

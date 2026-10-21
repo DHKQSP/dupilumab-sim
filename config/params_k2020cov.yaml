@@ -1,0 +1,25 @@
+# 진단 전용 모델(계획서 16.2·16.7절, 개정 1, D-069): Kovalenko 2020 3상 공변량 모델. 값은 요청자가 제공한 Kovalenko 2021 Table 2 성인 열(2026-10-21 지시).
+# 설계 격자에는 쓰지 않는다(주 모델은 Model 1, config/params_k2020_model1.yaml). 원문은 분석 환경에서 열 수 없어 대조하지 못했다.
+# 구조: Model 1과 같은 transit 흡수 2구획 + 선형·MM 병렬 소실(고정값은 지시의 고정값). 공변량: Vc ~ (WT/75)^0.817, 알부민·BMI·EASI 인자는 건강인 매핑에서 1(기준값),
+#   인종(백인)은 ke x (1 + 0.123 x 백인) 비례 이동으로 가정(대상자별 ke_cov 열로 넣는다). 개체간 변동·잔차는 제공되지 않아 Model 1에서 차용(iiv_from).
+model_id: k2020_model1_transit
+iiv_from: params_k2020_model1.yaml
+theta:
+  Vc:   {value: 2.74,   unit: L,        status: assumption, source: "Kovalenko 2021 Table 2 adult column (Kovalenko 2020 covariate model), supplied 2026-10-21; SE 0.021"}
+  ke:   {value: 0.0477, unit: 1/day,    status: assumption, source: "Kovalenko 2021 Table 2 adult column, supplied 2026-10-21; SE 0.00078"}
+  k12:  {value: 0.211,  unit: 1/day,    status: assumption, source: "fixed in the covariate model (kcp), supplied 2026-10-21"}
+  k21:  {value: 0.310,  unit: 1/day,    status: assumption, source: "fixed in the covariate model (kpc), supplied 2026-10-21"}
+  ka:   {value: 0.306,  unit: 1/day,    status: assumption, source: "fixed in the covariate model, supplied 2026-10-21"}
+  MTT:  {value: 0.105,  unit: day,      status: assumption, source: "fixed in the covariate model, supplied 2026-10-21; three transit compartments as Model 1"}
+  n_transit: {value: 3, status: assumption, source: "as Model 1 (structure shared)"}
+  Vmax: {value: 1.07,   unit: mg/L/day, status: assumption, source: "fixed in the covariate model (Vm), supplied 2026-10-21"}
+  Km:   {value: 0.01,   unit: mg/L,     status: assumption, source: "fixed in the covariate model, supplied 2026-10-21", fixed: true}
+  F:    {value: 0.642,  unit: fraction, status: assumption, source: "fixed in the covariate model, supplied 2026-10-21"}
+covariates:
+  WT_on_Vc:
+    theta_WT: {value: 0.817, status: assumption, source: "Kovalenko 2021 Table 2 adult column, supplied 2026-10-21; SE 0.031"}
+    WT_ref:   {value: 75, unit: kg, status: assumption, source: "reference weight assumed 75 kg as Model 1 (not supplied)"}
+  albumin_on_Vc:  {exponent: -0.653, se: 0.072, healthy_mapping: "factor 1 (albumin at the reference value; reference not supplied)"}
+  BMI_on_ke:      {exponent: 0.368,  se: 0.053, healthy_mapping: "factor 1 (BMI at the reference value; reference not supplied)"}
+  EASI_on_ke:     {exponent: 0.143,  se: 0.021, healthy_mapping: "factor 1 (EASI effect neutral, plan section 16.7 mapping c); EASI 0 in a power function would remove linear elimination"}
+  white_race_on_ke: {coefficient: 0.123, se: 0.018, form: "ke x (1 + 0.123 x white), proportional shift (assumed form; exp(0.123) differs by less than 1%)"}

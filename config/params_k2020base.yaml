@@ -1,0 +1,19 @@
+# 진단 전용 모델(계획서 16.2·16.7절 매핑 d, 개정 1, D-069): Kovalenko 2020 3상 기본 모델. 값은 요청자가 제공한 Kovalenko 2021 Table 1 성인 열(2026-10-21 지시).
+# 설계 격자에는 쓰지 않는다. 나머지 고정값은 공변량 모델과 같고(지시), 개체간 변동·잔차는 Model 1에서 차용(iiv_from; 공변량 모델 값은 제공되지 않음).
+model_id: k2020_model1_transit
+iiv_from: params_k2020_model1.yaml
+theta:
+  Vc:   {value: 2.76,   unit: L,        status: assumption, source: "Kovalenko 2021 Table 1 adult column (Kovalenko 2020 base model), supplied 2026-10-21"}
+  ke:   {value: 0.0448, unit: 1/day,    status: assumption, source: "Kovalenko 2021 Table 1 adult column, supplied 2026-10-21"}
+  k12:  {value: 0.211,  unit: 1/day,    status: assumption, source: "as the covariate model fixed value (kcp), per the request"}
+  k21:  {value: 0.310,  unit: 1/day,    status: assumption, source: "as the covariate model fixed value (kpc), per the request"}
+  ka:   {value: 0.306,  unit: 1/day,    status: assumption, source: "as the covariate model fixed value, per the request"}
+  MTT:  {value: 0.105,  unit: day,      status: assumption, source: "as the covariate model fixed value, per the request"}
+  n_transit: {value: 3, status: assumption, source: "as Model 1 (structure shared)"}
+  Vmax: {value: 1.07,   unit: mg/L/day, status: assumption, source: "as the covariate model fixed value (Vm), per the request"}
+  Km:   {value: 0.01,   unit: mg/L,     status: assumption, source: "as the covariate model fixed value, per the request", fixed: true}
+  F:    {value: 0.642,  unit: fraction, status: assumption, source: "as the covariate model fixed value, per the request"}
+covariates:
+  WT_on_Vc:
+    theta_WT: {value: 0.919, status: assumption, source: "Kovalenko 2021 Table 1 adult column, supplied 2026-10-21"}
+    WT_ref:   {value: 75, unit: kg, status: assumption, source: "reference weight assumed 75 kg as Model 1 (not supplied)"}

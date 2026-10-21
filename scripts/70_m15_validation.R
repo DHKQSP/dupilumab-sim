@@ -7,37 +7,55 @@
 # 산출: results/m15/validation/ — covariate_inputs.csv, validation_reps.csv.gz(반복별 군 통계), validation_arms.csv(군, 기술 통계),
 #   validation_units.csv(판정 단위 예측구간 대 관측), validation_pooled.csv(비아시아 합동군, 기술 통계), validation_gmr.csv(평행군 GMR·연구 내 변동, 기술 통계),
 #   validation_rule.csv(R1, R2, R4, R5 판정, 모의 오경보율, 검출 확률; 주 가정과 평균 불확실 가정), validation_rule_weight_sensitivity.csv, step1_arm_check_prior.csv, validation_summary_ko.md
-# 사용법: nice -n 5 Rscript scripts/70_m15_validation.R [cores]
+# 사용법: nice -n 5 Rscript scripts/70_m15_validation.R [cores] [alt]
+#   alt: 개정 1(계획서 16.7절 4, D-069) 건강인 매핑 대안. config amendment_20261021.ppc.mappings의 라벨(모델 + 인종 여부)을 같은 군 난수로 모의(인종은 새 흐름 'race'),
+#        고정·평균 불확실 체중 가정만, 산출 results/m15/amend1/validation_alt/(등록 산출물은 건드리지 않는다). 판정 규칙의 단위 집합은 Model 1의 것을 쓴다.
 source("R/00_setup.R"); source_project(); source(proj_path("R", "m15.R"))
-args <- commandArgs(trailingOnly = TRUE); cores <- if (length(args)) as.integer(args[1]) else 4L
+args <- commandArgs(trailingOnly = TRUE); cores <- if (length(args)) as.integer(args[1]) else 4L; ALT <- length(args) >= 2 && args[2] == "alt"
 CFG <- m15_cfg(); V <- CFG$validation; dz <- read_cfg("design_clot2021.yaml")
 MS <- as.integer(CFG$master_seed); stopifnot(MS == 20261020L)
 REPS <- as.integer(V$replicates); REPS_S <- as.integer(V$replicates_sensitivity); stopifnot(REPS_S <= REPS)
 PI <- as.numeric(V$pi_level); qlo <- (1 - PI) / 2; qhi <- 1 - qlo
 SR <- as.numeric(V$sex_ratio_male); LLOQ <- as.numeric(V$lloq_mg_L); stopifnot(abs(LLOQ - as.numeric(dz$lloq_mg_L)) < 1e-12)   # 문헌 자료(원개발사 분석법)의 LLOQ
 MODELS <- c(CFG$models$primary, CFG$models$sensitivity)
+PPC <- CFG$amendment_20261021$ppc; MAPS <- NULL
+if (ALT) { stopifnot(!is.null(PPC)); MAPS <- setNames(PPC$mappings, vapply(PPC$mappings, `[[`, "", "label")); MODELS <- names(MAPS) }
+model_of <- function(m) if (ALT) MAPS[[m]]$model else m                # 라벨 -> 파라미터 모델
+rule_model <- function(m) if (ALT) MAPS[[m]]$rule_model else m        # 대안 매핑의 판정 단위 집합·R4 개수(config: 진단 매핑은 Model 1의 것, 계획서 16.7절 4)
+modes_of <- function(m) if (ALT && !is.null(MAPS[[m]]$modes)) intersect(MODES, unlist(MAPS[[m]]$modes)) else MODES   # 기준 체중 민감도 라벨은 고정 가정만
+params_of <- function(m) { p <- load_params(model_of(m)); if (ALT && !is.null(MAPS[[m]]$wt_ref)) p$cov$WT_ref <- as.numeric(MAPS[[m]]$wt_ref); p }   # 진단 모델 기준 체중 가정(75 kg; 민감도 70, 80 kg)
+race_share <- function(m, study) { r <- PPC$race_scenarios[[MAPS[[m]]$race_scenario]][[study]]; if (is.null(r)) stop("인종 시나리오 없음: ", m, " ", study); as.numeric(r) }   # 백인 비율
 WSENS <- as.numeric(unlist(V$weight_sensitivity_means_kg)); HW <- as.numeric(V$weight_mean_uncertainty$half_width_kg)
 MODES <- c("primary", "wunc", paste0("w", WSENS))                     # primary = 고정 가정 평균(B14), wunc = 평균 불확실, w70·w86 = 고정 민감도
+if (ALT) MODES <- c("primary", "wunc")
 FULL_MODES <- c("primary", "wunc")                                     # REPS회; 나머지는 앞 REPS_S회
-out_dir <- proj_path(CFG$output_dir, "validation"); dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
-lf <- start_run_log("m15_validation", master_seed = MS, run_mode = "final", extra = list(replicates = REPS, replicates_sensitivity = REPS_S, models = MODELS, cores = cores))
+out_dir <- if (ALT) proj_path(CFG$output_dir, "amend1", "validation_alt") else proj_path(CFG$output_dir, "validation"); dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+lf <- start_run_log(if (ALT) "m15_validation_alt" else "m15_validation", master_seed = MS, run_mode = "final", extra = list(replicates = REPS, replicates_sensitivity = REPS_S, models = MODELS, cores = cores))
 
 # ---------------------------------------------------------------- 공변량 입력 보고(4.2절) ----------------------------------------------------------------
 cov_tab <- rbindlist(lapply(MODELS, function(m) {
-  p <- load_params(m)
-  data.table(pk_model = m, covariate = c("Body weight", "EASI", "Albumin", "Race", "BMI", "Sex"),
-             in_model = c(sprintf("Yes: Vc x (WT / %g kg)^%g", p$cov$WT_ref, p$cov$theta_WT), "No", "No", "No",
+  p <- params_of(m); rc <- if (ALT && isTRUE(MAPS[[m]]$race)) read_cfg(PARAM_FILES[[model_of(m)]])$covariates$white_race_on_ke$coefficient else NULL
+  out <- data.table(pk_model = m, covariate = c("Body weight", "EASI", "Albumin", "Race", "BMI", "Sex"),
+             in_model = c(sprintf("Yes: Vc x (WT / %g kg)^%g", p$cov$WT_ref, p$cov$theta_WT), "No", "No", if (is.null(rc)) "No" else sprintf("Yes: ke x (1 + %g x white)", rc),
                           if (!is.null(p$cov$ke_bmi_exp) && p$cov$ke_bmi_exp != 0) "Yes" else "No", "No"),
              healthy_input = c("simulated from each study's or scenario's weight distribution", "none (not a model input)", "none (not a model input)",
-                               "none (ethnicity enters only through the weight distribution)", "reported only (no effect on PK)", "sex ratio 0.5 (assumption); weight bounds and height only"),
+                               if (is.null(rc)) "none (ethnicity enters only through the weight distribution)" else sprintf("per-study white share of race scenario %s (amendment section 16.7 item 4)", MAPS[[m]]$race_scenario), "reported only (no effect on PK)", "sex ratio 0.5 (assumption); weight bounds and height only"),
              flag = c("none", "none: no patient EASI value is used", "none", "none", "none", "none"))
+  cv_ <- read_cfg(PARAM_FILES[[model_of(m)]])$covariates                # 진단 공변량 모델: 공개 모델의 항과 건강인 매핑(인자 1)을 적는다
+  if (ALT && !is.null(cv_$EASI_on_ke)) {
+    out[covariate == "EASI", `:=`(in_model = sprintf("published: ke x EASI^%g (form assumed)", cv_$EASI_on_ke$exponent), healthy_input = "factor 1 (EASI effect neutral, mapping c)")]
+    out[covariate == "Albumin", `:=`(in_model = sprintf("published: Vc x albumin^%g", cv_$albumin_on_Vc$exponent), healthy_input = "factor 1 (reference albumin)")]
+    out[covariate == "BMI", `:=`(in_model = sprintf("published: ke x BMI^%g", cv_$BMI_on_ke$exponent), healthy_input = "factor 1 (reference BMI)")]
+    if (is.null(rc)) out[covariate == "Race", `:=`(in_model = sprintf("published: ke x (1 + %g x white)", cv_$white_race_on_ke$coefficient), healthy_input = "reference (non-white) race for every subject (mapping c)")]
+  }
+  out
 }))
-stopifnot(all(cov_tab[covariate == "BMI", in_model] == "No"))
+if (!ALT) stopifnot(all(cov_tab[covariate == "BMI", in_model] == "No"))
 fwrite(cov_tab, file.path(out_dir, "covariate_inputs.csv"))
 
 # ---------------------------------------------------------------- 군 모의 ----------------------------------------------------------------
 dev <- dz$model_development_data
-internal_of <- function(study, model) study %in% unlist(dev[[model]])
+internal_of <- function(study, model) study %in% unlist(dev[[rule_model(model)]])
 wdef <- V$weight_default_bounds; BM <- as.numeric(unlist(wdef$male)); BF <- as.numeric(unlist(wdef$female))
 is_assumed <- function(a) identical(a$weight$dist, "truncnorm")         # 체중 정보 없음(가정 평균)
 # 연구 수준 평균 체중(반복별): primary는 가정 평균(고정), wunc는 Uniform(가정 평균 ± HW), w<kg>는 그 값. 연구 이름만 시드 태그에 넣는다(두 군·두 모델·모드 공통).
@@ -49,7 +67,7 @@ study_mu <- function(a, mode) {
 }
 # 한 군 REPS 반복 x n_subj명. 대상자·잔차 난수는 군 이름만 시드 태그(모델·모드와 무관 → 공통 난수); 체중만 모드에 따라 다르다.
 sim_arm <- function(m, aid, mode) {
-  a <- V$arms[[aid]]; p <- load_params(m); n_s <- as.integer(a$n_subj); N <- n_s * REPS
+  a <- V$arms[[aid]]; p <- params_of(m); n_s <- as.integer(a$n_subj); N <- n_s * REPS
   r <- with_seed(derive_seed(MS, "val", aid, "subj"), list(u_sex = runif(N), u_w = runif(N), z = matrix(rnorm(N * length(M15_ETA_NAMES)), N)))
   male <- r$u_sex < SR; rep_ <- (seq_len(N) - 1L) %/% n_s + 1L; wt <- numeric(N)
   if (is_assumed(a)) {
@@ -62,6 +80,9 @@ sim_arm <- function(m, aid, mode) {
   }
   keep <- rep_ <= (if (mode %in% FULL_MODES) REPS else REPS_S)
   subj <- data.table(id = seq_len(N), WT = wt, rep = rep_)
+  if (ALT && isTRUE(MAPS[[m]]$race)) {                                  # 백인 여부: 새 흐름(기존 흐름 불변), ke x (1 + 계수 x 백인)
+    rc <- as.numeric(read_cfg(PARAM_FILES[[model_of(m)]])$covariates$white_race_on_ke$coefficient)
+    subj[, ke_cov := 1 + rc * (with_seed(derive_seed(MS, "val", aid, "race"), runif(N)) < race_share(m, a$study))] }
   zt <- as.data.table(r$z); setnames(zt, paste0("z_", M15_ETA_NAMES)); subj <- cbind(subj, zt)[keep]
   ip <- individual_params(p, m15_eta_table(subj, p))
   planned <- sort(unique(c(0, schedule_days(dz, a$schedule)))); K <- length(planned)
@@ -70,11 +91,12 @@ sim_arm <- function(m, aid, mode) {
   ep <- m15_eps_table(subj$id, planned, p$sigma, Z$p[keep, , drop = FALSE], Z$a[keep, , drop = FALSE])
   sim <- simulate_observations(ip, ob, as.numeric(a$dose_mg), LLOQ, ep, model_id = p$model_id)
   nca <- m15_nca_basic(sim$obs[, .(id, time, conc)])
+  if (ALT) nca <- merge(nca, m15_nca_blq0(sim$obs[, .(id, time, conc)])[, .(id, AUClast_b0 = AUClast, Cmax_b0 = Cmax)], by = "id")   # 요청자 규칙(투여 뒤 BLQ = 0)도 같은 프로필에서
   merge(nca, subj[, .(id, rep, WT)], by = "id")[, `:=`(pk_model = m, arm = aid, wmode = mode)][]
 }
 jobs <- rbindlist(lapply(MODELS, function(m) rbindlist(lapply(names(V$arms), function(aid)
-  data.table(pk_model = m, arm = aid, wmode = if (is_assumed(V$arms[[aid]])) MODES else "primary")))))
-for (m in MODELS) invisible(get_model(load_params(m)$model_id))     # 포크 전 컴파일
+  data.table(pk_model = m, arm = aid, wmode = if (is_assumed(V$arms[[aid]])) modes_of(m) else "primary")))))
+for (m in MODELS) invisible(get_model(load_params(model_of(m))$model_id))     # 포크 전 컴파일
 t0 <- Sys.time()
 res <- parallel::mclapply(seq_len(nrow(jobs)), function(k) sim_arm(jobs$pk_model[k], jobs$arm[k], jobs$wmode[k]), mc.cores = cores, mc.preschedule = FALSE)
 bad <- vapply(res, function(x) inherits(x, "try-error"), TRUE); if (any(bad)) stop("모의 실패: ", paste(which(bad), collapse = ","), " ", res[bad][[1]])
@@ -93,7 +115,20 @@ stat_of <- function(d, by) {
 }
 REP <- stat_of(NCA, c("pk_model", "arm", "wmode", "rep"))
 stopifnot(REP[wmode %in% FULL_MODES, .N, by = .(pk_model, arm, wmode)]$N == REPS, REP[!wmode %in% FULL_MODES, .N, by = .(pk_model, arm, wmode)]$N == REPS_S)
+if (ALT) {                                                             # 등록 모델 라벨: 등록 NCA 규칙 반복 통계가 저장된 것과 모든 열에서 같아야 한다(16.1절 일치 점검)
+  ST <- fread(proj_path(CFG$output_dir, "validation", "validation_reps.csv.gz"))
+  for (m in names(MAPS)[vapply(MAPS, function(x) x$model %in% c(CFG$models$primary, CFG$models$sensitivity) && !isTRUE(x$race) && is.null(x$wt_ref), TRUE)]) {
+    a_ <- REP[pk_model == m][, pk_model := model_of(m)]; b_ <- ST[pk_model == model_of(m) & wmode %in% unique(a_$wmode)]
+    setkey(a_, pk_model, arm, wmode, rep); setkey(b_, pk_model, arm, wmode, rep); setcolorder(b_, names(a_))
+    num <- names(a_)[vapply(a_, is.numeric, TRUE)]
+    d_ <- if (nrow(a_) == nrow(b_) && identical(a_$arm, b_$arm) && identical(a_$rep, b_$rep)) max(vapply(num, function(cc) { x <- a_[[cc]]; y <- b_[[cc]]
+      if (!identical(is.na(x), is.na(y))) return(Inf); z <- !is.na(x); if (!any(z)) 0 else max(abs(x[z] - y[z]) / pmax(abs(y[z]), 1e-300)) }, 1)) else Inf
+    append_run_log(lf, sprintf("identity check %s vs stored %s: rows %d/%d, max relative difference %g", m, model_of(m), nrow(a_), nrow(b_), d_))
+    if (!(d_ <= 1e-12)) stop("일치 점검 실패: ", m)
+  }
+}
 fwrite(REP, file.path(out_dir, "validation_reps.csv.gz"))
+if (ALT) fwrite(stat_of(copy(NCA)[, `:=`(AUClast = AUClast_b0, Cmax = Cmax_b0)], c("pk_model", "arm", "wmode", "rep")), file.path(out_dir, "validation_reps_blq0.csv.gz"))
 
 # ---------------------------------------------------------------- 관측값(군, 합동 단위) ----------------------------------------------------------------
 ob_arm <- function(aid) { o <- V$arms[[aid]]$observed; if (is.null(o)) return(NULL)
@@ -134,7 +169,7 @@ setcolorder(ARMS, c("pk_model", "arm", "wmode", "study", "dose_mg", "n_subj", "d
 UNITS <- V$rule_units
 unit_rep <- function(m, md, arms) stat_of(NCA[pk_model == m & wmode == md & arm %in% arms], "rep")
 UT <- rbindlist(lapply(MODELS, function(m) rbindlist(lapply(names(UNITS), function(u) {
-  arms <- unlist(UNITS[[u]]$arms); md_set <- if (any(vapply(arms, function(aid) is_assumed(V$arms[[aid]]), TRUE))) MODES else "primary"
+  arms <- unlist(UNITS[[u]]$arms); md_set <- if (any(vapply(arms, function(aid) is_assumed(V$arms[[aid]]), TRUE))) modes_of(m) else "primary"
   studies <- unique(vapply(arms, function(aid) V$arms[[aid]]$study, ""))
   rbindlist(lapply(md_set, function(md) four_rows(unit_rep(m, md, arms), obs_vec(lapply(arms, ob_arm)))[,
     `:=`(pk_model = m, unit = u, wmode = md, arms = paste(arms, collapse = ";"), n_subj = sum(vapply(arms, function(aid) as.numeric(V$arms[[aid]]$n_subj), 1)),
@@ -192,8 +227,8 @@ rule_eval <- function(m, md) {
   ob <- rbindlist(lapply(names(UNITS), function(un) { o <- obs_vec(lapply(unlist(UNITS[[un]]$arms), ob_arm)); data.table(unit = un, metric = names(o), obs = unname(o)) }))
   defs <- list(R1 = fr$R1, R2 = fr$R2, R4 = fr$R4, R5 = fr$R5)
   ev <- lapply(names(defs), function(rn) {
-    d <- defs[[rn]]; us <- unit_set(d$units, m); thr <- d$outside_pi_min; thr <- as.integer(if (is.list(thr)) thr[[m]] else thr)
-    of <- d$of; of <- as.integer(if (is.list(of)) of[[m]] else of); lev <- if (is.null(d$pi_level)) PI else as.numeric(d$pi_level); ql <- (1 - lev) / 2
+    d <- defs[[rn]]; us <- unit_set(d$units, m); thr <- d$outside_pi_min; thr <- as.integer(if (is.list(thr)) thr[[rule_model(m)]] else thr)
+    of <- d$of; of <- as.integer(if (is.list(of)) of[[rule_model(m)]] else of); lev <- if (is.null(d$pi_level)) PI else as.numeric(d$pi_level); ql <- (1 - lev) / 2
     z <- ur[unit %in% us, c("unit", "rep", d$metric), with = FALSE]; setnames(z, d$metric, "v")
     lim <- z[, .(lo = quantile(v, ql, names = FALSE, na.rm = TRUE), hi = quantile(v, 1 - ql, names = FALSE, na.rm = TRUE)), by = unit]
     o <- merge(lim, ob[metric == d$metric & unit %in% us], by = "unit")[, out := obs < lo | obs > hi]
@@ -218,11 +253,12 @@ rule_eval <- function(m, md) {
   out <- rbind(rows, anyrow)
   out[, `:=`(pk_model = m, wmode = md, failure = any(rows$met), n_rep = nrep)][]
 }
-RULE <- rbindlist(lapply(MODELS, function(m) rbindlist(lapply(FULL_MODES, function(md) rule_eval(m, md)))))
+RULE <- rbindlist(lapply(MODELS, function(m) rbindlist(lapply(intersect(FULL_MODES, modes_of(m)), function(md) rule_eval(m, md)))))
 # 결과 범주: 두 가정 모두 실패 / 고정 가정에서만 실패 / 평균 불확실 가정에서만 실패 / 두 가정 모두 통과
 RULE[, outcome := { f1 <- failure[wmode == "primary"][1]; f2 <- failure[wmode == "wunc"][1]
-  if (f1 && f2) "fails under both weight assumptions" else if (f1) "fails under the fixed weight assumption only" else if (f2) "fails under the uncertain-mean weight assumption only" else "passes under both weight assumptions" }, by = pk_model]
+  if (is.na(f2)) { if (f1) "fails under the fixed weight assumption (uncertain-mean assumption not run)" else "passes under the fixed weight assumption (uncertain-mean assumption not run)" } else if (f1 && f2) "fails under both weight assumptions" else if (f1) "fails under the fixed weight assumption only" else if (f2) "fails under the uncertain-mean weight assumption only" else "passes under both weight assumptions" }, by = pk_model]
 setcolorder(RULE, c("pk_model", "wmode", "rule")); fwrite(RULE, file.path(out_dir, "validation_rule.csv"))
+if (ALT) { print(UT[wmode == "primary"]); print(RULE); append_run_log(lf, sprintf("done (alt): %s", paste(unique(RULE[, paste(pk_model, outcome)]), collapse = "; "))); quit(save = "no") }
 RULE_WS <- rbindlist(lapply(MODELS, function(m) rbindlist(lapply(setdiff(MODES, FULL_MODES), function(md) rule_eval(m, md)))))
 fwrite(RULE_WS, file.path(out_dir, "validation_rule_weight_sensitivity.csv"))
 # 이전 Step 1 군별 결과(규칙 작성 전에 알려져 있던 값) 나란히

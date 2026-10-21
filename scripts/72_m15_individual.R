@@ -6,12 +6,14 @@
 #                   [7] 분석식 입력(로그 SD, 상관, log 체중 기울기)도 여기서 낸다(ss_inputs_m15.csv)
 #   legacy [cores]  기존 시험 모집단(정규 75 kg, SD 9, 60~90 kg 절단)·B0로 저장 결과(results/individual/individual_*.csv)와 3 MC SE 이내 대조
 #   patch_ci        run 뒤 보정(D-068 이탈 4): λz 성공률(계산 가능 대상자 기준)의 Wilson 95% 구간을 individual_subjects.rds에서 계산해 extrapolation_lambda_z.csv에 더한다
+#   amend [cores]   개정 1(계획서 16.3절 3·4, 16.4절 3; D-069): 300 mg 네 칸을 같은 난수로 다시 모의(저장 결과와 일치 점검) → Day 57(그리고 64, 71) 정량 몫 세 정의,
+#                   항약물항체 후보일(경과 14, 28, 56, 63, 70, 84일) 혈청 농도 분포, log AUC0-last 분산 분해 → results/m15/amend1/
 #   verify_pauc     m15_pauc 대 PKNCA 0.12.1 pk.calc.aucint(lin up/log down, AUClast; preprocess_blq 출력): 일정마다 허용창·잔차 있는 1,000개 프로필(6.1절 1번)
 # AUC0-last 참값(8.4절): 주 = 조밀 채혈 참값(0부터 min(연속 시간 참 Tlast, 일정의 마지막 계획 시각)까지의 모델 AUC), 보조 = 관측 Tlast까지의 모델 AUC(적분 오차만)
 # 사용법: nice -n 5 Rscript scripts/72_m15_individual.R <run|legacy|verify_pauc> [cores]
 source("R/00_setup.R"); source_project(); source(proj_path("R", "m15.R"))
 args <- commandArgs(trailingOnly = TRUE)
-if (!length(args) || !args[1] %in% c("run", "legacy", "verify_pauc", "patch_ci")) stop("사용법: Rscript scripts/72_m15_individual.R <run|legacy|verify_pauc|patch_ci> [cores]")
+if (!length(args) || !args[1] %in% c("run", "legacy", "verify_pauc", "patch_ci", "amend")) stop("사용법: Rscript scripts/72_m15_individual.R <run|legacy|verify_pauc|patch_ci|amend> [cores]")
 mode <- args[1]; cores <- if (length(args) >= 2) as.integer(args[2]) else 4L
 CFG <- m15_cfg(); MS <- as.integer(CFG$master_seed); stopifnot(MS == 20261020L)
 design <- read_cfg("trial_design.yaml"); LLOQ <- study_lloq()
@@ -22,7 +24,7 @@ NI <- as.integer(CFG$individual$n_subj); stopifnot(NI == 20000L)
 od <- proj_path(CFG$output_dir, "individual"); dir.create(od, showWarnings = FALSE, recursive = TRUE)
 
 # 한 묶음: 대상자(공통 난수) → 관측(허용창·잔차) → 세 일정 NCA + 참값
-sim_individual <- function(m, pop, dose, schedules, n = NI, tag = "ind", incl = INCL) {
+sim_individual <- function(m, pop, dose, schedules, n = NI, tag = "ind", incl = INCL, keep_obs = FALSE) {
   p <- load_params(m)
   subj <- m15_subjects(n, pop, incl, RHO, SR, derive_seed(MS, tag, "subj"))
   e <- m15_eta_table(subj, p); ip <- individual_params(p, e)
@@ -49,7 +51,9 @@ sim_individual <- function(m, pop, dose, schedules, n = NI, tag = "ind", incl = 
     if (nrow(q)) nca <- merge(nca, q, by = "id", all.x = TRUE)
     nca[, schedule := sn]
   }), fill = TRUE)
-  merge(out, subj[, .(id, sex, WT, HT, BMI)], by = "id")
+  res <- merge(out, subj[, .(id, sex, WT, HT, BMI)], by = "id")
+  if (keep_obs) return(list(nca = res, obs = d[, .(id, planned, time, C, conc)], ip = ip, p = p))   # 개정 1: 관측 자료도 반환(기존 run 결과는 그대로)
+  res
 }
 
 pe <- function(est, tru) 100 * (est / tru - 1)
@@ -105,6 +109,79 @@ if (mode == "run") {
   # 일정 간 짝지은 비교(B0 기준): λz 성공률 차이(같은 대상자)
   print(B); print(E)
   append_run_log(lf, sprintf("done in %s", format(Sys.time() - t0)))
+}
+
+if (mode == "amend") {
+  AM <- CFG$amendment_20261021; stopifnot(!is.null(AM))
+  ad <- proj_path(CFG$output_dir, "amend1"); dir.create(ad, showWarnings = FALSE, recursive = TRUE)
+  ADA <- as.numeric(unlist(AM$ada$elapsed_days)); QD <- as.numeric(unlist(AM$coverage$planned_days)); DOSE <- as.numeric(AM$coverage$dose_mg)
+  lf <- start_run_log("m15_amend_individual", master_seed = MS, run_mode = "final", extra = list(n = NI, cores = cores, ada_days = ADA))
+  RDS <- readRDS(file.path(od, "individual_subjects.rds"))
+  jobs <- CJ(pk_model = MODELS, population = c("S1", "S2"), sorted = FALSE)
+  for (m in MODELS) invisible(get_model(load_params(m)$model_id))
+  res <- parallel::mclapply(seq_len(nrow(jobs)), function(k) {
+    m <- jobs$pk_model[k]; pv <- jobs$population[k]
+    r <- sim_individual(m, POPS[[pv]], DOSE, SCHED, keep_obs = TRUE)
+    # 1) 저장 결과와 일치 점검(같은 난수 → AUClast, Tlast 동일)
+    st <- RDS[RDS$pk_model == m & RDS$population == pv & RDS$dose_mg == DOSE, .(id, schedule, AUClast_s = AUClast, Tlast_s = Tlast)]
+    ck <- merge(r$nca[, .(id, schedule, AUClast, Tlast)], st, by = c("id", "schedule"))
+    chk <- data.table(pk_model = m, population = pv, n_rows = nrow(ck), n_stored = nrow(st),
+                      max_abs_diff_AUClast = max(abs(ck$AUClast - ck$AUClast_s), na.rm = TRUE), max_abs_diff_Tlast = max(abs(ck$Tlast - ck$Tlast_s), na.rm = TRUE),
+                      na_mismatch = sum(is.na(ck$AUClast) != is.na(ck$AUClast_s)))
+    # 2) 정량 몫(16.3절 3): 원 관측(관측값 >= LLOQ), 참(실제 시각 참 농도 >= LLOQ), 사용(BLQ 규칙 뒤 NCA 자료에 정량값으로 남음)
+    d <- r$obs
+    cov <- rbindlist(lapply(names(SCHED), function(sn) {
+      x <- d[planned %in% c(0, SCHED[[sn]])]; used <- preprocess_blq(x[, .(id, time, conc)])[conc > 0]
+      rbindlist(lapply(intersect(QD, SCHED[[sn]]), function(dd) { z <- x[planned == dd]
+        u <- used[z[, .(id, time)], on = c("id", "time"), nomatch = NULL]
+        data.table(schedule = sn, planned_elapsed_day = dd, study_day = dd + 1, n_subj = nrow(z), raw_pct = 100 * mean(!is.na(z$conc)),
+                   true_pct = 100 * mean(z$C >= LLOQ), used_pct = 100 * uniqueN(u$id) / nrow(z)) })) }))
+    # 3) 항약물항체 후보일 농도(16.3절 4): 참 = 공칭 시각의 개인 참 농도, 관측 = 실제 시각·잔차(84일은 새 흐름 'ada')
+    tru <- solve_model(r$ip, CJ(id = r$ip$id, time = ADA), DOSE, model_id = r$p$model_id)[, .(id, planned = time, C_true = C)]
+    on_grid <- intersect(ADA, GRID); off <- setdiff(ADA, GRID)
+    obs <- d[planned %in% on_grid, .(id, planned, conc)]
+    if (length(off)) {
+      n_ <- nrow(r$ip); last_t <- d[planned == max(GRID)][order(id), time]
+      Un <- with_seed(derive_seed(MS, "ada", "jitter"), matrix(runif(n_ * length(off)), n_))
+      Zn <- with_seed(derive_seed(MS, "ada", "eps"), list(p = matrix(rnorm(n_ * length(off)), n_), a = matrix(rnorm(n_ * length(off)), n_)))
+      for (j in seq_along(off)) {
+        tt <- pmax(off[j] + (2 * Un[, j] - 1) * window_for_time(off[j], design), last_t + 1 / 24)
+        so <- solve_model(r$ip, data.table(id = sort(r$ip$id), time = tt), DOSE, model_id = r$p$model_id)
+        so <- so[data.table(id = sort(r$ip$id), time = tt), on = c("id", "time"), mult = "first"]
+        obs <- rbind(obs, data.table(id = so$id, planned = off[j], conc = m15_observe(so$C, off[j], Zn$p[, j] * r$p$sigma[["prop"]], Zn$a[, j] * r$p$sigma[["add"]], LLOQ)))
+      }
+    }
+    z <- merge(tru, obs, by = c("id", "planned"))
+    qf <- function(x, pr) quantile(x, pr, names = FALSE, type = 7)
+    adac <- z[, .(n_subj = .N, true_p01 = qf(C_true, 0.01), true_p05 = qf(C_true, 0.05), true_median = median(C_true), true_p95 = qf(C_true, 0.95), true_p99 = qf(C_true, 0.99),
+                  true_below_lloq_pct = 100 * mean(C_true < LLOQ), obs_blq_pct = 100 * mean(is.na(conc)),
+                  obs_p05 = qf(fifelse(is.na(conc), 0, conc), 0.05), obs_median = median(fifelse(is.na(conc), 0, conc)), obs_p95 = qf(fifelse(is.na(conc), 0, conc), 0.95)), by = planned]
+    adac[, study_day := planned + 1]
+    lab <- function(x) x[, `:=`(pk_model = m, population = pv, dose_mg = DOSE)]
+    list(chk = lab(chk), cov = lab(cov), ada = lab(adac))
+  }, mc.cores = cores, mc.preschedule = FALSE)
+  bad <- vapply(res, function(x) is.null(x) || inherits(x, "try-error"), TRUE); if (length(res) != nrow(jobs) || any(bad)) stop("개정 1 개인 수준 실패: ", which(bad))
+  CHK <- rbindlist(lapply(res, `[[`, "chk")); stopifnot(all(CHK$n_rows == CHK$n_stored), all(CHK$max_abs_diff_AUClast == 0), all(CHK$max_abs_diff_Tlast == 0), all(CHK$na_mismatch == 0))
+  COND <- m15_conditional_label(proj_path(CFG$output_dir), CFG$models$primary)
+  m15_fwrite_cond(CHK, file.path(ad, "individual_reproduction_check.csv"), "")
+  m15_fwrite_cond(rbindlist(lapply(res, `[[`, "cov")), file.path(ad, "coverage_quantifiable.csv"), COND)
+  m15_fwrite_cond(rbindlist(lapply(res, `[[`, "ada")), file.path(ad, "ada_concentrations.csv"), COND)
+  # 4) 분산 분해(16.4절 3): 확정 일정, 300 mg, 20,000명; 경험(회귀 R2)과 분석식(beta^2 x 분산 / SD^2)
+  BND <- fread(proj_path(CFG$output_dir, "populations", "strata_boundaries.csv")); SSI <- fread(file.path(od, "ss_inputs_m15.csv"))
+  WMF <- proj_path(CFG$output_dir, "samplesize", "weight_moments.csv"); WM <- fread(WMF)
+  VD <- rbindlist(lapply(seq_len(nrow(jobs)), function(k) { m <- jobs$pk_model[k]; pv <- jobs$population[k]
+    x <- RDS[RDS$pk_model == m & RDS$population == pv & RDS$dose_mg == DOSE & RDS$schedule == "B0" & is.finite(RDS$AUClast) & RDS$AUClast > 0]
+    la <- log(x$AUClast); lw <- log(x$WT); tot <- var(la); r2w <- summary(lm(la ~ lw))$r.squared
+    si <- SSI[SSI$pk_model == m & SSI$population == pv & SSI$dose_mg == DOSE & SSI$schedule == "B0"]; stopifnot(nrow(si) == 1)
+    rbindlist(lapply(BND[BND$population == pv, boundary], function(b) { bk <- BND[BND$population == pv & BND$boundary == b, boundary_kg]; st <- as.integer(x$WT > bk)
+      r2s <- summary(lm(la ~ st))$r.squared; w <- WM[WM$population == pv & WM$boundary == b]; stopifnot(nrow(w) == 1)
+      data.table(pk_model = m, population = pv, dose_mg = DOSE, schedule = "B0", boundary = b, boundary_kg = bk, n_subj = nrow(x), share_upper_stratum = mean(st),
+                 var_log_auclast = tot, r2_log_weight = r2w, r2_stratum = r2s, stratum_share_of_weight_r2 = r2s / r2w,
+                 analytic_r2_log_weight = si$beta_auc^2 * w$var_total / si$sd_auc^2, analytic_r2_stratum = si$beta_auc^2 * w$var_between / si$sd_auc^2,
+                 analytic_ratio = w$var_between / w$var_total) })) }))
+  m15_fwrite_cond(VD, file.path(ad, "variance_decomposition.csv"), COND)
+  print(CHK); print(rbindlist(lapply(res, `[[`, "cov"))); print(rbindlist(lapply(res, `[[`, "ada"))); print(VD)
+  append_run_log(lf, "done")
 }
 
 if (mode == "legacy") {

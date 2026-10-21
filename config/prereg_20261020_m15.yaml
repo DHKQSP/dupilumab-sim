@@ -271,3 +271,126 @@ compute:
   estimated_core_hours: 28
   estimated_wall_hours_4_cores: {low: 7, high: 9}
   overrun_order: "if the pilot projects more than 10 hours, every Model 1 cell runs first and Kovalenko 2016 [4] at 200 mg runs last"
+
+# ---------------------------------------------------------------- 개정 1 (2026-10-21, 계획서 16절, D-069) ----------------------------------------------------------------
+# 리뷰 반영과 EMA 과학적 자문 브리핑 부록 대응. 이 블록과 계획서 16절, config/param_uncertainty_m15.yaml을 커밋한 뒤에 계산한다(동결 규칙).
+amendment_20261021:
+  registered_on: "2026-10-21"
+  plan_section: "16"
+  decision: D-069
+  outputs: [results/m15/amend1, results/m15/trials/mechsuppx, results/m15/truth/truth_gmr_ext.csv]
+  identity_check: {tolerance: 0, csv_relative: 1.0e-12, action: "stop; record as a deviation; neither value is used until the cause is found"}
+  model_identity:
+    registered_primary: "Kovalenko 2020 Table 1 Model 1 (config/params_k2020_model1.yaml)"
+    diagnostic_models: {k2020cov: config/params_k2020cov.yaml, k2020base: config/params_k2020base.yaml}
+    diagnostic_use: "sections 16.4 item 1 and 16.7 only; not used for the design grid"
+    question_to_requester: "confirm which model is Model 1 (the request describes the covariate model); asked in the first line of the P1 report"
+  labels:
+    ppc: "posterior predictive check (Li 2020 healthy-volunteer studies)"
+    rule: "misfit rule"
+    conditionality: "Conditional on a primary model that met the pre-specified misfit rule of the posterior predictive check (plan section 6.2; cause under diagnosis, amendment section 16.7)."
+    in_sample:
+      k2016: {R668-AS-0907: in-sample, R668-HV-1108: in-sample, PKM12350: out-of-sample, PKM14161: out-of-sample, PKM14271: out-of-sample, TDU12265: out-of-sample}
+      k2020: {R668-AS-0907: in-sample, TDU12265: in-sample, PKM14161: in-sample,
+              PKM12350: "likely in-sample (request; not in the recorded Model 1 data)", R668-HV-1108: "likely in-sample (request; not in the recorded Model 1 data)",
+              PKM14271: "likely in-sample (request; not in the recorded Model 1 data)"}
+      diagnostic: "undetermined (D-029 records the phase 3 models as fitted to phase 3 data)"
+    interim_conclusion_1: "section 16.5 (generated from the result files)"
+  sampling:                              # 16.3절
+    lambda_z_success: "lambda_z computable and AUC_%Extrap_obs < 20, all subjects, Wilson 95% CI (section 8.4)"
+    reliable_terminal_phase_share: "no reliability flag (set AUCinf_A, section 8.3)"
+    paired_bootstrap: {n_resamples: 2000, seed: "derive_seed(20261020, 'amend_boot')", unit: "subject (20,000), same indices for all schedules and both models"}
+    conservative_rule: {favourable: {power: higher, lambda_z_success: higher, day57_retained: higher, median_pct_error: closer_to_0, rmse_log: lower, auroc: higher, abs_crossing: smaller},
+                        level: "quote the less favourable model", better: "class 1 only, quoted with the smaller difference", not_worse: "neither model material against X; quoted with the larger difference against X",
+                        cells: "primary scenario cell, repeated for the Korean population"}
+  coverage: {dose_mg: 300, planned_days: [56, 63, 70], definitions: [raw, true, retained]}
+  ada: {dose_mg: 300, elapsed_days: [14, 28, 56, 63, 70, 84], primary: "true concentration at the nominal time", secondary: "observed with residual error at the actual time",
+        quantiles: [0.01, 0.05, 0.50, 0.95, 0.99], seeds: {jitter: "derive_seed(20261020, 'ada', 'jitter')", eps: "derive_seed(20261020, 'ada', 'eps')"}, min_gap_after_day70_h: 1}
+  mechsuppx:
+    models: [k2020, k2016]
+    dose_mg: 300
+    populations: [S1, S2]
+    schedules: [B0, RM36_50, ADD64_71]
+    parameters: [ke, Vmax, ka]
+    multipliers: [0.60, 0.70, 1.30, 1.40, 1.50]
+    appended: [{parameter: ka, multipliers: [1.75, 2.00]}]
+    n_trials: 1000
+    identity: "k2020 B0 rows (S1, S2) must equal results/m15/trials/mechsupp in every column; the stored values are used"
+    pilot: "trials 1 to 50 of k2020 S1 first; run time projects the full run"
+    truth_extension: "mode truthx: every version not in truth_gmr.csv, on the section 8.2 truth subjects; identity truth reproduces truth_reference.csv (relative 1e-10)"
+  weight_check:                          # 16.4절 1
+    tolerance: 1.0e-6
+    tests: {linear_elimination_vmax_factor: 1.0e-9, analytic_tolerance: 1.0e-6, models_differ_linear: 5.0e-4, exponent_step: 0.01, exponent_change_min: 1.0e-3}
+    covariate_model_bmi: {exponent: 0.368, bmi_ref_kg_m2: 26, height_cm: {S1: 172.5, S2: 167.0}, note: "the ratio does not depend on BMI_ref at a fixed height"}
+  cell_detail: {dose_mg: 300, schedule: B0, n_randomized_per_arm: 130, true_gmr: 0.95, boundaries: [fixed75, median], analysis_models: [M1, M0], n_evaluable_per_arm: 117}
+  ppc:                                   # 16.7절
+    mappings:
+      - {label: a_model1,  model: k2020,     race: false, rule_model: k2020, role: "registered (identity check; request NCA rule)"}
+      - {label: a_k2016,   model: k2016,     race: false, rule_model: k2016, role: "registered (identity check; request NCA rule)"}
+      - {label: c_cov,     model: k2020cov,  race: false, rule_model: k2020, role: "mapping (c): EASI neutral, reference race"}
+      - {label: bc_cov_hv80, model: k2020cov, race: true, race_scenario: hv80, rule_model: k2020, role: "mapping (b)+(c): race per study, R668-HV-1108 80% white"}
+      - {label: bc_cov_hv0,  model: k2020cov, race: true, race_scenario: hv0,  rule_model: k2020, role: "mapping (b)+(c): race per study, R668-HV-1108 0% white"}
+      - {label: d_base,    model: k2020base, race: false, rule_model: k2020, role: "mapping (d): phase 3 base model"}
+      - {label: bc_cov_hv80_ref70, model: k2020cov, race: true, race_scenario: hv80, rule_model: k2020, wt_ref: 70, modes: [primary], role: "reference weight sensitivity"}
+      - {label: bc_cov_hv80_ref80, model: k2020cov, race: true, race_scenario: hv80, rule_model: k2020, wt_ref: 80, modes: [primary], role: "reference weight sensitivity"}
+      - {label: d_base_ref70, model: k2020base, race: false, rule_model: k2020, wt_ref: 70, modes: [primary], role: "reference weight sensitivity"}
+      - {label: d_base_ref80, model: k2020base, race: false, rule_model: k2020, wt_ref: 80, modes: [primary], role: "reference weight sensitivity"}
+    race_scenarios:                      # 백인 비율(Li 2020 Table S1 전까지의 가정; B14 확장)
+      hv80: {PKM12350: 0.80, PKM14161: 0.80, PKM14271: 0.80, R668-HV-1108: 0.80, R668-AS-0907: 0.25, TDU12265: 0.0}
+      hv0:  {PKM12350: 0.80, PKM14161: 0.80, PKM14271: 0.80, R668-HV-1108: 0.0,  R668-AS-0907: 0.25, TDU12265: 0.0}
+    race_seed: "derive_seed(20261020, 'val', arm, 'race'): one uniform per subject in the order of the 'subj' stream; white if below the study's share"
+    race_effect: "ke x (1 + 0.123 x white) (proportional; non-white reference)"
+    seven_arms: {arms: [as0907_300, pkm12350_T, pkm12350_R, pkm14161_T, pkm14161_R, hv1108_T, hv1108_R], observed_arms: 6, observed_n: 102, statistic: "n-weighted replicate mean of the arm AUC0-last means / n-weighted observed mean", intervals: [0.95, 0.99]}
+    diagnostic_rule: {rules: [R1, R2, R5], R4: "not applicable (in-sample status undetermined); R4 with the Model 1 units reported as descriptive"}
+    per_study_rule:
+      level: 0.99
+      two_sided: true
+      main: {auc: [tdu12265_300, tdu12265_600, PKM12350, PKM14161, R668-HV-1108], cmax: [tdu12265_300, tdu12265_600], n_comparisons: 7}
+      with_pkm14271: {adds: {auc: [PKM14271], cmax: [PKM14271]}, n_comparisons: 9, label: "limited by the 200 mg presentation"}
+      deciding_weight_assumption: primary
+      note: "descriptive; the PKM12350 outcome on the observed data is known (section 6.2); R668-AS-0907 has no observed value"
+    nca_rules: {registered: "section 7.4 (decides)", request: "every post-dose BLQ value set to 0; AUC0-last to the last positive concentration (m15_nca_blq0)"}
+    false_positive: "each replicate in turn as the observed data, limits from all replicates (5,000; 1,000 for 70 and 86 kg)"
+    between_study_factor: {cv_pct: 10, median: 1, log_sd: "sqrt(log(1 + 0.10^2))", seed: "derive_seed(20261020, 'val', study, 'bsf')", draws: "r-th rnorm draw for replicate r",
+                           shared: "both models and all mappings, all weight assumptions, all arms and both TDU12265 dose units of the study, AUC0-last and Cmax",
+                           applied_to: "the judged replicate's unit means; limits from replicates without the factor", also: "observed data judged against limits from replicates multiplied by the factor (descriptive)"}
+    conclusion_template: {threshold_fp10_pct: 10, categories: {A: "rule met and FP10 <= 10", B: "rule met and FP10 > 10", C: "rule not met"}, deciding: "fixed weight assumption, registered NCA rule"}
+  param_uncertainty:                     # 16.8절
+    input: param_uncertainty_m15.yaml
+    dose_mg: 300
+    schedule: B0
+    populations: [S1, S2]
+    n_sets: 1000
+    n_subj_per_set: 2000
+    subjects: "the same 2,000 subjects for every set: derive_seed(20261020, 'pu', stream), stream in subj, jitter, eps"
+    control_variate: "power_corr(s) = power(s) - power(0; same 2,000) + power(0; 20,000 stored)"
+    n_randomized_per_arm: [107, 130]
+    true_gmr: 0.95
+    analysis_model: M1
+    boundary: fixed75
+    cmax_rule: "fixed (model Cmax SD; with the model's own CV both Cmax rules agree)"
+    scores: "z(s) = rnorm(13) from derive_seed(20261020, 'pset', s), order Vc, ke, k12, k21, ka, Vmax, F, theta_WT, omega2 Vc, ke, ka, Vmax, sigma prop"
+    redraw: {rule: "whole vector redrawn from derive_seed(20261020, 'pset', s, 'r1') up to 'r10' when a variance or residual is not positive or F >= 1", max: 10}
+    redraw_label_threshold: 10
+    sets:
+      k2016:         {model: k2016, label: "Kovalenko 2016 Table 2 bootstrap percentiles (BLQ-included column)"}
+      k2016_matched: {model: k2016, only: [theta.Vc, theta.ke, theta.theta_WT], label: "Kovalenko 2016, V2, ke and weight exponent only (matched scope)"}
+      k2020_cov:     {model: k2020, entries: borrowed_covariate_model, label: "borrowed from the Kovalenko 2020 covariate model; likely to understate Model 1 uncertainty"}
+      k2020_cov16:   {model: k2020, entries: borrowed_covariate_model_and_k2016, label: "borrowed from the covariate model and from Kovalenko 2016; likely to understate Model 1 uncertainty"}
+    mc_noise_replicates: 30
+    mc_noise_seed: "derive_seed(20261020, 'pu', 'mc', r, stream)"
+    weight_ratio_percentiles: [0.05, 0.95]
+    checks: {set0_20000: "reproduces results/m15/individual/ss_inputs_m15.csv B0 300 mg (relative 1e-10)", set0_weight_ratio: "equals results/m15/weight/weight_ratio.csv (relative 1e-6)"}
+  applicability:                         # 16.9절
+    k2020_documented: {R668-AS-0907: [58.0, 95.1], TDU12265: [52.1, 78.3], PKM14161: null, R668-AD-1117: null}
+    k2016_documented: {R668-AS-0907: [58.0, 95.1]}
+    request_range_kg: [42.3, 175.4]
+    request_range_source: "FDA review Table 3.3.3 (pooled phase 3 population); covariate and base models, and Model 1 as the requester's range pending section 16.2"
+    label: "outside the documented range"
+  robustness:                            # 16.10절
+    cell: {population: S1, dose_mg: 300, schedule: B0, boundary: fixed75, model: M1, n_rand: 130, true_gmr: 0.95}
+    thresholds: {pp: 2, auroc: 0.02, rmse_log: 0.02}
+    classes: {1: "same direction", 2: "no material effect in either model", 3: "material in one model only", 4: "opposite directions"}
+    sample_size_rule: "simulated power at 130 randomized: lower Wilson 95% bound >= 90% (section 2.1 item 1)"
+    corrected_mapping_column: "not applicable (no implementation error found) unless P3 is triggered"
+  p3_trigger: "implementation error only from a committed source excerpt (value, equation or healthy-volunteer covariate input of a registered model) or a code defect shown by a unit test or independent recomputation; section 16.7 results are never by themselves evidence"
