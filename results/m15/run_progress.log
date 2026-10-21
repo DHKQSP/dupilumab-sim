@@ -240,3 +240,9 @@ Execution halted
 2026-10-21T07:04:36Z start scripts/76_m15_param_assurance.R sets k2016 0 1000 4
 2026-10-21T07:09:55Z start scripts/77_m15_amend.R ppc
 2026-10-21T07:10:25Z done scripts/77_m15_amend.R ppc in 30s
+2026-10-21T07:15:38Z done scripts/76_m15_param_assurance.R sets k2016 0 1000 4 in 662s
+2026-10-21T07:15:38Z start scripts/76_m15_param_assurance.R sets k2016_thetas 0 1000 4
+2026-10-21T07:26:00Z done scripts/76_m15_param_assurance.R sets k2016_thetas 0 1000 4 in 622s
+2026-10-21T07:26:00Z start scripts/76_m15_param_assurance.R summary
+2026-10-21T07:26:05Z done scripts/76_m15_param_assurance.R summary in 5s
+2026-10-21T07:26:05Z stage a1p2full complete
