@@ -11,10 +11,12 @@
 #   ppcstored                 사후 예측 점검 표(16.7절 1·2, 저장 반복만): amend1/ppc/arm_table.csv, seven_arm_bias.csv
 #   p1report                  P1 보고(16.12절): robustness 분류(16.10절, Model 1 대 Kovalenko 2016), P1 결과 표 1개, 핵심 결론 5줄 → amend1/p1/
 #   appendix                  브리핑 부록 초안(16.6절, 영문, ICH M15 구성, 표 위주) → amend1/appendix/M15_MS_appendix_draft.md, .docx(pandoc markdown-smart); 영문·ASCII 점검
+#   ppc                       P2 사후 예측 점검 진단(16.7절 4~7): 대안 매핑 군 표·7개 군 편향, 판정 규칙 오경보율(두 NCA 규칙, 연구 간 인자 CV 0·10%), 검출 확률,
+#                             연구별 규칙, 넓힌 한계로 본 관측 판정, 결론 1 고정 서식 → amend1/ppc/
 # 사용법: nice -n 5 Rscript scripts/77_m15_amend.R <mode> ...
 source("R/00_setup.R"); source_project(); source(proj_path("R", "m15.R"))
 args <- commandArgs(trailingOnly = TRUE)
-MODES <- c("mechcheck", "mechx", "weightcheck", "extract", "ppcstored", "p1report", "appendix")
+MODES <- c("mechcheck", "mechx", "weightcheck", "extract", "ppcstored", "p1report", "appendix", "ppc")
 if (!length(args) || !args[1] %in% MODES) stop("사용법: Rscript scripts/77_m15_amend.R <", paste(MODES, collapse = "|"), "> ...")
 mode <- args[1]
 CFG <- m15_cfg(); MS <- as.integer(CFG$master_seed); stopifnot(MS == 20261020L)
@@ -656,4 +658,113 @@ if (mode == "appendix") {
   stopifnot(!any(utf8ToInt(tx) > 127L))
   nw <- length(strsplit(paste(L, collapse = " "), "\\s+")[[1]])
   append_run_log(lf, sprintf("appendix written: %d words, English and ASCII checks passed (markdown and Word)", nw)); cat("words", nw, "\n")
+}
+
+# ---------------------------------------------------------------- ppc: P2 사후 예측 점검 진단(16.7절 4~7) ----------------------------------------------------------------
+if (mode == "ppc") {
+  lf <- start_run_log("m15_amend_ppc", master_seed = MS, run_mode = "final")
+  PD2 <- file.path(AD, "ppc"); dir.create(PD2, showWarnings = FALSE); VA <- file.path(AD, "validation_alt")
+  V <- CFG$validation; PPC <- AM$ppc; MAPS <- setNames(PPC$mappings, vapply(PPC$mappings, `[[`, "", "label")); dz <- read_cfg("design_clot2021.yaml")
+  REPS <- as.integer(V$replicates); REPS_S <- as.integer(V$replicates_sensitivity); UNITS <- V$rule_units; fr <- V$failure_rule; DET <- as.numeric(unlist(fr$detection$factors)); PI <- as.numeric(V$pi_level)
+  q_ <- function(x, p) quantile(x, p, names = FALSE, type = 7)
+  RS <- list(registered = rbind(fread(file.path(VA, "validation_reps.csv.gz")), fread(file.path(RD, "validation", "validation_reps.csv.gz"))[wmode %in% c("w70", "w86")][, pk_model := c(k2020 = "a_model1", k2016 = "a_k2016")[pk_model]]),
+             request = fread(file.path(VA, "validation_reps_blq0.csv.gz")))
+  ST <- fread(file.path(RD, "validation", "validation_rule.csv"))
+  stopifnot(all(names(MAPS) %in% unique(RS$registered$pk_model)), all(names(MAPS) %in% unique(RS$request$pk_model)))
+  # 단위 통계(합침): 평균 = sum n mean / N, 군 안 CV = sqrt(sum (n - 1) SD^2 / (N - k)) / 평균
+  unit_rep <- function(d) d[, { sdA <- AUClast_cv / 100 * AUClast_mean; N <- sum(n); k <- .N; mA <- sum(n * AUClast_mean) / N
+    .(AUClast_mean = mA, Cmax_mean = sum(n * Cmax_mean) / N, AUClast_cv_within = 100 * sqrt(sum((n - 1) * sdA^2) / (N - k)) / mA) }, by = rep]
+  UN <- c(UNITS, list(PKM14271 = list(arms = c("pkm14271_T", "pkm14271_R"))))                 # 연구별 규칙 두 번째 판(200 mg)
+  ustudy <- vapply(names(UN), function(u) V$arms[[unlist(UN[[u]]$arms)[1]]]$study, "")
+  ob_arm <- function(aid) { o <- V$arms[[aid]]$observed; if (is.null(o)) return(NULL); g <- function(nm) if (is.null(o[[nm]])) NA_real_ else as.numeric(o[[nm]])
+    list(n = as.numeric(V$arms[[aid]]$n_subj), AUClast_mean = g("AUClast_mean"), AUClast_sd = g("AUClast_sd"), Cmax_mean = g("Cmax_mean"), Cmax_sd = g("Cmax_sd")) }
+  ob_unit <- function(u) { lst <- lapply(unlist(UN[[u]]$arms), ob_arm); n <- vapply(lst, `[[`, 1, "n"); N <- sum(n)
+    mA <- sum(n * vapply(lst, `[[`, 1, "AUClast_mean")) / N; sA <- vapply(lst, `[[`, 1, "AUClast_sd"); mC <- sum(n * vapply(lst, `[[`, 1, "Cmax_mean")) / N
+    c(AUClast_mean = mA, Cmax_mean = mC, AUClast_cv_within = 100 * sqrt(sum((n - 1) * sA^2) / (N - length(n))) / mA) }
+  OBS <- rbindlist(lapply(names(UN), function(u) { o <- ob_unit(u); data.table(unit = u, metric = names(o), obs = unname(o)) }))
+  sig <- sqrt(log(1 + (as.numeric(PPC$between_study_factor$cv_pct) / 100)^2))
+  BSF <- rbindlist(lapply(unique(ustudy), function(st) data.table(study = st, rep = seq_len(REPS), g = with_seed(derive_seed(MS, "val", st, "bsf"), exp(sig * rnorm(REPS))))))
+  GU <- merge(data.table(unit = names(ustudy), study = ustudy), BSF, by = "study", allow.cartesian = TRUE)[, .(unit, rep, g)]
+  ext_units <- function(rm) names(UNITS)[!vapply(names(UNITS), function(u) ustudy[[u]] %in% unlist(dz$model_development_data[[rm]]), TRUE)]
+  UR_of <- function(REP, lab, md) { nmax <- REP[pk_model == lab & wmode == md, max(rep)]
+    rbindlist(lapply(names(UN), function(u) { arms <- unlist(UN[[u]]$arms); md_ <- if (nrow(REP[pk_model == lab & wmode == md & arm %in% arms])) md else "primary"
+      z <- REP[pk_model == lab & wmode == md_ & arm %in% arms & rep <= nmax]; stopifnot(uniqueN(z$arm) == length(arms)); unit_rep(z)[, unit := u] }))[, nmax := nmax][] }
+  # 규칙 평가: 단위 집합·수준·임계, 관측 판정, 반복마다 '관측'으로 놓은 오경보율(연구 간 인자 선택), 검출 확률(배율 x 인자)
+  eval_rules <- function(UR, rm, use_g, defs) { nmax <- UR$nmax[1]; ur <- merge(UR, GU, by = c("unit", "rep")); farep <- list(); detrep <- lapply(DET, function(f) list()); rows <- list()
+    for (rn in names(defs)) { d <- defs[[rn]]; us <- if (identical(d$units, "all")) names(UNITS) else if (identical(d$units, "external")) ext_units(rm) else unlist(d$units)
+      thr <- d$outside_pi_min; thr <- as.integer(if (is.list(thr)) thr[[rm]] else thr); lev <- if (is.null(d$pi_level)) PI else as.numeric(d$pi_level); ql <- (1 - lev) / 2
+      z <- ur[unit %in% us, c("unit", "rep", "g", d$metric), with = FALSE]; setnames(z, d$metric, "v"); if (!use_g) z[, g := 1]
+      z[, `:=`(lo = q_(v, ql), hi = q_(v, 1 - ql)), by = unit]
+      im <- grepl("_mean$", d$metric); o <- merge(unique(z[, .(unit, lo, hi)]), OBS[metric == d$metric], by = "unit")[, out := obs < lo | obs > hi]
+      zw <- copy(z)[, vg := if (im) g * v else v][, `:=`(lw = q_(vg, ql), hw = q_(vg, 1 - ql)), by = unit]                            # 인자를 곱한 반복의 한계(넓힌 예측구간)
+      ow <- merge(unique(zw[, .(unit, lw, hw)]), OBS[metric == d$metric], by = "unit")[, outw := obs < lw | obs > hw]
+      kf <- function(f) z[, .(k = sum((if (im) f * g * v else v) < lo | (if (im) f * g * v else v) > hi)), by = rep]
+      k1 <- kf(1); farep[[rn]] <- k1[k >= thr, rep]
+      for (j in seq_along(DET)) { kk <- kf(DET[j]); detrep[[j]][[rn]] <- kk[k >= thr, rep] }
+      rows[[rn]] <- data.table(rule = rn, metric = d$metric, pi_level = lev, units = paste(us, collapse = ";"), threshold = thr, n_outside = sum(o$out), units_outside = paste(o[out == TRUE, unit], collapse = ";"),
+                               met = sum(o$out) >= thr, met_widened_limits = sum(ow$outw) >= thr, false_positive_pct = 100 * mean(k1$k >= thr),
+                               t(setNames(vapply(seq_along(DET), function(j) 100 * length(detrep[[j]][[rn]]) / nmax, 1), sprintf("detect_x%.2f_pct", DET)))) }
+    R <- rbindlist(rows); list(R = R, farep = farep, detrep = detrep, nmax = nmax) }
+  union_row <- function(ev, rules, lab) { nmax <- ev$nmax
+    data.table(rule = lab, metric = "", pi_level = NA_real_, units = paste(rules, collapse = "+"), threshold = NA_integer_, n_outside = NA_integer_, units_outside = "",
+               met = any(ev$R[rule %in% rules, met]), met_widened_limits = any(ev$R[rule %in% rules, met_widened_limits]), false_positive_pct = 100 * length(unique(unlist(ev$farep[rules]))) / nmax,
+               t(setNames(vapply(seq_along(DET), function(j) 100 * length(unique(unlist(ev$detrep[[j]][rules]))) / nmax, 1), sprintf("detect_x%.2f_pct", DET)))) }
+  DEFS <- list(R1 = fr$R1, R2 = fr$R2, R4 = fr$R4, R5 = fr$R5)
+  PS <- PPC$per_study_rule; mk <- function(u, metric) list(metric = metric, units = list(u), outside_pi_min = 1, pi_level = as.numeric(PS$level))
+  ps_defs <- function(with14271) { a <- unlist(PS$main$auc); cc <- unlist(PS$main$cmax); if (with14271) { a <- c(a, unlist(PS$with_pkm14271$adds$auc)); cc <- c(cc, unlist(PS$with_pkm14271$adds$cmax)) }
+    c(setNames(lapply(a, mk, metric = "AUClast_mean"), paste0("S_auc_", a)), setNames(lapply(cc, mk, metric = "Cmax_mean"), paste0("S_cmax_", cc))) }
+  RES <- list()
+  for (nr in names(RS)) for (lab in names(MAPS)) for (md in unique(RS[[nr]][pk_model == lab, wmode])) for (ug in c(FALSE, TRUE)) {
+    rm <- MAPS[[lab]]$rule_model; UR <- UR_of(RS[[nr]], lab, md)
+    ev <- eval_rules(UR, rm, ug, DEFS); dx <- !(MAPS[[lab]]$model %in% c(CFG$models$primary, CFG$models$sensitivity))
+    R <- rbind(ev$R, union_row(ev, c("R1", "R2", "R4", "R5"), "any (registered rule)"), union_row(ev, c("R1", "R2", "R5"), "any of R1, R2, R5 (diagnostic-mapping rule)"))
+    for (w14 in c(FALSE, TRUE)) { e2 <- eval_rules(UR, rm, ug, ps_defs(w14)); R <- rbind(R, union_row(e2, names(ps_defs(w14)), if (w14) "per-study rule with PKM14271 (9 comparisons)" else "per-study rule (7 comparisons)")) }
+    R[, decides := fifelse(dx, rule == "any of R1, R2, R5 (diagnostic-mapping rule)", rule == "any (registered rule)")]
+    R[rule == "R4" & dx, rule := "R4 (Model 1 units, descriptive)"]
+    RES[[length(RES) + 1]] <- R[, `:=`(mapping = lab, model = MAPS[[lab]]$model, role = MAPS[[lab]]$role, wmode = md, nca_rule = nr, between_study_cv_pct = if (ug) as.numeric(PPC$between_study_factor$cv_pct) else 0, n_rep = ev$nmax)] }
+  RT <- rbindlist(RES, fill = TRUE); setcolorder(RT, c("mapping", "model", "role", "wmode", "nca_rule", "between_study_cv_pct", "rule"))
+  # 등록 모델, 등록 NCA 규칙, 인자 없음: 저장된 판정·오경보율과 같아야 한다
+  ck <- merge(RT[mapping %in% c("a_model1", "a_k2016") & nca_rule == "registered" & between_study_cv_pct == 0 & rule %in% c("R1", "R2", "R4", "R5", "any (registered rule)") & wmode %in% c("primary", "wunc")][,
+               `:=`(pk_model = c(a_model1 = "k2020", a_k2016 = "k2016")[mapping], rule2 = sub("any \\(registered rule\\)", "any", rule))],
+              ST[, .(pk_model, wmode, rule2 = rule, met_s = met, fa_s = false_alarm_sim_pct)], by = c("pk_model", "wmode", "rule2"))
+  stopifnot(nrow(ck) == 20, all(ck$met == ck$met_s), max(abs(ck$false_positive_pct - ck$fa_s)) < 1e-9)
+  m15_fwrite_cond(RT, file.path(PD2, "rule_false_positive.csv"), "")
+  # 대안 매핑 군 표, 7개 군 편향(같은 정의)
+  L_ <- AM$labels$in_sample
+  AT <- rbindlist(lapply(split(RS$registered[wmode %in% c("primary", "wunc")], by = c("pk_model", "arm", "wmode")), function(z) { a <- V$arms[[z$arm[1]]]; lab <- z$pk_model[1]; m <- MAPS[[lab]]$model
+    rbindlist(lapply(c("Cmax", "AUClast"), function(e) { x <- z[[paste0(e, "_mean")]]; o <- ob_arm(z$arm[1]); o <- if (is.null(o)) NA_real_ else o[[paste0(e, "_mean")]]
+      data.table(mapping = lab, model = m, arm = z$arm[1], wmode = z$wmode[1], study = a$study, dose_mg = a$dose_mg, n_subj = a$n_subj, endpoint = e,
+                 in_sample_status = if (m %in% names(L_)) L_[[m]][[a$study]] else as.character(L_$diagnostic), observed_mean = o, pred_median = median(x), pi99_lo = q_(x, 0.005), pi99_hi = q_(x, 0.995),
+                 ratio_pred_obs = median(x) / o, outside_pi99 = if (is.finite(o)) o < q_(x, 0.005) | o > q_(x, 0.995) else NA) })) }))
+  m15_fwrite_cond(AT, file.path(PD2, "arm_table_mappings.csv"), "")
+  SA <- PPC$seven_arms; arms <- unlist(SA$arms); oa <- arms[vapply(arms, function(aid) { o <- ob_arm(aid); !is.null(o) && is.finite(o$AUClast_mean) }, TRUE)]
+  nn <- vapply(oa, function(aid) as.numeric(V$arms[[aid]]$n_subj), 1); obs7 <- sum(nn * vapply(oa, function(aid) ob_arm(aid)$AUClast_mean, 1)) / sum(nn)
+  B7 <- rbindlist(lapply(names(RS), function(nr) rbindlist(lapply(names(MAPS), function(lab) rbindlist(lapply(unique(RS[[nr]][pk_model == lab, wmode]), function(md) {
+    z <- RS[[nr]][pk_model == lab & wmode == md & arm %in% oa]; stopifnot(uniqueN(z$arm) == length(oa))
+    pr <- z[, .(v = sum(n * AUClast_mean) / sum(n)), by = rep]$v; wt <- z[, .(w = sum(n * WT_mean) / sum(n)), by = rep]$w
+    data.table(mapping = lab, model = MAPS[[lab]]$model, wt_ref_kg = if (is.null(MAPS[[lab]]$wt_ref)) 75 else as.numeric(MAPS[[lab]]$wt_ref), wmode = md, nca_rule = nr, observed_mean_6arms = obs7,
+               ratio_median = median(pr) / obs7, ratio_pi95_lo = q_(pr, 0.025) / obs7, ratio_pi95_hi = q_(pr, 0.975) / obs7, ratio_pi99_lo = q_(pr, 0.005) / obs7, ratio_pi99_hi = q_(pr, 0.995) / obs7,
+               pct_rank_observed = 100 * mean(pr <= obs7), realized_mean_weight_kg = mean(wt), n_rep = length(pr)) }))))))
+  m15_fwrite_cond(B7, file.path(PD2, "seven_arm_bias_mappings.csv"), "")
+  if (file.exists(file.path(VA, "nca_rule_difference.csv"))) file.copy(file.path(VA, "nca_rule_difference.csv"), file.path(PD2, "nca_rule_difference.csv"), overwrite = TRUE)
+  # 결론 1 고정 서식(16.7절 7): 고정 체중 가정, 등록 NCA 규칙
+  TH <- as.numeric(PPC$conclusion_template$threshold_fp10_pct)
+  pick_ <- function(lab, ug, rl) RT[mapping == lab & wmode == "primary" & nca_rule == "registered" & between_study_cv_pct == ug & rule == rl]
+  dev_k <- function(m) sum(vapply(names(UNITS), function(u) ustudy[[u]] %in% unlist(dz$model_development_data[[m]]), TRUE))
+  OC <- c(k2020 = "a_model1", k2016 = "a_k2016"); outc <- ST[wmode == "primary" & rule == "any", .(pk_model, outcome)]
+  dxmaps <- names(MAPS)[vapply(MAPS, function(x) !(x$model %in% c("k2020", "k2016")) && is.null(x$wt_ref), TRUE)]
+  dx_txt <- paste(vapply(dxmaps, function(lab) { r <- pick_(lab, 0, "any of R1, R2, R5 (diagnostic-mapping rule)"); b <- B7[mapping == lab & wmode == "primary" & nca_rule == "registered"]
+    sprintf("%s %s the rule (pooled 300 mg AUC0-last ratio %s)", MAPS[[lab]]$role, if (r$met) "met" else "did not meet", fmt(b$ratio_median, 3)) }, ""), collapse = "; ")
+  C1 <- vapply(c("k2020", "k2016"), function(m) { lab <- OC[[m]]; r0 <- pick_(lab, 0, "any (registered rule)"); r10 <- pick_(lab, as.numeric(PPC$between_study_factor$cv_pct), "any (registered rule)")
+    rr <- RT[mapping == lab & wmode == "primary" & nca_rule == "registered" & between_study_cv_pct == 0 & rule %in% c("R1", "R2", "R4", "R5") & met == TRUE]
+    thr_txt <- if (nrow(rr)) paste(sprintf("%s (%s)", rr$rule, gsub(";", " and ", rr$units_outside)), collapse = ", ") else "no rule"
+    cat_ <- if (r0$met && r10$false_positive_pct <= TH) "The misfit is unlikely to be explained by chance or by 10% between-study variation." else if (r0$met) "The misfit is compatible with 10% between-study variation and is not taken as evidence of model error." else "The check does not contradict the model."
+    sprintf("Posterior predictive check (Li 2020 healthy-volunteer studies; %d of 5 rule units in the recorded development data of %s): %s %s the registered misfit rule (%s) through %s. When %s is correct, the rule is met by chance with probability %s%% without and %s%% with 10%% between-study exposure variation; the probability of detecting a 25%% bias is %s%% and %s%% (the smaller of factors 0.75 and 1.25). %s%s",
+            dev_k(m), MLAB[[m]], MLAB[[m]], if (r0$met) "met" else "did not meet", sub("^fails under", "met under", sub("^passes under", "not met under", outc[pk_model == m, outcome])), thr_txt, MLAB[[m]], fmt(r0$false_positive_pct), fmt(r10$false_positive_pct),
+            fmt(min(r0$detect_x0.75_pct, r0$detect_x1.25_pct), 0), fmt(min(r10$detect_x0.75_pct, r10$detect_x1.25_pct), 0), cat_,
+            if (m == PRIMARY) sprintf(" Mappings (b)+(c), (c) and (d), which are other published models with borrowed variability and not corrections of Model 1: %s.", dx_txt) else "") }, "")
+  writeLines(c("# Conclusion 1 (fixed template of plan section 16.7 item 7)", "", paste0("- ", C1)), file.path(PD2, "conclusion1.md"))
+  source(proj_path("regulatory", "src", "reg_helpers.R"), local = TRUE); for (ff in list.files(PD2, "\\.(csv|md)$", full.names = TRUE)) check_english(ff)
+  print(RT[decides == TRUE & between_study_cv_pct %in% c(0, 10) & wmode == "primary", .(mapping, nca_rule, between_study_cv_pct, met, false_positive_pct, detect_x0.75_pct, detect_x1.25_pct)]); cat(C1, sep = "\n")
+  append_run_log(lf, "done")
 }

@@ -128,7 +128,12 @@ if (ALT) {                                                             # 등록 
   }
 }
 fwrite(REP, file.path(out_dir, "validation_reps.csv.gz"))
-if (ALT) fwrite(stat_of(copy(NCA)[, `:=`(AUClast = AUClast_b0, Cmax = Cmax_b0)], c("pk_model", "arm", "wmode", "rep")), file.path(out_dir, "validation_reps_blq0.csv.gz"))
+if (ALT) {                                                             # 요청자 NCA 규칙의 반복 통계와 두 규칙이 다른 대상자 몫(군·라벨·모드별)
+  fwrite(stat_of(copy(NCA)[, `:=`(AUClast = AUClast_b0, Cmax = Cmax_b0)], c("pk_model", "arm", "wmode", "rep")), file.path(out_dir, "validation_reps_blq0.csv.gz"))
+  fwrite(NCA[, .(n_profiles = .N, auclast_differs_pct = 100 * mean(xor(is.na(AUClast), is.na(AUClast_b0)) | (!is.na(AUClast) & !is.na(AUClast_b0) & abs(AUClast - AUClast_b0) > 1e-9 * pmax(abs(AUClast), 1e-12))),
+                 cmax_differs_pct = 100 * mean(xor(is.na(Cmax), is.na(Cmax_b0)) | (!is.na(Cmax) & !is.na(Cmax_b0) & abs(Cmax - Cmax_b0) > 1e-9 * pmax(abs(Cmax), 1e-12))),
+                 auclast_ratio_request_to_registered_median = median(AUClast_b0 / AUClast, na.rm = TRUE)), by = .(pk_model, arm, wmode)], file.path(out_dir, "nca_rule_difference.csv"))
+}
 
 # ---------------------------------------------------------------- 관측값(군, 합동 단위) ----------------------------------------------------------------
 ob_arm <- function(aid) { o <- V$arms[[aid]]$observed; if (is.null(o)) return(NULL)
