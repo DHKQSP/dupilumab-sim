@@ -165,7 +165,7 @@ if (mode == "report") {
     add("A: 300 mg single SC dose", "Minimum f_TM (at Cmax)", "%", m_, w, 100 * ta$ftm_cmax, 100 * a$ftm_cmax)
     add("A: 300 mg single SC dose", "Cmax", "mg/L", m_, w, ta$Cmax, a$Cmax)
     for (x in XS) {
-      tag <- sprintf("%02d", round(100 * x)); st <- a[[paste0("status_", tag)]]; tx <- a[[paste0("t_", tag)]]; tx[st == "censored"] <- Inf
+      tag <- sprintf("%02d", round(100 * x)); st <- a[[paste0("status_", tag)]]; tx <- a[[paste0("t_", tag)]]; tx[st %in% c("censored", "never")] <- Inf   # 도달하지 않음(분위수에서 +Inf로)
       add("A: 300 mg single SC dose", sprintf("Study Day from which f_TM stays at or above %d%%", round(100 * x)), "study Day", m_, w, day(ta[[paste0("t_", tag)]]), day(tx),
           note = "study Day = days after the dose + 1; Day 1.0 = f_TM at or above the threshold from the dose onward")
       add("A: 300 mg single SC dose", sprintf("Concentration at that time (= concentration at f_TM = %d%%)", round(100 * x)), "mg/L", m_, w, ta[[paste0("C_", tag)]], a[[paste0("C_", tag)]],
