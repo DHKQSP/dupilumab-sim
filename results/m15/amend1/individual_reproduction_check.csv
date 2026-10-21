@@ -1,0 +1,5 @@
+pk_model,population,n_rows,n_stored,max_abs_diff_AUClast,max_abs_diff_Tlast,na_mismatch,dose_mg
+k2020,S1,60000,60000,0,0,0,300
+k2020,S2,60000,60000,0,0,0,300
+k2016,S1,60000,60000,0,0,0,300
+k2016,S2,60000,60000,0,0,0,300

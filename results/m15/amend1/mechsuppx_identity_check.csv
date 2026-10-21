@@ -1,0 +1,5 @@
+cell,check,n_rows,n_stored,max_rel_diff,pass
+k2020_S1_300,"identity rows (vi 1) vs mech, all schedules",150,150,0,TRUE
+k2020_S1_300,B0 versions 1 to 16 vs mechsupp,800,800,0,TRUE
+k2020_S1_300,counts cnt_mechsuppx_00001_00050.csv.gz,288,288,0,TRUE
+k2020_S1_300,versions.csv rows 1 to 16,16,16,0,TRUE

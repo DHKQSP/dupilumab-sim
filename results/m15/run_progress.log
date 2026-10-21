@@ -120,3 +120,33 @@ run log: /home/user/dupilumab-sim/logs/m15_trials_pilotcheck_k2020_S1_300_1_500_
 2026-10-21T00:52:26Z start scripts/75_m15_summary.R summary
 2026-10-21T00:52:31Z done scripts/75_m15_summary.R summary in 5s
 2026-10-21T00:52:31Z stage post complete
+2026-10-21T03:08:57Z start scripts/72_m15_individual.R amend 4
+2026-10-21T03:10:14Z done scripts/72_m15_individual.R amend 4 in 77s
+2026-10-21T03:10:14Z stage a1prep complete
+2026-10-21T03:10:21Z start scripts/73_m15_trials.R mechsuppx k2020 S1 300 1 50 4
+2026-10-21T03:11:18Z done scripts/73_m15_trials.R mechsuppx k2020 S1 300 1 50 4 in 57s
+2026-10-21T03:11:18Z start scripts/77_m15_amend.R mechcheck k2020 S1
+2026-10-21T03:11:22Z FAILED scripts/77_m15_amend.R mechcheck k2020 S1 (exit 3)
+- One or more packages recorded in the lockfile are not installed.
+- Use `renv::status()` for more details.
+run log: /home/user/dupilumab-sim/logs/m15_amend_mechcheck_20261021T031119.log
+2026-10-21T03:11:42Z start scripts/73_m15_trials.R mechsuppx k2020 S1 300 1 50 4
+2026-10-21T03:11:47Z done scripts/73_m15_trials.R mechsuppx k2020 S1 300 1 50 4 in 5s
+2026-10-21T03:11:47Z start scripts/77_m15_amend.R mechcheck k2020 S1
+2026-10-21T03:11:51Z done scripts/77_m15_amend.R mechcheck k2020 S1 in 4s
+2026-10-21T03:11:51Z stage a1pilot complete
+2026-10-21T03:12:02Z start scripts/73_m15_trials.R mechsuppx k2020 S1 300 1 1000 4
+2026-10-21T03:16:14Z start scripts/77_m15_amend.R weightcheck
+2026-10-21T03:16:29Z FAILED scripts/77_m15_amend.R weightcheck in 15s
+2026-10-21T03:16:29Z start scripts/77_m15_amend.R ppcstored
+2026-10-21T03:16:33Z FAILED scripts/77_m15_amend.R ppcstored in 4s
+2026-10-21T03:18:00Z start scripts/77_m15_amend.R weightcheck
+2026-10-21T03:18:19Z FAILED scripts/77_m15_amend.R weightcheck in 19s
+2026-10-21T03:18:19Z start scripts/77_m15_amend.R ppcstored
+2026-10-21T03:18:23Z done scripts/77_m15_amend.R ppcstored in 4s
+2026-10-21T03:19:07Z start scripts/77_m15_amend.R weightcheck
+2026-10-21T03:19:37Z FAILED scripts/77_m15_amend.R weightcheck in 30s
+2026-10-21T03:20:52Z start scripts/77_m15_amend.R weightcheck
+2026-10-21T03:21:21Z done scripts/77_m15_amend.R weightcheck in 29s
+2026-10-21T03:29:12Z done scripts/73_m15_trials.R mechsuppx k2020 S1 300 1 1000 4 in 1030s
+2026-10-21T03:29:12Z start scripts/73_m15_trials.R mechsuppx k2020 S2 300 1 1000 4
