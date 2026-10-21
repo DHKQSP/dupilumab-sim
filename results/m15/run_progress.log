@@ -246,3 +246,13 @@ Execution halted
 2026-10-21T07:26:00Z start scripts/76_m15_param_assurance.R summary
 2026-10-21T07:26:05Z done scripts/76_m15_param_assurance.R summary in 5s
 2026-10-21T07:26:05Z stage a1p2full complete
+2026-10-21T07:26:43Z start scripts/77_m15_amend.R final
+2026-10-21T07:26:47Z done scripts/77_m15_amend.R final in 4s
+2026-10-21T07:26:47Z start scripts/75_m15_summary.R summary
+2026-10-21T07:26:53Z done scripts/75_m15_summary.R summary in 6s
+2026-10-21T07:26:53Z stage a1final complete
+2026-10-21T07:27:25Z start scripts/77_m15_amend.R final
+2026-10-21T07:27:30Z done scripts/77_m15_amend.R final in 5s
+2026-10-21T07:27:30Z start scripts/75_m15_summary.R summary
+2026-10-21T07:27:36Z done scripts/75_m15_summary.R summary in 6s
+2026-10-21T07:27:36Z stage a1final complete
