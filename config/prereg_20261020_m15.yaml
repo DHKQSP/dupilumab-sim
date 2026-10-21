@@ -280,6 +280,7 @@ amendment_20261021:
   registered_on: "2026-10-21"
   plan_section: "16"
   decision: D-069
+  correction: {date: "2026-10-21", decision: D-070, plan_section: "16.14"}
   outputs: [results/m15/amend1, results/m15/trials/mechsuppx, results/m15/truth/truth_gmr_ext.csv]
   identity_check: {tolerance: 0, csv_relative: 1.0e-12, action: "stop; record as a deviation; neither value is used until the cause is found"}
   model_identity:
@@ -300,6 +301,7 @@ amendment_20261021:
     reliable_terminal_phase_share: "no reliability flag (set AUCinf_A, section 8.3)"
     paired_bootstrap: {n_resamples: 2000, seed: "derive_seed(20261020, 'amend_boot')", unit: "subject (20,000), same indices for all schedules and both models"}
     conservative_rule: {favourable: {power: higher, lambda_z_success: higher, day57_retained: higher, median_pct_error: closer_to_0, rmse_log: lower, auroc: higher, abs_crossing: smaller},
+                        favourable_note: "lambda_z_success and day57_retained are coverage levels quoted on the Kovalenko 2016 basis (coverage_levels; correction of 2026-10-21)",
                         coverage_levels: "quote Kovalenko 2016 with Model 1 in parentheses (Day 57, 64, 71 quantifiable shares, lambda_z success, reliable-terminal-phase share; correction of 2026-10-21)",
                         ada: "range over both models", level: "other levels: quote the less favourable model", better: "class 1 only, quoted with the smaller difference", not_worse: "neither model material against X; quoted with the larger difference against X",
                         cells: "primary scenario cell, repeated for the Korean population"}
@@ -369,7 +371,7 @@ amendment_20261021:
       - {label: bc_cov_hv80_ref80, model: k2020cov, race: true, race_scenario: hv80, rule_model: k2020, wt_ref: 80, modes: [primary], role: "reference weight sensitivity"}
       - {label: d_base_ref70, model: k2020base, race: false, rule_model: k2020, wt_ref: 70, modes: [primary], role: "reference weight sensitivity"}
       - {label: d_base_ref80, model: k2020base, race: false, rule_model: k2020, wt_ref: 80, modes: [primary], role: "reference weight sensitivity"}
-    race_scenarios:                      # 백인 비율(Li 2020 Table S1 전까지의 가정; B14 확장)
+    race_scenarios:                      # 백인 비율(P3 선택 비교 전용 가정; P3 추록에서 가정 목록에 등록. 정정 후 B14에는 없음)
       hv80: {PKM12350: 0.80, PKM14161: 0.80, PKM14271: 0.80, R668-HV-1108: 0.80, R668-AS-0907: 0.25, TDU12265: 0.0}
       hv0:  {PKM12350: 0.80, PKM14161: 0.80, PKM14271: 0.80, R668-HV-1108: 0.0,  R668-AS-0907: 0.25, TDU12265: 0.0}
     race_seed: "derive_seed(20261020, 'val', arm, 'race'): one uniform per subject in the order of the 'subj' stream; white if below the study's share"
