@@ -335,3 +335,9 @@ Execution halted
 2026-10-21T10:46:59Z start scripts/78_m15_tm_fraction.R report
 2026-10-21T10:47:26Z done scripts/78_m15_tm_fraction.R report in 27s
 2026-10-21T10:47:26Z stage tmx complete
+2026-10-21T11:11:34Z note: final clean stage tmx run at commit 38c132d (report outputs of 10:48 UTC came from an uncommitted script; this run records them; post hoc values must be identical)
+2026-10-21T11:11:34Z start scripts/78_m15_tm_fraction.R ssx 4
+2026-10-21T11:16:01Z done scripts/78_m15_tm_fraction.R ssx 4 in 267s
+2026-10-21T11:16:01Z start scripts/78_m15_tm_fraction.R report
+2026-10-21T11:16:29Z done scripts/78_m15_tm_fraction.R report in 28s
+2026-10-21T11:16:29Z stage tmx complete
