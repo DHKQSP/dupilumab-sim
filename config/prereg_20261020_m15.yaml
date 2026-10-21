@@ -470,5 +470,14 @@ addendum_tm_20261021:
     e: "concentration re-solved with solve_model at t_x equals C_x within relative 1e-4 (Model 1, 75 kg, first 20 crossing subjects per threshold)"
     f: "all reported values finite (every listed column present); amount in the body at the AUC0-inf time at most 1e-7 of the last dose"
     g: "scenario B regimen solve equals rxSolve with an independently built data.frame event table (Model 1, 75 kg, first 5 subjects; C and auc at days 98, 112, 119, 126; relative 1e-10), and the amount in the body rises by dose x F across each repeat dose (plus or minus 1e-6 day; relative 1e-4)"
+  post_hoc_true_ss:                                # 17.11절 2(사후, 첫 실행 뒤 출력 검증에서): 같은 대상자·체중·모델·파라미터 변화, 300 mg 2주 간격을 1,120일까지 계속
+    registered_on: "2026-10-21"
+    plan_section: "17.11"
+    dose_times_last: 1120
+    interval: [1120, 1134]
+    previous_interval: [1106, 1120]
+    convergence_rel: 1.0e-6
+    identity_rel: 1.0e-5                           # 112~126일 AUC = 등록 AUCtau,ss
+    outputs: [tm_true_ss.csv, tm_true_ss_change.csv, tm_true_ss_checks.csv, tm_true_ss_subjects.csv.gz]
   outputs: [tm_subjects.csv.gz, tm_typical.csv, tm_curves.csv, tm_checks.csv, tm_table1.csv, tm_table1.md, tm_table2.csv, tm_table2.md, tm_elasticity_full.csv,
             tm_fig1_ftm_curves.png, tm_fig2_elasticity.png, tm_fig2_data.csv, tm_quantifiable_by_day.csv, tm_report.md, summary_rerun_check.csv]

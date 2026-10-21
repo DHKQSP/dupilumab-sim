@@ -427,6 +427,8 @@ test_that("추록 1 설정(addendum_tm_20261021)과 계획서 17절이 일치하
   expect_equal(as.numeric(unlist(A$scenarios$A$grid$fine)), c(0.01, 100, 0.01)); expect_true(grepl("Every 0.01 day to day 100, every 0.05 day to day 140", x, fixed = TRUE))
   expect_equal(A$mc_error$n_boot, 1000L); expect_true(grepl("1,000 resamples, derive_seed(20261020, \"tm_boot\")", x, fixed = TRUE))
   expect_setequal(names(A$checks), letters[1:7])
+  expect_equal(A$post_hoc_true_ss$dose_times_last, 1120L); expect_equal(as.numeric(unlist(A$post_hoc_true_ss$interval)), c(1120, 1134))   # 17.11절 사후 점검
+  expect_true(grepl("### 17.11 Changes after the first run (2026-10-21)", x, fixed = TRUE)); expect_true(grepl("continued to day 1,120 (80 repeat doses)", x, fixed = TRUE))
   expect_equal(as.numeric(unlist(A$elasticity$multipliers)), c(0.8, 1.2)); expect_identical(as.character(unlist(A$elasticity$parameters)), c("Vmax", "ke", "F"))
   expect_true(grepl("n = 1,000 virtual subjects", x, fixed = TRUE)); expect_true(grepl("derive_seed(20261020, \"tm\")", x, fixed = TRUE))
   expect_true(grepl("60, 75 and 90 kg", x, fixed = TRUE)); expect_equal(as.numeric(A$lloq_mg_L), study_lloq())

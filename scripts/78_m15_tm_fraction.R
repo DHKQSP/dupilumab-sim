@@ -4,11 +4,12 @@
 # 모드
 #   run [cores]   두 모델 x 시나리오 A(300 mg 단회)·B(600 mg 뒤 300 mg 2주 간격) x 체중 60·75·90 kg x (기준 + Vm·ke·F x 0.8·1.2)
 #                 → results/m15/tm/tm_subjects.csv.gz(대상자별 지표), tm_typical.csv(전형 대상자), tm_curves.csv(시각별 f_TM 분위수), tm_checks.csv(17.7절 점검)
-#   report        표 1(17.5절 2·3·5), 표 2(17.5절 4), 그림 1(f_TM 곡선과 확정 채혈일), 그림 2(탄력도 막대), 요약 → results/m15/tm/
+#   ssx [cores]   사후 참 정상상태 점검(17.11절 2): 시나리오 B를 1,120일까지 계속 투여, 등록 구간(112~126일) AUC / 참 정상상태 AUC, 참 정상상태 f_TM과 % 변화 → tm_true_ss.csv
+#   report        표 1(17.5절 2·3·5), 표 2(17.5절 4), 그림 1(f_TM 곡선과 확정 채혈일), 그림 2(탄력도 막대), 요약 → results/m15/tm/ (17.11절: 사후 점검 주석과 표시 수정)
 # 사용법: nice -n 5 Rscript scripts/78_m15_tm_fraction.R run 4; Rscript scripts/78_m15_tm_fraction.R report
 source("R/00_setup.R"); source_project(); source(proj_path("R", "m15.R"))
 args <- commandArgs(trailingOnly = TRUE)
-MODES <- c("run", "report")
+MODES <- c("run", "ssx", "report")
 if (!length(args) || !args[1] %in% MODES) stop("사용법: Rscript scripts/78_m15_tm_fraction.R <", paste(MODES, collapse = "|"), "> ...")
 mode <- args[1]
 CFG <- m15_cfg(); MS <- as.integer(CFG$master_seed); stopifnot(MS == 20261020L)
@@ -163,11 +164,67 @@ if (mode == "run") {
   if (!all(CK$pass)) quit(status = 3)
 }
 
+# ---------------------------------------------------------------- ssx: 사후 참 정상상태 점검(17.11절 2) ----------------------------------------------------------------
+if (mode == "ssx") {
+  cores <- if (length(args) >= 2) as.integer(args[2]) else 4L
+  PH <- TM$post_hoc_true_ss; stopifnot(!is.null(PH), identical(PH$plan_section, "17.11"))
+  lf <- start_run_log("m15_tm_ssx", master_seed = MS, run_mode = "final", extra = list(n = N, cores = cores))
+  Z <- with_seed(derive_seed(MS, "tm"), matrix(rnorm(N * length(M15_ETA_NAMES)), N)); colnames(Z) <- paste0("z_", M15_ETA_NAMES)   # 등록 run과 같은 추출
+  ip_of <- function(p, w) {
+    subj <- cbind(data.table(id = seq_len(N), WT = w), as.data.table(Z))
+    rbind(individual_params(p, data.table(id = 0L, WT = w, ada = 0)), individual_params(p, m15_eta_table(subj, p)))
+  }
+  DT_ <- c(0, seq(14, as.numeric(PH$dose_times_last), by = 14)); DA_ <- c(600, rep(300, length(DT_) - 1)); stopifnot(identical(DT_[seq_along(DOSE$B$t)], DOSE$B$t), identical(DA_[seq_along(DOSE$B$a)], DOSE$B$a))
+  IV <- as.numeric(unlist(PH$interval)); PV <- as.numeric(unlist(PH$previous_interval)); stopifnot(IV[1] == max(DT_), PV[2] == IV[1], diff(IV) == 14)
+  TT <- sort(unique(c(SS, PV, IV)))
+  EL <- TM$elasticity; JOBS <- rbind(CJ(model = MODELS, WT = WTS, param = "none", mult = 1, sorted = FALSE), CJ(model = MODELS, WT = WTS, param = as.character(unlist(EL$parameters)), mult = as.numeric(unlist(EL$multipliers)), sorted = FALSE))
+  for (m_ in MODELS) invisible(get_model(load_params(m_)$model_id))
+  one <- function(k) {
+    k_ <- k; jb <- JOBS[k_]; p <- load_params(jb$model); if (jb$param != "none") p <- apply_multipliers(p, setNames(list(jb$mult), jb$param))
+    ip <- ip_of(p, jb$WT); s <- m15_solve_regimen(ip, p$model_id, DT_, DA_, TT)
+    at <- function(t0, v) { r <- s[abs(time - t0) < 1e-6][order(id)]; stopifnot(nrow(r) == nrow(ip)); r[[v]] }
+    o <- data.table(id = sort(ip$id), auc_reg = at(SS[2], "auc") - at(SS[1], "auc"), auc_prev = at(PV[2], "auc") - at(PV[1], "auc"), auc_true = at(IV[2], "auc") - at(IV[1], "auc"), Ctrough_true = at(IV[2], "C"))
+    o <- merge(o, ip[, .(id, Vm = Vmax, ke_i = ke, Km, Vc_i, F)], by = "id")
+    o[, `:=`(Cavg_true = auc_true / diff(IV), mass_balance = (F * DA_[length(DA_)] / Vc_i - Vm * diff(IV)) / ke_i)]
+    o[, `:=`(ftm_cavg_true = m15_ftm(Cavg_true, Vm, ke_i, Km), ftm_trough_true = m15_ftm(Ctrough_true, Vm, ke_i, Km), reg_over_true = auc_reg / auc_true, conv = auc_true / auc_prev - 1, mb_rel = mass_balance / auc_true - 1)]
+    o[, `:=`(model = jb$model, WT = jb$WT, param = jb$param, mult = jb$mult)][]
+  }
+  res <- parallel::mclapply(seq_len(nrow(JOBS)), function(k) tryCatch(one(k), error = function(e) structure(conditionMessage(e), class = "job_error")), mc.cores = cores, mc.preschedule = FALSE)
+  bad <- which(vapply(res, function(r) inherits(r, "job_error") || is.null(r), TRUE))
+  if (length(bad)) { msg <- vapply(res[bad], function(r) if (is.null(r)) "no result (worker died)" else paste(as.character(r), collapse = " "), ""); append_run_log(lf, paste("job errors:", paste(bad, msg, collapse = " | "))); stop(paste(msg, collapse = " | ")) }
+  X <- rbindlist(res); setcolorder(X, c("model", "WT", "param", "mult", "id"))
+  # 점검: 수렴(직전 구간과 상대 1e-6), 등록 AUCtau,ss와 일치(상대 1e-5)
+  SUB <- fread(file.path(OD, "tm_subjects.csv.gz"))[scenario == "B", .(model, WT, param, mult, id, AUCtau_ss)]
+  TYB <- fread(file.path(OD, "tm_typical.csv"))[scenario == "B", .(model, WT, param, mult, id, AUCtau_ss)]
+  J <- merge(X, rbind(SUB, TYB), by = c("model", "WT", "param", "mult", "id"))
+  CKX <- data.table(check = c("convergence_true_interval_vs_previous", "identity_days_112_to_126_vs_registered_AUCtau_ss"),
+                    value = c(max(abs(X$conv)), if (nrow(J) == nrow(X)) max(abs(J$auc_reg / J$AUCtau_ss - 1)) else Inf),
+                    limit = c(as.numeric(PH$convergence_rel), as.numeric(PH$identity_rel)))[, pass := value <= limit]
+  fwrite(X, file.path(OD, "tm_true_ss_subjects.csv.gz"))
+  # 요약: 기준(param none) 지표 분포, 같은 대상자 기하평균 % 변화(참 정상상태 AUCtau, Ctrough)
+  base <- X[param == "none" & id > 0]; tb <- X[param == "none" & id == 0]
+  sm <- function(z, v) z[, .(median = qtl(get(v), PCT[2]), p05 = qtl(get(v), PCT[1]), p95 = qtl(get(v), PCT[3])), by = .(model, WT)]
+  lab <- c(reg_over_true = "Registered-interval AUCtau (days 112 to 126) / true steady-state AUCtau (x 100)", ftm_cavg_true = "f_TM at Cavg at true steady state (%)",
+           ftm_trough_true = "f_TM at Ctrough at true steady state (%)", mb_rel = "Mass balance (F x Dose / Vc - Vm x tau) / ke versus the solved AUCtau (relative difference x 100)")
+  OUT <- rbindlist(lapply(names(lab), function(v) { r <- sm(base, v); r <- merge(r, tb[, .(model, WT, typical = get(v))], by = c("model", "WT")); r[, `:=`(quantity = lab[[v]], key = v)] }))
+  OUT[, c("median", "p05", "p95", "typical") := lapply(.SD, function(x) 100 * x), .SDcols = c("median", "p05", "p95", "typical")]   # 모두 x 100(비율·몫·상대 차이)
+  pr <- X[param != "none" & id > 0]; jj <- merge(pr, base[, .(model, WT, id, a0 = auc_true, t0 = Ctrough_true)], by = c("model", "WT", "id"))
+  GM <- jj[, .(gm_pct_AUCtau_true = 100 * (exp(mean(log(auc_true / a0))) - 1), gm_pct_Ctrough_true = 100 * (exp(mean(log(Ctrough_true / t0))) - 1), n = .N), by = .(model, WT, param, mult)]
+  GM[, change := sprintf("%s %s%d%%", fifelse(param == "Vmax", "Vm", param), fifelse(mult > 1, "+", "-"), round(abs(mult - 1) * 100))]
+  fwrite(OUT[, .(model, WT, quantity, key, typical, median, p05, p95)], file.path(OD, "tm_true_ss.csv"))
+  fwrite(GM, file.path(OD, "tm_true_ss_change.csv")); fwrite(CKX, file.path(OD, "tm_true_ss_checks.csv"))
+  print(CKX); print(OUT[WT == WT_HEAD]); print(GM[WT == WT_HEAD])
+  append_run_log(lf, sprintf("true steady state: checks %d of %d pass", sum(CKX$pass), nrow(CKX)))
+  if (!all(CKX$pass)) quit(status = 3)
+}
+
 # ---------------------------------------------------------------- report ----------------------------------------------------------------
 if (mode == "report") {
   suppressPackageStartupMessages({ library(ggplot2); library(patchwork) })
   lf <- start_run_log("m15_tm_report", master_seed = MS, run_mode = "final")
   CK <- fread(file.path(OD, "tm_checks.csv")); stopifnot(all(CK$pass))
+  CKX <- fread(file.path(OD, "tm_true_ss_checks.csv")); stopifnot(all(CKX$pass))                       # 사후 참 정상상태 점검(17.11절 2)
+  TSS <- fread(file.path(OD, "tm_true_ss.csv")); TSG <- fread(file.path(OD, "tm_true_ss_change.csv"))
   SU <- fread(file.path(OD, "tm_subjects.csv.gz")); TY <- fread(file.path(OD, "tm_typical.csv")); CU <- fread(file.path(OD, "tm_curves.csv"))
   DEC <- as.integer(TM$display_decimals); stopifnot(DEC == 1L)
   f1 <- function(x) { s <- formatC(round(x, DEC), format = "f", digits = DEC); s[s == "-0.0"] <- "0.0"; s[is.infinite(x) & x > 0] <- "not reached"; s[is.na(x)] <- "NA"; s }
@@ -211,7 +268,7 @@ if (mode == "report") {
       addshare(SA_, sprintf("Subjects not reaching f_TM %d%% by day %g", round(100 * x), T_MAX_A), m_, w, st %in% c("censored", "never"))
     }
     add(SA_, "Share of AUC0-last accumulated while f_TM is at or above 50%", "%", m_, w, 100 * ta$share_50, 100 * a$share_50)
-    add(SA_, "Of which after Cmax (falling phase; supplementary)", "%", m_, w, 100 * ta$share_post_50, 100 * a$share_post_50)
+    add(SA_, "Part of that share accrued after Cmax, % of AUC0-last (supplementary)", "%", m_, w, 100 * ta$share_post_50, 100 * a$share_post_50)
     for (x in XS[-1]) { tag <- sprintf("%02d", round(100 * x))
       add(SA_, sprintf("Share of AUC0-last accumulated while f_TM is at or above %d%% (supplementary)", round(100 * x)), "%", m_, w, 100 * ta[[paste0("share_", tag)]], 100 * a[[paste0("share_", tag)]]) }
     add(SB_, "f_TM at Ctrough,ss", "%", m_, w, 100 * tb$ftm_trough, 100 * b$ftm_trough)
@@ -229,6 +286,17 @@ if (mode == "report") {
   }
   T1 <- rbindlist(rows)[, model_label := MODL[model]]
   fwrite(T1, file.path(OD, "tm_table1.csv"))
+  # 사후 참 정상상태 점검 문장(17.11절 2): 등록 값은 그대로, 주석으로만
+  ts_ <- function(m_, key_) TSS[model == m_ & WT == WT_HEAD & key == key_]
+  tg_ <- function(m_, ch) TSG[model == m_ & WT == WT_HEAD & change == ch]$gm_pct_AUCtau_true
+  ph_gap <- paste(sprintf("%s %s (5th to 95th percentile %s to %s)", sub(" \\(.*", "", MODL[MODELS]), vapply(MODELS, function(m_) f1(ts_(m_, "reg_over_true")$median), ""),
+                          vapply(MODELS, function(m_) f1(ts_(m_, "reg_over_true")$p05), ""), vapply(MODELS, function(m_) f1(ts_(m_, "reg_over_true")$p95), "")), collapse = "; ")
+  ph_ke <- paste(sprintf("%s %s and %s", sub(" \\(.*", "", MODL[MODELS]), vapply(MODELS, function(m_) f1(tg_(m_, "ke -20%")), ""), vapply(MODELS, function(m_) f1(tg_(m_, "ke +20%")), "")), collapse = "; ")
+  ph_vm <- paste(sprintf("%s %s and %s", sub(" \\(.*", "", MODL[MODELS]), vapply(MODELS, function(m_) f1(tg_(m_, "Vm -20%")), ""), vapply(MODELS, function(m_) f1(tg_(m_, "Vm +20%")), "")), collapse = "; ")
+  ph_f <- paste(sprintf("%s %s and %s", sub(" \\(.*", "", MODL[MODELS]), vapply(MODELS, function(m_) f1(tg_(m_, "F -20%")), ""), vapply(MODELS, function(m_) f1(tg_(m_, "F +20%")), "")), collapse = "; ")
+  ph_t2 <- sprintf("- Post hoc check (plan section 17.11; supplementary): days %g to %g are close to, but not fully at, steady state. At %g kg the registered-interval AUCtau is a median %s%% of the true steady-state AUCtau (repeat doses to day %g). At true steady state, ke x 0.8 and x 1.2 change AUCtau,ss by %s%% (with C far above Km, AUCtau,ss = (F x Dose / Vc - Vm x tau) / ke, which gives +25.0 and -16.7), Vm by %s%% and F by %s%%. The registered values above are not replaced.",
+                   SS[1], SS[2], WT_HEAD, ph_gap, as.numeric(TM$post_hoc_true_ss$dose_times_last), ph_ke, ph_vm, ph_f)
+  ph_f1 <- paste(sprintf("%s %s at Cavg and %s at Ctrough", sub(" \\(.*", "", MODL[MODELS]), vapply(MODELS, function(m_) f1(ts_(m_, "ftm_cavg_true")$median), ""), vapply(MODELS, function(m_) f1(ts_(m_, "ftm_trough_true")$median), "")), collapse = "; ")
   T1[, txt := ""][is.na(share_pct), txt := sprintf("%s; %s (%s to %s)%s", f1(typical), f1(median), f1(p05), f1(p95), fifelse(n_subjects < N, sprintf(" [n = %d]", n_subjects), ""))][!is.na(share_pct), txt := f1(share_pct)]
   wd <- dcast(T1, section + quantity + unit + model ~ WT, value.var = "txt", fun.aggregate = function(z) z[1], fill = "")
   ord <- unique(T1[, .(section, quantity, model)])[, o := .I]; wd <- merge(wd, ord, by = c("section", "quantity", "model"))[order(match(model, MODELS), o)]
@@ -246,8 +314,9 @@ if (mode == "report") {
            "- Study Day 1.0 in a crossing row is the dose time: f_TM is at or above the threshold from the dose onward because Cmax does not exceed the threshold concentration. The rows for subjects whose f_TM falls below the threshold leave those subjects out. 'not reached' = f_TM still below the threshold at day 140, or the percentile includes such subjects.",
            "- In the rows for subjects whose f_TM falls below the threshold, [n = ...] is the number of such subjects, and NA in the typical-subject position means that the typical subject does not fall below the threshold.",
            "- The concentration at the crossing equals the threshold concentration by construction; it depends only on Vm, ke and Km, not on weight. Below the LLOQ, f_TM approaches Vm / (Vm + ke Km), which depends on the fixed Km.",
-           sprintf("- AUC0-last = model AUC from the dose to the earlier of the true Tlast at the LLOQ (%s mg/L) and day %g after the dose (study Day %g), the dense-sampling truth of plan section 8.2(a). The share counts every time with f_TM at or above the threshold: the absorption phase before C first exceeds the threshold concentration and the phase after the crossing ('of which after Cmax').", format(LLOQ), T_END, T_END + 1),
-           sprintf("- Numbers are shown to one decimal as requested; Monte Carlo standard errors of the percentiles (subject bootstrap, %s resamples) are in tm_table1.csv.", format(NB, big.mark = ",")))
+           sprintf("- AUC0-last = model AUC from the dose to the earlier of the true Tlast at the LLOQ (%s mg/L) and day %g after the dose (study Day %g), the dense-sampling truth of plan section 8.2(a). The share counts every time with f_TM at or above the threshold: the absorption phase before C first exceeds the threshold concentration and the phase after the crossing (the part accrued after Cmax is shown as a percentage of AUC0-last).", format(LLOQ), T_END, T_END + 1),
+           sprintf("- Numbers are shown to one decimal as requested; Monte Carlo standard errors of the percentiles (subject bootstrap, %s resamples) are in tm_table1.csv.", format(NB, big.mark = ",")),
+           sprintf("- Post hoc check (plan section 17.11; supplementary): the B interval (days %g to %g) is close to, but not fully at, steady state; at %g kg its AUCtau is a median %s%% of the true steady-state AUCtau. At true steady state the median f_TM is %s (%%; tm_true_ss.csv). The registered values above are not replaced.", SS[1], SS[2], WT_HEAD, ph_gap, ph_f1))
   writeLines(md1, file.path(OD, "tm_table1.md"))
   # 채혈일별 참 농도 >= LLOQ 몫(보충, 17.5절 1): 그림 1의 정량 한계 표시와 같은 자료
   QD <- CU[scenario == "A" & round(time, 8) %in% round(SEL, 8)][, `:=`(elapsed = time, study_day = SDAY[match(round(time, 8), round(SEL, 8))], quantifiable_pct = 100 * pq)]
@@ -285,7 +354,8 @@ if (mode == "report") {
   md2 <- c(md2, "", "Notes.",
            sprintf("- AUC0-last = model AUC from the dose to the earlier of the true Tlast at the LLOQ and study Day %g. In scenario B, AUC0-last and Cmax of the request are read as AUCtau,ss and Cmax,ss; Ctrough,ss is added.", T_END + 1),
            "- The reference columns are not study endpoints. The B reference is the AUC from the Week 16 dose to infinity with dosing stopped; it includes the washout of drug from all earlier doses, so it is not the steady-state counterpart of the single-dose AUC0-inf (that counterpart is AUCtau,ss).",
-           "- Other weights, the Monte Carlo standard error, the median individual change with its 5th and 95th percentiles, and the typical subject: tm_elasticity_full.csv.")
+           "- Other weights, the Monte Carlo standard error, the median individual change with its 5th and 95th percentiles, and the typical subject: tm_elasticity_full.csv.",
+           ph_t2)
   writeLines(md2, file.path(OD, "tm_table2.md"))
   # ---------------- 그림 1(17.5절 1) ----------------
   PAN <- c(sprintf("A: %g kg", WTS), sprintf("B: %g kg, steady state", WT_HEAD))
@@ -296,13 +366,17 @@ if (mode == "report") {
   tq <- B0[scenario == "A", .(lo = qtl(t_true_last, PCT[1]), md = qtl(t_true_last, PCT[2]), hi = qtl(t_true_last, PCT[3])), by = .(model, WT)]
   tq[, `:=`(model_lab = factor(MODL[model], levels = MODL[MODELS]), panel = factor(sprintf("A: %g kg", WT), levels = PAN), hi_draw = pmin(hi, T_END), y = 6)]
   rl <- data.table(y = 100 * XS)
+  tc <- tq[hi > T_END][order(match(model, MODELS), WT)]
+  cut_txt <- if (nrow(tc)) sprintf(" Arrowheads: bar cut at day %g; 95th percentile study Day %s.", T_END, paste(sprintf("%s (%s, %g kg)", f1(day(tc$hi)), sub(" \\(.*", "", MODL[tc$model]), tc$WT), collapse = ", ")) else ""
   g1 <- ggplot(cu, aes(time)) +
     geom_hline(data = rl, aes(yintercept = y), colour = VIZ$muted, linewidth = 0.3, linetype = "dashed") +
     geom_vline(data = sl, aes(xintercept = time), colour = VIZ$muted, linewidth = 0.25, alpha = 0.7) +
     geom_text(data = sl, aes(x = time, y = y, label = lab), size = 2.2, colour = VIZ$ink2) +
     geom_ribbon(aes(ymin = 100 * q05, ymax = 100 * q95), fill = VIZ$s1, alpha = 0.22) +
     geom_line(aes(y = 100 * q50), colour = VIZ$s1, linewidth = 0.7) +
-    geom_segment(data = tq, aes(x = lo, xend = hi_draw, y = y, yend = y), colour = VIZ$ink2, linewidth = 1.1, inherit.aes = FALSE) +
+    geom_segment(data = tq[hi <= T_END], aes(x = lo, xend = hi_draw, y = y, yend = y), colour = VIZ$ink2, linewidth = 1.1, inherit.aes = FALSE) +
+    geom_segment(data = tq[hi > T_END], aes(x = lo, xend = hi_draw, y = y, yend = y), colour = VIZ$ink2, linewidth = 1.1, inherit.aes = FALSE,
+                 arrow = grid::arrow(length = unit(0.14, "cm"), type = "closed")) +
     geom_point(data = tq, aes(x = md, y = y), colour = VIZ$ink, size = 1.8, inherit.aes = FALSE) +
     facet_grid(model_lab ~ panel, scales = "free_x") +
     scale_y_continuous(breaks = c(0, 25, 50, 80, 95), limits = c(0, 119), expand = expansion(mult = c(0, 0))) +
@@ -310,8 +384,8 @@ if (mode == "report") {
                        sec.axis = sec_axis(~ . + 1, name = "Study Day", breaks = function(l) if (l[2] - l[1] > 30) seq(1, T_END + 1, by = 7) else seq(SS[1] + 1, SS[2] + 1, by = 7))) +
     labs(x = "Time after the first dose (days)", y = "f_TM (%)",
          title = "Target-mediated share of central elimination, f_TM",
-         subtitle = sprintf("Line = median, band = 5th to 95th percentile of %s subjects; dashed lines = 50%%, 80%%, 95%%. Grey lines and numbers = confirmed sampling days (study Day; Day 0 = pre-dose, Day 1 = %g hours\nafter the dose (placeholder, assumption B02), Day d = d - 1 days after the dose). Black bar near the bottom = 5th to 95th percentile of the true Tlast at the LLOQ (%s mg/L; point = median):\nlater f_TM values are at concentrations below the LLOQ. A = %g mg single SC dose; B = 600 mg, then 300 mg every 2 weeks, days %g to %g.",
-                            format(N, big.mark = ","), 24 * SEL[2], format(LLOQ), DOSE$A$a, SS[1], SS[2])) +
+         subtitle = sprintf("Line = median, band = 5th to 95th percentile of %s subjects; dashed lines = 50%%, 80%%, 95%%. Grey lines and numbers = confirmed sampling days (study Day; Day 0 = pre-dose, Day 1 = %g hours\nafter the dose (placeholder, assumption B02), Day d = d - 1 days after the dose). Black bar near the bottom = 5th to 95th percentile of the true Tlast at the LLOQ (%s mg/L; point = median):\nlater f_TM values are at concentrations below the LLOQ.%s A = %g mg single SC dose; B = 600 mg, then 300 mg every 2 weeks, days %g to %g.",
+                            format(N, big.mark = ","), 24 * SEL[2], format(LLOQ), cut_txt, DOSE$A$a, SS[1], SS[2])) +
     theme_dupi() + theme(panel.spacing.x = unit(1.4, "lines"), plot.subtitle = element_text(size = 8))
   ggsave(file.path(OD, "tm_fig1_ftm_curves.png"), g1, width = 12, height = 6.8, dpi = 150, bg = "white")
   # ---------------- 그림 2(17.5절 4) ----------------
@@ -340,9 +414,9 @@ if (mode == "report") {
   qs <- "Share of AUC0-last accumulated while f_TM is at or above 50%"
   rep_ <- c("# Target-mediated elimination share (addendum 1, plan section 17, D-071)", "",
             sprintf("Descriptive model-based quantities; they change no registered result. Model 1 (Kovalenko 2020 Table 1 Model 1) is the primary model and Kovalenko 2016 the sensitivity model; structure and estimates are as published. Medians over the simulated subjects at %g kg unless stated; study Day = days after the dose + 1.", WT_HEAD), "")
-  for (m_ in MODELS) rep_ <- c(rep_, sprintf("- %s: C* %s. After %g mg the lowest f_TM (at Cmax) is %s. f_TM stays at or above 50%% from study Day %s, 80%% from Day %s and 95%% from Day %s (Day 1.0 = from the dose). The share of AUC0-last accrued while f_TM is at or above 50%% is %s, of which %s after Cmax. At steady state of regimen B, f_TM is %s at Ctrough,ss, %s at Cavg,ss and %s at Cmax,ss.",
+  for (m_ in MODELS) rep_ <- c(rep_, sprintf("- %s: C* %s. After %g mg the lowest f_TM (at Cmax) is %s. f_TM stays at or above 50%% from study Day %s, 80%% from Day %s and 95%% from Day %s (Day 1.0 = from the dose). The share of AUC0-last accrued while f_TM is at or above 50%% is %s; the part of it accrued after Cmax is %s of AUC0-last. At steady state of regimen B, f_TM is %s at Ctrough,ss, %s at Cavg,ss and %s at Cmax,ss.",
       MODL[[m_]], ftxt(g(m_, "C* = Vm/ke - Km (f_TM = 50%)"), " mg/L"), DOSE$A$a, ftxt(g(m_, "Minimum f_TM (at Cmax)"), "%"), ftxt(g(m_, qd(50))), ftxt(g(m_, qd(80))), ftxt(g(m_, qd(95))),
-      ftxt(g(m_, qs), "%"), ftxt(g(m_, "Of which after Cmax (falling phase; supplementary)"), "%"), ftxt(g(m_, "f_TM at Ctrough,ss"), "%"), ftxt(g(m_, "f_TM at Cavg,ss"), "%"), ftxt(g(m_, "f_TM at Cmax,ss (lowest f_TM in the interval)"), "%")))
+      ftxt(g(m_, qs), "%"), ftxt(g(m_, "Part of that share accrued after Cmax, % of AUC0-last (supplementary)"), "%"), ftxt(g(m_, "f_TM at Ctrough,ss"), "%"), ftxt(g(m_, "f_TM at Cavg,ss"), "%"), ftxt(g(m_, "f_TM at Cmax,ss (lowest f_TM in the interval)"), "%")))
   tl_ <- function(m_) g(m_, "True Tlast at the LLOQ")
   rep_ <- c(rep_, "", sprintf("True Tlast at the LLOQ after %g mg (%g kg; coverage statement quoted Kovalenko 2016 first, plan section 16.3 item 4): Kovalenko 2016 median study Day %s (Model 1 %s); later f_TM values in Figure 1 are at concentrations below the LLOQ, where f_TM approaches Vm / (Vm + ke Km) and depends on the fixed Km. Share of subjects with a quantifiable true concentration at each sampling day: tm_quantifiable_by_day.csv.",
                               DOSE$A$a, WT_HEAD, f1(tl_("k2016")$median), f1(tl_("k2020")$median)))
@@ -351,12 +425,15 @@ if (mode == "report") {
   rep_ <- c(rep_, "", sprintf("Supplementary (not requested), %g kg medians: share of the eliminated amount through the target-mediated pathway %s; time-averaged f_TM over the B interval %s; AUCtau,ss as a percentage of the same subject's single-dose AUC0-inf (100 under linear PK) %s.", WT_HEAD,
                               paste(sprintf("%s %s %s%%", MODL[sup$model], fifelse(sup$scenario == "A", sprintf("A days 0 to %g", T_END), sprintf("B days %g to %g", SS[1], SS[2])), f1(sup$amt)), collapse = "; "),
                               paste(sprintf("%s %s%%", MODL[sup[scenario == "B"]$model], f1(sup[scenario == "B"]$tmean)), collapse = "; "), paste(sprintf("%s %s%%", MODL[MODELS], nl), collapse = "; ")),
+            sprintf("Post hoc check (plan section 17.11; supplementary), %g kg: the registered B interval (days %g to %g) is close to, but not fully at, steady state; its AUCtau is a median %s%% of the true steady-state AUCtau, and at true steady state the median f_TM is %s (%%). At true steady state, ke x 0.8 and x 1.2 change AUCtau,ss by %s%% (with C far above Km, AUCtau,ss = (F x Dose / Vc - Vm x tau) / ke), Vm by %s%% and F by %s%% (tm_true_ss.csv, tm_true_ss_change.csv). The registered values are not replaced.",
+                    WT_HEAD, SS[1], SS[2], ph_gap, ph_f1, ph_ke, ph_vm, ph_f),
             sprintf("Numbers are shown to one decimal as requested; Monte Carlo standard errors of the percentiles are in tm_table1.csv (largest for a median: %s study Days among the crossing-day rows, %s percentage points among the f_TM and share rows).",
                     f1(max(T1[unit == "study Day" & is.finite(se_median)]$se_median)), f1(max(T1[unit == "%" & is.finite(se_median)]$se_median))),
-            sprintf("Checks (plan section 17.7): %d of %d passed (tm_checks.csv).", sum(CK$pass), nrow(CK)), "",
+            sprintf("Checks (plan section 17.7): %d of %d passed; %s subjects used the fallback AUC0-inf time (descriptive) (tm_checks.csv). Post hoc true steady-state checks (section 17.11): %d of %d passed (tm_true_ss_checks.csv).",
+                    sum(CK[!is.na(limit)]$pass), nrow(CK[!is.na(limit)]), format(CK[is.na(limit)]$value), sum(CKX$pass), nrow(CKX)), "",
             "Outputs: tm_table1.md/.csv (items 2, 3 and 5), tm_table2.md/.csv (item 4), tm_fig1_ftm_curves.png (item 1), tm_fig2_elasticity.png (item 4), tm_elasticity_full.csv, tm_quantifiable_by_day.csv, tm_subjects.csv.gz, tm_typical.csv, tm_curves.csv.")
   writeLines(rep_, file.path(OD, "tm_report.md"))
   source(proj_path("regulatory", "src", "reg_helpers.R"), local = TRUE)
-  for (ff in file.path(OD, c("tm_table1.md", "tm_table2.md", "tm_report.md", "tm_table1.csv", "tm_table2.csv", "tm_elasticity_full.csv", "tm_quantifiable_by_day.csv"))) check_english(ff)
+  for (ff in file.path(OD, c("tm_table1.md", "tm_table2.md", "tm_report.md", "tm_table1.csv", "tm_table2.csv", "tm_elasticity_full.csv", "tm_quantifiable_by_day.csv", "tm_true_ss.csv", "tm_true_ss_change.csv"))) check_english(ff)
   append_run_log(lf, "report done")
 }

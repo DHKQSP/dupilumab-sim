@@ -578,6 +578,7 @@ Any change after registration is recorded in the decision log with the reason an
 2. Amendment 1 analyses (amendment 1, D-069). Every analysis of section 16 is post hoc relative to the registration of 2026-10-20; each was registered in section 16 and the configuration block amendment_20261021 before its computation, except as stated in section 13.3 items 11 and 15 (section 16.11) and section 13.4 item 3.
 3. Calibration of the between-arm variation criterion (amendment 1, D-070). The share of stored replicates with a chi-square p-value of Cochran's Q below 0.10 is reported beside the decision of section 16.7 item 3. A reviewer of the correction computed it from the stored replicates before it was registered (about 16% for each model) and after the observed Q (p = 0.36) had been computed; it does not change the decision, which stays as registered.
 4. Target-mediated share of elimination (addendum 1, D-071). The request of 2026-10-21 added the time course of the target-mediated share of central elimination after a single 300 mg dose and at steady state of the labelled regimen (section 17). It was registered in section 17 and the configuration block addendum_tm_20261021 before its computation; it is descriptive and changes no registered result.
+5. Post hoc true steady-state check for addendum 1 (addendum 1, D-071). After the first run, the output verification found that days 112 to 126 of regimen B are close to, but not fully at, steady state; section 17.11 adds a true steady-state solve (repeat doses to day 1,120) as a supplementary check beside the registered interval, registered before its computation but after the verifier's own re-solve values had been seen, and three presentation fixes.
 
 ## 14. Software and quality control
 
@@ -906,6 +907,23 @@ Unit tests in `tests/testthat/test-m15.R` check:
 - The results are conditional on the published point estimates. Parameter uncertainty (section 9; the parameter sets of section 16.8) is not applied here, so the 5th to 95th percentiles describe between-subject variability only. The spread of C_x and t_x assumes no correlation between Vm and ke (diagonal IIV, section 17.2).
 - Model 1 predicts higher healthy-volunteer 300 mg exposure than observed. The pooled predicted-to-observed AUC0-last ratio of section 16.7 is 1.115 (95% prediction interval 1.026 to 1.209) with PKM12350 and 1.068 (0.968 to 1.175) without it; the registered reading is an over-prediction driven by PKM12350. For Kovalenko 2016 the ratios are 1.027 and 0.983, and no over-prediction is shown. If the excess exposure comes from F, Vc or an under-estimated Vm, Model 1 under-states f_TM and gives later crossings; if it comes from ke, the direction is not determined. Kovalenko 2016 is reported beside Model 1.
 - Fixed weights, no residual error and no anti-drug antibodies.
+
+### 17.11 Changes after the first run (2026-10-21)
+
+The first run (registered commit 1a371e7) passed every check of section 17.7. An adversarial verification of its outputs then recomputed the subjects from first principles and traced every table cell; no displayed number was wrong. The following changes were made after that run and are listed here (deviation, section 13.4 item 5; decision log D-071).
+
+1. Presentation only; no value changes:
+   - In Figure 1, a true-Tlast bar whose 95th percentile is after day 56 is drawn to the panel edge with an arrowhead, and the subtitle gives those percentiles.
+   - The report counts the 12 checks with a limit and lists the descriptive fallback count separately.
+   - The part of the AUC0-last share accrued after Cmax is worded as a percentage of AUC0-last ("Part of that share accrued after Cmax, % of AUC0-last").
+2. Post hoc check of the steady-state interval (supplementary). The verification found that days 112 to 126 are close to, but not fully at, steady state, and that the ratio to the previous interval (section 17.5 item 5) understates the remaining gap. Its own re-solve values were seen before this item was registered: the registered-interval AUCtau at 75 kg is a median 0.8% (Model 1) and 1.2% (Kovalenko 2016) below the true steady-state value. With C much greater than Km, mass balance gives AUCtau,ss = (F x Dose / Vc - Vm x tau) / ke, so ke x 0.8 and x 1.2 change it by +25.0% and -16.7%.
+   - Method: the same subjects, weights, models and parameter changes as scenario B, with 300 mg every 2 weeks continued to day 1,120 (80 repeat doses). The true steady-state interval is days 1,120 to 1,134. Convergence is required: the AUC over that interval must be within relative 1e-6 of the AUC over the interval before it, for every subject. The AUC over days 112 to 126 from this solve must equal the registered AUCtau,ss (relative 1e-5).
+   - Reported (`tm_true_ss.csv`, a note to Table 2 and the report):
+     - the registered-interval AUCtau as a percentage of the true steady-state AUCtau (median, 5th and 95th percentiles);
+     - f_TM at Cavg and at Ctrough at true steady state;
+     - the geometric-mean percentage change of the true steady-state AUCtau, Cavg and Ctrough for Vm, ke and F x 0.8 and x 1.2;
+     - the mass-balance value (F x Dose / Vc - Vm x tau) / ke compared with the solved AUCtau.
+   - The registered tables keep the days 112 to 126 values; the post hoc values are shown beside them as notes, not substituted.
 
 ## Appendix A. Abbreviations
 
