@@ -278,3 +278,9 @@ Execution halted
 2026-10-21T09:58:11Z start scripts/78_m15_tm_fraction.R run 4
 2026-10-21T10:02:16Z done scripts/78_m15_tm_fraction.R run 4 in 245s
 2026-10-21T10:02:16Z start scripts/78_m15_tm_fraction.R report
+2026-10-21T10:02:46Z done scripts/78_m15_tm_fraction.R report in 30s
+2026-10-21T10:02:47Z start scripts/75_m15_summary.R summary
+2026-10-21T10:02:57Z done scripts/75_m15_summary.R summary in 10s
+2026-10-21T10:02:57Z start scripts/77_m15_amend.R postcheck results/m15/tm/pre_summary_copy results/m15/tm/summary_rerun_check.csv
+2026-10-21T10:03:01Z done scripts/77_m15_amend.R postcheck results/m15/tm/pre_summary_copy results/m15/tm/summary_rerun_check.csv in 4s
+2026-10-21T10:03:01Z stage tm complete

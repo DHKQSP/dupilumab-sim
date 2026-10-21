@@ -1,0 +1,15 @@
+file,status,numeric_max_rel_diff,text_columns_changed,ok
+summary/auroc_diff.csv,identical,0,"",TRUE
+summary/auroc.csv,identical,0,"",TRUE
+summary/m15_applicability.csv,identical,0,"",TRUE
+summary/m15_assumptions_register.csv,rows differ (plan-derived table),,"",TRUE
+summary/m15_deviations.csv,rows differ (plan-derived table),,"",TRUE
+summary/m15_summary_table.csv,identical,0,"",TRUE
+summary/mech_crossing_diff.csv,identical,0,"",TRUE
+summary/mech_crossing.csv,identical,0,"",TRUE
+summary/mech_pass.csv,identical,0,"",TRUE
+summary/oc_consumer_risk.csv,identical,0,"",TRUE
+summary/oc_paired_diff.csv,identical,0,"",TRUE
+summary/oc_pass.csv,identical,0,"",TRUE
+summary/oc_weight_shape.csv,identical,0,"",TRUE
+summary/pauc_zero_share.csv,identical,0,"",TRUE

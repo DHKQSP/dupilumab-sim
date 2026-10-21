@@ -1,0 +1,73 @@
+model,scenario,WT,change,metric,pair,gm_pct
+k2016,A,75,F -20%,AUClast,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",-30.7799364457316
+k2016,A,75,F +20%,AUClast,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",33.1945042679937
+k2016,A,75,Vm -20%,AUClast,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",13.4443914125805
+k2016,A,75,Vm +20%,AUClast,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",-11.0338529343154
+k2016,A,75,ke -20%,AUClast,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",11.9835750121006
+k2016,A,75,ke +20%,AUClast,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",-9.57819717117302
+k2020,A,75,F -20%,AUClast,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",-30.634646453299
+k2020,A,75,F +20%,AUClast,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",32.8258445267
+k2020,A,75,Vm -20%,AUClast,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",13.050709957528
+k2020,A,75,Vm +20%,AUClast,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",-10.8740034566472
+k2020,A,75,ke -20%,AUClast,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",12.3534219912807
+k2020,A,75,ke +20%,AUClast,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",-9.84600539402918
+k2016,A,75,F -20%,Cmax,"Cmax (A: Cmax; B: Cmax,ss)",-23.104372965757
+k2016,A,75,F +20%,Cmax,"Cmax (A: Cmax; B: Cmax,ss)",23.1509507687397
+k2016,A,75,Vm -20%,Cmax,"Cmax (A: Cmax; B: Cmax,ss)",3.15753418866753
+k2016,A,75,Vm +20%,Cmax,"Cmax (A: Cmax; B: Cmax,ss)",-3.11390921004933
+k2016,A,75,ke -20%,Cmax,"Cmax (A: Cmax; B: Cmax,ss)",3.44789762592934
+k2016,A,75,ke +20%,Cmax,"Cmax (A: Cmax; B: Cmax,ss)",-3.13572384220159
+k2020,A,75,F -20%,Cmax,"Cmax (A: Cmax; B: Cmax,ss)",-22.9433489516916
+k2020,A,75,F +20%,Cmax,"Cmax (A: Cmax; B: Cmax,ss)",23.0025433502211
+k2020,A,75,Vm -20%,Cmax,"Cmax (A: Cmax; B: Cmax,ss)",3.01232975132866
+k2020,A,75,Vm +20%,Cmax,"Cmax (A: Cmax; B: Cmax,ss)",-2.95685101024773
+k2020,A,75,ke -20%,Cmax,"Cmax (A: Cmax; B: Cmax,ss)",3.36559394654477
+k2020,A,75,ke +20%,Cmax,"Cmax (A: Cmax; B: Cmax,ss)",-3.05049777908102
+k2016,A,75,F -20%,AUCinf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",-30.7943477308485
+k2016,A,75,F +20%,AUCinf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",33.2941633653514
+k2016,A,75,Vm -20%,AUCinf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",13.5672431201182
+k2016,A,75,Vm +20%,AUCinf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",-11.053287685054
+k2016,A,75,ke -20%,AUCinf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",12.0328830101529
+k2016,A,75,ke +20%,AUCinf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",-9.59191011266275
+k2020,A,75,F -20%,AUCinf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",-30.6632366317211
+k2020,A,75,F +20%,AUCinf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",32.9658357725367
+k2020,A,75,Vm -20%,AUCinf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",13.2164693427423
+k2020,A,75,Vm +20%,AUCinf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",-10.9088315051133
+k2020,A,75,ke -20%,AUCinf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",12.4616522172072
+k2020,A,75,ke +20%,AUCinf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",-9.87621656603686
+k2016,B,75,F -20%,AUCtau_ss,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",-25.3290781967955
+k2016,B,75,F +20%,AUCtau_ss,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",25.2921693003947
+k2016,B,75,Vm -20%,AUCtau_ss,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",5.29026528958403
+k2016,B,75,Vm +20%,AUCtau_ss,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",-5.32508115521404
+k2016,B,75,ke -20%,AUCtau_ss,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",21.966652678154
+k2016,B,75,ke +20%,AUCtau_ss,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",-15.6349923479913
+k2020,B,75,F -20%,AUCtau_ss,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",-25.1194857896984
+k2020,B,75,F +20%,AUCtau_ss,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",25.0694376570341
+k2020,B,75,Vm -20%,AUCtau_ss,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",5.06666574110763
+k2020,B,75,Vm +20%,AUCtau_ss,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",-5.11359636420344
+k2020,B,75,ke -20%,AUCtau_ss,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",22.5091385032587
+k2020,B,75,ke +20%,AUCtau_ss,"AUC (A: AUC0-last, sampling to Day 57; B: AUCtau,ss)",-15.9082069963441
+k2016,B,75,F -20%,Cmax_ss,"Cmax (A: Cmax; B: Cmax,ss)",-24.7184245842279
+k2016,B,75,F +20%,Cmax_ss,"Cmax (A: Cmax; B: Cmax,ss)",24.6910894030301
+k2016,B,75,Vm -20%,Cmax_ss,"Cmax (A: Cmax; B: Cmax,ss)",4.68972715707559
+k2016,B,75,Vm +20%,Cmax_ss,"Cmax (A: Cmax; B: Cmax,ss)",-4.71567180511987
+k2016,B,75,ke -20%,Cmax_ss,"Cmax (A: Cmax; B: Cmax,ss)",19.3827643092356
+k2016,B,75,ke +20%,Cmax_ss,"Cmax (A: Cmax; B: Cmax,ss)",-13.8345347886606
+k2020,B,75,F -20%,Cmax_ss,"Cmax (A: Cmax; B: Cmax,ss)",-24.5456578086739
+k2020,B,75,F +20%,Cmax_ss,"Cmax (A: Cmax; B: Cmax,ss)",24.508569472693
+k2020,B,75,Vm -20%,Cmax_ss,"Cmax (A: Cmax; B: Cmax,ss)",4.5065072293123
+k2020,B,75,Vm +20%,Cmax_ss,"Cmax (A: Cmax; B: Cmax,ss)",-4.54155683218727
+k2020,B,75,ke -20%,Cmax_ss,"Cmax (A: Cmax; B: Cmax,ss)",19.9725225405884
+k2020,B,75,ke +20%,Cmax_ss,"Cmax (A: Cmax; B: Cmax,ss)",-14.16275875445
+k2016,B,75,F -20%,AUC_w16_inf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",-30.6775165788286
+k2016,B,75,F +20%,AUC_w16_inf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",31.9715784772419
+k2016,B,75,Vm -20%,AUC_w16_inf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",12.0971860001234
+k2016,B,75,Vm +20%,AUC_w16_inf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",-10.8193287991793
+k2016,B,75,ke -20%,AUC_w16_inf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",40.5050308387485
+k2016,B,75,ke +20%,AUC_w16_inf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",-24.344974385283
+k2020,B,75,F -20%,AUC_w16_inf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",-30.0287984343017
+k2020,B,75,F +20%,AUC_w16_inf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",31.122630412263
+k2020,B,75,Vm -20%,AUC_w16_inf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",11.2289193115357
+k2020,B,75,Vm +20%,AUC_w16_inf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",-10.1485902424414
+k2020,B,75,ke -20%,AUC_w16_inf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",41.0443174127585
+k2020,B,75,ke +20%,AUC_w16_inf,"Reference (A: AUC0-inf; B: AUC from the Week 16 dose to infinity, dosing stopped)",-24.5124363811094
