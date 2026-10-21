@@ -1,97 +1,97 @@
-schedule,endpoint,zero_share_R,zero_share_T_identity,pk_model,population,dose_mg,not_interpretable,conditionality
-ADD64_71,pAUC_0_14,0,0,k2016,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_0_14,0,0,k2016,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_0_14,0,0,k2016,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_14_28,0.0467097105229401,0.0467181665581857,k2016,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_14_28,0.0467097105229401,0.0467181665581857,k2016,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_14_28,0.0467097105229401,0.0467181665581857,k2016,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_28_56,0.67042373968444,0.669855434894317,k2016,S1,200,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_28_56,0.67042373968444,0.669855434894317,k2016,S1,200,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_28_56,0.754701329798606,0.75364838477613,k2016,S1,200,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_28_56_ext,0.0708427759011417,0.0694734678496797,k2016,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_28_56_ext,0.0708427759011417,0.0694734678496797,k2016,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_28_56_ext,0.0786163253089323,0.0774468157993902,k2016,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_0_14,0,0,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_0_14,0,0,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_0_14,0,0,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_14_28,0.00244578230827119,0.00232948511527526,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_14_28,0.00244578230827119,0.00232948511527526,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_14_28,0.00244578230827119,0.00232948511527526,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_28_56,0.246639187247725,0.245726422527491,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_28_56,0.246639187247725,0.245726422527491,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_28_56,0.539560101251967,0.538359425850433,k2016,S1,300,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_28_56_ext,0.0106810563043032,0.010131547394745,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_28_56_ext,0.0106810563043032,0.010131547394745,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_28_56_ext,0.0357032906889239,0.0350878695488335,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_0_14,0,0,k2016,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_0_14,0,0,k2016,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_0_14,0,0,k2016,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_14_28,0.0250209433930006,0.0246150946306022,k2016,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_14_28,0.0250209433930006,0.0246150946306022,k2016,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_14_28,0.0250209433930006,0.0246150946306022,k2016,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_28_56,0.569113196902088,0.568032077589383,k2016,S2,200,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_28_56,0.569113196902088,0.568032077589383,k2016,S2,200,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_28_56,0.693781949359731,0.693043858221167,k2016,S2,200,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_28_56_ext,0.0482381904908448,0.0482449000574038,k2016,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_28_56_ext,0.0482381904908448,0.0482449000574038,k2016,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_28_56_ext,0.0596074609769024,0.0599141513232862,k2016,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_0_14,0,0,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_0_14,0,0,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_0_14,0,0,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_14_28,0.00101725051717358,0.000985280762178927,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_14_28,0.00101725051717358,0.000985280762178927,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_14_28,0.00101725051717358,0.000985280762178927,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_28_56,0.172830008035424,0.17362360561353,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_28_56,0.172830008035424,0.17362360561353,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_28_56,0.506265921252842,0.503538443085043,k2016,S2,300,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_28_56_ext,0.00590689165854576,0.00586884627906578,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_28_56_ext,0.00590689165854576,0.00586884627906578,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_28_56_ext,0.0334837838299909,0.0336623314313131,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_0_14,0,0,k2020,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_0_14,0,0,k2020,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_0_14,0,0,k2020,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_14_28,0.028922050711934,0.0289215854201638,k2020,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_14_28,0.028922050711934,0.0289215854201638,k2020,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_14_28,0.028922050711934,0.0289215854201638,k2020,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_28_56,0.544165562064395,0.542855674694255,k2020,S1,200,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_28_56,0.544165562064395,0.542855674694255,k2020,S1,200,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_28_56,0.683328344806944,0.682359288821897,k2020,S1,200,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_28_56_ext,0.0358489759267969,0.0343855983008462,k2020,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_28_56_ext,0.0358489759267969,0.0343855983008462,k2020,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_28_56_ext,0.0461795014324197,0.0449624884382173,k2020,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_0_14,0,0,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_0_14,0,0,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_0_14,0,0,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_14_28,0.00134261476363139,0.00131033537734233,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_14_28,0.00134261476363139,0.00131033537734233,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_14_28,0.00134261476363139,0.00131033537734233,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_28_56,0.170734418827393,0.172416155664417,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_28_56,0.170734418827393,0.172416155664417,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_28_56,0.505815146746939,0.505189955808297,k2020,S1,300,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_28_56_ext,0.00467777245672847,0.00486451303483951,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_28_56_ext,0.00467777245672847,0.00486451303483951,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_28_56_ext,0.0286738044742423,0.0283306498578329,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_0_14,0,0,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_0_14,0,0,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_0_14,0,0,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_14_28,0.0151818228445402,0.0150192345588046,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_14_28,0.0151818228445402,0.0150192345588046,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_14_28,0.0151818228445402,0.0150192345588046,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_28_56,0.444812022362415,0.442120685075867,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_28_56,0.444812022362415,0.442120685075867,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_28_56,0.631071446889265,0.629736884943924,k2020,S2,200,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_28_56_ext,0.0226787027063993,0.0231585801554187,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_28_56_ext,0.0226787027063993,0.0231585801554187,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_28_56_ext,0.036492793763143,0.0372782028324923,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_0_14,0,0,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_0_14,0,0,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_0_14,0,0,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_14_28,0.000504351096749927,0.000514059528093353,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_14_28,0.000504351096749927,0.000514059528093353,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_14_28,0.000504351096749927,0.000514059528093353,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_28_56,0.114470602314886,0.116751486488802,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_28_56,0.114470602314886,0.116751486488802,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_28_56,0.476124531979279,0.474279888277729,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-ADD64_71,pAUC_28_56_ext,0.00260723872048691,0.00274165081649788,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-B0,pAUC_28_56_ext,0.00260723872048691,0.00274165081649788,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
-RM36_50,pAUC_28_56_ext,0.0277649552922672,0.0275278877293991,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
+schedule,endpoint,zero_share_R,zero_share_T_identity,pk_model,population,dose_mg,not_interpretable,conditionality,limitation
+ADD64_71,pAUC_0_14,0,0,k2016,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+B0,pAUC_0_14,0,0,k2016,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+RM36_50,pAUC_0_14,0,0,k2016,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+ADD64_71,pAUC_14_28,0.0467097105229401,0.0467181665581857,k2016,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+B0,pAUC_14_28,0.0467097105229401,0.0467181665581857,k2016,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+RM36_50,pAUC_14_28,0.0467097105229401,0.0467181665581857,k2016,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+ADD64_71,pAUC_28_56,0.67042373968444,0.669855434894317,k2016,S1,200,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+B0,pAUC_28_56,0.67042373968444,0.669855434894317,k2016,S1,200,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+RM36_50,pAUC_28_56,0.754701329798606,0.75364838477613,k2016,S1,200,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+ADD64_71,pAUC_28_56_ext,0.0708427759011417,0.0694734678496797,k2016,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+B0,pAUC_28_56_ext,0.0708427759011417,0.0694734678496797,k2016,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+RM36_50,pAUC_28_56_ext,0.0786163253089323,0.0774468157993902,k2016,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+ADD64_71,pAUC_0_14,0,0,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+B0,pAUC_0_14,0,0,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+RM36_50,pAUC_0_14,0,0,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+ADD64_71,pAUC_14_28,0.00244578230827119,0.00232948511527526,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+B0,pAUC_14_28,0.00244578230827119,0.00232948511527526,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+RM36_50,pAUC_14_28,0.00244578230827119,0.00232948511527526,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+ADD64_71,pAUC_28_56,0.246639187247725,0.245726422527491,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+B0,pAUC_28_56,0.246639187247725,0.245726422527491,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+RM36_50,pAUC_28_56,0.539560101251967,0.538359425850433,k2016,S1,300,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+ADD64_71,pAUC_28_56_ext,0.0106810563043032,0.010131547394745,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+B0,pAUC_28_56_ext,0.0106810563043032,0.010131547394745,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+RM36_50,pAUC_28_56_ext,0.0357032906889239,0.0350878695488335,k2016,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+ADD64_71,pAUC_0_14,0,0,k2016,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+B0,pAUC_0_14,0,0,k2016,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+RM36_50,pAUC_0_14,0,0,k2016,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+ADD64_71,pAUC_14_28,0.0250209433930006,0.0246150946306022,k2016,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+B0,pAUC_14_28,0.0250209433930006,0.0246150946306022,k2016,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+RM36_50,pAUC_14_28,0.0250209433930006,0.0246150946306022,k2016,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+ADD64_71,pAUC_28_56,0.569113196902088,0.568032077589383,k2016,S2,200,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+B0,pAUC_28_56,0.569113196902088,0.568032077589383,k2016,S2,200,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+RM36_50,pAUC_28_56,0.693781949359731,0.693043858221167,k2016,S2,200,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+ADD64_71,pAUC_28_56_ext,0.0482381904908448,0.0482449000574038,k2016,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+B0,pAUC_28_56_ext,0.0482381904908448,0.0482449000574038,k2016,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+RM36_50,pAUC_28_56_ext,0.0596074609769024,0.0599141513232862,k2016,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+ADD64_71,pAUC_0_14,0,0,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+B0,pAUC_0_14,0,0,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+RM36_50,pAUC_0_14,0,0,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+ADD64_71,pAUC_14_28,0.00101725051717358,0.000985280762178927,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+B0,pAUC_14_28,0.00101725051717358,0.000985280762178927,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+RM36_50,pAUC_14_28,0.00101725051717358,0.000985280762178927,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+ADD64_71,pAUC_28_56,0.172830008035424,0.17362360561353,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+B0,pAUC_28_56,0.172830008035424,0.17362360561353,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+RM36_50,pAUC_28_56,0.506265921252842,0.503538443085043,k2016,S2,300,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+ADD64_71,pAUC_28_56_ext,0.00590689165854576,0.00586884627906578,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+B0,pAUC_28_56_ext,0.00590689165854576,0.00586884627906578,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+RM36_50,pAUC_28_56_ext,0.0334837838299909,0.0336623314313131,k2016,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+ADD64_71,pAUC_0_14,0,0,k2020,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+B0,pAUC_0_14,0,0,k2020,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+RM36_50,pAUC_0_14,0,0,k2020,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+ADD64_71,pAUC_14_28,0.028922050711934,0.0289215854201638,k2020,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+B0,pAUC_14_28,0.028922050711934,0.0289215854201638,k2020,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+RM36_50,pAUC_14_28,0.028922050711934,0.0289215854201638,k2020,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+ADD64_71,pAUC_28_56,0.544165562064395,0.542855674694255,k2020,S1,200,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+B0,pAUC_28_56,0.544165562064395,0.542855674694255,k2020,S1,200,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+RM36_50,pAUC_28_56,0.683328344806944,0.682359288821897,k2020,S1,200,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+ADD64_71,pAUC_28_56_ext,0.0358489759267969,0.0343855983008462,k2020,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+B0,pAUC_28_56_ext,0.0358489759267969,0.0343855983008462,k2020,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+RM36_50,pAUC_28_56_ext,0.0461795014324197,0.0449624884382173,k2020,S1,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+ADD64_71,pAUC_0_14,0,0,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+B0,pAUC_0_14,0,0,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+RM36_50,pAUC_0_14,0,0,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+ADD64_71,pAUC_14_28,0.00134261476363139,0.00131033537734233,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+B0,pAUC_14_28,0.00134261476363139,0.00131033537734233,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+RM36_50,pAUC_14_28,0.00134261476363139,0.00131033537734233,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+ADD64_71,pAUC_28_56,0.170734418827393,0.172416155664417,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+B0,pAUC_28_56,0.170734418827393,0.172416155664417,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+RM36_50,pAUC_28_56,0.505815146746939,0.505189955808297,k2020,S1,300,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+ADD64_71,pAUC_28_56_ext,0.00467777245672847,0.00486451303483951,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+B0,pAUC_28_56_ext,0.00467777245672847,0.00486451303483951,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+RM36_50,pAUC_28_56_ext,0.0286738044742423,0.0283306498578329,k2020,S1,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+ADD64_71,pAUC_0_14,0,0,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+B0,pAUC_0_14,0,0,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+RM36_50,pAUC_0_14,0,0,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+ADD64_71,pAUC_14_28,0.0151818228445402,0.0150192345588046,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+B0,pAUC_14_28,0.0151818228445402,0.0150192345588046,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+RM36_50,pAUC_14_28,0.0151818228445402,0.0150192345588046,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+ADD64_71,pAUC_28_56,0.444812022362415,0.442120685075867,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+B0,pAUC_28_56,0.444812022362415,0.442120685075867,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+RM36_50,pAUC_28_56,0.631071446889265,0.629736884943924,k2020,S2,200,TRUE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+ADD64_71,pAUC_28_56_ext,0.0226787027063993,0.0231585801554187,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+B0,pAUC_28_56_ext,0.0226787027063993,0.0231585801554187,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+RM36_50,pAUC_28_56_ext,0.036492793763143,0.0372782028324923,k2020,S2,200,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,Limited by the known AUC0-last under-prediction for the 200 mg presentation (plan section 6.3).
+ADD64_71,pAUC_0_14,0,0,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+B0,pAUC_0_14,0,0,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+RM36_50,pAUC_0_14,0,0,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+ADD64_71,pAUC_14_28,0.000504351096749927,0.000514059528093353,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+B0,pAUC_14_28,0.000504351096749927,0.000514059528093353,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+RM36_50,pAUC_14_28,0.000504351096749927,0.000514059528093353,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+ADD64_71,pAUC_28_56,0.114470602314886,0.116751486488802,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+B0,pAUC_28_56,0.114470602314886,0.116751486488802,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+RM36_50,pAUC_28_56,0.476124531979279,0.474279888277729,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+ADD64_71,pAUC_28_56_ext,0.00260723872048691,0.00274165081649788,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+B0,pAUC_28_56_ext,0.00260723872048691,0.00274165081649788,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""
+RM36_50,pAUC_28_56_ext,0.0277649552922672,0.0275278877293991,k2020,S2,300,FALSE,Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).,""

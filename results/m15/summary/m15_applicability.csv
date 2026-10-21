@@ -1,0 +1,5 @@
+pk_model,population,enrolled_min_kg,enrolled_max_kg,internal_studies_with_known_range,known_range_lo_kg,known_range_hi_kg,outside_known_pct,development_data_full_range,conditionality
+k2020,S1,58.0011772051173,89.9999816224301,R668-AS-0907 and TDU12265,52.1,95.1,0,not recorded in the repository (publication tables not accessible),Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
+k2016,S1,58.0011772051173,89.9999816224301,R668-AS-0907,58,95.1,0,not recorded in the repository (publication tables not accessible),Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
+k2020,S2,52.1008780293324,78.2999712265362,R668-AS-0907 and TDU12265,52.1,95.1,0,not recorded in the repository (publication tables not accessible),Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
+k2016,S2,52.1008780293324,78.2999712265362,R668-AS-0907,58,95.1,5.9215,not recorded in the repository (publication tables not accessible),Conditional on a primary model that did not pass the pre-specified external check (plan section 6.2).
