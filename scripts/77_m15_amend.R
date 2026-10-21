@@ -364,7 +364,7 @@ if (mode == "ppcstored") {
   B7[, interval_note := "prediction intervals of the ratio (not confidence intervals)"]
   m15_fwrite_cond(B7, file.path(PD2, "seven_arm_bias.csv"), "")
   # 군 간 변동 점검(16.7절 3): Cochran Q(관측 SD로 군 안 표본오차), I2, DerSimonian-Laird tau2, 모델별 모의 Q 분포
-  HC <- AM$ppc$between_arm_check; ha <- unlist(HC$arms)
+  HC <- AM$ppc$between_arm_check; ha <- unlist(HC$arms); PTH <- as.numeric(HC$present_p_below); stopifnot(length(PTH) == 1, is.finite(PTH))
   qstat <- function(mu, sdv, n) { y <- log(mu); v <- (sdv / mu)^2 / n; w <- 1 / v; yw <- sum(w * y) / sum(w); Q <- sum(w * (y - yw)^2); k <- length(y)
     t2 <- max(0, (Q - (k - 1)) / (sum(w) - sum(w^2) / sum(w))); c(Q = Q, df = k - 1, var_y = var(y), mean_v = mean(v), tau2 = t2) }
   oo <- lapply(ha, function(aid) V$arms[[aid]]$observed); nn6 <- vapply(ha, function(aid) as.numeric(V$arms[[aid]]$n_subj), 1)
@@ -372,7 +372,7 @@ if (mode == "ppcstored") {
   sims <- rbindlist(lapply(c("k2020", "k2016"), function(m) { z <- REP[pk_model == m & wmode == "primary" & arm %in% ha]
     qq <- z[, { o_ <- match(ha, arm); as.list(qstat(AUClast_mean[o_], AUClast_cv[o_] / 100 * AUClast_mean[o_], n[o_])) }, by = rep]
     data.table(pk_model = m, sim_share_Q_ge_observed_pct = 100 * mean(qq$Q >= q0[["Q"]]), sim_share_p_below_threshold_pct = 100 * mean(1 - pchisq(qq$Q, qq$df) < PTH), sim_Q_median = median(qq$Q), sim_Q_p95 = q_(qq$Q, 0.95), n_rep = nrow(qq)) }))
-  pval <- 1 - pchisq(q0[["Q"]], q0[["df"]]); PTH <- as.numeric(HC$present_p_below); stopifnot(length(PTH) == 1, is.finite(PTH))
+  pval <- 1 - pchisq(q0[["Q"]], q0[["df"]])
   HCT <- data.table(arms = paste(ha, collapse = ";"), n_arms = length(ha), n_subj = sum(nn6), cochran_Q = q0[["Q"]], df = q0[["df"]], p_value = pval, I2_pct = 100 * max(0, (q0[["Q"]] - q0[["df"]]) / q0[["Q"]]),
                     tau2_DL = q0[["tau2"]], tau_cv_pct = 100 * sqrt(exp(q0[["tau2"]]) - 1), var_log_arm_means = q0[["var_y"]], mean_within_arm_var = q0[["mean_v"]], ratio_observed_to_expected = q0[["var_y"]] / q0[["mean_v"]],
                     present = pval < PTH, p_threshold = PTH, criterion = as.character(HC$present_if), note = "the two arms of a study are different products, so the variation includes product and study differences")

@@ -186,3 +186,5 @@ run log: /home/user/dupilumab-sim/logs/m15_amend_p1report_20261021T051931.log
 Error in if (unit == "pp") 1 else 3 : the condition has length > 1
 Calls: [ ... ci_ -> ifelse -> sprintf -> fmt -> ifelse -> formatC
 Execution halted
+2026-10-21T05:24:28Z start scripts/77_m15_amend.R ppcstored
+2026-10-21T05:24:33Z FAILED scripts/77_m15_amend.R ppcstored (exit 1)
