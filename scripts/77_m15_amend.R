@@ -149,15 +149,19 @@ if (mode == "mechx") {
 if (mode == "weightcheck") {
   lf <- start_run_log("m15_amend_weightcheck", master_seed = MS, run_mode = "final")
   WR <- fread(file.path(RD, "weight", "weight_ratio.csv")); TOL <- as.numeric(AM$weight_check$tolerance); REF <- as.numeric(CFG$weight_effect$reference_kg)
-  # 독립 계산: 전형 대상자(η = 0) AUC0-inf = 4,000일까지 ODE 누적 AUC, Cmax = 0.005일 격자 최댓값의 세 점 포물선 보정(등록 함수는 0.01일 격자 + 같은 보정)
+  # 독립 계산(solve_model 따로 호출): 전형 대상자(η = 0) AUC0-inf = 4,000일까지 ODE 누적 AUC(조밀 시간 격자; 400일에서 4,000일로 한 번에 건너뛰면 transit 모델 풀이가 실패),
+  # Cmax = 등록 정의(0.01일 격자 최댓값의 세 점 포물선 보정, 8.6절). 참고 열: 0.001일 격자 Cmax 비(수치 정밀도)
+  TT <- c(seq(0.001, 60, by = 0.001), seq(61, 400, by = 1), seq(410, 4000, by = 10))
+  pmax3 <- function(time, C) { i <- which.max(C); v <- C[i]
+    if (i > 1 && i < length(C)) { tt <- time[(i - 1):(i + 1)]; cc <- C[(i - 1):(i + 1)]; A <- cbind(tt^2, tt, 1); co <- solve(A, cc); if (co[1] < 0) v <- co[3] - co[2]^2 / (4 * co[1]) }
+    v }
   indep <- function(p, wts, dose) {
     ip <- individual_params(p, data.table(id = seq_along(wts), WT = wts))
-    s <- solve_model(ip, CJ(id = seq_along(wts), time = c(seq(0.005, 60, by = 0.005), 400, 4000)), dose, model_id = p$model_id)
-    a <- s[time == 4000, .(id, AUCinf = auc)]
-    cm <- s[time <= 60][order(id, time)][, { i <- which.max(C); v <- C[i]
-      if (i > 1 && i < .N) { tt <- time[(i - 1):(i + 1)]; cc <- C[(i - 1):(i + 1)]; A <- cbind(tt^2, tt, 1); co <- solve(A, cc); if (co[1] < 0) v <- co[3] - co[2]^2 / (4 * co[1]) }
-      .(Cmax = v) }, by = id]
-    merge(a, cm, by = "id")[order(id)] }
+    s <- solve_model(ip, CJ(id = seq_along(wts), time = TT), dose, model_id = p$model_id); stopifnot(!anyNA(s$auc), !anyNA(s$C))
+    a <- s[abs(time - 4000) < 1e-9, .(id, AUCinf = auc)]
+    g01 <- s[time <= 60 + 1e-9 & abs(time * 100 - round(time * 100)) < 1e-6][order(id, time)]
+    cm <- g01[, .(Cmax = pmax3(time, C)), by = id]; cf <- s[time <= 60 + 1e-9][order(id, time)][, .(Cmax_fine = pmax3(time, C)), by = id]
+    merge(merge(a, cm, by = "id"), cf, by = "id")[order(id)] }
   CK <- rbindlist(lapply(split(WR, by = c("pk_model", "dose_mg", "population")), function(z) {
     p <- load_params(z$pk_model[1]); d <- z$dose_mg[1]; w <- sort(unique(z$WT)); I <- indep(p, c(w, REF), d); r0 <- I[.N]
     T_ <- m15_typical_metrics(p, c(w, REF), d, last_day = max(as.numeric(CFG$schedules$B0))); t0 <- T_[.N]
@@ -165,7 +169,7 @@ if (mode == "weightcheck") {
       rc <- switch(mt, AUCinf = I$AUCinf[j] / r0$AUCinf, Cmax = I$Cmax[j] / r0$Cmax, AUClast_dense_B0 = T_$AUClast_dense[j] / t0$AUClast_dense)
       data.table(pk_model = z$pk_model[i], dose_mg = d, population = z$population[i], prob = z$prob[i], WT = z$WT[i], metric = mt, theta_WT = p$cov$theta_WT,
                  stored_typical_ratio = z$typical_ratio[i], recomputed = rc, method = if (mt == "AUClast_dense_B0") "registered function" else "independent solver call",
-                 rel_diff = abs(rc / z$typical_ratio[i] - 1)) })) }))
+                 rel_diff = abs(rc / z$typical_ratio[i] - 1), cmax_ratio_fine_grid = if (mt == "Cmax") I$Cmax_fine[j] / r0$Cmax_fine else NA_real_) })) }))
   CK[, pass := rel_diff <= TOL]
   m15_fwrite_cond(CK, file.path(AD, "weight_check.csv"), COND)
   # 진단 모델(16.4절 1): 공변량 모델(BMI 인자 1; 평균 키 BMI; 조건부 중앙 키 BMI), 기본 모델. 300 mg, 인종 인자 1. BMI_ref는 고정 키에서 비에 영향 없음
@@ -174,8 +178,8 @@ if (mode == "weightcheck") {
   POPS <- CFG$populations
   tm_bmi <- function(p, wts, bmi, dose) {                            # m15_typical_metrics와 같은 풀이(0.01일 격자, 400/4,000일), eta 표에 BMI 열
     pp <- p; ip <- individual_params(pp, data.table(id = seq_along(wts), WT = wts, BMI = bmi, ada = 0))
-    s <- solve_model(ip, CJ(id = seq_along(wts), time = c(seq(0.01, 60, by = 0.01), 400, 4000)), dose, model_id = pp$model_id)
-    a <- s[time == 4000, .(id, AUCinf = auc)]
+    s <- solve_model(ip, CJ(id = seq_along(wts), time = c(seq(0.01, 60, by = 0.01), seq(61, 400, by = 1), seq(410, 4000, by = 10))), dose, model_id = pp$model_id); stopifnot(!anyNA(s$auc))
+    a <- s[abs(time - 4000) < 1e-9, .(id, AUCinf = auc)]
     cm <- s[time <= 60][order(id, time)][, { i <- which.max(C); v <- C[i]
       if (i > 1 && i < .N) { tt <- time[(i - 1):(i + 1)]; cc <- C[(i - 1):(i + 1)]; A <- cbind(tt^2, tt, 1); co <- solve(A, cc); if (co[1] < 0) v <- co[3] - co[2]^2 / (4 * co[1]) }
       .(Cmax = v) }, by = id]
@@ -328,7 +332,9 @@ if (mode == "ppcstored") {
   nn <- vapply(oa, function(aid) as.numeric(V$arms[[aid]]$n_subj), 1); stopifnot(length(oa) == as.integer(SA$observed_arms), sum(nn) == as.numeric(SA$observed_n))
   obs7 <- sum(nn * vapply(oa, ob, 1, e = "AUClast")) / sum(nn)
   B7 <- rbindlist(lapply(c("k2020", "k2016"), function(m) rbindlist(lapply(c("primary", "wunc", "w70", "w86"), function(md) rbindlist(lapply(list(obs6 = oa, all7 = arms), function(set_) {
-    z <- REP[pk_model == m & wmode == md & arm %in% set_]; if (!nrow(z)) return(NULL); stopifnot(uniqueN(z$arm) == length(set_))
+    nr_ <- REP[pk_model == m & wmode == md, max(rep)]; if (!is.finite(nr_)) return(NULL)
+    z <- rbind(REP[pk_model == m & wmode == md & arm %in% set_], REP[pk_model == m & wmode == "primary" & arm %in% setdiff(set_, REP[pk_model == m & wmode == md, unique(arm)]) & rep <= nr_])   # 범위만 알려진 군(R668-AS-0907)은 모드와 무관(등록 규칙과 같음)
+    stopifnot(uniqueN(z$arm) == length(set_), all(z[, .N, by = arm]$N == nr_))
     pr <- z[, .(v = sum(n * AUClast_mean) / sum(n), wt = sum(n * WT_mean) / sum(n)), by = rep]$v
     wt <- z[, .(wt = sum(n * WT_mean) / sum(n)), by = rep]$wt
     data.table(pk_model = m, wmode = md, arm_set = if (length(set_) == length(oa)) "six arms with observed AUC0-last (n 102)" else "all seven arms (prediction only)", observed_mean_6arms = obs7,
