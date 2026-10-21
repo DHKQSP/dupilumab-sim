@@ -28,18 +28,17 @@ models:
       add:  {estimate: 0.03,   fixed: true}
     not_used_column: "BLQ data excluded column (V2 2.60, ke 0.0488, k23 0.104, k32 0.173, ka 0.261, Vm 1.06, F 0.623, WT 0.737; omega2 0.0295, 0.131, 0.230, 0.0379; proportional 18.2%, additive 0.871) recorded only; it is not the repository implementation"
   k2020:
-    source: "no standard errors of Kovalenko 2020 Table 1 Model 1 are available; standard errors of the Kovalenko 2020 covariate model (Kovalenko 2021 Table 2 adult column, supplied 2026-10-21) are borrowed for the matching Model 1 parameters"
+    source: "correction of 2026-10-21: Model 1's own bootstrap intervals (Kovalenko 2020 Table 1 = FDA 2017 review Table 4.6.6) will be supplied by the requester and added in a dated addendum; until then the Kovalenko 2016 bootstrap relative widths are applied to the corresponding Model 1 parameters (borrowed uncertainty)"
     sets:
-      borrowed_covariate_model:                 # 주: 공변량 모델 표준오차 차용(상대 SE는 로그 척도, 지수는 절대 SE)
+      borrowed_k2016_relative:                  # 양수 파라미터: Kovalenko 2016 로그 척도 SD; 체중 지수: Kovalenko 2016 상대 SE(SE/0.705) x 0.711
         theta:
-          Vc:       {estimate: 2.48,  scale: log,    sd_log_from: {estimate: 2.74, se: 0.021},     label: "covariate model Vc 2.74 (SE 0.021)"}
-          ke:       {estimate: 0.0534, scale: log,   sd_log_from: {estimate: 0.0477, se: 0.00078}, label: "covariate model ke 0.0477 (SE 0.00078)"}
-          theta_WT: {estimate: 0.711, scale: linear, se: 0.031,                                     label: "covariate model weight exponent 0.817 (SE 0.031), absolute SE"}
-      borrowed_covariate_model_and_k2016:       # 민감도: 위 + Vm, F, ka에 Kovalenko 2016 붓스트랩 백분위수에서 얻은 로그 척도 SE
-        include: borrowed_covariate_model
-        theta:
-          Vmax: {estimate: 1.07,  scale: log, sd_log_borrow_k2016: Vmax}
-          F:    {estimate: 0.643, scale: log, sd_log_borrow_k2016: F}
-          ka:   {estimate: 0.256, scale: log, sd_log_borrow_k2016: ka}
-    fixed_in_all_sets: [k12, k21, MTT, n_transit, Km, "all omega2", "sigma prop", "sigma add"]
-    not_used: "albumin, BMI, EASI and race coefficient standard errors (no counterpart in Model 1)"
+          Vc:       {estimate: 2.48,   scale: log,    sd_log_borrow_k2016: Vc,   paper_name: "Vc (Kovalenko 2016 V2)"}
+          ke:       {estimate: 0.0534, scale: log,    sd_log_borrow_k2016: ke}
+          k12:      {estimate: 0.213,  scale: log,    sd_log_borrow_k2016: k12,  paper_name: "kcp (Kovalenko 2016 k23)"}
+          k21:      {estimate: 0.310,  scale: log,    sd_log_borrow_k2016: k21,  paper_name: "kpc (Kovalenko 2016 k32)"}
+          ka:       {estimate: 0.256,  scale: log,    sd_log_borrow_k2016: ka}
+          Vmax:     {estimate: 1.07,   scale: log,    sd_log_borrow_k2016: Vmax, paper_name: Vm}
+          F:        {estimate: 0.643,  scale: log,    sd_log_borrow_k2016: F}
+          theta_WT: {estimate: 0.711,  scale: linear, se_rel_borrow_k2016: theta_WT}
+    fixed_in_all_sets: [MTT, n_transit, Km, "all omega2", "sigma prop", "sigma add"]
+    not_used: "Model 4 standard errors supplied in the first request of 2026-10-21 (Vc 2.74 (0.021), ke 0.0477 (0.00078), weight 0.817 (0.031), albumin -0.653 (0.072), BMI 0.368 (0.053), EASI 0.143 (0.021), white race 0.123 (0.018)): they belong to Model 4 and leave out F, ka, Vm, kcp, kpc and MTT (correction of 2026-10-21)"

@@ -12,26 +12,27 @@ pu_cfg <- function(file = "param_uncertainty_m15.yaml") read_cfg(file)
 pu_entries_k2016 <- function(PU) {
   m <- PU$models$k2016; div <- as.numeric(PU$se_rule$divisor)
   E <- rbindlist(lapply(c("theta", "omega2", "sigma"), function(g) rbindlist(lapply(names(m[[g]]), function(nm) { e <- m[[g]][[nm]]
-    if (isTRUE(e$fixed)) return(NULL)
-    p05 <- as.numeric(e$p05); p95 <- as.numeric(e$p95); est <- as.numeric(e$estimate)
+    if (isTRUE(e[["fixed"]])) return(NULL)
+    p05 <- as.numeric(e[["p05"]]); p95 <- as.numeric(e[["p95"]]); est <- as.numeric(e[["estimate"]])
     if (!(p05 <= est && est <= p95)) stop(sprintf("k2016 %s.%s: 추정값 %g가 [P5, P95] = [%g, %g] 밖", g, nm, est, p05, p95))
-    data.table(group = g, name = nm, estimate = est, scale = e$scale, p05 = p05, p95 = p95,
-               sd_log = if (e$scale == "log") (log(p95) - log(p05)) / div else NA_real_, se_lin = if (e$scale == "linear") (p95 - p05) / div else NA_real_) }))))
+    data.table(group = g, name = nm, estimate = est, scale = e[["scale"]], p05 = p05, p95 = p95,
+               sd_log = if (e[["scale"]] == "log") (log(p95) - log(p05)) / div else NA_real_, se_lin = if (e[["scale"]] == "linear") (p95 - p05) / div else NA_real_) }))))
   stopifnot(all(E$scale %in% c("log", "linear")), all(paste(E$group, E$name, sep = ".") %in% PU_NAMES))
   E[]
 }
 
-# k2020(Model 1): 세트 이름(borrowed_covariate_model 또는 borrowed_covariate_model_and_k2016) → 같은 형식
+# k2020(Model 1): 세트 이름(borrowed_k2016_relative; 정정 2026-10-21) → 같은 형식
 pu_entries_k2020 <- function(PU, set) {
   S <- PU$models$k2020$sets; s <- S[[set]]; if (is.null(s)) stop("k2020 세트 없음: ", set)
   base <- if (!is.null(s$include)) pu_entries_k2020(PU, s$include) else NULL
   D <- pu_entries_k2016(PU)
-  E <- rbindlist(lapply(names(s$theta), function(nm) { e <- s$theta[[nm]]; est <- as.numeric(e$estimate)
+  E <- rbindlist(lapply(names(s$theta), function(nm) { e <- s$theta[[nm]]; est <- as.numeric(e[["estimate"]])
     sdl <- NA_real_; sel <- NA_real_
-    if (!is.null(e$sd_log_from)) sdl <- as.numeric(e$sd_log_from$se) / as.numeric(e$sd_log_from$estimate)          # 상대 SE를 로그 척도 SD로
-    if (!is.null(e$se)) sel <- as.numeric(e$se)                                                                       # 절대 SE(선형 척도)
-    if (!is.null(e$sd_log_borrow_k2016)) { d <- D[group == "theta" & name == e$sd_log_borrow_k2016]; stopifnot(nrow(d) == 1, d$scale == "log"); sdl <- d$sd_log }
-    data.table(group = "theta", name = nm, estimate = est, scale = e$scale, p05 = NA_real_, p95 = NA_real_, sd_log = sdl, se_lin = sel) }))
+    if (!is.null(e[["sd_log_from"]])) sdl <- as.numeric(e[["sd_log_from"]][["se"]]) / as.numeric(e[["sd_log_from"]][["estimate"]])          # 상대 SE를 로그 척도 SD로
+    if (!is.null(e[["se"]])) sel <- as.numeric(e[["se"]])                                                                       # 절대 SE(선형 척도)
+    if (!is.null(e[["sd_log_borrow_k2016"]])) { d <- D[group == "theta" & name == e[["sd_log_borrow_k2016"]]]; stopifnot(nrow(d) == 1, d$scale == "log"); sdl <- d$sd_log }
+    if (!is.null(e[["se_rel_borrow_k2016"]])) { d <- D[group == "theta" & name == e[["se_rel_borrow_k2016"]]]; stopifnot(nrow(d) == 1, d$scale == "linear"); sel <- d$se_lin / d$estimate * est }   # 상대 SE 차용
+    data.table(group = "theta", name = nm, estimate = est, scale = e[["scale"]], p05 = NA_real_, p95 = NA_real_, sd_log = sdl, se_lin = sel) }))
   if (!is.null(base)) E <- rbind(base[!base$name %in% E$name], E)
   stopifnot(all((E$scale == "log" & is.finite(E$sd_log) & E$sd_log > 0) | (E$scale == "linear" & is.finite(E$se_lin) & E$se_lin > 0)),
             all(paste(E$group, E$name, sep = ".") %in% PU_NAMES))

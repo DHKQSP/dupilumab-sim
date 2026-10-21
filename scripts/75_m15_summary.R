@@ -292,13 +292,13 @@ if (mode == "figures") {
   U[, `:=`(model_lab = factor(MODS[pk_model], MODS), weight_lab = fifelse(wmode == "primary", "Fixed weight assumption", "Uncertain-mean weight assumption"),
            metric_lab = c(AUClast_mean = "AUC0-last mean (mg x day/L)", AUClast_cv_within = "AUC0-last within-arm CV (%)", Cmax_mean = "Cmax mean (mg/L)")[metric])]
   ULAB <- c(tdu12265_300 = "TDU12265 300 mg", tdu12265_600 = "TDU12265 600 mg", PKM12350 = "PKM12350", PKM14161 = "PKM14161", `R668-HV-1108` = "R668-HV-1108"); stopifnot(all(U$unit %in% names(ULAB)))
-  U[, unit_lab := paste0(ULAB[unit], fifelse(dev_status == "external", " (not in recorded development data)", ""))]   # 개발 자료 여부는 모델마다 달라 행마다 y 눈금을 따로 둔다(개정 1 표기, 계획서 16.5절)
+  U[, unit_lab := paste0(ULAB[unit], fifelse(dev_status == "external", " (out-of-sample)", ""))]   # 개발 자료 여부는 모델마다 달라 행마다 y 눈금을 따로 둔다(개정 1 표기, 계획서 16.5절)
   U[, unit_lab := factor(unit_lab, unique(unit_lab[order(match(unit, rev(names(ULAB))))]))]
   g1 <- ggplot(U, aes(y = unit_lab)) + geom_errorbarh(aes(xmin = pi_lo, xmax = pi_hi, colour = weight_lab), height = 0.25, position = position_dodge(width = 0.5)) +
     geom_point(aes(x = pred_median, colour = weight_lab), position = position_dodge(width = 0.5), size = 1.8) + geom_point(aes(x = observed), shape = 4, size = 2.6, stroke = 1, colour = VIZ$ink) +
     facet_grid(model_lab ~ metric_lab, scales = "free") + scale_colour_manual(values = COLS3[1:2], name = NULL) + labs(x = "Predicted median and 95% prediction interval; cross = observed", y = NULL,
     title = "Posterior predictive check (Li 2020 healthy-volunteer studies)",
-    subtitle = "Five rule units; parallel-group studies pool both arms; rule R4 judges units outside the recorded development data against the 99% interval") + theme_dupi()
+    subtitle = "Five rule units; parallel-group studies pool both arms; rule R4 judges out-of-sample units against the 99% interval") + theme_dupi()
   save_fig(g1, "fig1_validation", 12, 6.5, U)
   # fig2: [3] OC 곡선(130명, M1, 75 kg 경계)
   OCP <- fread(file.path(SD, "oc_pass.csv"))[n_rand == NBASE & model == "M1" & boundary == "fixed75"]
@@ -484,10 +484,10 @@ if (mode == "summary") {
   sec_items <- function(h0, h1, type) { i0 <- grep(h0, pl_); i1 <- grep(h1, pl_); stopifnot(length(i0) == 1, length(i1) == 1, i1 > i0)
     x <- pl_[(i0 + 1):(i1 - 1)]; it <- grep("^[0-9]+\\. ", x, value = TRUE)
     first2 <- vapply(strsplit(sub("^[0-9]+\\. ", "", it), "(?<=\\.)\\s+(?=[A-Z])", perl = TRUE), function(z) paste(head(z, 2), collapse = " "), "")   # 첫 두 문장
-    data.table(number = as.integer(sub("^([0-9]+)\\..*", "\\1", it)), type = type, summary = first2, d069 = grepl("D-069|[Aa]mendment 1", it)) }
+    data.table(number = as.integer(sub("^([0-9]+)\\..*", "\\1", it)), type = type, summary = first2, dlog = vapply(regmatches(it, regexec("\\(amendment 1, (D-0[0-9]{2})\\)", it)), function(m) if (length(m) == 2) m[2] else "D-068", "")) }
   pl_ <- readLines(proj_path("plans", "M15_analysis_plan_20261020.md"), warn = FALSE)
   DEV <- rbind(sec_items("^### 13\\.3 ", "^### 13\\.4 ", "deviation after registration"), sec_items("^### 13\\.4 ", "^## 14\\. ", "post hoc analysis"))
-  DEV[, `:=`(plan_section = fifelse(type == "post hoc analysis", "13.4", "13.3"), decision_log = fifelse(d069, "D-069", "D-068"))][, d069 := NULL]   # 개정 1 항목은 D-069
+  DEV[, `:=`(plan_section = fifelse(type == "post hoc analysis", "13.4", "13.3"), decision_log = dlog)][, dlog := NULL]   # 개정 1 항목은 본문의 결정 기록 번호(D-069, 정정은 D-070)
   m15_fwrite_cond(DEV, file.path(SD, "m15_deviations.csv"), COND)
   md <- c(md, "", "## Deviations and post hoc analyses (plan sections 13.3 and 13.4; full text in the plan)", "", "| Section | Number | Type | Summary |", "|---|---|---|---|",
           sprintf("| %s | %d | %s | %s |", DEV$plan_section, DEV$number, DEV$type, DEV$summary))

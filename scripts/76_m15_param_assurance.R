@@ -6,7 +6,7 @@
 #   sets <set_id> [from] [to] [cores] 세트 from~to(50개 묶음, 이어서 실행): 모든 세트가 같은 2,000명(시드 derive_seed(20261020, 'pu', 흐름); 모델·집단과 무관, 세트 간 차이 = 파라미터만),
 #                                     S1·S2에서 [7] 분석식 입력 재추정과 검정력(군당 107, 130명 무작위배정, 참 GMR 0.95, M1, 75 kg 경계),
 #                                     전형 대상자 체중 효과 비(P5, P95 체중 / 75 kg; AUC0-inf, Cmax) → results/m15/amend1/param_assurance/
-#                                     set_id: k2016 | k2016_matched(V2, ke, 체중 지수만) | k2020_cov(공변량 모델 표준오차 차용) | k2020_cov16(+ Vm, F, ka에 Kovalenko 2016 표준오차 차용)
+#                                     set_id: k2016 | k2016_thetas(구조 파라미터 8개만) | k2020_b16(Model 1, Kovalenko 2016 상대 폭 차용; 정정 2026-10-21)
 #                                     검정력 보정(제어 변량): power_corr(s) = power(s) - power(0; 같은 2,000명) + power(0; 저장된 20,000명)
 #   mcnoise [cores]                   세트 0에서 2,000명 표본 30개(시드 derive_seed(20261020, 'pu', 'mc', r, 흐름)): Monte Carlo 잡음
 #   summary                           assurance_param.csv(보정·미보정), weight_ratio_param.csv
@@ -31,7 +31,7 @@ od <- proj_path(CFG$output_dir, "amend1", "param_assurance"); dir.create(od, sho
 
 entries_of <- function(sid) { s <- SETS[[sid]]; if (is.null(s)) stop("set_id 없음: ", sid)
   E <- if (s$model == "k2016") pu_entries_k2016(PU) else pu_entries_k2020(PU, s$entries)
-  if (!is.null(s$only)) E <- E[paste(group, name, sep = ".") %in% unlist(s$only)]                  # 범위 맞춤(k2016_matched: Vc, ke, 체중 지수)
+  if (!is.null(s$only)) E <- E[paste(group, name, sep = ".") %in% unlist(s$only)]                  # 범위 맞춤(k2016_thetas: 구조 파라미터 8개)
   E }
 m15_ss_inputs <- function(x) {                                    # = scripts/72_m15_individual.R ss_inputs
   z <- x[is.finite(AUClast) & AUClast > 0 & is.finite(Cmax) & Cmax > 0]

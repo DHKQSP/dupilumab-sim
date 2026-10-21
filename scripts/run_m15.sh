@@ -53,16 +53,16 @@ case "${1:-}" in
   a1prep)    # 개정 1(계획서 16.12절 3단계): Day 57·64·71 정량 몫, 항약물항체 후보일 농도, 분산 분해(저장 결과와 일치 점검)
     R scripts/72_m15_individual.R amend 4
     ;;
-  a1pilot)   # 16.12절 5단계 예비: mechsuppx Model 1 S1 시험 1~50 → 일치 점검(불일치면 종료 코드 3)
+  a1pilot)   # 16.12절 4단계 예비: mechsuppx Model 1 S1 시험 1~50 → 일치 점검(불일치면 종료 코드 3)
     R scripts/73_m15_trials.R mechsuppx k2020 S1 300 1 50 4
     R scripts/77_m15_amend.R mechcheck k2020 S1
     ;;
-  a1full)    # 16.12절 5단계 본 실행: 네 칸 1~1,000(이미 쓴 묶음은 건너뜀) → 일치 점검 → 참값 확장
+  a1full)    # 16.12절 4단계 본 실행: 네 칸 1~1,000(이미 쓴 묶음은 건너뜀) → 일치 점검 → 참값 확장
     for m in k2020 k2016; do for pop in S1 S2; do R scripts/73_m15_trials.R mechsuppx $m $pop 300 1 1000 4; done; done
     R scripts/77_m15_amend.R mechcheck
     R scripts/71_m15_populations.R truthx 4
     ;;
-  a1post)    # 16.12절 4단계: 표기 반영 사후 단계 재실행(깨끗한 커밋) → 재실행 전 사본과 비교(숫자 열 동일)
+  a1post)    # 16.12절 6단계: 표기 반영 사후 단계 재실행(깨끗한 커밋) → 재실행 전 사본과 비교(숫자 열 동일)
     B=results/m15/amend1/pre_rerun_copy; rm -rf "$B"; mkdir -p "$B"
     for d in summary samplesize weight figures; do mkdir -p "$B/$d"; cp results/m15/$d/*.csv "$B/$d/"; done
     [ -f results/m15/individual/individual_subjects.rds ] || { echo "$(date -u +%FT%TZ) STOP individual_subjects.rds missing" >> "$P"; exit 3; }
@@ -73,7 +73,7 @@ case "${1:-}" in
     R scripts/75_m15_summary.R summary
     R scripts/77_m15_amend.R postcheck "$B"
     ;;
-  a1p1)      # 16.12절 5~6단계 나머지: 교차 확장 → P1 추출 → 저장 반복 사후 예측 점검 표 → P1 보고 → 부록 초안
+  a1p1)      # 16.12절 7~8단계: 교차 확장 → P1 추출 → 저장 반복 사후 예측 점검 표 → P1 보고 → 부록 초안
     R scripts/77_m15_amend.R mechx
     R scripts/77_m15_amend.R extract 4
     R scripts/77_m15_amend.R ppcstored
