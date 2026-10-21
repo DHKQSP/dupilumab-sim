@@ -212,3 +212,7 @@ Execution halted
 2026-10-21T06:15:35Z done scripts/77_m15_amend.R p1report in 5s
 2026-10-21T06:15:35Z start scripts/77_m15_amend.R appendix
 2026-10-21T06:15:40Z done scripts/77_m15_amend.R appendix in 5s
+2026-10-21T06:30:58Z start scripts/77_m15_amend.R p1report
+2026-10-21T06:31:04Z done scripts/77_m15_amend.R p1report in 6s
+2026-10-21T06:31:04Z start scripts/77_m15_amend.R appendix
+2026-10-21T06:31:09Z done scripts/77_m15_amend.R appendix in 5s

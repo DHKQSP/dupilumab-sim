@@ -1,6 +1,6 @@
 # Modelling and simulation appendix: design of the phase 1 pharmacokinetic similarity study
 
-Draft for the European Medicines Agency (EMA) scientific advice briefing document. Structured as in the International Council for Harmonisation (ICH) M15 guideline. Generated on 2026-10-21 from the result files at commit 8df65d0 (plan `plans/M15_analysis_plan_20261020.md`, amendment 1, section 16). Every result is read from a result file and every design setting from the registered configuration (`config/prereg_20261020_m15.yaml`).
+Draft for the European Medicines Agency (EMA) scientific advice briefing document. Structured as in the International Council for Harmonisation (ICH) M15 guideline. Generated on 2026-10-21 from the result files at commit 52c4d09 (plan `plans/M15_analysis_plan_20261020.md`, amendment 1, section 16). Every result is read from a result file and every design setting from the registered configuration (`config/prereg_20261020_m15.yaml`).
 
 Model 1 is Kovalenko 2020 Table 1 Model 1, the initial base structural model reviewed by the US Food and Drug Administration (FDA) in its 2017 clinical pharmacology review (section 4.6); it remains the primary model as registered, and Kovalenko 2016 is the sensitivity model.
 
@@ -31,7 +31,7 @@ Estimates and structure of both models are used as published; nothing is re-esti
 
 ## 3. Posterior predictive check (Li 2020 healthy-volunteer studies)
 
-Arm means simulated 5,000 times with each study's design, dose, schedule and LLOQ (0.078 mg/L) under the registered fixed weight assumption (where weights are not reported, normal mean 78 kg (80 kg for PKM14271), SD 10 kg, sex-specific default bounds; assumption B14). Each cell: predicted median (99% prediction interval); predicted/observed ratio; in-sample status.
+Arm means simulated 5,000 times with each study's design, dose, schedule and LLOQ (0.078 mg/L) under the registered fixed weight assumption (where weights are not reported, subject weights from a normal distribution with mean 78 kg (80 kg for PKM14271) and SD 10 kg; assumption B14). Each cell: predicted median (99% prediction interval); predicted/observed ratio; in-sample status.
 
 | Study arm | Product; assay | Endpoint | Observed mean | Model 1 | Kovalenko 2016 |
 |---|---|---|---|---|---|
@@ -64,7 +64,7 @@ The false-positive rate of the misfit rule when the model is correct is computed
 |---|---|
 | Populations | Global: normal 76.55 kg (SD 9.275), truncated 58 to 95.1 kg; Korean: normal 65.20 kg (SD 6.550), truncated 52.1 to 78.3 kg; inclusion men 60 to 90 kg, women 50 to 90 kg |
 | Dose | 300 mg single subcutaneous dose (200 mg results are not used in this appendix) |
-| Sampling schedules | confirmed schedule: elapsed days 0.25, 1, 3, 5, 7, 10, 14, 21, 28, 35, 42, 49, 56; reduced schedule: elapsed days 0.25, 1, 3, 5, 7, 10, 14, 21, 28, 56; extended schedule: elapsed days 0.25, 1, 3, 5, 7, 10, 14, 21, 28, 35, 42, 49, 56, 63, 70 |
+| Sampling schedules | confirmed schedule: elapsed days 0.25, 1, 3, 5, 7, 10, 14, 21, 28, 35, 42, 49, 56; reduced schedule: elapsed days 0.25, 1, 3, 5, 7, 10, 14, 21, 28, 56; extended schedule: elapsed days 0.25, 1, 3, 5, 7, 10, 14, 21, 28, 35, 42, 49, 56, 63, 70. Day convention: study Day d = elapsed day d - 1 after the dose (elapsed day 56 is Day 57; elapsed days 63 and 70 are Days 64 and 71; the anti-drug antibody days 15, 29 and 85 are elapsed days 14, 28 and 84). |
 | Sample size | 80 to 160 randomized per arm (base 130); 10% withdrawal completely at random; randomization: stratified permuted blocks of 2 within stratum in enrollment order; arm of size n = first n subjects allocated to that arm |
 | Strata and analysis | Two weight strata at 75 kg or at the enrolled median; stratified (treatment + stratum) and unstratified analysis of log AUC0-last and log Cmax |
 | Product differences | True GMR grid 0.80 to 1.25 (21 points) applied to test-arm concentrations; mechanism versions with test-arm F, ka, ke, Vmax multiplied by 0.80 to 1.20; ke, Vmax, ka also at 0.60 to 1.50; ka also at 1.75 and 2.00 |
@@ -80,7 +80,7 @@ The false-positive rate of the misfit rule when the model is correct is computed
 | global | Model 1 | 95.2 (93.7 to 96.4) | 99.2 (98.4 to 99.6) | 2.6 (2.3 to 3.0); 5.3 | 2.3 (2.0 to 2.6); 4.9 | 10,000 |
 | global | Kovalenko 2016 | 96.2 (94.8 to 97.2) | 99.7 (99.1 to 99.9) | 1.9 (1.2 to 2.9); 4.7 | 2.4 (1.6 to 3.5); 5.5 | 1,000 |
 
-Intervals are Wilson 95% intervals of the simulation (Monte Carlo) error only; they do not include parameter or model uncertainty. Korean-population operating characteristics other than power at GMR 0.95 (section 5.2) are not part of the P1 report and are not shown (plan section 16.6).
+Intervals are Wilson 95% intervals of the simulation (Monte Carlo) error only; they do not include parameter or model uncertainty. Korean-population operating characteristics other than power at GMR 0.95 (section 5.2) are not included in this draft (plan section 16.6).
 
 ### 5.2 Sampling evaluation (300 mg; Model 1 / Kovalenko 2016)
 
@@ -115,7 +115,7 @@ Predicted true serum concentrations at candidate anti-drug antibody sampling day
 | Korean | Model 1 | 41.2 | - | 104 | 94.7 (93.1 to 95.9) | - |
 | Korean | Kovalenko 2016 | 38.6 | - | 95 | 97.1 (95.9 to 98.0) | - |
 
-Korean values for 85% power and for assurance are not part of the P1 report and are not shown (plan section 16.6).
+Korean values for 85% power and for assurance are not included in this draft (plan section 16.6).
 
 ### 5.4 Body weight and population
 
@@ -127,7 +127,7 @@ Korean values for 85% power and for assurance are not part of the P1 report and 
 | Part of it absorbed by a 75 kg stratum term (global; Korean) | 73%; 14% | 74%; 14% |
 | Share of enrolled subjects above 75 kg (global; Korean) | 54.9%; 5.2% | same populations |
 
-The two models' weight ratios are near-equal by coincidence: weight acts only on the central volume in both models, and the exponent times the normalized bioavailability sensitivity of AUC0-inf at the global median weight (76.0 kg) is 0.711 x 1.564 = 1.112 for Model 1 and 0.705 x 1.574 = 1.110 for Kovalenko 2016. Each model was confirmed to run with its own exponent (independent recomputation of every stored ratio).
+The two models' weight ratios are near-equal by coincidence: weight acts only on the central volume in both models, and the exponent times the normalized bioavailability sensitivity of AUC0-inf at the 75 kg reference weight is 0.711 x 1.561 = 1.110 for Model 1 and 0.705 x 1.571 = 1.107 for Kovalenko 2016. Each model was confirmed to run with its own exponent (independent recomputation of every stored ratio).
 
 ## 6. Comparison between the two models
 
@@ -187,7 +187,7 @@ Conclusions supported by both models (classes 1 and 2 only; values in the table 
 | In-sample status | Model 1: R668-AS-0907, TDU12265, PKM14161 in its development data, PKM12350, R668-HV-1108, PKM14271 out-of-sample (FDA 2017 review section 4.6). Kovalenko 2016: R668-AS-0907, R668-HV-1108 in-sample, PKM12350, PKM14161, PKM14271, TDU12265 out-of-sample. |
 | Parameter uncertainty | Not propagated in these results; published point estimates are used. Propagation is in progress, with Model 1 uncertainty borrowed from the Kovalenko 2016 bootstrap until Model 1's own bootstrap intervals are entered. |
 | Populations | The Korean population differs from the global one by body weight only (Japanese TDU12265 weight range in place of national survey data); no race effect is in the registered models. |
-| Weights of literature studies | For studies without reported weights, subject weights are drawn from a normal mean 78 kg (80 kg for PKM14271), SD 10 kg, sex-specific default bounds (bounds 50 to 100 kg for men, 40 to 90 kg for women; assumption B14); the uncertain-mean assumption draws one study mean per replicate uniformly within plus or minus 8 kg. Pooled 300 mg AUC0-last predicted/observed at fixed study means of 70 and 86 kg: 1.243 and 1.025 for Model 1, 1.146 and 0.943 for Kovalenko 2016. |
+| Weights of literature studies | For studies without reported weights, subject weights are drawn from a normal distribution with mean 78 kg (80 kg for PKM14271) and SD 10 kg, truncated to 50 to 100 kg for men and 40 to 90 kg for women (assumption B14); the uncertain-mean assumption draws one study mean per replicate uniformly within plus or minus 8 kg. Pooled 300 mg AUC0-last predicted/observed at assumed study means of 70 and 86 kg (simulated mean weights 70.0 and 82.4 kg): 1.243 and 1.025 for Model 1, 1.146 and 0.943 for Kovalenko 2016. |
 | Assay and windows | LLOQ 0.078 mg/L and visit windows are placeholders until the assay and the protocol are final. |
 | Immunogenicity | Anti-drug antibodies are not modelled; the concentrations in section 5.2 are inputs for setting the assay drug tolerance. |
 | 200 mg presentation | Excluded from this appendix (known AUC0-last under-prediction for that presentation). |
